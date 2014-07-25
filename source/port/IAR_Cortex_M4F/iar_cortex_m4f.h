@@ -90,7 +90,10 @@ void func(void)                                                                 
 }                                                                               \
 void func##_ISR(void)
 
+#if defined(NOS_PRIVATE)
 void        nOS_PortInit        (void);
+#endif  /* NOS_PRIVATE */
+
 void        nOS_ContextInit     (nOS_Thread *thread, stack_t *stack, size_t ssize, void(*func)(void*), void *arg);
 
 #if defined(__cplusplus)
