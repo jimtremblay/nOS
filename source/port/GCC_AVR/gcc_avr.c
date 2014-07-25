@@ -8,6 +8,7 @@
  */
 
 #include <avr/io.h>
+#include <avr/interrupt.h>
 
 #define NOS_PRIVATE
 #include "nOS.h"
@@ -16,10 +17,18 @@
 extern "C" {
 #endif
 
-void nOS_ContextInit(nOS_Thread *thread, uint8_t *stack, size_t ssize, void(*func)(void*), void *arg)
+#if defined(NOS_CONFIG_ISR_STACK_SIZE)
+ #if NOS_CONFIG_ISR_STACK_SIZE == 0
+  #error "nOSConfig.h: NOS_CONFIG_ISR_STACK_SIZE is set to invalid value."
+ #else
+  static stack_t isrStack[NOS_CONFIG_ISR_STACK_SIZE];
+ #endif
+#endif
+
+void nOS_ContextInit(nOS_Thread *thread, stack_t *stack, size_t ssize, void(*func)(void*), void *arg)
 {
     /* Stack grow from high to low address */
-    uint8_t *tos = stack + (ssize - 1);
+    stack_t *tos = stack + (ssize - 1);
 
     /* Simulate a call to thread function */
     *tos-- = (uint8_t)((uint16_t)func);
@@ -57,18 +66,22 @@ void nOS_ContextSwitch(void)
     asm volatile("ret");
 }
 
-uint8_t *nOS_IsrLock (uint8_t *sp)
+stack_t *nOS_IsrEnter (stack_t *sp)
 {
     if (nOS_isrNestingCounter == 0) {
         nOS_runningThread->stackPtr = sp;
+        #if defined(NOS_CONFIG_ISR_STACK_SIZE)
+        sp = &isrStack[NOS_CONFIG_ISR_STACK_SIZE-1];
+        #else
         sp = nOS_mainThread.stackPtr;
+        #endif
     }
     nOS_isrNestingCounter++;
 
     return sp;
 }
 
-uint8_t *nOS_IsrUnlock (uint8_t *sp)
+stack_t *nOS_IsrLeave (stack_t *sp)
 {
     nOS_isrNestingCounter--;
     if (nOS_isrNestingCounter == 0) {
