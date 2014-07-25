@@ -29,9 +29,9 @@ nOS_Sem semC;
 nOS_Thread threadA;
 nOS_Thread threadB;
 nOS_Thread threadC;
-uint8_t threadAStack[THREAD_STACK_SIZE];
-uint8_t threadBStack[THREAD_STACK_SIZE];
-uint8_t threadCStack[THREAD_STACK_SIZE];
+stack_t threadAStack[THREAD_STACK_SIZE];
+stack_t threadBStack[THREAD_STACK_SIZE];
+stack_t threadCStack[THREAD_STACK_SIZE];
 
 void ThreadA(void *arg)
 {
@@ -77,9 +77,7 @@ void ThreadC(void *arg)
 
 NOS_ISR(TIMER2_OVF_vect)
 {
-    nOS_IsrEnter();
     nOS_Tick();
-    nOS_IsrLeave();
 }
 
 static void Timer2Init(void)

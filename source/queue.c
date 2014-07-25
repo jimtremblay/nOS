@@ -1,5 +1,4 @@
 /*
- * nOS v0.1
  * Copyright (c) 2014 Jim Tremblay
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -12,7 +11,7 @@
 #define NOS_PRIVATE
 #include "nOS.h"
 
-#ifdef __cplusplus
+#if defined(__cplusplus)
 extern "C" {
 #endif
 
@@ -30,11 +29,11 @@ static void Write (nOS_Queue *queue, uint8_t *buffer)
     queue->count++;
 }
 
-int8_t nOS_QueueCreate (nOS_Queue *queue, void *buffer, uint16_t bsize, uint16_t max)
+nOS_Error nOS_QueueCreate (nOS_Queue *queue, void *buffer, uint16_t bsize, uint16_t max)
 {
-    int8_t  err;
+    nOS_Error   err;
 
-#if NOS_SAFE > 0
+#if NOS_CONFIG_SAFE > 0
     if (queue == NULL) {
         err = NOS_E_NULL;
     } else if (buffer == NULL) {
@@ -61,11 +60,11 @@ int8_t nOS_QueueCreate (nOS_Queue *queue, void *buffer, uint16_t bsize, uint16_t
     return err;
 }
 
-int8_t nOS_QueueRead (nOS_Queue *queue, void *buffer, uint16_t tout)
+nOS_Error nOS_QueueRead (nOS_Queue *queue, void *buffer, uint16_t tout)
 {
-    int8_t      err;
+    nOS_Error   err;
 
-#if NOS_SAFE > 0
+#if NOS_CONFIG_SAFE > 0
     if (queue == NULL) {
         err = NOS_E_NULL;
     } else if (buffer == NULL) {
@@ -95,11 +94,11 @@ int8_t nOS_QueueRead (nOS_Queue *queue, void *buffer, uint16_t tout)
     return err;
 }
 
-int8_t nOS_QueueWrite (nOS_Queue *queue, void *buffer)
+nOS_Error nOS_QueueWrite (nOS_Queue *queue, void *buffer)
 {
-    int8_t      err;
+    nOS_Error   err;
 
-#if NOS_SAFE > 0
+#if NOS_CONFIG_SAFE > 0
     if (queue == NULL) {
         err = NOS_E_NULL;
     } else if (buffer == NULL) {
@@ -120,6 +119,6 @@ int8_t nOS_QueueWrite (nOS_Queue *queue, void *buffer)
     return err;
 }
 
-#ifdef __cplusplus
+#if defined(__cplusplus)
 }
 #endif

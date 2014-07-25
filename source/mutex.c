@@ -1,5 +1,4 @@
 /*
- * nOS v0.1
  * Copyright (c) 2014 Jim Tremblay
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -10,15 +9,15 @@
 #define NOS_PRIVATE
 #include "nOS.h"
 
-#ifdef __cplusplus
+#if defined(__cplusplus)
 extern "C" {
 #endif
 
-int8_t nOS_MutexCreate (nOS_Mutex *mutex, uint8_t type, uint8_t prio)
+nOS_Error nOS_MutexCreate (nOS_Mutex *mutex, uint8_t type, uint8_t prio)
 {
-    int8_t  err;
+    nOS_Error   err;
 
-#if NOS_SAFE > 0
+#if NOS_CONFIG_SAFE > 0
     if (mutex == NULL) {
         err = NOS_E_NULL;
     } else if ((type != NOS_MUTEX_NORMAL) && (type != NOS_MUTEX_RECURSIVE)) {
@@ -52,11 +51,11 @@ int8_t nOS_MutexCreate (nOS_Mutex *mutex, uint8_t type, uint8_t prio)
  * NOS_E_TIMEOUT: Mutex can't be taken in required time
  * NOS_E_OVERFLOW: Mutex have been locked too much times
  */
-int8_t nOS_MutexLock (nOS_Mutex *mutex, uint16_t tout)
+nOS_Error nOS_MutexLock (nOS_Mutex *mutex, uint16_t tout)
 {
-    int8_t          err;
+    nOS_Error   err;
 
-#if NOS_SAFE > 0
+#if NOS_CONFIG_SAFE > 0
     if (mutex == NULL) {
         err = NOS_E_NULL;
     } else
@@ -116,12 +115,12 @@ int8_t nOS_MutexLock (nOS_Mutex *mutex, uint16_t tout)
  * NOS_E_OWNER: You can't unlock the mutex for the owner
  * NOS_E_UNDERFLOW: Mutex have been unlocked too much times
  */
-int8_t nOS_MutexUnlock (nOS_Mutex *mutex)
+nOS_Error nOS_MutexUnlock (nOS_Mutex *mutex)
 {
     nOS_Thread      *thread;
-    int8_t          err;
+    nOS_Error       err;
 
-#if NOS_SAFE > 0
+#if NOS_CONFIG_SAFE > 0
     if (mutex == NULL) {
         err = NOS_E_NULL;
     } else
@@ -163,6 +162,6 @@ int8_t nOS_MutexUnlock (nOS_Mutex *mutex)
     return err;
 }
 
-#ifdef __cplusplus
+#if defined(__cplusplus)
 }
 #endif

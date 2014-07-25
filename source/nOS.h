@@ -1,5 +1,4 @@
 /*
- * nOS v0.1
  * Copyright (c) 2014 Jim Tremblay
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -13,24 +12,36 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#ifdef __cplusplus
+#if defined(__cplusplus)
 extern "C" {
 #endif
 
-#ifdef NOS_GLOBALS
+#if defined(NOS_GLOBALS)
  #define NOS_EXTERN
 #else
  #define NOS_EXTERN     extern
 #endif
-
-#ifndef NOS_HIGHEST_PRIO
- #define NOS_HIGHEST_PRIO           15
-#elif NOS_HIGHEST_PRIO > 255
- #error "nOS_Cfg.h: NOS_HIGHEST_PRIO can't be higher than 255."
+  
+#define NOS_VERSION     2
+  
+#if defined(NOS_USE_CONFIG_FILE)
+#include "nOSConfig.h"
 #endif
 
-#ifndef NOS_SAFE
- #define NOS_SAFE                   0
+#ifndef NOS_CONFIG_MAX_THREAD_PRIO
+ #define NOS_CONFIG_MAX_THREAD_PRIO             15
+ #if defined(NOS_USE_CONFIG_FILE)
+  #warning "nOSConfig.h: NOS_CONFIG_MAX_THREAD_PRIO is not defined (default to 15)."
+ #endif
+#elif NOS_CONFIG_MAX_THREAD_PRIO > 255
+ #error "nOS_Cfg.h: NOS_CONFIG_MAX_THREAD_PRIO can't be higher than 255."
+#endif
+
+#ifndef NOS_CONFIG_SAFE
+ #define NOS_CONFIG_SAFE                        0
+ #if defined(NOS_USE_CONFIG_FILE)
+  #warning "nOSConfig.h: NOS_CONFIG_SAFE is not defined (default to 0)."
+ #endif
 #endif
 
 typedef struct _nOS_List        nOS_List;
@@ -44,6 +55,25 @@ typedef struct _nOS_Flag        nOS_Flag;
 typedef struct _nOS_FlagContext nOS_FlagContext;
 typedef struct _nOS_FlagResult  nOS_FlagResult;
 typedef struct _nOS_Mem         nOS_Mem;
+
+typedef enum _nOS_Error
+{
+    NOS_OK = 0,
+    NOS_E_NULL = -1,
+    NOS_E_INV_VAL = -2,
+    NOS_E_LOCKED = -3,
+    NOS_E_ISR = -4,
+    NOS_E_IDLE = -5,
+    NOS_E_TIMEOUT = -6,
+    NOS_E_UNDERFLOW = -7,
+    NOS_E_OVERFLOW = -8,
+    NOS_E_AGAIN = -9,
+    NOS_E_OWNER = -10,
+    NOS_E_EMPTY = -11,
+    NOS_E_FULL = -12
+} nOS_Error;
+
+#include "port.h"
 
 struct _nOS_List
 {
@@ -60,9 +90,9 @@ struct _nOS_Node
 
 struct _nOS_Thread
 {
-    uint8_t         *stackPtr;
+    stack_t         *stackPtr;
     uint8_t         prio;
-    int8_t          error;
+    nOS_Error       error;
     uint8_t         state;
     uint16_t        timeout;
     nOS_Event       *event;
@@ -132,8 +162,6 @@ struct _nOS_Mem
     uint16_t        count;
 };
 
-#include "port.h"
-
 #define NOS_PRIO_IDLE               0
 
 #define NOS_NO_WAIT                 0
@@ -150,20 +178,6 @@ struct _nOS_Mem
 #define NOS_SUSPENDED               0x40
 #define NOS_STOPPED                 0x80
 
-#define NOS_OK                      0
-#define NOS_E_NULL                  -1
-#define NOS_E_INV_VAL               -2
-#define NOS_E_LOCKED                -3
-#define NOS_E_ISR                   -4
-#define NOS_E_IDLE                  -5
-#define NOS_E_UNDERFLOW             -6
-#define NOS_E_OVERFLOW              -7
-#define NOS_E_AGAIN                 -8
-#define NOS_E_OWNER                 -9
-#define NOS_E_TIMEOUT               -10
-#define NOS_E_EMPTY                 -11
-#define NOS_E_FULL                  -12
-
 #define NOS_MUTEX_NORMAL            0
 #define NOS_MUTEX_RECURSIVE         1
 #define NOS_MUTEX_PRIO_INHERIT      0
@@ -174,7 +188,7 @@ struct _nOS_Mem
 #define NOS_FLAG_CLEAR_ON_EXIT      0x02
 #define NOS_FLAG_NONE               0
 
-#ifdef NOS_PRIVATE
+#if defined(NOS_PRIVATE)
 NOS_EXTERN nOS_Thread   nOS_mainThread;
 
 NOS_EXTERN uint8_t      nOS_isrNestingCounter;
@@ -184,21 +198,30 @@ NOS_EXTERN nOS_Thread   *nOS_runningThread;
 NOS_EXTERN nOS_Thread   *nOS_highPrioThread;
 
 NOS_EXTERN nOS_List     nOS_fullList;
-NOS_EXTERN nOS_List     nOS_readyList[NOS_HIGHEST_PRIO+1];
-#if NOS_HIGHEST_PRIO < 8
+NOS_EXTERN nOS_List     nOS_readyList[NOS_CONFIG_MAX_THREAD_PRIO+1];
+#if defined(NOS_PORT_SCHED_USE_32_BITS)
+#if NOS_CONFIG_MAX_THREAD_PRIO < 32
+NOS_EXTERN uint32_t     nOS_readyPrio;
+#elif NOS_CONFIG_MAX_THREAD_PRIO < 256
+NOS_EXTERN uint32_t     nOS_readyGroup;
+NOS_EXTERN uint32_t     nOS_readyPrio[8];
+#endif  /* NOS_CONFIG_MAX_THREAD_PRIO */
+#else   /* NOS_PORT_SCHED_USE_32_BITS */
+#if NOS_CONFIG_MAX_THREAD_PRIO < 8
 NOS_EXTERN uint8_t      nOS_readyPrio;
-#elif NOS_HIGHEST_PRIO < 16
+#elif NOS_CONFIG_MAX_THREAD_PRIO < 16
 NOS_EXTERN uint16_t     nOS_readyPrio;
-#elif NOS_HIGHEST_PRIO < 64
+#elif NOS_CONFIG_MAX_THREAD_PRIO < 64
 NOS_EXTERN uint8_t      nOS_readyGroup;
 NOS_EXTERN uint8_t      nOS_readyPrio[8];
-#elif NOS_HIGHEST_PRIO < 256
+#elif NOS_CONFIG_MAX_THREAD_PRIO < 256
 NOS_EXTERN uint16_t     nOS_readyGroup;
 NOS_EXTERN uint16_t     nOS_readyPrio[16];
-#endif
+#endif  /* NOS_CONFIG_MAX_THREAD_PRIO */
+#endif  /* NOS_PORT_SCHED_USE_32_BITS */
 #endif  /* NOS_PRIVATE */
 
-#ifdef NOS_PRIVATE
+#if defined(NOS_PRIVATE)
 nOS_Thread* SchedHighPrio               (void);
 void        AppendThreadToReadyList     (nOS_Thread *thread);
 void        RemoveThreadFromReadyList   (nOS_Thread *thread);
@@ -209,14 +232,14 @@ void        TickThread                  (void *payload, void *arg);
 void        SignalThread                (nOS_Thread  *thread);
 #endif /* NOS_PRIVATE */
 
-int8_t      nOS_Init                    (void);
-int8_t      nOS_Sched                   (void);
-int8_t      nOS_Yield                   (void);
+nOS_Error   nOS_Init                    (void);
+nOS_Error   nOS_Sched                   (void);
+nOS_Error   nOS_Yield                   (void);
 void        nOS_Tick                    (void);
-int8_t      nOS_Sleep                   (uint16_t dly);
+nOS_Error   nOS_Sleep                   (uint16_t dly);
 
-int8_t      nOS_SchedLock               (void);
-int8_t      nOS_SchedUnlock             (void);
+nOS_Error   nOS_SchedLock               (void);
+nOS_Error   nOS_SchedUnlock             (void);
 
 void        nOS_ListInit                (nOS_List *list);
 void*       nOS_ListHead                (nOS_List *list);
@@ -225,41 +248,41 @@ void        nOS_ListRemove              (nOS_List *list, nOS_Node *node);
 void        nOS_ListRotate              (nOS_List *list);
 void        nOS_ListWalk                (nOS_List *list, void(*callback)(void*, void*), void *arg);
 
-int8_t      nOS_ThreadCreate            (nOS_Thread *thread, void(*func)(void*), void *arg, uint8_t *sp, size_t ssize, uint8_t prio, uint8_t state);
-int8_t      nOS_ThreadDelete            (nOS_Thread *thread);
-int8_t      nOS_ThreadSuspend           (nOS_Thread *thread);
-int8_t      nOS_ThreadSuspendAll        (void);
-int8_t      nOS_ThreadResume            (nOS_Thread *thread);
-int8_t      nOS_ThreadResumeAll         (void);
+nOS_Error   nOS_ThreadCreate            (nOS_Thread *thread, void(*func)(void*), void *arg, stack_t *sp, size_t ssize, uint8_t prio, uint8_t state);
+nOS_Error   nOS_ThreadDelete            (nOS_Thread *thread);
+nOS_Error   nOS_ThreadSuspend           (nOS_Thread *thread);
+nOS_Error   nOS_ThreadSuspendAll        (void);
+nOS_Error   nOS_ThreadResume            (nOS_Thread *thread);
+nOS_Error   nOS_ThreadResumeAll         (void);
 uint8_t     nOS_ThreadGetPriority       (nOS_Thread *thread);
-int8_t      nOS_ThreadSetPriority       (nOS_Thread *thread, uint8_t prio);
+nOS_Error   nOS_ThreadSetPriority       (nOS_Thread *thread, uint8_t prio);
 nOS_Thread* nOS_ThreadRunning           (void);
 
 void        nOS_EventCreate             (nOS_Event *event);
-int8_t      nOS_EventWait               (nOS_Event *event, uint8_t state, uint16_t tout);
+nOS_Error   nOS_EventWait               (nOS_Event *event, uint8_t state, uint16_t tout);
 nOS_Thread* nOS_EventSignal             (nOS_Event *event);
 
-int8_t      nOS_SemCreate               (nOS_Sem *sem, uint16_t cntr, uint16_t max);
-int8_t      nOS_SemTake                 (nOS_Sem *sem, uint16_t tout);
-int8_t      nOS_SemGive                 (nOS_Sem *sem);
+nOS_Error   nOS_SemCreate               (nOS_Sem *sem, uint16_t cntr, uint16_t max);
+nOS_Error   nOS_SemTake                 (nOS_Sem *sem, uint16_t tout);
+nOS_Error   nOS_SemGive                 (nOS_Sem *sem);
 
-int8_t      nOS_MutexCreate             (nOS_Mutex *mutex, uint8_t type, uint8_t prio);
-int8_t      nOS_MutexLock               (nOS_Mutex *mutex, uint16_t tout);
-int8_t      nOS_MutexUnlock             (nOS_Mutex *mutex);
+nOS_Error   nOS_MutexCreate             (nOS_Mutex *mutex, uint8_t type, uint8_t prio);
+nOS_Error   nOS_MutexLock               (nOS_Mutex *mutex, uint16_t tout);
+nOS_Error   nOS_MutexUnlock             (nOS_Mutex *mutex);
 
-int8_t      nOS_QueueCreate             (nOS_Queue *queue, void *buffer, uint16_t bsize, uint16_t max);
-int8_t      nOS_QueueRead               (nOS_Queue *queue, void *buffer, uint16_t tout);
-int8_t      nOS_QueueWrite              (nOS_Queue *queue, void *buffer);
+nOS_Error   nOS_QueueCreate             (nOS_Queue *queue, void *buffer, uint16_t bsize, uint16_t max);
+nOS_Error   nOS_QueueRead               (nOS_Queue *queue, void *buffer, uint16_t tout);
+nOS_Error   nOS_QueueWrite              (nOS_Queue *queue, void *buffer);
 
-int8_t      nOS_FlagCreate              (nOS_Flag *flag, unsigned int flags);
-int8_t      nOS_FlagWait                (nOS_Flag *flag, uint8_t opt, unsigned int flags, unsigned int *res, uint16_t tout);
-int8_t      nOS_FlagSet                 (nOS_Flag *flag, unsigned int flags, unsigned int mask);
+nOS_Error   nOS_FlagCreate              (nOS_Flag *flag, unsigned int flags);
+nOS_Error   nOS_FlagWait                (nOS_Flag *flag, uint8_t opt, unsigned int flags, unsigned int *res, uint16_t tout);
+nOS_Error   nOS_FlagSet                 (nOS_Flag *flag, unsigned int flags, unsigned int mask);
 
-int8_t      nOS_MemCreate               (nOS_Mem *mem, void *buffer, size_t bsize, uint16_t max);
+nOS_Error   nOS_MemCreate               (nOS_Mem *mem, void *buffer, size_t bsize, uint16_t max);
 void*       nOS_MemAlloc                (nOS_Mem *mem, uint16_t tout);
-int8_t      nOS_MemFree                 (nOS_Mem *mem, void *block);
+nOS_Error   nOS_MemFree                 (nOS_Mem *mem, void *block);
 
-#ifdef __cplusplus
+#if defined(__cplusplus)
 }
 #endif
 

@@ -1,5 +1,4 @@
 /*
- * nOS v0.1
  * Copyright (c) 2014 Jim Tremblay
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -10,7 +9,7 @@
 #define NOS_PRIVATE
 #include "nOS.h"
 
-#ifdef __cplusplus
+#if defined(__cplusplus)
 extern "C" {
 #endif
 
@@ -100,12 +99,12 @@ void SetThreadPriority (nOS_Thread *thread, uint8_t prio)
     }
 }
 
-int8_t nOS_ThreadCreate (nOS_Thread *thread, void(*func)(void*), void *arg,
-                         uint8_t *stack, size_t ssize, uint8_t prio, uint8_t state)
+nOS_Error nOS_ThreadCreate (nOS_Thread *thread, void(*func)(void*), void *arg,
+                            stack_t *stack, size_t ssize, uint8_t prio, uint8_t state)
 {
-    int8_t  err;
+    nOS_Error   err;
 
-#if NOS_SAFE > 0
+#if NOS_CONFIG_SAFE > 0
     if (thread == NULL) {
         err = NOS_E_NULL;
     } else if (func == NULL) {
@@ -114,7 +113,7 @@ int8_t nOS_ThreadCreate (nOS_Thread *thread, void(*func)(void*), void *arg,
         err = NOS_E_INV_VAL;
     } else if (ssize == 0) {
         err = NOS_E_INV_VAL;
-    } else if (prio > NOS_HIGHEST_PRIO) {
+    } else if (prio > NOS_CONFIG_MAX_THREAD_PRIO) {
         err = NOS_E_INV_VAL;
     } else if ((state != NOS_READY) && (state != NOS_SUSPENDED)) {
         err = NOS_E_INV_VAL;
@@ -145,9 +144,9 @@ int8_t nOS_ThreadCreate (nOS_Thread *thread, void(*func)(void*), void *arg,
     return err;
 }
 
-int8_t nOS_ThreadSuspend (nOS_Thread *thread)
+nOS_Error nOS_ThreadSuspend (nOS_Thread *thread)
 {
-    int8_t err;
+    nOS_Error   err;
 
     if (thread == NULL) {
         thread = nOS_runningThread;
@@ -170,9 +169,9 @@ int8_t nOS_ThreadSuspend (nOS_Thread *thread)
     return err;
 }
 
-int8_t nOS_ThreadSuspendAll (void)
+nOS_Error nOS_ThreadSuspendAll (void)
 {
-    int8_t      err;
+    nOS_Error   err;
 
     if ((nOS_lockNestingCounter > 0) && (nOS_runningThread != &nOS_mainThread)) {
         err = NOS_E_LOCKED;
@@ -189,11 +188,11 @@ int8_t nOS_ThreadSuspendAll (void)
     return err;
 }
 
-int8_t nOS_ThreadResume (nOS_Thread *thread)
+nOS_Error nOS_ThreadResume (nOS_Thread *thread)
 {
-    int8_t  err;
+    nOS_Error   err;
 
-#if NOS_SAFE > 0
+#if NOS_CONFIG_SAFE > 0
     if (thread == NULL) {
         err = NOS_E_NULL;
     } else if (thread == nOS_runningThread) {
@@ -215,7 +214,7 @@ int8_t nOS_ThreadResume (nOS_Thread *thread)
     return err;
 }
 
-int8_t nOS_ThreadResumeAll (void)
+nOS_Error nOS_ThreadResumeAll (void)
 {
     uint8_t sched = 0;
 
@@ -230,12 +229,12 @@ int8_t nOS_ThreadResumeAll (void)
     return NOS_OK;
 }
 
-int8_t nOS_ThreadSetPriority (nOS_Thread *thread, uint8_t prio)
+nOS_Error nOS_ThreadSetPriority (nOS_Thread *thread, uint8_t prio)
 {
-    int8_t  err;
+    nOS_Error   err;
 
-#if NOS_SAFE > 0
-    if (prio > NOS_HIGHEST_PRIO) {
+#if NOS_CONFIG_SAFE > 0
+    if (prio > NOS_CONFIG_MAX_THREAD_PRIO) {
         err = NOS_E_INV_VAL;
     } else
 #endif
@@ -273,15 +272,9 @@ uint8_t nOS_ThreadGetPriority (nOS_Thread *thread)
 
 nOS_Thread* nOS_ThreadRunning(void)
 {
-    nOS_Thread  *thread;
-
-    nOS_CriticalEnter();
-    thread = nOS_runningThread;
-    nOS_CriticalLeave();
-
-    return thread;
+    return nOS_runningThread;
 }
 
-#ifdef __cplusplus
+#if defined(__cplusplus)
 }
 #endif

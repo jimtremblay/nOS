@@ -1,5 +1,4 @@
 /*
- * nOS v0.1
  * Copyright (c) 2014 Jim Tremblay
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -10,7 +9,7 @@
 #define NOS_PRIVATE
 #include "nOS.h"
 
-#ifdef __cplusplus
+#if defined(__cplusplus)
 extern "C" {
 #endif
 
@@ -59,11 +58,11 @@ static void TestFlag (void *payload, void *arg)
  *               behavior is undefined and must be called one time
  *               ONLY for each flag object.
  */
-int8_t nOS_FlagCreate (nOS_Flag *flag, unsigned int flags)
+nOS_Error nOS_FlagCreate (nOS_Flag *flag, unsigned int flags)
 {
-    int8_t  err;
+    nOS_Error   err;
 
-#if NOS_SAFE > 0
+#if NOS_CONFIG_SAFE > 0
     if (flag == NULL) {
         err = NOS_E_FULL;
     } else
@@ -112,13 +111,13 @@ int8_t nOS_FlagCreate (nOS_Flag *flag, unsigned int flags)
  *
  * Note        : Safe to be called from threads ONLY with scheduler unlocked.
  */
-int8_t nOS_FlagWait (nOS_Flag *flag, uint8_t opt, unsigned int flags, unsigned int *res, uint16_t tout)
+nOS_Error nOS_FlagWait (nOS_Flag *flag, uint8_t opt, unsigned int flags, unsigned int *res, uint16_t tout)
 {
-    int8_t          err;
+    nOS_Error       err;
     nOS_FlagContext ctx;
     unsigned int    r;
 
-#if NOS_SAFE > 0
+#if NOS_CONFIG_SAFE > 0
     if (flag == NULL) {
         err = NOS_E_NULL;
     } else
@@ -182,12 +181,12 @@ int8_t nOS_FlagWait (nOS_Flag *flag, uint8_t opt, unsigned int flags, unsigned i
  *
  * Note        : Safe to be called from threads, idle and ISR.
  */
-int8_t nOS_FlagSet (nOS_Flag *flag, unsigned int flags, unsigned int mask)
+nOS_Error nOS_FlagSet (nOS_Flag *flag, unsigned int flags, unsigned int mask)
 {
-    int8_t          err;
+    nOS_Error       err;
     nOS_FlagResult  res;
 
-#if NOS_SAFE > 0
+#if NOS_CONFIG_SAFE > 0
     if (flag == NULL) {
         err = NOS_E_NULL;
     } else
@@ -211,6 +210,6 @@ int8_t nOS_FlagSet (nOS_Flag *flag, unsigned int flags, unsigned int mask)
     return err;
 }
 
-#ifdef __cplusplus
+#if defined(__cplusplus)
 }
 #endif

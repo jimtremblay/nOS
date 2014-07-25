@@ -1,5 +1,4 @@
 /*
- * nOS v0.1
  * Copyright (c) 2014 Jim Tremblay
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -10,17 +9,17 @@
 #define NOS_PRIVATE
 #include "nOS.h"
 
-#ifdef __cplusplus
+#if defined(__cplusplus)
 extern "C" {
 #endif
 
-int8_t nOS_MemCreate (nOS_Mem *mem, void *buffer, size_t bsize, uint16_t max)
+nOS_Error nOS_MemCreate (nOS_Mem *mem, void *buffer, size_t bsize, uint16_t max)
 {
-    int8_t      err;
+    nOS_Error   err;
     uint16_t    i;
     void        **list;
 
-#if NOS_SAFE > 0
+#if NOS_CONFIG_SAFE > 0
     if (mem == NULL) {
         err = NOS_E_NULL;
     } else if (buffer == NULL) {
@@ -56,7 +55,7 @@ void *nOS_MemAlloc(nOS_Mem *mem, uint16_t tout)
     int8_t  err;
     void    *block;
 
-#if NOS_SAFE > 0
+#if NOS_CONFIG_SAFE > 0
     if (mem == NULL) {
         block = NULL;
     } else
@@ -82,12 +81,12 @@ void *nOS_MemAlloc(nOS_Mem *mem, uint16_t tout)
     return block;
 }
 
-int8_t nOS_MemFree(nOS_Mem *mem, void *block)
+nOS_Error nOS_MemFree(nOS_Mem *mem, void *block)
 {
-    int8_t      err;
+    nOS_Error   err;
     nOS_Thread  *thread;
 
-#if NOS_SAFE > 0
+#if NOS_CONFIG_SAFE > 0
     if (mem == NULL) {
         err = NOS_E_NULL;
     } else if (block == NULL) {
@@ -118,6 +117,6 @@ int8_t nOS_MemFree(nOS_Mem *mem, void *block)
     return err;
 }
 
-#ifdef __cplusplus
+#if defined(__cplusplus)
 }
 #endif

@@ -1,5 +1,4 @@
 /*
- * nOS v0.1
  * Copyright (c) 2014 Jim Tremblay
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -10,15 +9,15 @@
 #define NOS_PRIVATE
 #include "nOS.h"
 
-#ifdef __cplusplus
+#if defined(__cplusplus)
 extern "C" {
 #endif
 
-int8_t nOS_SemCreate (nOS_Sem *sem, uint16_t count, uint16_t max)
+nOS_Error nOS_SemCreate (nOS_Sem *sem, uint16_t count, uint16_t max)
 {
-    int8_t  err;
+    nOS_Error   err;
 
-#if NOS_SAFE > 0
+#if NOS_CONFIG_SAFE > 0
     if (sem == NULL) {
         err = NOS_E_NULL;
     } else if (max == 0) {
@@ -50,11 +49,11 @@ int8_t nOS_SemCreate (nOS_Sem *sem, uint16_t count, uint16_t max)
  * NOS_E_IDLE: Idle thread can't wait for semaphore
  * NOS_E_TIMEOUT: Semaphore can't be taken in required time
  */
-int8_t nOS_SemTake (nOS_Sem *sem, uint16_t tout)
+nOS_Error nOS_SemTake (nOS_Sem *sem, uint16_t tout)
 {
-    int8_t          err;
+    nOS_Error   err;
 
-#if NOS_SAFE > 0
+#if NOS_CONFIG_SAFE > 0
     if (sem == NULL) {
         err = NOS_E_NULL;
     } else
@@ -87,12 +86,12 @@ int8_t nOS_SemTake (nOS_Sem *sem, uint16_t tout)
  * NOS_OK: Succeed to give semaphore
  * NOS_E_OVERFLOW: Too much semaphore given, limit exceeded
  */
-int8_t nOS_SemGive (nOS_Sem *sem)
+nOS_Error nOS_SemGive (nOS_Sem *sem)
 {
     nOS_Thread  *thread;
-    int8_t      err;
+    nOS_Error   err;
 
-#if NOS_SAFE > 0
+#if NOS_CONFIG_SAFE > 0
     if (sem == NULL) {
         err = NOS_E_NULL;
     } else
@@ -119,6 +118,6 @@ int8_t nOS_SemGive (nOS_Sem *sem)
     return err;
 }
 
-#ifdef __cplusplus
+#if defined(__cplusplus)
 }
 #endif
