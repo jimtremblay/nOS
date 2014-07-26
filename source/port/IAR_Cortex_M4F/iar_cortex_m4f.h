@@ -10,7 +10,6 @@
 #define IAR_ARM7M_H
 
 #include <stdint.h>
-
 #include <intrinsics.h>
 
 #if defined(__cplusplus)
@@ -29,7 +28,7 @@ typedef uint32_t            stack_t;
  #define NOS_NVIC_PRIO_BITS                 4
 #endif
 
-#ifndef NOS_CONFIG_ISR_STACK_SIZE
+#if !defined(NOS_CONFIG_ISR_STACK_SIZE)
  #define NOS_CONFIG_ISR_STACK_SIZE            128
  #if defined(NOS_USE_CONFIG_FILE)
   #warning "nOSConfig.h: NOS_CONFIG_ISR_STACK_SIZE is not defined (default to 128)."
@@ -40,7 +39,7 @@ typedef uint32_t            stack_t;
  #endif
 #endif
 
-#ifndef NOS_CONFIG_MAX_UNSAFE_ISR_PRIO
+#if !defined(NOS_CONFIG_MAX_UNSAFE_ISR_PRIO)
  #define NOS_CONFIG_MAX_UNSAFE_ISR_PRIO       5
  #if defined(NOS_USE_CONFIG_FILE)
   #warning "nOSConfig.h: NOS_CONFIG_MAX_UNSAFE_ISR_PRIO is not defined (default to 5)."
@@ -52,7 +51,7 @@ typedef uint32_t            stack_t;
 #endif
 
 #define NOS_PORT_MAX_UNSAFE_BASEPRI         (NOS_CONFIG_MAX_UNSAFE_ISR_PRIO << (8 - NOS_NVIC_PRIO_BITS))
-  
+
 #define nOS_CriticalEnter()                                                     \
 {                                                                               \
     uint32_t _basepri = __get_BASEPRI();                                        \
