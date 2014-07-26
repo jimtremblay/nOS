@@ -33,6 +33,7 @@ PendSV_Handler:
     /* Set interrupt mask to disable interrupts that use nOS API */
     MOV         R0,         #NOS_PORT_MAX_UNSAFE_BASEPRI
     MSR         BASEPRI,    R0
+    ISB
 
     /* Save PSP before doing anything, PendSV_Handler already running on MSP */
     MRS         R12,        PSP
@@ -76,10 +77,12 @@ PendSV_Handler:
     
     /* Restore psp to high prio thread stack */
     MSR         PSP,        R12
+    ISB
     
     /* Clear interrupt mask to re-enable interrupts */
     MOV         R0,         #0
     MSR         BASEPRI,    R0
+    ISB
 
 	BX          LR
     
