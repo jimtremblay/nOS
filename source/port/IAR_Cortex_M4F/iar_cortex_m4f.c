@@ -27,12 +27,6 @@ void nOS_PortInit(void)
     __set_CONTROL(__get_CONTROL() | 0x00000002UL);
     /* Set PendSV and SysTick to lowest priority */
     *(volatile uint32_t *)0xe000ed20 |= 0xffff0000;
-    #if defined(__ARMVFP__)
-    /* Enable VFP */
-    *(volatile uint32_t *)0xe000ed88 |= 0x00f00000;
-    /* Always save */
-    *(volatile uint32_t *)0xe000ef34 |= 0xc0000000;
-    #endif
     nOS_CriticalLeave();
 }
 

@@ -52,6 +52,8 @@ typedef uint32_t            stack_t;
 
 #define NOS_PORT_MAX_UNSAFE_BASEPRI         (NOS_CONFIG_MAX_UNSAFE_ISR_PRIO << (8 - NOS_NVIC_PRIO_BITS))
 
+#define nOS_PortCLZ(n)                      __CLZ(n)
+
 #define nOS_CriticalEnter()                                                     \
 {                                                                               \
     uint32_t _basepri = __get_BASEPRI();                                        \
@@ -61,6 +63,8 @@ typedef uint32_t            stack_t;
       
 #define nOS_CriticalLeave()                                                     \
     __set_BASEPRI(_basepri);                                                    \
+    __DSB();                                                                    \
+    __ISB();                                                                    \
 }
 
 /*
