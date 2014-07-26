@@ -34,8 +34,8 @@ void nOS_PortInit(void)
     /* Set current stack to psp and priviledge mode */
     __asm volatile (
     	"MRS	R0,			CONTROL					\n"
-    	"ORRS	R0,			R0,			#2			\n"
-    	"MSR	CONTROL,	R1						\n"
+    	"ORR	R0,			R0,			#2			\n"
+    	"MSR	CONTROL,	R0						\n"
     );
     /* Set PendSV and SysTick to lowest priority */
     *(volatile uint32_t *)0xe000ed20 |= 0xffff0000;
@@ -81,92 +81,41 @@ void nOS_IsrLeave (void)
 
 void PendSV_Handler(void)
 {
-    /* Set interrupt mask to disable interrupts that use nOS API */
 	__asm volatile (
-		"MOV		R0,			%0					\n"
+		"MOV		R0,			%0					\n"	/* Set interrupt mask to disable interrupts that use nOS API */
 		"MSR		BASEPRI,	R0					\n"
-		:
-		: "I" (NOS_PORT_MAX_UNSAFE_BASEPRI)
-	);
-
-    /* Save PSP before doing anything, PendSV_Handler already running on MSP */
-	__asm volatile (
-		"MRS		R12,		PSP					\n"
+		"MRS		R12,		PSP					\n"	/* Save PSP before doing anything, PendSV_Handler already running on MSP */
 		"ISB										\n"
-	);
-
-    /* Get the location of nOS_runningThread */
-    __asm volatile (
-    	"LDR		R3,			=runningThread		\n"
-    	"LDR		R2,     	[R3]				\n"
-    	"											\n"
-    	".align 2									\n"
-    	"runningThread: .word nOS_runningThread		\n"
-    );
-
+		"LDR		R3,			runningThread		\n"	/* Get the location of nOS_runningThread */
+		"LDR		R2,     	[R3]				\n"
 #if defined(__ARM_PCS_VFP)
-    /* Is the thread using the VFP ? Yes, push high VFP registers */
-    __asm volatile (
-    	"TST		LR,			#0x10				\n"
-    	"IT			EQ								\n"
-    	"VSTMDBEQ	R12!,		{S16-S31}			\n"
-    );
+		"TST		LR,			#0x10				\n"	/* Is the thread using the VFP ? Yes, push high VFP registers */
+		"IT			EQ								\n"
+		"VSTMDBEQ	R12!,		{S16-S31}			\n"
 #endif
-
-    /* Push remaining registers on thread stack */
-	__asm volatile (
-		"STMDB		R12!,		{R4-R11, LR}		\n"
-	);
-
-    /* Save psp to nOS_Thread object of current running thread */
-	__asm volatile (
-		"STR		R12,		[R2]				\n"
-	);
-
-    /* Copy nOS_highPrioThread to nOS_runningThread */
-	__asm volatile (
-		"LDR		R1,			=highPrioThread		\n"
+		"STMDB		R12!,		{R4-R11, LR}		\n"	/* Push remaining registers on thread stack */
+		"STR		R12,		[R2]				\n"	/* Save psp to nOS_Thread object of current running thread */
+		"LDR		R1,			highPrioThread		\n"	/* Copy nOS_highPrioThread to nOS_runningThread */
 		"LDR		R0,			[R1]				\n"
 		"STR		R0,			[R3]				\n"
-		"											\n"
-		".align 2									\n"
-		"highPrioThread: .word nOS_highPrioThread	\n"
-	);
-
-    /* Restore psp from nOS_Thread object of high prio thread */
-	__asm volatile (
-		"LDR		R2,			[R1]				\n"
+		"LDR		R2,			[R1]				\n"	/* Restore psp from nOS_Thread object of high prio thread */
 		"LDR		R12,		[R2]				\n"
-	);
-
-    /* Pop registers from thread stack */
-	__asm volatile (
-		"LDMIA		R12!,		{R4-R11, LR}		\n"
-	);
-
+		"LDMIA		R12!,		{R4-R11, LR}		\n"	/* Pop registers from thread stack */
 #if defined(__ARM_PCS_VFP)
-    /* Is the thread using the VFP ? Yes, pop high VFP registers */
-	__asm volatile (
-		"TST		LR,			#0x10				\n"
+		"TST		LR,			#0x10				\n"	/* Is the thread using the VFP ? Yes, pop high VFP registers */
 		"IT			EQ								\n"
 		"VLDMIAEQ	R12!,		{S16-S31}			\n"
-	);
 #endif
-
-    /* Restore psp to high prio thread stack */
-	__asm volatile (
-		"MSR		PSP,		R12					\n"
-	);
-
-    /* Clear interrupt mask to re-enable interrupts */
-	__asm volatile (
-		"MOV		R0,			#0					\n"
+		"MSR		PSP,		R12					\n"	/* Restore psp to high prio thread stack */
+		"MOV		R0,			#0					\n"	/* Clear interrupt mask to re-enable interrupts */
 		"MSR		BASEPRI,	R0					\n"
-	);
-
-    /* Return */
-	__asm volatile (
-		"BX			LR								\n"
+		"BX			LR								\n"	/* Return */
+		"											\n"
+		".align 2									\n"
+		"runningThread: .word nOS_runningThread		\n"
+		"highPrioThread: .word nOS_highPrioThread	\n"
+		:
+		: "I" (NOS_PORT_MAX_UNSAFE_BASEPRI)
 	);
 }
 
