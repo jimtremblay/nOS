@@ -23,7 +23,7 @@ nOS_Thread* SchedHighPrio(void)
 {
     uint32_t    prio;
     
-    prio = (31 - __CLZ(nOS_readyPrio));
+    prio = (31 - nOS_PortCLZ(nOS_readyPrio));
     
     return (nOS_Thread*)nOS_readyList[prio].head->payload;
 }
@@ -33,8 +33,8 @@ nOS_Thread* SchedHighPrio(void)
     uint32_t    group;
     uint32_t    prio;
     
-    group   = (31 - __CLZ(nOS_readyGroup));
-    prio    = (31 - __CLZ(nOS_readyPrio[group]));
+    group   = (31 - nOS_PortCLZ(nOS_readyGroup));
+    prio    = (31 - nOS_PortCLZ(nOS_readyPrio[group]));
 
     return (nOS_Thread*)nOS_readyList[(group << 5) | prio].head->payload;
 }

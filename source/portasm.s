@@ -6,20 +6,14 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-#if defined(__GNUC__)
- #if defined(__AVR__)
-  /* No asm file for this port */
- #else
-  #error "This processor is not yet supported."
- #endif
-#elif defined(__IAR_SYSTEMS_ASM__)
+#if defined(__IAR_SYSTEMS_ASM__)
  #if __CORE__ == __ARM7EM__
   #include "port/IAR_Cortex_M4F/iar_cortex_m4f_asm.s"
  #else
   #error "This processor is not yet supported."
  #endif
  END
-#else
+#elif !defined(__GNUC__)
  #error "This compiler is not yet supported."
 #endif
 

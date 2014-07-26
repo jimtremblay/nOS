@@ -9,6 +9,8 @@
 #if defined(__GNUC__)
  #if defined(__AVR__)
   #include "port/GCC_AVR/gcc_avr.c"
+ #elif defined(__ARM_ARCH_7EM__)
+  #include "port/GCC_Cortex_M4F/gcc_cortex_m4f.c"
  #else
   #error "This processor is not yet supported."
  #endif
