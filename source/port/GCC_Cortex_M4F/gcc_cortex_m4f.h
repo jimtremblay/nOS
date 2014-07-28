@@ -6,8 +6,8 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-#ifndef IAR_ARM7M_H
-#define IAR_ARM7M_H
+#ifndef GCC_CORTEX_M4F_H
+#define GCC_CORTEX_M4F_H
 
 #include <stdint.h>
 
@@ -129,4 +129,4 @@ void        nOS_ContextInit     (nOS_Thread *thread, stack_t *stack, size_t ssiz
 }
 #endif
 
-#endif /* GCC_AVR5_H_ */
+#endif /* GCC_CORTEX_M4F_H */

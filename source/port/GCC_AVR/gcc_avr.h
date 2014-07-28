@@ -7,11 +7,10 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-#ifndef GCC_AVR6_H_
-#define GCC_AVR6_H_
+#ifndef GCC_AVR_H
+#define GCC_AVR_H
 
 #include <stdint.h>
-
 #include <avr/interrupt.h>
 
 #ifdef __cplusplus
@@ -189,4 +188,4 @@ void        nOS_ContextSwitch   (void) __attribute__ ( ( naked ) );
 }
 #endif
 
-#endif /* GCC_AVR5_H_ */
+#endif /* GCC_AVR_H */
