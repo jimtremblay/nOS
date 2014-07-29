@@ -22,8 +22,6 @@ extern "C" {
  #define NOS_EXTERN     extern
 #endif
   
-#define NOS_VERSION     2
-  
 #if defined(NOS_USE_CONFIG_FILE)
 #include "nOSConfig.h"
 #endif
