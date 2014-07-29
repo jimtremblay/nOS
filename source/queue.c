@@ -71,22 +71,22 @@ nOS_Error nOS_QueueRead (nOS_Queue *queue, void *buffer, uint16_t tout)
         err = NOS_E_NULL;
     } else
 #endif
-    if (nOS_isrNestingCounter > 0) {
-        err = NOS_E_ISR;
-    } else if (nOS_lockNestingCounter > 0) {
-        err = NOS_E_LOCKED;
-    } else if ((nOS_runningThread == &nOS_mainThread) && (tout > 0)) {
-        err = NOS_E_IDLE;
-    } else {
+    {
         nOS_CriticalEnter();
         if (queue->count > 0) {
             Read(queue, (uint8_t*)buffer);
             err = NOS_OK;
-        } else if (tout > 0) {
+        } else if (tout == NOS_NO_WAIT) {
+            err = NOS_E_EMPTY;
+        } else if (nOS_isrNestingCounter > 0) {
+            err = NOS_E_ISR;
+        } else if (nOS_lockNestingCounter > 0) {
+            err = NOS_E_LOCKED;
+        } else if (nOS_runningThread == &nOS_mainThread) {
+            err = NOS_E_IDLE;
+        } else {
             nOS_runningThread->context = buffer;
             err = nOS_EventWait((nOS_Event*)queue, NOS_READING_QUEUE, tout);
-        } else {
-            err = NOS_E_EMPTY;
         }
         nOS_CriticalLeave();
     }
@@ -97,6 +97,7 @@ nOS_Error nOS_QueueRead (nOS_Queue *queue, void *buffer, uint16_t tout)
 nOS_Error nOS_QueueWrite (nOS_Queue *queue, void *buffer)
 {
     nOS_Error   err;
+    nOS_Thread  *thread;
 
 #if NOS_CONFIG_SAFE > 0
     if (queue == NULL) {
@@ -107,7 +108,14 @@ nOS_Error nOS_QueueWrite (nOS_Queue *queue, void *buffer)
 #endif
     {
         nOS_CriticalEnter();
-        if (queue->count < queue->max) {
+        thread = nOS_EventSignal((nOS_Event*)queue);
+        if (thread != NULL) {
+            memcpy(thread->context, buffer, queue->bsize);
+            if ((thread->state == NOS_READY) && (thread->prio > nOS_runningThread->prio)) {
+                nOS_Sched();
+            }
+            err = NOS_OK;
+        } else if (queue->count < queue->max) {
             Write(queue, (uint8_t*)buffer);
             err = NOS_OK;
         } else {
