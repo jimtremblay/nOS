@@ -58,21 +58,27 @@ nOS_Error nOS_SemTake (nOS_Sem *sem, uint16_t tout)
         err = NOS_E_NULL;
     } else
 #endif
-    if (nOS_isrNestingCounter > 0) {
-        err = NOS_E_ISR;
-    } else if (nOS_lockNestingCounter > 0) {
-        err = NOS_E_LOCKED;
-    } else if ((nOS_runningThread == &nOS_mainThread) && (tout > 0)) {
-        err = NOS_E_IDLE;
-    } else {
+    {
         nOS_CriticalEnter();
+        /* Sem available? Take it */
         if (sem->count > 0) {
             sem->count--;
             err = NOS_OK;
-        } else if (tout > 0) {
-            err = nOS_EventWait((nOS_Event*)sem, NOS_TAKING_SEM, tout);
-        } else {
+        /* Calling thread can't wait? Try again */
+        } else if (tout == NOS_NO_WAIT) {
             err = NOS_E_AGAIN;
+        /* Can't wait from ISR */
+        } else if (nOS_isrNestingCounter > 0) {
+            err = NOS_E_ISR;
+        /* Can't switch context when scheduler is locked */
+        } else if (nOS_lockNestingCounter > 0) {
+            err = NOS_E_LOCKED;
+        /* Main thread can't wait */
+        } else if (nOS_runningThread == &nOS_mainThread) {
+            err = NOS_E_IDLE;
+        /* Calling thread must wait on sem. */
+        } else {
+            err = nOS_EventWait((nOS_Event*)sem, NOS_TAKING_SEM, tout);
         }
         nOS_CriticalLeave();
     }
@@ -104,13 +110,11 @@ nOS_Error nOS_SemGive (nOS_Sem *sem)
                 nOS_Sched();
             }
             err = NOS_OK;
+        } else if (sem->count < sem->max) {
+            sem->count++;
+            err = NOS_OK;
         } else {
-            if (sem->count < sem->max) {
-                sem->count++;
-                err = NOS_OK;
-            } else {
-                err = NOS_E_OVERFLOW;
-            }
+            err = NOS_E_OVERFLOW;
         }
         nOS_CriticalLeave();
     }
