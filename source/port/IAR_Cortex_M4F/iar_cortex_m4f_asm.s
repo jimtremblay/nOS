@@ -85,6 +85,7 @@ PendSV_Handler:
     ISB
 
 	BX          LR
+    NOP
     
     /* Not needed in this file */
     /* END */

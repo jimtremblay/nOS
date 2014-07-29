@@ -123,6 +123,7 @@ void PendSV_Handler(void)
 		"ISB										\n"
 		"											\n"
 		"BX			LR								\n"	/* Return */
+        "NOP                                        \n"
 		"											\n"
 		".align 2									\n"
 		"runningThread: .word nOS_runningThread		\n"
