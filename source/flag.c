@@ -55,7 +55,7 @@ static void TestFlag (void *payload, void *arg)
  *               NOS_OK     : Flag initialized with success.
  *
  * Note        : Flag object must be created before using it, else
- *               behavior is undefined and must be called one time
+ *               behaviour is undefined and must be called one time
  *               ONLY for each flag object.
  */
 nOS_Error nOS_FlagCreate (nOS_Flag *flag, unsigned int flags)
@@ -122,13 +122,7 @@ nOS_Error nOS_FlagWait (nOS_Flag *flag, uint8_t opt, unsigned int flags, unsigne
         err = NOS_E_NULL;
     } else
 #endif
-    if (nOS_isrNestingCounter > 0) {
-        err = NOS_E_ISR;
-    } else if (nOS_lockNestingCounter > 0) {
-        err = NOS_E_LOCKED;
-    } else if ((nOS_runningThread == &nOS_mainThread) && (tout > 0)) {
-        err = NOS_E_IDLE;
-    } else {
+    {
         nOS_CriticalEnter();
         r = flag->flags & flags;
         /* If thread is waiting for ALL flags, then clear result if NOT ALL flags set. */
@@ -138,16 +132,25 @@ nOS_Error nOS_FlagWait (nOS_Flag *flag, uint8_t opt, unsigned int flags, unsigne
         /* If result is not cleared, then condition is met for waiting thread. */
         if (r != NOS_FLAG_NONE) {
             err = NOS_OK;
-        /* Calling thread can wait only if tout is higher than 0. */
-        } else if (tout > 0) {
+        /* Caller can't wait? Try again. */
+        } else if (tout == NOS_NO_WAIT) {
+            err = NOS_E_AGAIN;
+        /* Can't wait from ISR */
+        } else if (nOS_isrNestingCounter > 0) {
+            err = NOS_E_ISR;
+        /* Can't switch context when scheduler is locked */
+        } else if (nOS_lockNestingCounter > 0) {
+            err = NOS_E_LOCKED;
+        /* Main thread can't wait */
+        } else if (nOS_runningThread == &nOS_mainThread) {
+            err = NOS_E_IDLE;
+        /* Calling thread must wait on flag. */
+        } else {
             ctx.flags   = flags;
             ctx.opt     = opt;
             ctx.rflags  = &r;
             nOS_runningThread->context = &ctx;
             err = nOS_EventWait((nOS_Event*)flag, NOS_WAITING_FLAG, tout);
-        /* Flags are NOT set and caller can't wait, then try again. */
-        } else {
-            err = NOS_E_AGAIN;
         }
         nOS_CriticalLeave();
 
