@@ -147,21 +147,20 @@ nOS_Error nOS_MemFree(nOS_Mem *mem, void *block)
 #endif
     {
         nOS_CriticalEnter();
-        if (mem->count < mem->max) {
-            thread = nOS_EventSignal((nOS_Event*)mem);
-            if (thread != NULL) {
-                *(void**)thread->context = block;
-                if ((thread->state == NOS_READY) && (thread->prio > nOS_runningThread->prio)) {
-                    nOS_Sched();
-                }
-            } else {
-                *(void**)block = mem->list;
-                mem->list = (void**)block;
-                mem->count++;
+        thread = nOS_EventSignal((nOS_Event*)mem);
+        if (thread != NULL) {
+            *(void**)thread->context = block;
+            if ((thread->state == NOS_READY) && (thread->prio > nOS_runningThread->prio)) {
+                nOS_Sched();
             }
             err = NOS_OK;
+        } else if (mem->count < mem->max) {
+            *(void**)block = mem->list;
+            mem->list = (void**)block;
+            mem->count++;
+            err = NOS_OK;
         } else {
-            err = NOS_E_FULL;
+            err = NOS_E_OVERFLOW;
         }
         nOS_CriticalLeave();
     }

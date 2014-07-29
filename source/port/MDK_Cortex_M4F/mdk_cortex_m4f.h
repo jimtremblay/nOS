@@ -63,7 +63,7 @@ static __inline uint32_t nOS_PortCLZ(uint32_t n)
     _backup = _basepri;                                                         \
     _basepri = NOS_PORT_MAX_UNSAFE_BASEPRI;                                     \
     __dsb(0xf);                                                                 \
-    __isb(0xf);                                                                 \
+    __isb(0xf)
 
       
 #define nOS_CriticalLeave()                                                     \
