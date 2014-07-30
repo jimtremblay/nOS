@@ -198,7 +198,7 @@ nOS_Error nOS_FlagSet (nOS_Flag *flag, unsigned int flags, unsigned int mask)
         res.rflags = NOS_FLAG_NONE;
         res.sched = 0;
         nOS_CriticalEnter();
-        flag->flags = flag->flags ^ ((flag->flags ^ flags) & mask);
+        flag->flags ^= ((flag->flags ^ flags) & mask);
         nOS_ListWalk(&flag->e.waitingList, TestFlag, &res);
         /* Clear all flags that have awoken the waiting threads. */
         flag->flags &= ~res.rflags;

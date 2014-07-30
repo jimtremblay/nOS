@@ -13,8 +13,7 @@
 extern "C" {
 #endif
 
-#pragma data_alignment = 8
-static stack_t isrStack[NOS_CONFIG_ISR_STACK_SIZE];
+NOS_STACK(isrStack[NOS_CONFIG_ISR_STACK_SIZE]);
   
 void nOS_PortInit(void)
 {

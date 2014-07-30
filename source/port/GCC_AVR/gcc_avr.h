@@ -16,7 +16,11 @@
 extern "C" {
 #endif
 
-typedef uint8_t     stack_t;
+typedef uint8_t                 stack_t;
+
+#define NOS_STACK(s)            stack_t s
+
+#define NOS_UNUSED(v)           (void)v
 
 #ifdef __AVR_HAVE_RAMPZ__
 #define PUSH_RAMPZ                                                  \

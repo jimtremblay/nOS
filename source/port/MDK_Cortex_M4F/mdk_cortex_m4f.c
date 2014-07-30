@@ -13,7 +13,7 @@
 extern "C" {
 #endif
 
-static __align(8) stack_t isrStack[NOS_CONFIG_ISR_STACK_SIZE];
+NOS_STACK(isrStack[NOS_CONFIG_ISR_STACK_SIZE]);
   
 void nOS_PortInit(void)
 {

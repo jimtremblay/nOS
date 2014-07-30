@@ -393,6 +393,8 @@ nOS_Thread* nOS_EventSignal (nOS_Event *event)
 
 nOS_Error nOS_Init(void)
 {  
+    nOS_PortInit();
+    
     nOS_mainThread.prio = NOS_PRIO_IDLE;
     nOS_mainThread.state = NOS_READY;
     nOS_mainThread.error = NOS_OK;
@@ -409,7 +411,9 @@ nOS_Error nOS_Init(void)
     nOS_highPrioThread = &nOS_mainThread;
     nOS_CriticalLeave();
     
-    nOS_PortInit();
+#if defined(NOS_CONFIG_TIMER_EN)
+    nOS_TimerInit();
+#endif
 
     return NOS_OK;
 }
@@ -506,6 +510,10 @@ void nOS_Tick(void)
     nOS_ListWalk(&nOS_fullList, TickThread, NULL);
     nOS_ListRotate(&nOS_readyList[nOS_runningThread->prio]);
     nOS_CriticalLeave();
+    
+#if defined(NOS_CONFIG_TIMER_EN)
+    nOS_TimerTick();
+#endif
 }
 
 nOS_Error nOS_Sleep (uint16_t dly)

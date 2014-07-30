@@ -16,7 +16,11 @@
 extern "C" {
 #endif
   
-typedef uint32_t            stack_t;
+typedef uint32_t                            stack_t;
+
+#define NOS_STACK(s)                        _Pragma("data_alignment=8") stack_t s
+
+#define NOS_UNUSED(v)                       (void)v
 
 #define NOS_PORT_SCHED_USE_32_BITS
 #define NOS_PORT_HAVE_CLZ
@@ -29,7 +33,7 @@ typedef uint32_t            stack_t;
 #endif
 
 #if !defined(NOS_CONFIG_ISR_STACK_SIZE)
- #define NOS_CONFIG_ISR_STACK_SIZE            128
+ #define NOS_CONFIG_ISR_STACK_SIZE          128
  #if defined(NOS_USE_CONFIG_FILE)
   #warning "nOSConfig.h: NOS_CONFIG_ISR_STACK_SIZE is not defined (default to 128)."
  #endif
@@ -40,12 +44,12 @@ typedef uint32_t            stack_t;
 #endif
 
 #if !defined(NOS_CONFIG_MAX_UNSAFE_ISR_PRIO)
- #define NOS_CONFIG_MAX_UNSAFE_ISR_PRIO       5
+ #define NOS_CONFIG_MAX_UNSAFE_ISR_PRIO     5
  #if defined(NOS_USE_CONFIG_FILE)
   #warning "nOSConfig.h: NOS_CONFIG_MAX_UNSAFE_ISR_PRIO is not defined (default to 5)."
  #endif
 #else
- #if NOS_CONFIG_MAX_UNSAFE_ISR_PRIO == 0 || NOS_CONFIG_MAX_UNSAFE_ISR_PRIO >= (NOS_NVIC_PRIO_BITS*NOS_NVIC_PRIO_BITS)
+ #if (NOS_CONFIG_MAX_UNSAFE_ISR_PRIO == 0) || (NOS_CONFIG_MAX_UNSAFE_ISR_PRIO >= (NOS_NVIC_PRIO_BITS*NOS_NVIC_PRIO_BITS))
   #error "nOSConfig.h: NOS_CONFIG_MAX_UNSAFE_ISR_PRIO is set to invalid value."
  #endif
 #endif
