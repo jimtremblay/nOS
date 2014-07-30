@@ -25,7 +25,7 @@ NOS_STACK(timerStack[NOS_CONFIG_TIMER_THREAD_STACK_SIZE]);
 static void ThreadTimer (void *arg)
 {
     NOS_UNUSED(arg);
-    
+
     while (1) {
         if (nOS_SemTake (&timerSem, NOS_WAIT_INFINITE) == NOS_OK) {
             nOS_ListWalk(&timerList, TickTimer, NULL);
@@ -59,7 +59,9 @@ static void TickTimer (void *payload, void *arg)
     nOS_CriticalLeave();
 
     if (cb) {
-        timer->callback(timer->arg);
+        if (timer->callback != NULL) {
+            timer->callback(timer->arg);
+        }
     }
 }
 
