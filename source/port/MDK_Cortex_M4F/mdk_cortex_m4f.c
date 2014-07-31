@@ -127,7 +127,7 @@ __asm void PendSV_Handler(void)
     /* Clear interrupt mask to re-enable interrupts */
     MOV         R0,         #0
     MSR         BASEPRI,    R0
-	ISB;
+	ISB
 
     /* Return */
 	BX          LR

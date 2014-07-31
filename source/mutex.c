@@ -91,7 +91,7 @@ nOS_Error nOS_MutexLock (nOS_Mutex *mutex, uint16_t tout)
             }
         /* Calling thread can't wait? Try again. */
         } else if (tout == NOS_NO_WAIT) {
-            /* 
+            /*
              * If current thread can ask to lock mutex,
              * maybe is prio is higher than mutex owner.
              */
@@ -109,7 +109,7 @@ nOS_Error nOS_MutexLock (nOS_Mutex *mutex, uint16_t tout)
             err = NOS_E_IDLE;
         /* Calling thread must wait on mutex. */
         } else {
-            /* 
+            /*
              * If current thread can ask to lock mutex,
              * maybe is prio is higher than mutex owner.
              */

@@ -18,7 +18,8 @@ void SuspendThread (void *payload, void *arg)
 {
     nOS_Thread *thread = (nOS_Thread*)payload;
 
-    (void)arg;                                                  /* Avoid warning */
+    /* Avoid warning */
+    NOS_UNUSED(arg);
 
     if (thread != &nOS_mainThread) {
         if (thread->state == NOS_READY) {
@@ -52,7 +53,8 @@ void TickThread (void *payload, void *arg)
 {
     nOS_Thread *thread = (nOS_Thread*)payload;
 
-    (void)arg;                                                  /* Avoid warning */
+    /* Avoid warning */
+    NOS_UNUSED(arg);
 
     if ((thread->state & NOS_WAITING) && (thread->timeout > 0)) {
         thread->timeout--;
@@ -151,7 +153,7 @@ nOS_Error nOS_ThreadSuspend (nOS_Thread *thread)
     if (thread == NULL) {
         thread = nOS_runningThread;
     }
-    
+
     /* Main thread can't be suspended */
     if (thread == &nOS_mainThread) {
         err = NOS_E_IDLE;
@@ -165,7 +167,7 @@ nOS_Error nOS_ThreadSuspend (nOS_Thread *thread)
     } else {
         err = NOS_OK;
     }
-    
+
     if (err == NOS_OK) {
         nOS_CriticalEnter();
         SuspendThread(thread, NULL);

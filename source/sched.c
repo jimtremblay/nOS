@@ -15,16 +15,16 @@
 #if defined(__cplusplus)
 extern "C" {
 #endif
-  
+
 #if defined(NOS_PORT_SCHED_USE_32_BITS)
 #if defined(NOS_PORT_HAVE_CLZ)
 #if NOS_CONFIG_MAX_THREAD_PRIO < 32
 nOS_Thread* SchedHighPrio(void)
 {
     uint32_t    prio;
-    
+
     prio = (31 - nOS_PortCLZ(nOS_readyPrio));
-    
+
     return (nOS_Thread*)nOS_readyList[prio].head->payload;
 }
 #elif NOS_CONFIG_MAX_THREAD_PRIO < 256
@@ -32,7 +32,7 @@ nOS_Thread* SchedHighPrio(void)
 {
     uint32_t    group;
     uint32_t    prio;
-    
+
     group   = (31 - nOS_PortCLZ(nOS_readyGroup));
     prio    = (31 - nOS_PortCLZ(nOS_readyPrio[group]));
 
@@ -80,7 +80,7 @@ nOS_Thread* SchedHighPrio(void)
     group |= group >> 8;
     group |= group >> 16;
     group = (uint32_t)tableDeBruijn[(uint32_t)(group * 0x07c4acddUL) >> 27];
-    
+
     prio = nOS_readyPrio[group];
     prio |= prio >> 1; // first round down to one less than a power of 2
     prio |= prio >> 2;
@@ -191,7 +191,7 @@ void AppendThreadToReadyList (nOS_Thread *thread)
 {
     /* we use 32 bits variables for maximum performance */
     uint32_t    prio = (uint32_t)thread->prio;
-    
+
     #if NOS_CONFIG_MAX_THREAD_PRIO < 32
     nOS_ListAppend(&nOS_readyList[prio], &thread->readyWaiting);
     nOS_readyPrio |= (0x00000001UL << prio);
@@ -208,7 +208,7 @@ void RemoveThreadFromReadyList (nOS_Thread *thread)
 {
     /* we use 32 bits variables for maximum performance */
     uint32_t    prio = (uint32_t)thread->prio;
-    
+
     #if NOS_CONFIG_MAX_THREAD_PRIO < 32
     nOS_ListRemove(&nOS_readyList[prio], &thread->readyWaiting);
     if (nOS_readyList[prio].head == NULL) {
@@ -392,9 +392,9 @@ nOS_Thread* nOS_EventSignal (nOS_Event *event)
 }
 
 nOS_Error nOS_Init(void)
-{  
+{
     nOS_PortInit();
-    
+
     nOS_mainThread.prio = NOS_PRIO_IDLE;
     nOS_mainThread.state = NOS_READY;
     nOS_mainThread.error = NOS_OK;
@@ -410,7 +410,7 @@ nOS_Error nOS_Init(void)
     nOS_runningThread = &nOS_mainThread;
     nOS_highPrioThread = &nOS_mainThread;
     nOS_CriticalLeave();
-    
+
 #if defined(NOS_CONFIG_TIMER_EN)
     nOS_TimerInit();
 #endif
@@ -423,7 +423,7 @@ nOS_Error nOS_Sched(void)
     nOS_Error   err;
 
     /* Recheck if current running thread is the highest prio thread */
-    
+
     if (nOS_isrNestingCounter > 0) {
         err = NOS_E_ISR;
     } else if (nOS_lockNestingCounter > 0) {
@@ -510,7 +510,7 @@ void nOS_Tick(void)
     nOS_ListWalk(&nOS_fullList, TickThread, NULL);
     nOS_ListRotate(&nOS_readyList[nOS_runningThread->prio]);
     nOS_CriticalLeave();
-    
+
 #if defined(NOS_CONFIG_TIMER_EN)
     nOS_TimerTick();
 #endif
