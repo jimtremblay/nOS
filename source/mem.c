@@ -16,24 +16,24 @@ extern "C" {
 /*
  * Name        : nOS_MemCreate
  *
- * Description : Create a dynamic array of fixed block size.
+ * Description : Create a dynamic array of fixed block size of memory.
  *
  * Arguments   : mem    : Pointer to mem object.
  *               buffer : Pointer to array of memory.
- *               bsize  : Size of ONE block of memory.
+ *               bsize  : Size of one block of memory.
  *               max    : Maximum number of blocks your buffer can hold.
  *
  * Return      : Error code.
  *               NOS_E_NULL    : Pointer to mem object is NULL.
  *                               OR
  *                               Pointer to buffer array is NULL.
- *               NOS_E_INV_VAL : Size of ONE block is too small.
+ *               NOS_E_INV_VAL : Size of one block is too small.
  *                               OR
  *                               Maximum number of blocks is 0.
  *               NOS_OK        : Mem created with success.
  *
  * Note        : Mem object must be created before using it, else
- *               behaviour is undefined and must be called one time
+ *               behavior is undefined. MUST be called one time
  *               ONLY for each mem object.
  */
 nOS_Error nOS_MemCreate (nOS_Mem *mem, void *buffer, size_t bsize, uint16_t max)
@@ -66,7 +66,11 @@ nOS_Error nOS_MemCreate (nOS_Mem *mem, void *buffer, size_t bsize, uint16_t max)
         *(void**)buffer = list;
         mem->list = (void**)buffer;
         mem->count = max;
+#if (NOS_CONFIG_SAVE > 0)
+        mem->buffer = buffer;
+        mem->bsize = bsize;
         mem->max = max;
+#endif
         nOS_CriticalLeave();
         err = NOS_OK;
     }
@@ -77,7 +81,7 @@ nOS_Error nOS_MemCreate (nOS_Mem *mem, void *buffer, size_t bsize, uint16_t max)
 /*
  * Name        : nOS_MemAlloc
  *
- * Description : Wait on mem object for ONE block of memory. If no block available,
+ * Description : Wait on mem object for one block of memory. If no block available,
  *               calling thread will be placed in object's waiting list for number
  *               of ticks specified by tout. If a block of memory is freed before
  *               end of timeout, thread will be awoken and pointer to memory block
@@ -133,6 +137,28 @@ void *nOS_MemAlloc(nOS_Mem *mem, uint16_t tout)
     return block;
 }
 
+/*
+ * Name        : nOS_MemFree
+ *
+ * Description : Free a previously allocated block of memory.
+ *
+ * Arguments   : mem   : Pointer to mem object.
+ *               block : Pointer to previously allocated block.
+ *
+ * Return      : Error code.
+ *               NOS_E_NULL     : Pointer to flag object is NULL.
+ *                                OR
+ *                                Memory block pointer is NULL.
+ *               NOS_E_INV_VAL  : Memory block pointer is out of range.
+ *                                OR
+ *                                Memory block pointer has been modified.
+ *                                since allocation.
+ *               NOS_E_OVERFLOW : Too much block has been freed (never happens
+ *                                normally, sign of a corruption).
+ *               NOS_OK         : Memory block has been freed with success.
+ *
+ * Note        : Do not use memory block after it is freed.
+ */
 nOS_Error nOS_MemFree(nOS_Mem *mem, void *block)
 {
     nOS_Error   err;
@@ -143,6 +169,14 @@ nOS_Error nOS_MemFree(nOS_Mem *mem, void *block)
         err = NOS_E_NULL;
     } else if (block == NULL) {
         err = NOS_E_NULL;
+    /* Memory block pointer is out of range? */
+    } else if (block < (void*)mem->buffer) {
+        err = NOS_E_INV_VAL;
+    } else if (block >= (void*)(mem->buffer + (mem->bsize * mem->max))) {
+        err = NOS_E_INV_VAL;
+    /* Memory block pointer is multiple of block size? */
+    } else if ((uint16_t)((uint8_t*)block - mem->buffer) % mem->bsize != 0) {
+        err = NOS_E_INV_VAL;
     } else
 #endif
     {
@@ -154,14 +188,21 @@ nOS_Error nOS_MemFree(nOS_Mem *mem, void *block)
                 nOS_Sched();
             }
             err = NOS_OK;
-        } else if (mem->count < mem->max) {
+        } else
+#if (NOS_CONFIG_SAFE > 0)
+        if (mem->count < mem->max)
+#endif
+        {
             *(void**)block = mem->list;
             mem->list = (void**)block;
             mem->count++;
             err = NOS_OK;
-        } else {
+        }
+#if (NOS_CONFIG_SAFE > 0)
+        else {
             err = NOS_E_OVERFLOW;
         }
+#endif
         nOS_CriticalLeave();
     }
 

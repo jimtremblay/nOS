@@ -174,8 +174,12 @@ struct _nOS_Mem
 {
     nOS_Event       e;
     void            **list;
-    uint16_t        max;
     uint16_t        count;
+#if (NOS_CONFIG_SAFE > 0)
+    uint8_t         *buffer;
+    uint16_t        bsize;
+    uint16_t        max;
+#endif
 };
 
 struct _nOS_Timer
