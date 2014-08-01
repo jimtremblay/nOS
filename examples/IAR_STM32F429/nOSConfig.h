@@ -23,3 +23,10 @@
  * Not used on all platforms.
  */
 #define NOS_CONFIG_MAX_UNSAFE_ISR_PRIO          5
+
+/*
+ *
+ */
+#define NOS_CONFIG_TIMER_EN
+#define NOS_CONFIG_TIMER_THREAD_PRIO            1
+#define NOS_CONFIG_TIMER_THREAD_STACK_SIZE      128
