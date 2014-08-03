@@ -65,6 +65,8 @@ static nOS_Error SanityCheck(nOS_Mem *mem, void *block)
  *                               Pointer to buffer array is NULL.
  *               NOS_E_INV_VAL : Size of one block is too small.
  *                               OR
+ *                               Buffer array is not aligned.
+ *                               OR
  *                               Maximum number of blocks is 0.
  *               NOS_OK        : Mem created with success.
  *
@@ -85,6 +87,10 @@ nOS_Error nOS_MemCreate (nOS_Mem *mem, void *buffer, size_t bsize, uint16_t max)
         err = NOS_E_NULL;
     } else if (bsize < sizeof(void**)) {
         err = NOS_E_INV_VAL;
+#if (NOS_MEM_ALIGNMENT > 1)
+    } else if ((unsigned int)buffer % NOS_MEM_ALIGNMENT != 0) {
+        err = NOS_E_INV_VAL;
+#endif
     } else if (max == 0) {
         err = NOS_E_INV_VAL;
     } else
@@ -191,6 +197,8 @@ void *nOS_MemAlloc(nOS_Mem *mem, uint16_t tout)
  *                                since allocation.
  *               NOS_E_OVERFLOW : Too much block has been freed (never happens
  *                                normally, sign of a corruption).
+ *                                OR
+ *                                Memory block is already free.
  *               NOS_OK         : Memory block has been freed with success.
  *
  * Note        : Do not use memory block after it is freed.

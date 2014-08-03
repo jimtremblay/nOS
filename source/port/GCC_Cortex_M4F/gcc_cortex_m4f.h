@@ -14,12 +14,14 @@
 #if defined(__cplusplus)
 extern "C" {
 #endif
-  
+
 typedef uint32_t                            stack_t;
 
 #define NOS_STACK(s)                        stack_t s __attribute__ ((aligned (8)))
 
 #define NOS_UNUSED(v)                       (void)v
+
+#define NOS_MEM_ALIGNMENT                   4
 
 #define NOS_PORT_SCHED_USE_32_BITS
 #define NOS_PORT_HAVE_CLZ
@@ -65,7 +67,7 @@ __attribute__( ( always_inline ) ) static inline uint32_t nOS_PortCLZ(uint32_t n
 	);
 	return r;
 }
-  
+
 #define nOS_CriticalEnter()                                     				\
 {																				\
     uint32_t _basepri;					                        				\
@@ -78,7 +80,7 @@ __attribute__( ( always_inline ) ) static inline uint32_t nOS_PortCLZ(uint32_t n
 		: "=r" (_basepri)														\
 		: "I" (NOS_PORT_MAX_UNSAFE_BASEPRI)										\
 	)
-      
+
 #define nOS_CriticalLeave()                                                     \
 	__asm volatile (															\
 		"MOV	R0,			%0				\n"									\
@@ -112,7 +114,7 @@ __attribute__( ( always_inline ) ) static inline uint32_t nOS_PortCLZ(uint32_t n
 
 void    nOS_IsrEnter    (void);
 void    nOS_IsrLeave    (void);
-      
+
 #define NOS_ISR(func)                                                           \
 void func##_ISR(void);                                                          \
 void func(void)                                                                 \

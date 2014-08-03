@@ -14,12 +14,14 @@
 #if defined(__cplusplus)
 extern "C" {
 #endif
-  
+
 typedef uint32_t                            stack_t;
 
 #define NOS_STACK(s)                        __align(8) stack_t s
 
 #define NOS_UNUSED(v)                       (void)v
+
+#define NOS_MEM_ALIGNMENT                   4
 
 #define NOS_PORT_SCHED_USE_32_BITS
 #define NOS_PORT_HAVE_CLZ
@@ -56,7 +58,7 @@ typedef uint32_t                            stack_t;
 #define NOS_PORT_MAX_UNSAFE_BASEPRI         (NOS_CONFIG_MAX_UNSAFE_ISR_PRIO << (8 - NOS_NVIC_PRIO_BITS))
 
 #define nOS_PortCLZ(n)                      __clz(n)
-  
+
 #define nOS_CriticalEnter()                                                     \
 {                                                                               \
     uint32_t    _backup;                                                        \
@@ -66,7 +68,7 @@ typedef uint32_t                            stack_t;
     __dsb(0xf);                                                                 \
     __isb(0xf);                                                                 \
 
-      
+
 #define nOS_CriticalLeave()                                                     \
     _basepri = _backup;                                                         \
     __dsb(0xf);                                                                 \
@@ -92,7 +94,7 @@ typedef uint32_t                            stack_t;
 
 void    nOS_IsrEnter    (void);
 void    nOS_IsrLeave    (void);
-      
+
 #define NOS_ISR(func)                                                           \
 void func##_ISR(void);                                                          \
 void func(void)                                                                 \

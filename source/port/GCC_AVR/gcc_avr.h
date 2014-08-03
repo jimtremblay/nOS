@@ -22,6 +22,8 @@ typedef uint8_t                 stack_t;
 
 #define NOS_UNUSED(v)           (void)v
 
+#define NOS_MEM_ALIGNMENT       1
+
 #ifdef __AVR_HAVE_RAMPZ__
 #define PUSH_RAMPZ                                                  \
     asm volatile ("in   r0, %0                      \n\t"           \
