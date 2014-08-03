@@ -96,9 +96,9 @@ nOS_Error nOS_FlagCreate (nOS_Flag *flag, unsigned int flags)
  *               res   : Pointer where to store awoken flags if needed. Only valid if
  *                       returned error code is NOS_OK. Otherwise, res is unchanged.
  *               tout  : Timeout value
- *                       NOS_NO_WAIT      : No waiting.
- *                       NOS_WAIT_INIFINE : Never timeout.
- *                       0 > tout < 65535 : Number of ticks to wait on flag object.
+ *                       NOS_NO_WAIT       : No waiting.
+ *                       NOS_WAIT_INFINITE : Never timeout.
+ *                       0 > tout < 65535  : Number of ticks to wait on flag object.
  *
  * Return      : Error code.
  *               NOS_E_NULL    : Pointer to flag object is NULL.
@@ -166,7 +166,7 @@ nOS_Error nOS_FlagWait (nOS_Flag *flag, uint8_t opt, unsigned int flags, unsigne
 }
 
 /*
- * Name        : nOS_FlagSet
+ * Name        : nOS_FlagSend
  *
  * Description : Set/Clear given flags on flag object. Many flags can be set and clear
  *               at the same time atomically. Can clear flags that has just been set
@@ -184,7 +184,7 @@ nOS_Error nOS_FlagWait (nOS_Flag *flag, uint8_t opt, unsigned int flags, unsigne
  *
  * Note        : Safe to be called from threads, idle and ISR.
  */
-nOS_Error nOS_FlagSet (nOS_Flag *flag, unsigned int flags, unsigned int mask)
+nOS_Error nOS_FlagSend (nOS_Flag *flag, unsigned int flags, unsigned int mask)
 {
     nOS_Error       err;
     nOS_FlagResult  res;

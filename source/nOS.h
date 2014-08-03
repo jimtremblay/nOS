@@ -322,7 +322,7 @@ nOS_Error   nOS_QueueWrite              (nOS_Queue *queue, void *buffer);
 
 nOS_Error   nOS_FlagCreate              (nOS_Flag *flag, unsigned int flags);
 nOS_Error   nOS_FlagWait                (nOS_Flag *flag, uint8_t opt, unsigned int flags, unsigned int *res, uint16_t tout);
-nOS_Error   nOS_FlagSet                 (nOS_Flag *flag, unsigned int flags, unsigned int mask);
+nOS_Error   nOS_FlagSend                (nOS_Flag *flag, unsigned int flags, unsigned int mask);
 
 nOS_Error   nOS_MemCreate               (nOS_Mem *mem, void *buffer, size_t bsize, uint16_t max);
 void*       nOS_MemAlloc                (nOS_Mem *mem, uint16_t tout);
