@@ -411,7 +411,7 @@ nOS_Error nOS_Init(void)
     nOS_highPrioThread = &nOS_mainThread;
     nOS_CriticalLeave();
 
-#if defined(NOS_CONFIG_TIMER_EN)
+#if (NOS_CONFIG_TIMER_ENABLE > 0)
     nOS_TimerInit();
 #endif
 
@@ -511,7 +511,7 @@ void nOS_Tick(void)
     nOS_ListRotate(&nOS_readyList[nOS_runningThread->prio]);
     nOS_CriticalLeave();
 
-#if defined(NOS_CONFIG_TIMER_EN)
+#if (NOS_CONFIG_TIMER_ENABLE > 0)
     nOS_TimerTick();
 #endif
 }

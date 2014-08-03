@@ -38,11 +38,16 @@ extern "C" {
 #if !defined(NOS_CONFIG_SAFE)
  #define NOS_CONFIG_SAFE                        0
  #if defined(NOS_USE_CONFIG_FILE)
-  #warning "nOSConfig.h: NOS_CONFIG_SAFE is not defined (default to 0)."
+  #warning "nOSConfig.h: NOS_CONFIG_SAFE is not defined (disabled by default)."
  #endif
 #endif
 
-#if defined(NOS_CONFIG_TIMER_EN)
+#if !defined(NOS_CONFIG_TIMER_ENABLE)
+ #define NOS_CONFIG_TIMER_ENABLE                0
+ #if defined(NOS_USE_CONFIG_FILE)
+  #warning "nOSConfig.h: NOS_CONFIG_TIMER_ENABLE is not defined (disabled by default)."
+ #endif
+#elif (NOS_CONFIG_TIMER_ENABLE > 0)
  #if !defined(NOS_CONFIG_TIMER_THREAD_PRIO)
   #define NOS_CONFIG_TIMER_THREAD_PRIO          0
   #if defined(NOS_USE_CONFIG_FILE)
@@ -70,7 +75,9 @@ typedef struct _nOS_Flag        nOS_Flag;
 typedef struct _nOS_FlagContext nOS_FlagContext;
 typedef struct _nOS_FlagResult  nOS_FlagResult;
 typedef struct _nOS_Mem         nOS_Mem;
+#if (NOS_CONFIG_TIMER_ENABLE > 0)
 typedef struct _nOS_Timer       nOS_Timer;
+#endif
 
 typedef enum _nOS_Error
 {
@@ -182,6 +189,7 @@ struct _nOS_Mem
 #endif
 };
 
+#if (NOS_CONFIG_TIMER_ENABLE > 0)
 struct _nOS_Timer
 {
     uint8_t         state;
@@ -191,6 +199,7 @@ struct _nOS_Timer
     void            *arg;
     nOS_Node        node;
 };
+#endif
 
 #define NOS_PRIO_IDLE               0
 
@@ -319,7 +328,7 @@ nOS_Error   nOS_MemCreate               (nOS_Mem *mem, void *buffer, size_t bsiz
 void*       nOS_MemAlloc                (nOS_Mem *mem, uint16_t tout);
 nOS_Error   nOS_MemFree                 (nOS_Mem *mem, void *block);
 
-#if defined(NOS_CONFIG_TIMER_EN)
+#if (NOS_CONFIG_TIMER_ENABLE > 0)
 void        nOS_TimerInit               (void);
 void        nOS_TimerTick               (void);
 nOS_Error   nOS_TimerCreate             (nOS_Timer *timer, void(*callback)(void*), void *arg, uint16_t delay, uint8_t opt);

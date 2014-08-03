@@ -13,7 +13,7 @@
 extern "C" {
 #endif
 
-#if defined(NOS_CONFIG_TIMER_EN)
+#if (NOS_CONFIG_TIMER_ENABLE > 0)
 static void ThreadTimer (void *arg);
 static void TickTimer (void *payload, void *arg);
 
@@ -214,7 +214,7 @@ uint8_t nOS_TimerRunning (nOS_Timer *timer)
 
     return running;
 }
-#endif  /* NOS_CONFIG_TIMER_EN */
+#endif  /* NOS_CONFIG_TIMER_ENABLE */
 
 #if defined(__cplusplus)
 }
