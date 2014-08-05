@@ -57,6 +57,77 @@ typedef uint32_t                            stack_t;
 
 #define NOS_PORT_MAX_UNSAFE_BASEPRI         (NOS_CONFIG_MAX_UNSAFE_ISR_PRIO << (8 - NOS_NVIC_PRIO_BITS))
 
+__attribute__( ( always_inline ) ) static inline uint32_t GetMSP (void)
+{
+    uint32_t r;
+
+    __asm volatile ("MRS %0, MSP" : "=r" (r));
+
+    return r;
+}
+
+__attribute__( ( always_inline ) ) static inline void SetMSP (uint32_t r)
+{
+    __asm volatile ("MSR MSP, %0" :: "r" (r));
+}
+
+__attribute__( ( always_inline ) ) static inline uint32_t GetPSP (void)
+{
+    uint32_t r;
+
+    __asm volatile ("MRS %0, PSP" : "=r" (r));
+
+    return r;
+}
+
+__attribute__( ( always_inline ) ) static inline void SetPSP (uint32_t r)
+{
+    __asm volatile ("MSR PSP, %0" :: "r" (r));
+}
+
+__attribute__( ( always_inline ) ) static inline uint32_t GetCONTROL (void)
+{
+    uint32_t r;
+
+    __asm volatile ("MRS %0, CONTROL" : "=r" (r));
+
+    return r;
+}
+
+__attribute__( ( always_inline ) ) static inline void SetCONTROL (uint32_t r)
+{
+    __asm volatile ("MSR CONTROL, %0" :: "r" (r));
+}
+
+__attribute__( ( always_inline ) ) static inline uint32_t GetBASEPRI (void)
+{
+    uint32_t r;
+
+    __asm volatile ("MRS %0, BASEPRI" : "=r" (r));
+
+    return r;
+}
+
+__attribute__( ( always_inline ) ) static inline void SetBASEPRI (uint32_t r)
+{
+    __asm volatile ("MSR BASEPRI, %0" :: "r" (r));
+}
+
+__attribute__( ( always_inline ) ) static inline void DSB (void)
+{
+    __asm volatile ("DSB");
+}
+
+__attribute__( ( always_inline ) ) static inline void ISB (void)
+{
+    __asm volatile ("ISB");
+}
+
+__attribute__( ( always_inline ) ) static inline void NOP (void)
+{
+    __asm volatile ("NOP");
+}
+
 __attribute__( ( always_inline ) ) static inline uint32_t nOS_PortCLZ(uint32_t n)
 {
 	uint32_t	r;
@@ -70,46 +141,29 @@ __attribute__( ( always_inline ) ) static inline uint32_t nOS_PortCLZ(uint32_t n
 
 #define nOS_CriticalEnter()                                     				\
 {																				\
-    uint32_t _basepri;					                        				\
-    __asm volatile (															\
-		"MRS	%0,			BASEPRI			\n"									\
-		"MOV	R0,			%1				\n"									\
-		"MSR	BASEPRI,	R0				\n"									\
-		"DSB								\n"									\
-		"ISB								\n"									\
-		: "=r" (_basepri)														\
-		: "I" (NOS_PORT_MAX_UNSAFE_BASEPRI)										\
-	)
+    uint32_t    _basepri = GetBASEPRI();                                        \
+    SetBASEPRI(NOS_PORT_MAX_UNSAFE_BASEPRI);                                    \
+    DSB();                                                                      \
+    ISB()
 
 #define nOS_CriticalLeave()                                                     \
-	__asm volatile (															\
-		"MOV	R0,			%0				\n"									\
-		"MSR	BASEPRI,	R0				\n"									\
-		"DSB								\n"									\
-		"ISB								\n"									\
-		:																		\
-		: "r"(_basepri)															\
-	);																			\
+    SetBASEPRI(_basepri);                                                       \
+    DSB();                                                                      \
+    ISB();                                                                      \
 }
 
 /*
  * Request a context switch and enable interrupts to allow PendSV interrupt.
  */
 #define nOS_ContextSwitch()                                                     \
-    *(volatile uint32_t *)0xe000ed04 = 0x10000000;                              \
-    __asm volatile (															\
-		"MOV	R0,			#0				\n"									\
-    	"MSR	BASEPRI,	R0				\n"									\
-		"DSB								\n"									\
-		"ISB								\n"									\
-		"NOP								\n"									\
-		"MOV	R0,			%0				\n"									\
-		"MSR	BASEPRI,	R0				\n"									\
-		"DSB								\n"									\
-		"ISB								\n"									\
-		:																		\
-		: "I" (NOS_PORT_MAX_UNSAFE_BASEPRI)										\
-	)
+    *(volatile uint32_t *)0xe000ed04UL = 0x10000000UL;                          \
+    SetBASEPRI(0);                                                              \
+    DSB();                                                                      \
+    ISB();                                                                      \
+    NOP();                                                                      \
+    SetBASEPRI(NOS_PORT_MAX_UNSAFE_BASEPRI);                                    \
+    DSB();                                                                      \
+    ISB()
 
 
 void    nOS_IsrEnter    (void);
