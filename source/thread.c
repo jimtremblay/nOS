@@ -106,7 +106,7 @@ nOS_Error nOS_ThreadCreate (nOS_Thread *thread, void(*func)(void*), void *arg,
 {
     nOS_Error   err;
 
-#if NOS_CONFIG_SAFE > 0
+#if (NOS_CONFIG_SAFE > 0)
     if (thread == NULL) {
         err = NOS_E_NULL;
     } else if (func == NULL) {
@@ -204,7 +204,7 @@ nOS_Error nOS_ThreadResume (nOS_Thread *thread)
 {
     nOS_Error   err;
 
-#if NOS_CONFIG_SAFE > 0
+#if (NOS_CONFIG_SAFE > 0)
     if (thread == NULL) {
         err = NOS_E_NULL;
     } else if (thread == nOS_runningThread) {
@@ -245,7 +245,7 @@ nOS_Error nOS_ThreadSetPriority (nOS_Thread *thread, uint8_t prio)
 {
     nOS_Error   err;
 
-#if NOS_CONFIG_SAFE > 0
+#if (NOS_CONFIG_SAFE > 0)
     if (prio > NOS_CONFIG_MAX_THREAD_PRIO) {
         err = NOS_E_INV_VAL;
     } else

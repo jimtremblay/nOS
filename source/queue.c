@@ -15,25 +15,11 @@
 extern "C" {
 #endif
 
-static void Read (nOS_Queue *queue, uint8_t *buffer)
-{
-    memcpy(buffer, &queue->buffer[queue->r * queue->bsize], queue->bsize);
-    queue->r = (queue->r + queue->bsize) % queue->max;
-    queue->count--;
-}
-
-static void Write (nOS_Queue *queue, uint8_t *buffer)
-{
-    memcpy(&queue->buffer[queue->w * queue->bsize], buffer, queue->bsize);
-    queue->w = (queue->w + queue->bsize) % queue->max;
-    queue->count++;
-}
-
 nOS_Error nOS_QueueCreate (nOS_Queue *queue, void *buffer, uint16_t bsize, uint16_t max)
 {
     nOS_Error   err;
 
-#if NOS_CONFIG_SAFE > 0
+#if (NOS_CONFIG_SAFE > 0)
     if (queue == NULL) {
         err = NOS_E_NULL;
     } else if (buffer == NULL) {
@@ -64,7 +50,7 @@ nOS_Error nOS_QueueRead (nOS_Queue *queue, void *buffer, uint16_t tout)
 {
     nOS_Error   err;
 
-#if NOS_CONFIG_SAFE > 0
+#if (NOS_CONFIG_SAFE > 0)
     if (queue == NULL) {
         err = NOS_E_NULL;
     } else if (buffer == NULL) {
@@ -74,7 +60,9 @@ nOS_Error nOS_QueueRead (nOS_Queue *queue, void *buffer, uint16_t tout)
     {
         nOS_CriticalEnter();
         if (queue->count > 0) {
-            Read(queue, (uint8_t*)buffer);
+            memcpy(buffer, &queue->buffer[queue->r * queue->bsize], queue->bsize);
+            queue->r = (queue->r + queue->bsize) % queue->max;
+            queue->count--;
             err = NOS_OK;
         } else if (tout == NOS_NO_WAIT) {
             err = NOS_E_EMPTY;
@@ -99,7 +87,7 @@ nOS_Error nOS_QueueWrite (nOS_Queue *queue, void *buffer)
     nOS_Error   err;
     nOS_Thread  *thread;
 
-#if NOS_CONFIG_SAFE > 0
+#if (NOS_CONFIG_SAFE > 0)
     if (queue == NULL) {
         err = NOS_E_NULL;
     } else if (buffer == NULL) {
@@ -116,7 +104,9 @@ nOS_Error nOS_QueueWrite (nOS_Queue *queue, void *buffer)
             }
             err = NOS_OK;
         } else if (queue->count < queue->max) {
-            Write(queue, (uint8_t*)buffer);
+            memcpy(&queue->buffer[queue->w * queue->bsize], buffer, queue->bsize);
+            queue->w = (queue->w + queue->bsize) % queue->max;
+            queue->count++;
             err = NOS_OK;
         } else {
             err = NOS_E_FULL;

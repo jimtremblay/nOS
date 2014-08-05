@@ -88,7 +88,7 @@ nOS_Error nOS_TimerCreate (nOS_Timer *timer, void(*callback)(void*), void *arg, 
 {
     nOS_Error   err;
 
-#if NOS_CONFIG_SAFE > 0
+#if (NOS_CONFIG_SAFE > 0)
     if (timer == NULL) {
         err = NOS_E_NULL;
     } else if ((opt != NOS_TIMER_FREE_RUNNING) && (opt != NOS_TIMER_ONE_SHOT)) {
@@ -115,7 +115,7 @@ nOS_Error nOS_TimerStart (nOS_Timer *timer)
 {
     nOS_Error   err;
 
-#if NOS_CONFIG_SAFE > 0
+#if (NOS_CONFIG_SAFE > 0)
     if (timer == NULL) {
         err = NOS_E_NULL;
     } else
@@ -135,7 +135,7 @@ nOS_Error nOS_TimerStop (nOS_Timer *timer)
 {
     nOS_Error   err;
 
-#if NOS_CONFIG_SAFE > 0
+#if (NOS_CONFIG_SAFE > 0)
     if (timer == NULL) {
         err = NOS_E_NULL;
     } else
@@ -154,7 +154,7 @@ nOS_Error nOS_TimerCallback (nOS_Timer *timer, void(*callback)(void*), void *arg
 {
     nOS_Error   err;
 
-#if NOS_CONFIG_SAFE > 0
+#if (NOS_CONFIG_SAFE > 0)
     if (timer == NULL) {
         err = NOS_E_NULL;
     } else
@@ -174,7 +174,7 @@ nOS_Error nOS_TimerReload (nOS_Timer *timer, uint16_t delay, uint8_t opt)
 {
     nOS_Error   err;
 
-#if NOS_CONFIG_SAFE > 0
+#if (NOS_CONFIG_SAFE > 0)
     if (timer == NULL) {
         err = NOS_E_NULL;
     } else if ((opt != NOS_TIMER_FREE_RUNNING) && (opt != NOS_TIMER_ONE_SHOT)) {
@@ -199,7 +199,7 @@ uint8_t nOS_TimerRunning (nOS_Timer *timer)
 {
     uint8_t running = 0;
 
-#if NOS_CONFIG_SAFE > 0
+#if (NOS_CONFIG_SAFE > 0)
     if (timer == NULL) {
         running = 0;
     } else

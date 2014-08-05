@@ -62,7 +62,7 @@ nOS_Error nOS_FlagCreate (nOS_Flag *flag, unsigned int flags)
 {
     nOS_Error   err;
 
-#if NOS_CONFIG_SAFE > 0
+#if (NOS_CONFIG_SAFE > 0)
     if (flag == NULL) {
         err = NOS_E_FULL;
     } else
@@ -111,13 +111,14 @@ nOS_Error nOS_FlagCreate (nOS_Flag *flag, unsigned int flags)
  *
  * Note        : Safe to be called from threads ONLY with scheduler unlocked.
  */
-nOS_Error nOS_FlagWait (nOS_Flag *flag, uint8_t opt, unsigned int flags, unsigned int *res, uint16_t tout)
+nOS_Error nOS_FlagWait (nOS_Flag *flag, uint8_t opt, unsigned int flags,
+                        unsigned int *res, uint16_t tout)
 {
     nOS_Error       err;
     nOS_FlagContext ctx;
     unsigned int    r;
 
-#if NOS_CONFIG_SAFE > 0
+#if (NOS_CONFIG_SAFE > 0)
     if (flag == NULL) {
         err = NOS_E_NULL;
     } else
@@ -125,7 +126,10 @@ nOS_Error nOS_FlagWait (nOS_Flag *flag, uint8_t opt, unsigned int flags, unsigne
     {
         nOS_CriticalEnter();
         r = flag->flags & flags;
-        /* If thread is waiting for ALL flags, then clear result if NOT ALL flags set. */
+        /*
+         * If thread is waiting for ALL flags,
+         * then clear result if NOT ALL flags set.
+         */
         if (((opt & NOS_FLAG_WAIT) == NOS_FLAG_WAIT_ALL) && (r != flags)) {
             r = NOS_FLAG_NONE;
         }
@@ -189,7 +193,7 @@ nOS_Error nOS_FlagSend (nOS_Flag *flag, unsigned int flags, unsigned int mask)
     nOS_Error       err;
     nOS_FlagResult  res;
 
-#if NOS_CONFIG_SAFE > 0
+#if (NOS_CONFIG_SAFE > 0)
     if (flag == NULL) {
         err = NOS_E_NULL;
     } else

@@ -34,6 +34,7 @@ static nOS_Error SanityCheck(nOS_Mem *mem, void *block)
     } else if (mem->count == mem->max) {
         err = NOS_E_OVERFLOW;
     } else {
+        /* Memory block is already free? */
         p = (void*)mem->list;
         while ((p != NULL) && (p != block)) {
             p = *(void**)p;

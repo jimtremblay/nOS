@@ -18,7 +18,7 @@ extern "C" {
 
 #if defined(NOS_PORT_SCHED_USE_32_BITS)
 #if defined(NOS_PORT_HAVE_CLZ)
-#if NOS_CONFIG_MAX_THREAD_PRIO < 32
+#if (NOS_CONFIG_MAX_THREAD_PRIO < 32)
 nOS_Thread* SchedHighPrio(void)
 {
     uint32_t    prio;
@@ -27,7 +27,7 @@ nOS_Thread* SchedHighPrio(void)
 
     return (nOS_Thread*)nOS_readyList[prio].head->payload;
 }
-#elif NOS_CONFIG_MAX_THREAD_PRIO < 256
+#elif (NOS_CONFIG_MAX_THREAD_PRIO < 256)
 nOS_Thread* SchedHighPrio(void)
 {
     uint32_t    group;
@@ -40,7 +40,7 @@ nOS_Thread* SchedHighPrio(void)
 }
 #endif  /* NOS_CONFIG_MAX_THREAD_PRIO */
 #else   /* NOS_PORT_HAVE_CLZ */
-#if NOS_CONFIG_MAX_THREAD_PRIO < 32
+#if (NOS_CONFIG_MAX_THREAD_PRIO < 32)
 static const uint8_t tableDeBruijn[32] =
 {
     0, 9, 1, 10, 13, 21, 2, 29, 11, 14, 16, 18, 22, 25, 3, 30,
@@ -61,7 +61,7 @@ nOS_Thread* SchedHighPrio(void)
 
     return (nOS_Thread*)nOS_readyList[prio].head->payload;
 }
-#elif NOS_CONFIG_MAX_THREAD_PRIO < 256
+#elif (NOS_CONFIG_MAX_THREAD_PRIO < 256)
 static const uint8_t tableDeBruijn[32] =
 {
     0, 9, 1, 10, 13, 21, 2, 29, 11, 14, 16, 18, 22, 25, 3, 30,
@@ -94,7 +94,7 @@ nOS_Thread* SchedHighPrio(void)
 #endif  /* NOS_CONFIG_MAX_THREAD_PRIO */
 #endif  /* NOS_PORT_HAVE_CLZ */
 #else   /* NOS_PORT_SCHED_USE_32_BITS */
-#if NOS_CONFIG_MAX_THREAD_PRIO < 8
+#if (NOS_CONFIG_MAX_THREAD_PRIO < 8)
 static const uint8_t tableDeBruijn[8] =
 {
     0, 5, 1, 6, 4, 3, 2, 7
@@ -112,7 +112,7 @@ nOS_Thread* SchedHighPrio(void)
 
     return (nOS_Thread*)nOS_readyList[prio].head->payload;
 }
-#elif NOS_CONFIG_MAX_THREAD_PRIO < 16
+#elif (NOS_CONFIG_MAX_THREAD_PRIO < 16)
 const uint16_t tableDeBruijn[16] =
 {
     0, 7, 1, 13, 8, 10, 2, 14, 6, 12, 9, 5, 11, 4, 3, 15
@@ -131,7 +131,7 @@ nOS_Thread* SchedHighPrio(void)
 
     return (nOS_Thread*)nOS_readyList[prio].head->payload;
 }
-#elif NOS_CONFIG_MAX_THREAD_PRIO < 64
+#elif (NOS_CONFIG_MAX_THREAD_PRIO < 64)
 const uint8_t tableDeBruijn[8] =
 {
     0, 5, 1, 6, 4, 3, 2, 7
@@ -156,7 +156,7 @@ nOS_Thread* SchedHighPrio(void)
 
     return (nOS_Thread*)nOS_readyList[(group << 3) | prio].head->payload;
 }
-#elif NOS_CONFIG_MAX_THREAD_PRIO < 256
+#elif (NOS_CONFIG_MAX_THREAD_PRIO < 256)
 const uint16_t tableDeBruijn[16] =
 {
     0, 7, 1, 13, 8, 10, 2, 14, 6, 12, 9, 5, 11, 4, 3, 15
@@ -192,10 +192,10 @@ void AppendThreadToReadyList (nOS_Thread *thread)
     /* we use 32 bits variables for maximum performance */
     uint32_t    prio = (uint32_t)thread->prio;
 
-    #if NOS_CONFIG_MAX_THREAD_PRIO < 32
+    #if (NOS_CONFIG_MAX_THREAD_PRIO < 32)
     nOS_ListAppend(&nOS_readyList[prio], &thread->readyWaiting);
     nOS_readyPrio |= (0x00000001UL << prio);
-    #elif NOS_CONFIG_MAX_THREAD_PRIO < 256
+    #elif (NOS_CONFIG_MAX_THREAD_PRIO < 256)
     uint32_t    group = (prio >> 5UL) & 0x00000007UL;
 
     nOS_ListAppend(&nOS_readyList[prio], &thread->readyWaiting);
@@ -209,12 +209,12 @@ void RemoveThreadFromReadyList (nOS_Thread *thread)
     /* we use 32 bits variables for maximum performance */
     uint32_t    prio = (uint32_t)thread->prio;
 
-    #if NOS_CONFIG_MAX_THREAD_PRIO < 32
+    #if (NOS_CONFIG_MAX_THREAD_PRIO < 32)
     nOS_ListRemove(&nOS_readyList[prio], &thread->readyWaiting);
     if (nOS_readyList[prio].head == NULL) {
         nOS_readyPrio &= ~(0x00000001UL << prio);
     }
-    #elif NOS_CONFIG_MAX_THREAD_PRIO < 256
+    #elif (NOS_CONFIG_MAX_THREAD_PRIO < 256)
     uint32_t    group = (prio >> 5UL) & 0x00000007UL;
 
     nOS_ListRemove(&nOS_readyList[prio], &thread->readyWaiting);
@@ -229,19 +229,19 @@ void RemoveThreadFromReadyList (nOS_Thread *thread)
 #else   /* NOS_PORT_SCHED_USE_32_BITS */
 void AppendThreadToReadyList (nOS_Thread *thread)
 {
-    #if NOS_CONFIG_MAX_THREAD_PRIO < 8
+    #if (NOS_CONFIG_MAX_THREAD_PRIO < 8)
     nOS_ListAppend(&nOS_readyList[thread->prio], &thread->readyWaiting);
     nOS_readyPrio |= (0x01 << thread->prio);
-    #elif NOS_CONFIG_MAX_THREAD_PRIO < 16
+    #elif (NOS_CONFIG_MAX_THREAD_PRIO < 16)
     nOS_ListAppend(&nOS_readyList[thread->prio], &thread->readyWaiting);
     nOS_readyPrio |= (0x0001 << thread->prio);
-    #elif NOS_CONFIG_MAX_THREAD_PRIO < 64
+    #elif (NOS_CONFIG_MAX_THREAD_PRIO < 64)
     uint8_t     group = (thread->prio >> 3) & 0x07;
 
     nOS_ListAppend(&nOS_readyList[thread->prio], &thread->readyWaiting);
     nOS_readyPrio[group] |= (0x01 << (thread->prio & 0x07));
     nOS_readyGroup |= (0x01 << group);
-    #elif NOS_CONFIG_MAX_THREAD_PRIO < 256
+    #elif (NOS_CONFIG_MAX_THREAD_PRIO < 256)
     uint8_t     group = (thread->prio >> 4) & 0x0F;
 
     nOS_ListAppend(&nOS_readyList[thread->prio], &thread->readyWaiting);
@@ -252,17 +252,17 @@ void AppendThreadToReadyList (nOS_Thread *thread)
 
 void RemoveThreadFromReadyList (nOS_Thread *thread)
 {
-    #if NOS_CONFIG_MAX_THREAD_PRIO < 8
+    #if (NOS_CONFIG_MAX_THREAD_PRIO < 8)
     nOS_ListRemove(&nOS_readyList[thread->prio], &thread->readyWaiting);
     if (nOS_readyList[thread->prio].head == NULL) {
         nOS_readyPrio &= ~(0x01 << thread->prio);
     }
-    #elif NOS_CONFIG_MAX_THREAD_PRIO < 16
+    #elif (NOS_CONFIG_MAX_THREAD_PRIO < 16)
     nOS_ListRemove(&nOS_readyList[thread->prio], &thread->readyWaiting);
     if (nOS_readyList[thread->prio].head == NULL) {
         nOS_readyPrio &= ~(0x0001 << thread->prio);
     }
-    #elif NOS_CONFIG_MAX_THREAD_PRIO < 64
+    #elif (NOS_CONFIG_MAX_THREAD_PRIO < 64)
     uint8_t     group = (thread->prio >> 3) & 0x07;
 
     nOS_ListRemove(&nOS_readyList[thread->prio], &thread->readyWaiting);
@@ -272,7 +272,7 @@ void RemoveThreadFromReadyList (nOS_Thread *thread)
             nOS_readyGroup &= ~(0x01 << group);
         }
     }
-    #elif NOS_CONFIG_MAX_THREAD_PRIO < 256
+    #elif (NOS_CONFIG_MAX_THREAD_PRIO < 256)
     uint8_t     group = (thread->prio >> 4) & 0x0F;
 
     nOS_ListRemove(&nOS_readyList[thread->prio], &thread->readyWaiting);

@@ -17,7 +17,7 @@ nOS_Error nOS_SemCreate (nOS_Sem *sem, uint16_t count, uint16_t max)
 {
     nOS_Error   err;
 
-#if NOS_CONFIG_SAFE > 0
+#if (NOS_CONFIG_SAFE > 0)
     if (sem == NULL) {
         err = NOS_E_NULL;
     } else if (max == 0) {
@@ -53,7 +53,7 @@ nOS_Error nOS_SemTake (nOS_Sem *sem, uint16_t tout)
 {
     nOS_Error   err;
 
-#if NOS_CONFIG_SAFE > 0
+#if (NOS_CONFIG_SAFE > 0)
     if (sem == NULL) {
         err = NOS_E_NULL;
     } else
@@ -97,7 +97,7 @@ nOS_Error nOS_SemGive (nOS_Sem *sem)
     nOS_Thread  *thread;
     nOS_Error   err;
 
-#if NOS_CONFIG_SAFE > 0
+#if (NOS_CONFIG_SAFE > 0)
     if (sem == NULL) {
         err = NOS_E_NULL;
     } else

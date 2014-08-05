@@ -13,11 +13,40 @@
 extern "C" {
 #endif
 
+/*
+ * Name        : nOS_MutexCreate
+ *
+ * Description : Initialize a mutex object. A mutex can only be locked from thread
+ *               and unlocked from mutex owner. Any attempt to unlock a mutex that
+ *               not belong to the caller thread will failed.
+ *
+ * Arguments   : mutex : Pointer to mutex object.
+ *               type  : Type of mutex to create.
+ *                       NOS_MUTEX_NORMAL    : Standard mutex (like binary
+ *                                             semaphore).
+ *                       NOS_MUTEX_RECURSIVE : Mutex that can be locked
+ *                                             recursively.
+ *               prio  : NOS_MUTEX_PRIO_INHERIT : Mutex owner inherit higher prio
+ *                                                from other threads that try to
+ *                                                lock this mutex.
+ *                       prio > 0               : Mutex owner increase its prio
+ *                                                to this value when it lock the
+ *                                                mutex (ceiling protocol).
+ *
+ * Return      : Error code.
+ *               NOS_E_NULL    : Pointer to mutex object is NULL.
+ *               NOS_E_INV_VAL : Type of mutex is not valid.
+ *               NOS_OK        : Mutex initialized with success.
+ *
+ * Note        : Mutex object must be created before using it, else
+ *               behaviour is undefined and must be called one time
+ *               ONLY for each mutex object.
+ */
 nOS_Error nOS_MutexCreate (nOS_Mutex *mutex, uint8_t type, uint8_t prio)
 {
     nOS_Error   err;
 
-#if NOS_CONFIG_SAFE > 0
+#if (NOS_CONFIG_SAFE > 0)
     if (mutex == NULL) {
         err = NOS_E_NULL;
     } else if ((type != NOS_MUTEX_NORMAL) && (type != NOS_MUTEX_RECURSIVE)) {
@@ -55,7 +84,7 @@ nOS_Error nOS_MutexLock (nOS_Mutex *mutex, uint16_t tout)
 {
     nOS_Error   err;
 
-#if NOS_CONFIG_SAFE > 0
+#if (NOS_CONFIG_SAFE > 0)
     if (mutex == NULL) {
         err = NOS_E_NULL;
     } else
@@ -141,7 +170,7 @@ nOS_Error nOS_MutexUnlock (nOS_Mutex *mutex)
     nOS_Thread      *thread;
     nOS_Error       err;
 
-#if NOS_CONFIG_SAFE > 0
+#if (NOS_CONFIG_SAFE > 0)
     if (mutex == NULL) {
         err = NOS_E_NULL;
     } else
