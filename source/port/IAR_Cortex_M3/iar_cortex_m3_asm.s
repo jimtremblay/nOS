@@ -44,7 +44,7 @@ PendSV_Handler:
     LDR         R2,         [R3]
     
     /* Push remaining registers on thread stack */
-	STMDB       R12!,       {R4-R11, LR}
+	STMDB       R12!,       {R4-R11}
     
     /* Save psp to nOS_Thread object of current running thread */
     STR         R12,        [R2]
@@ -59,7 +59,7 @@ PendSV_Handler:
     LDR         R12,        [R2]
     
     /* Pop registers from thread stack */
-    LDMIA       R12!,       {R4-R11, LR}
+    LDMIA       R12!,       {R4-R11}
     
     /* Restore psp to high prio thread stack */
     MSR         PSP,        R12

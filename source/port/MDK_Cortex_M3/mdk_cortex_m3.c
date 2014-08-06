@@ -25,21 +25,21 @@ void nOS_PortInit(void)
     /* Copy msp to psp */
     _psp = _msp;
     /* Set msp to local isr stack */
-    _msp = (((uint32_t)&isrStack[NOS_CONFIG_ISR_STACK_SIZE-1]) & 0xfffffff8);
+    _msp = (((uint32_t)&isrStack[NOS_CONFIG_ISR_STACK_SIZE-1]) & 0xfffffff8UL);
     /* Set current stack to psp and priviledge mode */
     _control |= 0x00000002UL;
     /* Set PendSV and SysTick to lowest priority */
-    *(volatile uint32_t *)0xe000ed20 |= 0xffff0000;
+    *(volatile uint32_t *)0xe000ed20UL |= 0xffff0000UL;
     nOS_CriticalLeave();
 }
 
 void nOS_ContextInit(nOS_Thread *thread, stack_t *stack, size_t ssize, void(*func)(void*), void *arg)
 {
-    stack_t *tos = (stack_t*)((stack_t)(stack + (ssize - 1)) & 0xfffffff8);
+    stack_t *tos = (stack_t*)((stack_t)(stack + (ssize - 1)) & 0xfffffff8UL);
     
-	*(--tos) = 0x01000000;      /* xPSR */
+	*(--tos) = 0x01000000UL;    /* xPSR */
     *(--tos) = (stack_t)func;   /* PC */
-    *(--tos) = 0x00000000;      /* LR */
+    *(--tos) = 0x00000000UL;    /* LR */
     tos     -= 4;               /* R12, R3, R2 and R1 */
     *(--tos) = (stack_t)arg;    /* R0 */
     tos     -= 8;               /* R11, R10, R9, R8, R7, R6, R5 and R4 */
@@ -62,7 +62,7 @@ void nOS_IsrLeave (void)
         if (nOS_lockNestingCounter == 0) {
             nOS_highPrioThread = SchedHighPrio();
             if (nOS_runningThread != nOS_highPrioThread) {
-                *(volatile uint32_t *)0xe000ed04 = 0x10000000;
+                *(volatile uint32_t *)0xe000ed04UL = 0x10000000UL;
             }
         }
     }
@@ -88,7 +88,7 @@ __asm void PendSV_Handler(void)
     LDR         R2,         [R3]
 
     /* Push remaining registers on thread stack */
-    STMDB       R12!,       {R4-R11, LR}
+    STMDB       R12!,       {R4-R11}
 
     /* Save psp to nOS_Thread object of current running thread */
     STR         R12,        [R2]
@@ -103,7 +103,7 @@ __asm void PendSV_Handler(void)
     LDR         R12,        [R2]
 
     /* Pop registers from thread stack */
-    LDMIA       R12!,       {R4-R11, LR}
+    LDMIA       R12!,       {R4-R11}
 
     /* Restore psp to high prio thread stack */
     MSR         PSP,        R12

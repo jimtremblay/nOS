@@ -81,7 +81,7 @@ typedef uint32_t                            stack_t;
 #define nOS_ContextSwitch()                                                     \
 {                                                                               \
     register uint32_t volatile _basepri __asm("basepri");                       \
-    *(volatile uint32_t *)0xe000ed04 = 0x10000000;                              \
+    *(volatile uint32_t *)0xe000ed04UL = 0x10000000UL;                          \
     _basepri = 0;                                                               \
     __dsb(0xf);                                                                 \
     __isb(0xf);                                                                 \

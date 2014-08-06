@@ -77,7 +77,7 @@ typedef uint32_t                            stack_t;
  * Request a context switch and enable interrupts to allow PendSV interrupt.
  */
 #define nOS_ContextSwitch()                                                     \
-    *(volatile uint32_t *)0xe000ed04 = 0x10000000;                              \
+    *(volatile uint32_t *)0xe000ed04UL = 0x10000000UL;                          \
     __set_BASEPRI(0);                                                           \
     __DSB();                                                                    \
     __ISB();                                                                    \
