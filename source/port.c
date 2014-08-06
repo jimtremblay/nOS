@@ -8,18 +8,20 @@
 
 #if defined(__GNUC__) && defined(__AVR__)
  #include "port/GCC_AVR/gcc_avr.c"
-#elif defined(__GNUC__) && defined(__ARM_ARCH_7EM__)
- #include "port/GCC_Cortex_M4F/gcc_cortex_m4f.c"
+#elif defined(__GNUC__) && defined(__ARM_ARCH_6M__)
+ #include "port/GCC_Cortex_M0/gcc_cortex_m0.c"
 #elif defined(__GNUC__) && defined(__ARM_ARCH_7M__)
  #include "port/GCC_Cortex_M3/gcc_cortex_m3.c"
-#elif defined(__ICCARM__) && (__CORE__ == __ARM7EM__)
- #include "port/IAR_Cortex_M4F/iar_cortex_m4f.c"
+#elif defined(__GNUC__) && defined(__ARM_ARCH_7EM__)
+ #include "port/GCC_Cortex_M4F/gcc_cortex_m4f.c"
 #elif defined(__ICCARM__) && (__CORE__ == __ARM7M__)
  #include "port/IAR_Cortex_M3/iar_cortex_m3.c"
-#elif defined(__CC_ARM) && (defined(__TARGET_CPU_CORTEX_M4) || defined(__TARGET_CPU_CORTEX_M4_FP))
- #include "port/MDK_Cortex_M4F/mdk_cortex_m4f.c"
+#elif defined(__ICCARM__) && (__CORE__ == __ARM7EM__)
+ #include "port/IAR_Cortex_M4F/iar_cortex_m4f.c"
 #elif defined(__CC_ARM) && defined(__TARGET_CPU_CORTEX_M3)
  #include "port/MDK_Cortex_M3/mdk_cortex_m3.c"
+#elif defined(__CC_ARM) && (defined(__TARGET_CPU_CORTEX_M4) || defined(__TARGET_CPU_CORTEX_M4_FP))
+ #include "port/MDK_Cortex_M4F/mdk_cortex_m4f.c"
 #else
  #error "This compiler/processor is not yet supported."
 #endif
