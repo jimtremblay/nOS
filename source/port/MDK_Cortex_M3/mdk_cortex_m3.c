@@ -14,13 +14,13 @@ extern "C" {
 #endif
 
 NOS_STACK(isrStack[NOS_CONFIG_ISR_STACK_SIZE]);
-  
+
 void nOS_PortInit(void)
 {
     register uint32_t volatile _msp __asm("msp");
     register uint32_t volatile _psp __asm("psp");
     register uint32_t volatile _control __asm("control");
-    
+
     nOS_CriticalEnter();
     /* Copy msp to psp */
     _psp = _msp;
@@ -36,14 +36,14 @@ void nOS_PortInit(void)
 void nOS_ContextInit(nOS_Thread *thread, stack_t *stack, size_t ssize, void(*func)(void*), void *arg)
 {
     stack_t *tos = (stack_t*)((stack_t)(stack + (ssize - 1)) & 0xfffffff8UL);
-    
-	*(--tos) = 0x01000000UL;    /* xPSR */
+
+    *(--tos) = 0x01000000UL;    /* xPSR */
     *(--tos) = (stack_t)func;   /* PC */
     *(--tos) = 0x00000000UL;    /* LR */
     tos     -= 4;               /* R12, R3, R2 and R1 */
     *(--tos) = (stack_t)arg;    /* R0 */
     tos     -= 8;               /* R11, R10, R9, R8, R7, R6, R5 and R4 */
-    
+
     thread->stackPtr = tos;
 }
 
@@ -73,7 +73,7 @@ __asm void PendSV_Handler(void)
 {
     extern nOS_runningThread;
     extern nOS_highPrioThread;
-    
+
     /* Set interrupt mask to disable interrupts that use nOS API */
     MOV         R0,         #NOS_PORT_MAX_UNSAFE_BASEPRI
     MSR         BASEPRI,    R0
@@ -107,15 +107,15 @@ __asm void PendSV_Handler(void)
 
     /* Restore psp to high prio thread stack */
     MSR         PSP,        R12
-	ISB
+    ISB
 
     /* Clear interrupt mask to re-enable interrupts */
     MOV         R0,         #0
     MSR         BASEPRI,    R0
-	ISB;
+    ISB;
 
     /* Return */
-	BX          LR
+    BX          LR
     NOP
 }
 

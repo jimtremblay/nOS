@@ -5,7 +5,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
- 
+
 #if defined(NOS_USE_CONFIG_FILE)
 #include "nOSConfig.h"
 #else
@@ -23,12 +23,12 @@
 
     RSEG    CODE:CODE(2)
     thumb
-    
+
     EXTERN nOS_runningThread
     EXTERN nOS_highPrioThread
-    
+
     PUBLIC PendSV_Handler
-    
+
 PendSV_Handler:
     /* Set interrupt mask to disable interrupts that use nOS API */
     MOV         R0,         #NOS_PORT_MAX_UNSAFE_BASEPRI
@@ -38,40 +38,40 @@ PendSV_Handler:
     /* Save PSP before doing anything, PendSV_Handler already running on MSP */
     MRS         R12,        PSP
     ISB
-    
+
     /* Get the location of nOS_runningThread */
     LDR         R3,         =nOS_runningThread
     LDR         R2,         [R3]
-    
+
     /* Push remaining registers on thread stack */
-	STMDB       R12!,       {R4-R11}
-    
+    STMDB       R12!,       {R4-R11}
+
     /* Save psp to nOS_Thread object of current running thread */
     STR         R12,        [R2]
-    
+
     /* Copy nOS_highPrioThread to nOS_runningThread */
     LDR         R1,         =nOS_highPrioThread
     LDR         R0,         [R1]
     STR         R0,         [R3]
-    
+
     /* Restore psp from nOS_Thread object of high prio thread */
     LDR         R2,         [R1]
     LDR         R12,        [R2]
-    
+
     /* Pop registers from thread stack */
     LDMIA       R12!,       {R4-R11}
-    
+
     /* Restore psp to high prio thread stack */
     MSR         PSP,        R12
     ISB
-    
+
     /* Clear interrupt mask to re-enable interrupts */
     MOV         R0,         #0
     MSR         BASEPRI,    R0
     ISB
 
-	BX          LR
+    BX          LR
     NOP
-    
+
     /* Not needed in this file */
     /* END */

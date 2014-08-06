@@ -130,17 +130,17 @@ __attribute__( ( always_inline ) ) static inline void NOP (void)
 
 __attribute__( ( always_inline ) ) static inline uint32_t nOS_PortCLZ(uint32_t n)
 {
-	uint32_t	r;
-	__asm volatile (
-		"CLZ	%0,	%1"
-		: "=r" (r)
-		: "r" (n)
-	);
-	return r;
+    uint32_t    r;
+    __asm volatile (
+        "CLZ    %0, %1"
+        : "=r" (r)
+        : "r" (n)
+    );
+    return r;
 }
 
-#define nOS_CriticalEnter()                                     				\
-{																				\
+#define nOS_CriticalEnter()                                                     \
+{                                                                               \
     uint32_t    _basepri = GetBASEPRI();                                        \
     SetBASEPRI(NOS_PORT_MAX_UNSAFE_BASEPRI);                                    \
     DSB();                                                                      \
