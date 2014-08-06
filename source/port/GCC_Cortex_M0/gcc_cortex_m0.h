@@ -120,7 +120,7 @@ __attribute__( ( always_inline ) ) static inline void EnableInterrupts (void)
 #define nOS_CriticalEnter()                                                     \
 {                                                                               \
     uint32_t    _primask = GetPRIMASK();                                        \
-    DisableInterrupts();														\
+    DisableInterrupts();                                                        \
     DSB();                                                                      \
     ISB()
 
@@ -135,7 +135,7 @@ __attribute__( ( always_inline ) ) static inline void EnableInterrupts (void)
  */
 #define nOS_ContextSwitch()                                                     \
     *(volatile uint32_t *)0xe000ed04UL = 0x10000000UL;                          \
-    EnableInterrupts();															\
+    EnableInterrupts();                                                         \
     DSB();                                                                      \
     ISB();                                                                      \
     NOP();                                                                      \

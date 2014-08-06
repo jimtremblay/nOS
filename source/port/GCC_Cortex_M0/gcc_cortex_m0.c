@@ -70,7 +70,7 @@ void nOS_IsrLeave (void)
 void PendSV_Handler(void)
 {
     __asm volatile (
-    	"CPSID      I                               \n" /* Disable interrupts */
+        "CPSID      I                               \n" /* Disable interrupts */
         "ISB                                        \n"
         "                                           \n"
         "MRS        R0,         PSP                 \n" /* Save PSP before doing anything, PendSV_Handler already running on MSP */
@@ -79,17 +79,17 @@ void PendSV_Handler(void)
         "LDR        R3,         runningThread       \n" /* Get the location of nOS_runningThread */
         "LDR        R2,         [R3]                \n"
         "                                           \n"
-    	"SUB		R0,			R0,				#32	\n" /* Make space for the remaining registers. */
-    	"                                           \n"
-    	"STR		R0,			[R2]				\n" /* Save PSP to nOS_Thread object of current running thread */
-    	"                                           \n"
+        "SUB        R0,         R0,             #32 \n" /* Make space for the remaining registers. */
+        "                                           \n"
+        "STR        R0,         [R2]                \n" /* Save PSP to nOS_Thread object of current running thread */
+        "                                           \n"
         "STMIA      R0!,        {R4-R7}             \n" /* Push low registers on thread stack */
-    	"                                           \n"
-    	"MOV        R4,         R8                  \n" /* Copy high registers to low registers */
-    	"MOV        R5,         R9                  \n"
-    	"MOV        R6,         R10                 \n"
-    	"MOV        R7,         R11                 \n"
-    	"STMIA      R0!,        {R4-R7}             \n" /* Push high registers on thread stack */
+        "                                           \n"
+        "MOV        R4,         R8                  \n" /* Copy high registers to low registers */
+        "MOV        R5,         R9                  \n"
+        "MOV        R6,         R10                 \n"
+        "MOV        R7,         R11                 \n"
+        "STMIA      R0!,        {R4-R7}             \n" /* Push high registers on thread stack */
         "                                           \n"
         "LDR        R1,         highPrioThread      \n" /* Copy nOS_highPrioThread to nOS_runningThread */
         "LDR        R0,         [R1]                \n"
@@ -97,23 +97,23 @@ void PendSV_Handler(void)
         "                                           \n"
         "LDR        R2,         [R1]                \n" /* Restore PSP from nOS_Thread object of high prio thread */
         "LDR        R0,         [R2]                \n"
-    	"                                           \n"
-    	"ADD		R0,			R0,				#16 \n" /* Move to the high registers */
+        "                                           \n"
+        "ADD        R0,         R0,             #16 \n" /* Move to the high registers */
         "                                           \n"
         "LDMIA      R0!,        {R4-R7}             \n" /* Pop high registers from thread stack */
-    	"MOV        R11,        R7                  \n" /* Copy low registers to high registers */
-    	"MOV        R10,        R6                  \n"
-    	"MOV        R9,         R5                  \n"
-    	"MOV        R8,         R4                  \n"
+        "MOV        R11,        R7                  \n" /* Copy low registers to high registers */
+        "MOV        R10,        R6                  \n"
+        "MOV        R9,         R5                  \n"
+        "MOV        R8,         R4                  \n"
         "                                           \n"
-    	"MSR        PSP,        R0                  \n" /* Restore PSP to high prio thread stack */
-    	"ISB                                        \n"
-    	"                                           \n"
-    	"SUB		R0,			R0,				#32 \n" /* Go back for the low registers */
-    	"                                           \n"
-    	"LDMIA      R0!,        {R4-R7}             \n" /* Pop low registers from thread stack */
+        "MSR        PSP,        R0                  \n" /* Restore PSP to high prio thread stack */
+        "ISB                                        \n"
         "                                           \n"
-    	"CPSIE		I								\n"	/* Enable interrupts */
+        "SUB        R0,         R0,             #32 \n" /* Go back for the low registers */
+        "                                           \n"
+        "LDMIA      R0!,        {R4-R7}             \n" /* Pop low registers from thread stack */
+        "                                           \n"
+        "CPSIE      I                               \n" /* Enable interrupts */
         "ISB                                        \n"
         "                                           \n"
         "BX         LR                              \n" /* Return */
