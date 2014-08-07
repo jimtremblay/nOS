@@ -107,12 +107,12 @@ __attribute__( ( always_inline ) ) static inline void NOP (void)
     __asm volatile ("NOP");
 }
 
-__attribute__( ( always_inline ) ) static inline void DisableInterrupts (void)
+__attribute__( ( always_inline ) ) static inline void DisableInterrupt (void)
 {
     __asm volatile ("CPSID I");
 }
 
-__attribute__( ( always_inline ) ) static inline void EnableInterrupts (void)
+__attribute__( ( always_inline ) ) static inline void EnableInterrupt (void)
 {
     __asm volatile ("CPSIE I");
 }
@@ -120,7 +120,7 @@ __attribute__( ( always_inline ) ) static inline void EnableInterrupts (void)
 #define nOS_CriticalEnter()                                                     \
 {                                                                               \
     uint32_t    _primask = GetPRIMASK();                                        \
-    DisableInterrupts();                                                        \
+    DisableInterrupt();                                                         \
     DSB();                                                                      \
     ISB()
 
@@ -135,11 +135,11 @@ __attribute__( ( always_inline ) ) static inline void EnableInterrupts (void)
  */
 #define nOS_ContextSwitch()                                                     \
     *(volatile uint32_t *)0xe000ed04UL = 0x10000000UL;                          \
-    EnableInterrupts();                                                         \
+    EnableInterrupt();                                                          \
     DSB();                                                                      \
     ISB();                                                                      \
     NOP();                                                                      \
-    DisableInterrupts();                                                        \
+    DisableInterrupt();                                                         \
     DSB();                                                                      \
     ISB()
 

@@ -70,7 +70,7 @@ void nOS_IsrLeave (void)
 void PendSV_Handler(void)
 {
     __asm volatile (
-        "CPSID      I                               \n" /* Disable interrupts */
+        "CPSID      I                               \n" /* Disable interrupt */
         "ISB                                        \n"
         "                                           \n"
         "MRS        R0,         PSP                 \n" /* Save PSP before doing anything, PendSV_Handler already running on MSP */
@@ -79,7 +79,7 @@ void PendSV_Handler(void)
         "LDR        R3,         runningThread       \n" /* Get the location of nOS_runningThread */
         "LDR        R2,         [R3]                \n"
         "                                           \n"
-        "SUB        R0,         R0,             #32 \n" /* Make space for the remaining registers. */
+        "SUB        R0,         R0,             #32 \n" /* Make space for the remaining registers */
         "                                           \n"
         "STR        R0,         [R2]                \n" /* Save PSP to nOS_Thread object of current running thread */
         "                                           \n"
@@ -113,7 +113,7 @@ void PendSV_Handler(void)
         "                                           \n"
         "LDMIA      R0!,        {R4-R7}             \n" /* Pop low registers from thread stack */
         "                                           \n"
-        "CPSIE      I                               \n" /* Enable interrupts */
+        "CPSIE      I                               \n" /* Enable interrupt */
         "ISB                                        \n"
         "                                           \n"
         "BX         LR                              \n" /* Return */
