@@ -14,6 +14,8 @@
  #error "This file is not required. Do not build it."
 #elif defined(__GNUC__) && defined(__ARM_ARCH_7EM__)
  #error "This file is not required. Do not build it."
+#elif defined(__IAR_SYSTEMS_ASM__) && (__CORE__ == __ARM6M__)
+ #include "port/IAR_Cortex_M0/iar_cortex_m0_asm.s"
 #elif defined(__IAR_SYSTEMS_ASM__) && (__CORE__ == __ARM7M__)
  #include "port/IAR_Cortex_M3/iar_cortex_m3_asm.s"
 #elif defined(__IAR_SYSTEMS_ASM__) && (__CORE__ == __ARM7EM__)
