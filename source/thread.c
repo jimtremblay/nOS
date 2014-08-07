@@ -13,6 +13,7 @@
 extern "C" {
 #endif
 
+#if (NOS_CONFIG_THREAD_SUSPEND_ENABLE > 0)
 /* This is an internal function */
 void SuspendThread (void *payload, void *arg)
 {
@@ -47,6 +48,7 @@ void ResumeThread (void *payload, void *arg)
         }
     }
 }
+#endif  /* NOS_CONFIG_THREAD_SUSPEND_ENABLE */
 
 /* This is an internal function */
 void TickThread (void *payload, void *arg)
@@ -101,8 +103,13 @@ void SetThreadPriority (nOS_Thread *thread, uint8_t prio)
     }
 }
 
+#if (NOS_CONFIG_THREAD_SUSPEND_ENABLE > 0)
 nOS_Error nOS_ThreadCreate (nOS_Thread *thread, void(*func)(void*), void *arg,
                             stack_t *stack, size_t ssize, uint8_t prio, uint8_t state)
+#else
+nOS_Error nOS_ThreadCreate (nOS_Thread *thread, void(*func)(void*), void *arg,
+                            stack_t *stack, size_t ssize, uint8_t prio)
+#endif
 {
     nOS_Error   err;
 
@@ -117,13 +124,19 @@ nOS_Error nOS_ThreadCreate (nOS_Thread *thread, void(*func)(void*), void *arg,
         err = NOS_E_INV_VAL;
     } else if (prio > NOS_CONFIG_MAX_THREAD_PRIO) {
         err = NOS_E_INV_VAL;
+#if (NOS_CONFIG_THREAD_SUSPEND_ENABLE > 0)
     } else if ((state != NOS_READY) && (state != NOS_SUSPENDED)) {
         err = NOS_E_INV_VAL;
+#endif
     } else
 #endif
     {
         thread->prio = prio;
+#if (NOS_CONFIG_THREAD_SUSPEND_ENABLE > 0)
         thread->state = state;
+#else
+        thread->state = NOS_READY;
+#endif
         thread->timeout = 0;
         thread->event = NULL;
         thread->context = NULL;
@@ -133,7 +146,10 @@ nOS_Error nOS_ThreadCreate (nOS_Thread *thread, void(*func)(void*), void *arg,
         nOS_ContextInit(thread, stack, ssize, func, arg);
         nOS_CriticalEnter();
         nOS_ListAppend(&nOS_fullList, &thread->full);
-        if (state == NOS_READY) {
+#if (NOS_CONFIG_THREAD_SUSPEND_ENABLE > 0)
+        if (state == NOS_READY)
+#endif
+        {
             AppendThreadToReadyList(thread);
             if (prio > nOS_runningThread->prio) {
                 nOS_Sched();
@@ -146,6 +162,7 @@ nOS_Error nOS_ThreadCreate (nOS_Thread *thread, void(*func)(void*), void *arg,
     return err;
 }
 
+#if (NOS_CONFIG_THREAD_SUSPEND_ENABLE > 0)
 nOS_Error nOS_ThreadSuspend (nOS_Thread *thread)
 {
     nOS_Error   err;
@@ -240,6 +257,7 @@ nOS_Error nOS_ThreadResumeAll (void)
 
     return NOS_OK;
 }
+#endif  /* NOS_CONFIG_THREAD_SUSPEND_ENABLE */
 
 nOS_Error nOS_ThreadSetPriority (nOS_Thread *thread, uint8_t prio)
 {

@@ -42,6 +42,13 @@ extern "C" {
  #endif
 #endif
 
+#if !defined(NOS_CONFIG_THREAD_SUSPEND_ENABLE)
+ #define NOS_CONFIG_THREAD_SUSPEND_ENABLE       0
+ #if defined(NOS_USE_CONFIG_FILE)
+  #warning "nOSConfig.h: NOS_CONFIG_THREAD_SUSPEND_ENABLE is not defined (disabled by default)."
+ #endif
+#endif
+
 #if !defined(NOS_CONFIG_TIMER_ENABLE)
  #define NOS_CONFIG_TIMER_ENABLE                0
  #if defined(NOS_USE_CONFIG_FILE)
@@ -271,8 +278,10 @@ NOS_EXTERN uint16_t     nOS_readyPrio[16];
 nOS_Thread* SchedHighPrio               (void);
 void        AppendThreadToReadyList     (nOS_Thread *thread);
 void        RemoveThreadFromReadyList   (nOS_Thread *thread);
+#if (NOS_CONFIG_THREAD_SUSPEND_ENABLE > 0)
 void        SuspendThread               (void *payload, void *arg);
 void        ResumeThread                (void *payload, void *arg);
+#endif
 void        SetThreadPriority           (nOS_Thread *thread, uint8_t prio);
 void        TickThread                  (void *payload, void *arg);
 void        SignalThread                (nOS_Thread  *thread);
@@ -294,12 +303,17 @@ void        nOS_ListRemove              (nOS_List *list, nOS_Node *node);
 void        nOS_ListRotate              (nOS_List *list);
 void        nOS_ListWalk                (nOS_List *list, void(*callback)(void*, void*), void *arg);
 
+#if (NOS_CONFIG_THREAD_SUSPEND_ENABLE > 0)
 nOS_Error   nOS_ThreadCreate            (nOS_Thread *thread, void(*func)(void*), void *arg, stack_t *sp, size_t ssize, uint8_t prio, uint8_t state);
-nOS_Error   nOS_ThreadDelete            (nOS_Thread *thread);
+#else
+nOS_Error   nOS_ThreadCreate            (nOS_Thread *thread, void(*func)(void*), void *arg, stack_t *sp, size_t ssize, uint8_t prio);
+#endif
+#if (NOS_CONFIG_THREAD_SUSPEND_ENABLE > 0)
 nOS_Error   nOS_ThreadSuspend           (nOS_Thread *thread);
 nOS_Error   nOS_ThreadSuspendAll        (void);
 nOS_Error   nOS_ThreadResume            (nOS_Thread *thread);
 nOS_Error   nOS_ThreadResumeAll         (void);
+#endif
 uint8_t     nOS_ThreadGetPriority       (nOS_Thread *thread);
 nOS_Error   nOS_ThreadSetPriority       (nOS_Thread *thread, uint8_t prio);
 nOS_Thread* nOS_ThreadRunning           (void);

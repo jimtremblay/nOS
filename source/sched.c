@@ -192,16 +192,16 @@ void AppendThreadToReadyList (nOS_Thread *thread)
     /* we use 32 bits variables for maximum performance */
     uint32_t    prio = (uint32_t)thread->prio;
 
-    #if (NOS_CONFIG_MAX_THREAD_PRIO < 32)
+#if (NOS_CONFIG_MAX_THREAD_PRIO < 32)
     nOS_ListAppend(&nOS_readyList[prio], &thread->readyWaiting);
     nOS_readyPrio |= (0x00000001UL << prio);
-    #elif (NOS_CONFIG_MAX_THREAD_PRIO < 256)
+#elif (NOS_CONFIG_MAX_THREAD_PRIO < 256)
     uint32_t    group = (prio >> 5UL) & 0x00000007UL;
 
     nOS_ListAppend(&nOS_readyList[prio], &thread->readyWaiting);
     nOS_readyPrio[group] |= (0x00000001UL << (prio & 0x0000001fUL));
     nOS_readyGroup |= (0x00000001UL << group);
-    #endif  /* NOS_CONFIG_MAX_THREAD_PRIO */
+#endif  /* NOS_CONFIG_MAX_THREAD_PRIO */
 }
 
 void RemoveThreadFromReadyList (nOS_Thread *thread)
@@ -209,12 +209,12 @@ void RemoveThreadFromReadyList (nOS_Thread *thread)
     /* we use 32 bits variables for maximum performance */
     uint32_t    prio = (uint32_t)thread->prio;
 
-    #if (NOS_CONFIG_MAX_THREAD_PRIO < 32)
+#if (NOS_CONFIG_MAX_THREAD_PRIO < 32)
     nOS_ListRemove(&nOS_readyList[prio], &thread->readyWaiting);
     if (nOS_readyList[prio].head == NULL) {
         nOS_readyPrio &= ~(0x00000001UL << prio);
     }
-    #elif (NOS_CONFIG_MAX_THREAD_PRIO < 256)
+#elif (NOS_CONFIG_MAX_THREAD_PRIO < 256)
     uint32_t    group = (prio >> 5UL) & 0x00000007UL;
 
     nOS_ListRemove(&nOS_readyList[prio], &thread->readyWaiting);
@@ -224,45 +224,45 @@ void RemoveThreadFromReadyList (nOS_Thread *thread)
             nOS_readyGroup &= ~(0x00000001UL << group);
         }
     }
-    #endif  /* NOS_CONFIG_MAX_THREAD_PRIO */
+#endif  /* NOS_CONFIG_MAX_THREAD_PRIO */
 }
 #else   /* NOS_PORT_SCHED_USE_32_BITS */
 void AppendThreadToReadyList (nOS_Thread *thread)
 {
-    #if (NOS_CONFIG_MAX_THREAD_PRIO < 8)
+#if (NOS_CONFIG_MAX_THREAD_PRIO < 8)
     nOS_ListAppend(&nOS_readyList[thread->prio], &thread->readyWaiting);
     nOS_readyPrio |= (0x01 << thread->prio);
-    #elif (NOS_CONFIG_MAX_THREAD_PRIO < 16)
+#elif (NOS_CONFIG_MAX_THREAD_PRIO < 16)
     nOS_ListAppend(&nOS_readyList[thread->prio], &thread->readyWaiting);
     nOS_readyPrio |= (0x0001 << thread->prio);
-    #elif (NOS_CONFIG_MAX_THREAD_PRIO < 64)
+#elif (NOS_CONFIG_MAX_THREAD_PRIO < 64)
     uint8_t     group = (thread->prio >> 3) & 0x07;
 
     nOS_ListAppend(&nOS_readyList[thread->prio], &thread->readyWaiting);
     nOS_readyPrio[group] |= (0x01 << (thread->prio & 0x07));
     nOS_readyGroup |= (0x01 << group);
-    #elif (NOS_CONFIG_MAX_THREAD_PRIO < 256)
+#elif (NOS_CONFIG_MAX_THREAD_PRIO < 256)
     uint8_t     group = (thread->prio >> 4) & 0x0F;
 
     nOS_ListAppend(&nOS_readyList[thread->prio], &thread->readyWaiting);
     nOS_readyPrio[group] |= (0x0001 << (thread->prio & 0x0f));
     nOS_readyGroup |= (0x0001 << group);
-    #endif  /* NOS_CONFIG_MAX_THREAD_PRIO */
+#endif  /* NOS_CONFIG_MAX_THREAD_PRIO */
 }
 
 void RemoveThreadFromReadyList (nOS_Thread *thread)
 {
-    #if (NOS_CONFIG_MAX_THREAD_PRIO < 8)
+#if (NOS_CONFIG_MAX_THREAD_PRIO < 8)
     nOS_ListRemove(&nOS_readyList[thread->prio], &thread->readyWaiting);
     if (nOS_readyList[thread->prio].head == NULL) {
         nOS_readyPrio &= ~(0x01 << thread->prio);
     }
-    #elif (NOS_CONFIG_MAX_THREAD_PRIO < 16)
+#elif (NOS_CONFIG_MAX_THREAD_PRIO < 16)
     nOS_ListRemove(&nOS_readyList[thread->prio], &thread->readyWaiting);
     if (nOS_readyList[thread->prio].head == NULL) {
         nOS_readyPrio &= ~(0x0001 << thread->prio);
     }
-    #elif (NOS_CONFIG_MAX_THREAD_PRIO < 64)
+#elif (NOS_CONFIG_MAX_THREAD_PRIO < 64)
     uint8_t     group = (thread->prio >> 3) & 0x07;
 
     nOS_ListRemove(&nOS_readyList[thread->prio], &thread->readyWaiting);
@@ -272,7 +272,7 @@ void RemoveThreadFromReadyList (nOS_Thread *thread)
             nOS_readyGroup &= ~(0x01 << group);
         }
     }
-    #elif (NOS_CONFIG_MAX_THREAD_PRIO < 256)
+#elif (NOS_CONFIG_MAX_THREAD_PRIO < 256)
     uint8_t     group = (thread->prio >> 4) & 0x0F;
 
     nOS_ListRemove(&nOS_readyList[thread->prio], &thread->readyWaiting);
@@ -282,7 +282,7 @@ void RemoveThreadFromReadyList (nOS_Thread *thread)
             nOS_readyGroup &= ~(0x0001 << group);
         }
     }
-    #endif  /* NOS_CONFIG_MAX_THREAD_PRIO */
+#endif  /* NOS_CONFIG_MAX_THREAD_PRIO */
 }
 #endif  /* NOS_PORT_SCHED_USE_32_BITS */
 
