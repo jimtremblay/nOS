@@ -49,12 +49,32 @@ extern "C" {
  #endif
 #endif
 
+#if !defined(NOS_CONFIG_SEM_ENABLE)
+ #define NOS_CONFIG_SEM_ENABLE                  0
+ #if defined(NOS_USE_CONFIG_FILE)
+  #warning "nOSConfig.h: NOS_CONFIG_SEM_ENABLE is not defined (disabled by default)."
+ #endif
+#elif (NOS_CONFIG_SEM_ENABLE > 0)
+ #if !defined(NOS_CONFIG_SEM_CREATE_ENABLE)
+  #define NOS_CONFIG_SEM_CREATE_ENABLE          0
+  #if defined(NOS_USE_CONFIG_FILE)
+   #warning "nOSConfig.h: NOS_CONFIG_SEM_CREATE_ENABLE is not defined (disabled by default)."
+  #endif
+ #endif
+#else
+ #undef NOS_CONFIG_SEM_CREATE_ENABLE
+ #define NOS_CONFIG_SEM_CREATE_ENABLE           0
+#endif
+
 #if !defined(NOS_CONFIG_TIMER_ENABLE)
  #define NOS_CONFIG_TIMER_ENABLE                0
  #if defined(NOS_USE_CONFIG_FILE)
   #warning "nOSConfig.h: NOS_CONFIG_TIMER_ENABLE is not defined (disabled by default)."
  #endif
 #elif (NOS_CONFIG_TIMER_ENABLE > 0)
+ #if (NOS_CONFIG_SEM_ENABLE == 0)
+  #error "nOSConfig.h: NOS_CONFIG_SEM_ENABLE need to be enable when NOS_CONFIG_TIMER_ENABLE is enable."
+ #endif
  #if !defined(NOS_CONFIG_TIMER_THREAD_PRIO)
   #define NOS_CONFIG_TIMER_THREAD_PRIO          0
   #if defined(NOS_USE_CONFIG_FILE)
@@ -75,7 +95,9 @@ typedef struct _nOS_List        nOS_List;
 typedef struct _nOS_Node        nOS_Node;
 typedef struct _nOS_Thread      nOS_Thread;
 typedef struct _nOS_Event       nOS_Event;
+#if (NOS_CONFIG_SEM_ENABLE > 0)
 typedef struct _nOS_Sem         nOS_Sem;
+#endif
 typedef struct _nOS_Mutex       nOS_Mutex;
 typedef struct _nOS_Queue       nOS_Queue;
 typedef struct _nOS_Flag        nOS_Flag;
@@ -137,12 +159,14 @@ struct _nOS_Event
     nOS_List        waitingList;
 };
 
+#if (NOS_CONFIG_SEM_ENABLE > 0)
 struct _nOS_Sem
 {
     nOS_Event       e;
     uint16_t        count;
     uint16_t        max;
 };
+#endif
 
 struct _nOS_Mutex
 {
@@ -241,6 +265,22 @@ struct _nOS_Timer
 #define NOS_TIMER_OPT               0x01
 #define NOS_TIMER_RUNNING           0x80
 
+#if (NOS_CONFIG_SEM_ENABLE > 0)
+#if (NOS_CONFIG_SEM_CREATE_ENABLE == 0)
+#define NOS_SEM(s,c,m)                                                  \
+    nOS_Sem s = {                                                       \
+        {                                                               \
+            {                                                           \
+                NULL,                                                   \
+                NULL                                                    \
+            }                                                           \
+        },                                                              \
+        c,                                                              \
+        m                                                               \
+    }
+#endif
+#endif
+
 #if defined(NOS_PRIVATE)
 NOS_EXTERN nOS_Thread   nOS_mainThread;
 
@@ -322,9 +362,13 @@ void        nOS_EventCreate             (nOS_Event *event);
 nOS_Error   nOS_EventWait               (nOS_Event *event, uint8_t state, uint16_t tout);
 nOS_Thread* nOS_EventSignal             (nOS_Event *event);
 
+#if (NOS_CONFIG_SEM_ENABLE > 0)
+#if (NOS_CONFIG_SEM_CREATE_ENABLE > 0)
 nOS_Error   nOS_SemCreate               (nOS_Sem *sem, uint16_t cntr, uint16_t max);
+#endif
 nOS_Error   nOS_SemTake                 (nOS_Sem *sem, uint16_t tout);
 nOS_Error   nOS_SemGive                 (nOS_Sem *sem);
+#endif
 
 nOS_Error   nOS_MutexCreate             (nOS_Mutex *mutex, uint8_t type, uint8_t prio);
 nOS_Error   nOS_MutexLock               (nOS_Mutex *mutex, uint16_t tout);
