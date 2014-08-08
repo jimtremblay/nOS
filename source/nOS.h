@@ -63,7 +63,6 @@ extern "C" {
  #endif
 #else
  #undef NOS_CONFIG_SEM_CREATE_ENABLE
- #define NOS_CONFIG_SEM_CREATE_ENABLE           0
 #endif
   
 #if !defined(NOS_CONFIG_MUTEX_ENABLE)
@@ -80,7 +79,31 @@ extern "C" {
  #endif
 #else
  #undef NOS_CONFIG_MUTEX_CREATE_ENABLE
- #define NOS_CONFIG_MUTEX_CREATE_ENABLE         0
+#endif
+  
+#if !defined(NOS_CONFIG_FLAG_ENABLE)
+ #define NOS_CONFIG_FLAG_ENABLE                 0
+ #if defined(NOS_USE_CONFIG_FILE)
+  #warning "nOSConfig.h: NOS_CONFIG_FLAG_ENABLE is not defined (disabled by default)."
+ #endif
+#elif (NOS_CONFIG_FLAG_ENABLE > 0)
+ #if !defined(NOS_CONFIG_FLAG_CREATE_ENABLE)
+  #define NOS_CONFIG_FLAG_CREATE_ENABLE         0
+  #if defined(NOS_USE_CONFIG_FILE)
+   #warning "nOSConfig.h: NOS_CONFIG_FLAG_CREATE_ENABLE is not defined (disabled by default)."
+  #endif
+ #endif
+ #if !defined(NOS_CONFIG_FLAG_NB_BITS)
+  #define NOS_CONFIG_FLAG_NB_BITS               8
+  #if defined(NOS_USE_CONFIG_FILE)
+   #warning "nOSConfig.h: NOS_CONFIG_FLAG_NB_BITS is not defined (default to 8)."
+  #endif
+ #elif (NOS_CONFIG_FLAG_NB_BITS != 8) && (NOS_CONFIG_FLAG_NB_BITS != 16) && (NOS_CONFIG_FLAG_NB_BITS != 32)
+  #error "nOSConfig.h: NOS_CONFIG_FLAG_NB_BITS set to invalid value: can be set to 8, 16 or 32."
+ #endif
+#else
+ #undef NOS_CONFIG_FLAG_CREATE_ENABLE
+ #undef NOS_CONFIG_FLAG_NB_BITS
 #endif
 
 #if !defined(NOS_CONFIG_TIMER_ENABLE)
@@ -119,9 +142,18 @@ typedef struct _nOS_Sem         nOS_Sem;
 typedef struct _nOS_Mutex       nOS_Mutex;
 #endif
 typedef struct _nOS_Queue       nOS_Queue;
+#if (NOS_CONFIG_FLAG_ENABLE > 0)
 typedef struct _nOS_Flag        nOS_Flag;
 typedef struct _nOS_FlagContext nOS_FlagContext;
 typedef struct _nOS_FlagResult  nOS_FlagResult;
+#if (NOS_CONFIG_FLAG_NB_BITS == 8)
+typedef uint8_t                 flags_t;
+#elif (NOS_CONFIG_FLAG_NB_BITS == 16)
+typedef uint16_t                flags_t;
+#else   /* NOS_CONFIG_FLAG_NB_BITS == 32 */
+typedef uint32_t                flags_t;
+#endif
+#endif
 typedef struct _nOS_Mem         nOS_Mem;
 #if (NOS_CONFIG_TIMER_ENABLE > 0)
 typedef struct _nOS_Timer       nOS_Timer;
@@ -210,24 +242,26 @@ struct _nOS_Queue
     uint16_t        w;
 };
 
+#if (NOS_CONFIG_FLAG_ENABLE > 0)
 struct _nOS_Flag
 {
     nOS_Event       e;
-    unsigned int    flags;
+    flags_t         flags;
 };
 
 struct _nOS_FlagContext
 {
     uint8_t         opt;
-    unsigned int    flags;
-    unsigned int    *rflags;
+    flags_t         flags;
+    flags_t         *rflags;
 };
 
 struct _nOS_FlagResult
 {
-    unsigned int    rflags;
     uint8_t         sched;
+    flags_t         rflags;
 };
+#endif
 
 struct _nOS_Mem
 {
@@ -320,6 +354,19 @@ struct _nOS_Timer
         p,                                                                      \
         0,                                                                      \
         NULL                                                                    \
+    }
+#endif
+    
+#if (NOS_CONFIG_FLAG_ENABLE > 0)
+ #define NOS_FLAG(f,v)                                                          \
+    nOS_Flag f = {                                                              \
+        {                                                                       \
+            {                                                                   \
+                NULL,                                                           \
+                NULL                                                            \
+            }                                                                   \
+        },                                                                      \
+        v                                                                       \
     }
 #endif
 
@@ -424,9 +471,13 @@ nOS_Error   nOS_QueueCreate             (nOS_Queue *queue, void *buffer, uint16_
 nOS_Error   nOS_QueueRead               (nOS_Queue *queue, void *buffer, uint16_t tout);
 nOS_Error   nOS_QueueWrite              (nOS_Queue *queue, void *buffer);
 
-nOS_Error   nOS_FlagCreate              (nOS_Flag *flag, unsigned int flags);
-nOS_Error   nOS_FlagWait                (nOS_Flag *flag, uint8_t opt, unsigned int flags, unsigned int *res, uint16_t tout);
-nOS_Error   nOS_FlagSend                (nOS_Flag *flag, unsigned int flags, unsigned int mask);
+#if (NOS_CONFIG_FLAG_ENABLE > 0)
+#if (NOS_CONFIG_FLAG_CREATE_ENABLE > 0)
+nOS_Error   nOS_FlagCreate              (nOS_Flag *flag, flags_t flags);
+#endif
+nOS_Error   nOS_FlagWait                (nOS_Flag *flag, uint8_t opt, flags_t flags, flags_t *res, uint16_t tout);
+nOS_Error   nOS_FlagSend                (nOS_Flag *flag, flags_t flags, flags_t mask);
+#endif
 
 nOS_Error   nOS_MemCreate               (nOS_Mem *mem, void *buffer, size_t bsize, uint16_t max);
 void*       nOS_MemAlloc                (nOS_Mem *mem, uint16_t tout);

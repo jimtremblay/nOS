@@ -17,6 +17,13 @@
 /* Enable or disable dynamic creation of mutex. */
 #define NOS_CONFIG_MUTEX_CREATE_ENABLE          1
 
+/* Enable or disable flag. */
+#define NOS_CONFIG_FLAG_ENABLE                  1
+/* Enable or disable dynamic creation of flag. */
+#define NOS_CONFIG_FLAG_CREATE_ENABLE           1
+/* Size of flag in bits (can be 8, 16 or 32) */
+#define NOS_CONFIG_FLAG_NB_BITS                 32
+
 /*
  * Stack size to use from interrupt routines in number of stack_t entries.
  * Not used on all platforms.
