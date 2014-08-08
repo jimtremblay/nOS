@@ -13,6 +13,8 @@
 extern "C" {
 #endif
 
+#if (NOS_CONFIG_MUTEX_ENABLE > 0)
+#if (NOS_CONFIG_MUTEX_CREATE_ENABLE > 0)
 /*
  * Name        : nOS_MutexCreate
  *
@@ -67,6 +69,7 @@ nOS_Error nOS_MutexCreate (nOS_Mutex *mutex, uint8_t type, uint8_t prio)
 
     return err;
 }
+#endif  /* NOS_CONFIG_MUTEX_CREATE_ENABLE */
 
 /* nOS_MutexLock
  * mutex: must be a valid mutex object
@@ -212,6 +215,7 @@ nOS_Error nOS_MutexUnlock (nOS_Mutex *mutex)
 
     return err;
 }
+#endif  /* NOS_CONFIG_MUTEX_ENABLE */
 
 #if defined(__cplusplus)
 }

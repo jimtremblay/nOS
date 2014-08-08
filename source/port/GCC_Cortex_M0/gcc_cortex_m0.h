@@ -17,7 +17,7 @@ extern "C" {
 
 typedef uint32_t                            stack_t;
 
-#define NOS_STACK(s)                        stack_t s __attribute__ ((aligned (8)))
+#define NOS_STACK(s,l)                      stack_t s[l] __attribute__ ((aligned (8)))
 
 #define NOS_UNUSED(v)                       (void)v
 

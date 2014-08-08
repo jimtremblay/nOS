@@ -65,6 +65,23 @@ extern "C" {
  #undef NOS_CONFIG_SEM_CREATE_ENABLE
  #define NOS_CONFIG_SEM_CREATE_ENABLE           0
 #endif
+  
+#if !defined(NOS_CONFIG_MUTEX_ENABLE)
+ #define NOS_CONFIG_MUTEX_ENABLE                0
+ #if defined(NOS_USE_CONFIG_FILE)
+  #warning "nOSConfig.h: NOS_CONFIG_MUTEX_ENABLE is not defined (disabled by default)."
+ #endif
+#elif (NOS_CONFIG_MUTEX_ENABLE > 0)
+ #if !defined(NOS_CONFIG_MUTEX_CREATE_ENABLE)
+  #define NOS_CONFIG_MUTEX_CREATE_ENABLE        0
+  #if defined(NOS_USE_CONFIG_FILE)
+   #warning "nOSConfig.h: NOS_CONFIG_MUTEX_CREATE_ENABLE is not defined (disabled by default)."
+  #endif
+ #endif
+#else
+ #undef NOS_CONFIG_MUTEX_CREATE_ENABLE
+ #define NOS_CONFIG_MUTEX_CREATE_ENABLE         0
+#endif
 
 #if !defined(NOS_CONFIG_TIMER_ENABLE)
  #define NOS_CONFIG_TIMER_ENABLE                0
@@ -98,7 +115,9 @@ typedef struct _nOS_Event       nOS_Event;
 #if (NOS_CONFIG_SEM_ENABLE > 0)
 typedef struct _nOS_Sem         nOS_Sem;
 #endif
+#if (NOS_CONFIG_MUTEX_ENABLE > 0)
 typedef struct _nOS_Mutex       nOS_Mutex;
+#endif
 typedef struct _nOS_Queue       nOS_Queue;
 typedef struct _nOS_Flag        nOS_Flag;
 typedef struct _nOS_FlagContext nOS_FlagContext;
@@ -168,6 +187,7 @@ struct _nOS_Sem
 };
 #endif
 
+#if (NOS_CONFIG_MUTEX_ENABLE > 0)
 struct _nOS_Mutex
 {
     nOS_Event       e;
@@ -177,6 +197,7 @@ struct _nOS_Mutex
     uint8_t         backup;
     nOS_Thread      *owner;
 };
+#endif
 
 struct _nOS_Queue
 {
@@ -265,20 +286,41 @@ struct _nOS_Timer
 #define NOS_TIMER_OPT               0x01
 #define NOS_TIMER_RUNNING           0x80
 
+#define NOS_LIST(l)                                                             \
+    nOS_List l = {                                                              \
+        NULL,                                                                   \
+        NULL                                                                    \
+    }
+
 #if (NOS_CONFIG_SEM_ENABLE > 0)
-#if (NOS_CONFIG_SEM_CREATE_ENABLE == 0)
-#define NOS_SEM(s,c,m)                                                  \
-    nOS_Sem s = {                                                       \
-        {                                                               \
-            {                                                           \
-                NULL,                                                   \
-                NULL                                                    \
-            }                                                           \
-        },                                                              \
-        c,                                                              \
-        m                                                               \
+#define NOS_SEM(s,c,m)                                                          \
+    nOS_Sem s = {                                                               \
+        {                                                                       \
+            {                                                                   \
+                NULL,                                                           \
+                NULL                                                            \
+            }                                                                   \
+        },                                                                      \
+        c,                                                                      \
+        m                                                                       \
     }
 #endif
+
+#if (NOS_CONFIG_MUTEX_ENABLE > 0)
+ #define NOS_MUTEX(x,t,p)                                                       \
+    nOS_Mutex x = {                                                             \
+        {                                                                       \
+            {                                                                   \
+                NULL,                                                           \
+                NULL                                                            \
+            }                                                                   \
+        },                                                                      \
+        t,                                                                      \
+        0,                                                                      \
+        p,                                                                      \
+        0,                                                                      \
+        NULL                                                                    \
+    }
 #endif
 
 #if defined(NOS_PRIVATE)
@@ -370,9 +412,13 @@ nOS_Error   nOS_SemTake                 (nOS_Sem *sem, uint16_t tout);
 nOS_Error   nOS_SemGive                 (nOS_Sem *sem);
 #endif
 
+#if (NOS_CONFIG_MUTEX_ENABLE > 0)
+#if (NOS_CONFIG_MUTEX_CREATE_ENABLE > 0)
 nOS_Error   nOS_MutexCreate             (nOS_Mutex *mutex, uint8_t type, uint8_t prio);
+#endif
 nOS_Error   nOS_MutexLock               (nOS_Mutex *mutex, uint16_t tout);
 nOS_Error   nOS_MutexUnlock             (nOS_Mutex *mutex);
+#endif
 
 nOS_Error   nOS_QueueCreate             (nOS_Queue *queue, void *buffer, uint16_t bsize, uint16_t max);
 nOS_Error   nOS_QueueRead               (nOS_Queue *queue, void *buffer, uint16_t tout);

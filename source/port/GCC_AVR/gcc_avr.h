@@ -18,7 +18,7 @@ extern "C" {
 
 typedef uint8_t                 stack_t;
 
-#define NOS_STACK(s)            stack_t s
+#define NOS_STACK(s,l)          stack_t s[l]
 
 #define NOS_UNUSED(v)           (void)v
 

@@ -20,7 +20,7 @@ extern "C" {
  #if NOS_CONFIG_ISR_STACK_SIZE == 0
   #error "nOSConfig.h: NOS_CONFIG_ISR_STACK_SIZE is set to invalid value."
  #else
-  NOS_STACK(isrStack[NOS_CONFIG_ISR_STACK_SIZE]);
+  NOS_STACK(isrStack,NOS_CONFIG_ISR_STACK_SIZE);
  #endif
 #endif
 

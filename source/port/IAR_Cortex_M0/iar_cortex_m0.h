@@ -18,7 +18,7 @@ extern "C" {
 
 typedef uint32_t                            stack_t;
 
-#define NOS_STACK(s)                        _Pragma("data_alignment=8") stack_t s
+#define NOS_STACK(s,l)                      stack_t s[l] _Pragma("data_alignment=8")
 
 #define NOS_UNUSED(v)                       (void)v
 

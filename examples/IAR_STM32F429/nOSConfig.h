@@ -12,6 +12,11 @@
 /* Enable or disable dynamic creation of semaphore. */
 #define NOS_CONFIG_SEM_CREATE_ENABLE            1
 
+/* Enable of disable mutex. */
+#define NOS_CONFIG_MUTEX_ENABLE                 1
+/* Enable or disable dynamic creation of mutex. */
+#define NOS_CONFIG_MUTEX_CREATE_ENABLE          1
+
 /*
  * Stack size to use from interrupt routines in number of stack_t entries.
  * Not used on all platforms.

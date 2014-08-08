@@ -17,14 +17,11 @@ extern "C" {
 static void ThreadTimer (void *arg);
 static void TickTimer (void *payload, void *arg);
 
-static nOS_List     timerList;
-#if (NOS_CONFIG_SEM_CREATE_ENABLE > 0)
-static nOS_Sem      timerSem;
-#else
+static NOS_LIST(timerList);
 static NOS_SEM(timerSem,0,NOS_SEM_COUNT_MAX);
-#endif
+NOS_STACK(timerStack,NOS_CONFIG_TIMER_THREAD_STACK_SIZE);
+
 static nOS_Thread   timerThread;
-NOS_STACK(timerStack[NOS_CONFIG_TIMER_THREAD_STACK_SIZE]);
 
 static void ThreadTimer (void *arg)
 {
@@ -71,11 +68,8 @@ static void TickTimer (void *payload, void *arg)
 
 void nOS_TimerInit(void)
 {
-    nOS_ListInit(&timerList);
-
-#if (NOS_CONFIG_SEM_CREATE_ENABLE > 0)
-    nOS_SemCreate(&timerSem, 0, NOS_SEM_COUNT_MAX);
-#endif
+    /* timerList and timerSem are created statically */
+  
     nOS_ThreadCreate(&timerThread,
                      ThreadTimer,
                      NULL,
