@@ -12,6 +12,18 @@
 /* Enable or disable dynamic creation of semaphore. */
 #define NOS_CONFIG_SEM_CREATE_ENABLE            0
 
+/* Enable of disable mutex. */
+#define NOS_CONFIG_MUTEX_ENABLE                 0
+/* Enable or disable dynamic creation of mutex. */
+#define NOS_CONFIG_MUTEX_CREATE_ENABLE          0
+
+/* Enable or disable flag. */
+#define NOS_CONFIG_FLAG_ENABLE                  0
+/* Enable or disable dynamic creation of flag. */
+#define NOS_CONFIG_FLAG_CREATE_ENABLE           0
+/* Size of flag in bits (can be 8, 16 or 32) */
+#define NOS_CONFIG_FLAG_NB_BITS                 8
+
 /* Enable or disable timer thread with callback. */
 #define NOS_CONFIG_TIMER_ENABLE                 0
 /* Priority of timer thread. */
