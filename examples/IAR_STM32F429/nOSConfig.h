@@ -14,10 +14,10 @@
 /* Enable or disable thread set/get priority at run-time. */
 #define NOS_CONFIG_THREAD_SET_PRIO_ENABLE       1
 
-/* Enable of disable semaphore. */
+/* Enable or disable semaphore. */
 #define NOS_CONFIG_SEM_ENABLE                   1
 
-/* Enable of disable mutex. */
+/* Enable or disable mutex. */
 #define NOS_CONFIG_MUTEX_ENABLE                 1
 
 /* Enable or disable flag. */
