@@ -14,18 +14,14 @@ extern "C" {
 #endif
 
 #if (NOS_CONFIG_MEM_ENABLE > 0)
-#if (NOS_CONFIG_SAFE > 0)
+#if (NOS_CONFIG_MEM_SANITY_CHECK_ENABLE > 0)
 static nOS_Error SanityCheck(nOS_Mem *mem, void *block)
 {
     nOS_Error   err;
     void        *p;
 
-    if (mem == NULL) {
-        err = NOS_E_NULL;
-    } else if (block == NULL) {
-        err = NOS_E_NULL;
     /* Memory block pointer is out of range? */
-    } else if (block < (void*)mem->buffer) {
+    if (block < (void*)mem->buffer) {
         err = NOS_E_INV_VAL;
     } else if (block >= (void*)(mem->buffer + (mem->bsize * mem->max))) {
         err = NOS_E_INV_VAL;
@@ -49,7 +45,7 @@ static nOS_Error SanityCheck(nOS_Mem *mem, void *block)
 
     return err;
 }
-#endif
+#endif  /* NOS_CONFIG_MEM_SANITY_CHECK_ENABLE */
 
 /*
  * Name        : nOS_MemCreate
@@ -110,7 +106,7 @@ nOS_Error nOS_MemCreate (nOS_Mem *mem, void *buffer, size_t bsize, uint16_t max)
         *(void**)buffer = list;
         mem->list = (void**)buffer;
         mem->count = max;
-#if (NOS_CONFIG_SAFE > 0)
+#if (NOS_CONFIG_MEM_SANITY_CHECK_ENABLE > 0)
         mem->buffer = buffer;
         mem->bsize = bsize;
         mem->max = max;
@@ -215,7 +211,17 @@ nOS_Error nOS_MemFree(nOS_Mem *mem, void *block)
     nOS_Thread  *thread;
 
 #if (NOS_CONFIG_SAFE > 0)
-    err = SanityCheck(mem, block);
+    if (mem == NULL) {
+        err = NOS_E_NULL;
+    } else if (block == NULL) {
+        err = NOS_E_NULL;
+    } else
+#endif
+#if (NOS_CONFIG_MEM_SANITY_CHECK_ENABLE > 0)
+    {
+        err = SanityCheck(mem, block);
+    }
+
     if (err == NOS_OK)
 #endif
     {

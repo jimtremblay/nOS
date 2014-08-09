@@ -121,6 +121,15 @@ extern "C" {
  #if defined(NOS_USE_CONFIG_FILE)
   #warning "nOSConfig.h: NOS_CONFIG_MEM_ENABLE is not defined (enabled by default)."
  #endif
+#elif (NOS_CONFIG_MEM_ENABLE > 0)
+ #if !defined(NOS_CONFIG_MEM_SANITY_CHECK_ENABLE)
+  #define NOS_CONFIG_MEM_SANITY_CHECK_ENABLE    1
+  #if defined(NOS_USE_CONFIG_FILE)
+   #warning "nOSConfig.h: NOS_CONFIG_MEM_SANITY_CHECK_ENABLE is not defined (enabled by default)."
+  #endif
+ #endif
+#else
+ #undef NOS_CONFIG_MEM_SANITY_CHECK_ENABLE
 #endif
 
 #if !defined(NOS_CONFIG_TIMER_ENABLE)
@@ -300,7 +309,7 @@ struct _nOS_Mem
     nOS_Event       e;
     void            **list;
     uint16_t        count;
-#if (NOS_CONFIG_SAFE > 0)
+#if (NOS_CONFIG_MEM_SANITY_CHECK_ENABLE > 0)
     uint8_t         *buffer;
     uint16_t        bsize;
     uint16_t        max;

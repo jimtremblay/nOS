@@ -33,6 +33,8 @@
 
 /* Enable or disable mem. */
 #define NOS_CONFIG_MEM_ENABLE                   1
+/* Enable or disable sanity check of pointer when it is freed. */
+#define NOS_CONFIG_MEM_SANITY_CHECK_ENABLE      1
 
 /* Enable or disable timer thread with callback. */
 #define NOS_CONFIG_TIMER_ENABLE                 1
