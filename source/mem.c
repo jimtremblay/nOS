@@ -164,9 +164,13 @@ void *nOS_MemAlloc(nOS_Mem *mem, uint16_t tout)
             block = NULL;
         } else if (nOS_isrNestingCounter > 0) {
             block = NULL;
-        } else if (nOS_lockNestingCounter > 0) {
+        }
+#if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
+        else if (nOS_lockNestingCounter > 0) {
             block = NULL;
-        } else if (nOS_runningThread == &nOS_mainThread) {
+        }
+#endif
+        else if (nOS_runningThread == &nOS_mainThread) {
             block = NULL;
         } else {
             nOS_runningThread->context = (void*)&block;

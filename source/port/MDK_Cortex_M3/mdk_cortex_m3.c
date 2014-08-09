@@ -59,7 +59,10 @@ void nOS_IsrLeave (void)
     nOS_CriticalEnter();
     nOS_isrNestingCounter--;
     if (nOS_isrNestingCounter == 0) {
-        if (nOS_lockNestingCounter == 0) {
+#if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
+        if (nOS_lockNestingCounter == 0)
+#endif
+        {
             nOS_highPrioThread = SchedHighPrio();
             if (nOS_runningThread != nOS_highPrioThread) {
                 *(volatile uint32_t *)0xe000ed04UL = 0x10000000UL;

@@ -143,11 +143,15 @@ nOS_Error nOS_FlagWait (nOS_Flag *flag, uint8_t opt, nOS_FlagBits flags,
         /* Can't wait from ISR */
         } else if (nOS_isrNestingCounter > 0) {
             err = NOS_E_ISR;
+        }
+#if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
         /* Can't switch context when scheduler is locked */
-        } else if (nOS_lockNestingCounter > 0) {
+        else if (nOS_lockNestingCounter > 0) {
             err = NOS_E_LOCKED;
+        }
+#endif
         /* Main thread can't wait */
-        } else if (nOS_runningThread == &nOS_mainThread) {
+        else if (nOS_runningThread == &nOS_mainThread) {
             err = NOS_E_IDLE;
         /* Calling thread must wait on flag. */
         } else {

@@ -177,10 +177,13 @@ nOS_Error nOS_ThreadSuspend (nOS_Thread *thread)
     if (thread == &nOS_mainThread) {
         err = NOS_E_IDLE;
     } else if (thread == nOS_runningThread) {
+#if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
         /* Can't switch context if scheduler is locked */
         if (nOS_lockNestingCounter > 0) {
             err = NOS_E_LOCKED;
-        } else {
+        } else
+#endif
+        {
             err = NOS_OK;
         }
     } else {
@@ -203,10 +206,13 @@ nOS_Error nOS_ThreadSuspendAll (void)
 {
     nOS_Error   err;
 
+#if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
     /* Can't suspend all threads from other threads when scheduler is locked */
     if ((nOS_lockNestingCounter > 0) && (nOS_runningThread != &nOS_mainThread)) {
         err = NOS_E_LOCKED;
-    } else {
+    } else
+#endif
+    {
         nOS_CriticalEnter();
         nOS_ListWalk(&nOS_fullList, SuspendThread, NULL);
         nOS_CriticalLeave();

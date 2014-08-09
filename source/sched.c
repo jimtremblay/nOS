@@ -426,9 +426,13 @@ nOS_Error nOS_Sched(void)
 
     if (nOS_isrNestingCounter > 0) {
         err = NOS_E_ISR;
-    } else if (nOS_lockNestingCounter > 0) {
+    }
+#if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
+    else if (nOS_lockNestingCounter > 0) {
         err = NOS_E_LOCKED;
-    } else {
+    }
+#endif
+    else {
         nOS_CriticalEnter();
         /* switch only from thread without scheduler locked */
         nOS_highPrioThread = SchedHighPrio();
@@ -493,9 +497,13 @@ nOS_Error nOS_Yield(void)
 
     if (nOS_isrNestingCounter > 0) {
         err = NOS_E_ISR;
-    } else if (nOS_lockNestingCounter > 0) {
+    }
+#if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
+    else if (nOS_lockNestingCounter > 0) {
         err = NOS_E_LOCKED;
-    } else {
+    }
+#endif
+    else {
         nOS_CriticalEnter();
         nOS_ListRotate(&nOS_readyList[nOS_runningThread->prio]);
         nOS_CriticalLeave();
@@ -525,9 +533,14 @@ nOS_Error nOS_Sleep (uint16_t dly)
 
     if (nOS_isrNestingCounter > 0) {
         err = NOS_E_ISR;
-    } else if (nOS_lockNestingCounter > 0) {
+    }
+#if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
+    /* Can't switch context when scheduler is locked */
+    else if (nOS_lockNestingCounter > 0) {
         err = NOS_E_LOCKED;
-    } else if (dly == 0) {
+    }
+#endif
+    else if (dly == 0) {
         nOS_Yield();
         err = NOS_OK;
     } else if (nOS_runningThread == &nOS_mainThread) {

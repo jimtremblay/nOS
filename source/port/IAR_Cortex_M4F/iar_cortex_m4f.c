@@ -21,24 +21,24 @@ void nOS_PortInit(void)
     /* Copy msp to psp */
     __set_PSP(__get_MSP());
     /* Set msp to local isr stack */
-    __set_MSP(((unsigned long)&isrStack[NOS_CONFIG_ISR_STACK_SIZE-1]) & 0xfffffff8);
+    __set_MSP(((unsigned long)&isrStack[NOS_CONFIG_ISR_STACK_SIZE-1]) & 0xfffffff8UL);
     /* Set current stack to psp and priviledge mode */
     __set_CONTROL(__get_CONTROL() | 0x00000002UL);
     /* Set PendSV and SysTick to lowest priority */
-    *(volatile uint32_t *)0xe000ed20 |= 0xffff0000;
+    *(volatile uint32_t *)0xe000ed20UL |= 0xffff0000UL;
     nOS_CriticalLeave();
 }
 
 void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, void(*func)(void*), void *arg)
 {
-    nOS_Stack *tos = (nOS_Stack*)((uint32_t)(stack + (ssize - 1)) & 0xfffffff8);
+    nOS_Stack *tos = (nOS_Stack*)((uint32_t)(stack + (ssize - 1)) & 0xfffffff8UL);
 
-    *(--tos) = 0x01000000;      /* xPSR */
+    *(--tos) = 0x01000000UL;    /* xPSR */
     *(--tos) = (nOS_Stack)func; /* PC */
-    *(--tos) = 0x00000000;      /* LR */
+    *(--tos) = 0x00000000UL;    /* LR */
     tos     -= 4;               /* R12, R3, R2 and R1 */
     *(--tos) = (nOS_Stack)arg;  /* R0 */
-    *(--tos) = 0xfffffffd;      /* EXC_RETURN */
+    *(--tos) = 0xfffffffdUL;    /* EXC_RETURN */
     tos     -= 8;               /* R11, R10, R9, R8, R7, R6, R5 and R4 */
 
     thread->stackPtr = tos;
@@ -56,10 +56,13 @@ void nOS_IsrLeave (void)
     nOS_CriticalEnter();
     nOS_isrNestingCounter--;
     if (nOS_isrNestingCounter == 0) {
-        if (nOS_lockNestingCounter == 0) {
+#if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
+        if (nOS_lockNestingCounter == 0)
+#endif
+        {
             nOS_highPrioThread = SchedHighPrio();
             if (nOS_runningThread != nOS_highPrioThread) {
-                *(volatile uint32_t *)0xe000ed04 = 0x10000000;
+                *(volatile uint32_t *)0xe000ed04UL = 0x10000000UL;
             }
         }
     }

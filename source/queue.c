@@ -69,9 +69,13 @@ nOS_Error nOS_QueueRead (nOS_Queue *queue, void *buffer, uint16_t tout)
             err = NOS_E_EMPTY;
         } else if (nOS_isrNestingCounter > 0) {
             err = NOS_E_ISR;
-        } else if (nOS_lockNestingCounter > 0) {
+        }
+#if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
+        else if (nOS_lockNestingCounter > 0) {
             err = NOS_E_LOCKED;
-        } else if (nOS_runningThread == &nOS_mainThread) {
+        }
+#endif
+        else if (nOS_runningThread == &nOS_mainThread) {
             err = NOS_E_IDLE;
         } else {
             nOS_runningThread->context = buffer;

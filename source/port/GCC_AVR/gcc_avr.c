@@ -84,7 +84,10 @@ nOS_Stack *nOS_IsrLeave (nOS_Stack *sp)
 {
     nOS_isrNestingCounter--;
     if (nOS_isrNestingCounter == 0) {
-        if (nOS_lockNestingCounter == 0) {
+#if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
+        if (nOS_lockNestingCounter == 0)
+#endif
+        {
             nOS_highPrioThread = SchedHighPrio();
             nOS_runningThread = nOS_highPrioThread;
         }
