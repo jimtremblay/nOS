@@ -15,6 +15,7 @@
 extern "C" {
 #endif
 
+#if (NOS_CONFIG_QUEUE_ENABLE > 0)
 nOS_Error nOS_QueueCreate (nOS_Queue *queue, void *buffer, uint16_t bsize, uint16_t max)
 {
     nOS_Error   err;
@@ -116,6 +117,7 @@ nOS_Error nOS_QueueWrite (nOS_Queue *queue, void *buffer)
 
     return err;
 }
+#endif  /* NOS_CONFIG_QUEUE_ENABLE */
 
 #if defined(__cplusplus)
 }

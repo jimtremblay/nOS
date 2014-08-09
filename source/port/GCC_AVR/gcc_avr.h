@@ -16,9 +16,7 @@
 extern "C" {
 #endif
 
-typedef uint8_t                 stack_t;
-
-#define NOS_STACK(s,l)          stack_t s[l]
+typedef uint8_t                 nOS_Stack;
 
 #define NOS_UNUSED(v)           (void)v
 
@@ -159,8 +157,8 @@ typedef uint8_t                 stack_t;
                   :                                                 \
                   : "I" (_SFR_IO_ADDR(SREG)))
 
-stack_t*    nOS_IsrEnter        (stack_t *sp);
-stack_t*    nOS_IsrLeave        (stack_t *sp);
+nOS_Stack*      nOS_IsrEnter        (nOS_Stack *sp);
+nOS_Stack*      nOS_IsrLeave        (nOS_Stack *sp);
 
 #define NOS_ISR(vect)                                               \
 void vect##_ISR(void) __attribute__ ( ( naked ) );                  \
@@ -173,10 +171,10 @@ ISR(vect, ISR_NAKED)                                                \
 void vect##_ISR(void)                                               \
 {                                                                   \
     nOS_ContextPush();                                              \
-    SP = (int)nOS_IsrEnter((stack_t*)SP);                           \
+    SP = (int)nOS_IsrEnter((nOS_Stack*)SP);                         \
     vect##_ISR_L2();                                                \
     asm volatile ("cli");                                           \
-    SP = (int)nOS_IsrLeave((stack_t*)SP);                           \
+    SP = (int)nOS_IsrLeave((nOS_Stack*)SP);                         \
     nOS_ContextPop();                                               \
     asm volatile ("ret");                                           \
 }                                                                   \
@@ -185,7 +183,7 @@ inline void vect##_ISR_L2(void)
 /* Unused function for this port */
 #define nOS_PortInit()
 
-void        nOS_ContextInit     (nOS_Thread *thread, uint8_t *stack, size_t ssize, void(*func)(void*), void *arg);
+void        nOS_ContextInit     (nOS_Thread *thread, nOS_Stack *stack, size_t ssize, void(*func)(void*), void *arg);
 /* Absolutely need a naked function because function call push the return address on the stack */
 void        nOS_ContextSwitch   (void) __attribute__ ( ( naked ) );
 

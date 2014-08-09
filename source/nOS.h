@@ -36,80 +36,95 @@ extern "C" {
 #endif
 
 #if !defined(NOS_CONFIG_SAFE)
- #define NOS_CONFIG_SAFE                        0
+ #define NOS_CONFIG_SAFE                        1
  #if defined(NOS_USE_CONFIG_FILE)
-  #warning "nOSConfig.h: NOS_CONFIG_SAFE is not defined (disabled by default)."
+  #warning "nOSConfig.h: NOS_CONFIG_SAFE is not defined (enabled by default)."
+ #endif
+#endif
+  
+#if !defined(NOS_CONFIG_SCHED_LOCK_ENABLE)
+ #define NOS_CONFIG_SCHED_LOCK_ENABLE           1
+ #if defined(NOS_USE_CONFIG_FILE)
+  #warning "nOSConfig.h: NOS_CONFIG_SCHED_LOCK_ENABLE is not defined (enabled by default)."
+ #endif
+#endif
+  
+#if !defined(NOS_CONFIG_SLEEP_ENABLE)
+ #define NOS_CONFIG_SLEEP_ENABLE                1
+ #if defined(NOS_USE_CONFIG_FILE)
+  #warning "nOSConfig.h: NOS_CONFIG_SLEEP_ENABLE is not defined (enabled by default)."
  #endif
 #endif
 
 #if !defined(NOS_CONFIG_THREAD_SUSPEND_ENABLE)
- #define NOS_CONFIG_THREAD_SUSPEND_ENABLE       0
+ #define NOS_CONFIG_THREAD_SUSPEND_ENABLE       1
  #if defined(NOS_USE_CONFIG_FILE)
-  #warning "nOSConfig.h: NOS_CONFIG_THREAD_SUSPEND_ENABLE is not defined (disabled by default)."
+  #warning "nOSConfig.h: NOS_CONFIG_THREAD_SUSPEND_ENABLE is not defined (enabled by default)."
+ #endif
+#endif
+  
+#if !defined(NOS_CONFIG_THREAD_SET_PRIO_ENABLE)
+ #define NOS_CONFIG_THREAD_SET_PRIO_ENABLE      1
+ #if defined(NOS_USE_CONFIG_FILE)
+  #warning "nOSConfig.h: NOS_CONFIG_THREAD_SET_PRIO_ENABLE is not defined (enabled by default)."
  #endif
 #endif
 
 #if !defined(NOS_CONFIG_SEM_ENABLE)
- #define NOS_CONFIG_SEM_ENABLE                  0
+ #define NOS_CONFIG_SEM_ENABLE                  1
  #if defined(NOS_USE_CONFIG_FILE)
-  #warning "nOSConfig.h: NOS_CONFIG_SEM_ENABLE is not defined (disabled by default)."
+  #warning "nOSConfig.h: NOS_CONFIG_SEM_ENABLE is not defined (enabled by default)."
  #endif
-#elif (NOS_CONFIG_SEM_ENABLE > 0)
- #if !defined(NOS_CONFIG_SEM_CREATE_ENABLE)
-  #define NOS_CONFIG_SEM_CREATE_ENABLE          0
-  #if defined(NOS_USE_CONFIG_FILE)
-   #warning "nOSConfig.h: NOS_CONFIG_SEM_CREATE_ENABLE is not defined (disabled by default)."
-  #endif
- #endif
-#else
- #undef NOS_CONFIG_SEM_CREATE_ENABLE
 #endif
   
 #if !defined(NOS_CONFIG_MUTEX_ENABLE)
- #define NOS_CONFIG_MUTEX_ENABLE                0
+ #define NOS_CONFIG_MUTEX_ENABLE                1
  #if defined(NOS_USE_CONFIG_FILE)
-  #warning "nOSConfig.h: NOS_CONFIG_MUTEX_ENABLE is not defined (disabled by default)."
+  #warning "nOSConfig.h: NOS_CONFIG_MUTEX_ENABLE is not defined (enabled by default)."
  #endif
-#elif (NOS_CONFIG_MUTEX_ENABLE > 0)
- #if !defined(NOS_CONFIG_MUTEX_CREATE_ENABLE)
-  #define NOS_CONFIG_MUTEX_CREATE_ENABLE        0
-  #if defined(NOS_USE_CONFIG_FILE)
-   #warning "nOSConfig.h: NOS_CONFIG_MUTEX_CREATE_ENABLE is not defined (disabled by default)."
-  #endif
- #endif
-#else
- #undef NOS_CONFIG_MUTEX_CREATE_ENABLE
 #endif
   
 #if !defined(NOS_CONFIG_FLAG_ENABLE)
- #define NOS_CONFIG_FLAG_ENABLE                 0
+ #define NOS_CONFIG_FLAG_ENABLE                 1
  #if defined(NOS_USE_CONFIG_FILE)
-  #warning "nOSConfig.h: NOS_CONFIG_FLAG_ENABLE is not defined (disabled by default)."
+  #warning "nOSConfig.h: NOS_CONFIG_FLAG_ENABLE is not defined (enabled by default)."
  #endif
 #elif (NOS_CONFIG_FLAG_ENABLE > 0)
- #if !defined(NOS_CONFIG_FLAG_CREATE_ENABLE)
-  #define NOS_CONFIG_FLAG_CREATE_ENABLE         0
-  #if defined(NOS_USE_CONFIG_FILE)
-   #warning "nOSConfig.h: NOS_CONFIG_FLAG_CREATE_ENABLE is not defined (disabled by default)."
-  #endif
- #endif
  #if !defined(NOS_CONFIG_FLAG_NB_BITS)
-  #define NOS_CONFIG_FLAG_NB_BITS               8
+  #define NOS_CONFIG_FLAG_NB_BITS               16
   #if defined(NOS_USE_CONFIG_FILE)
-   #warning "nOSConfig.h: NOS_CONFIG_FLAG_NB_BITS is not defined (default to 8)."
+   #warning "nOSConfig.h: NOS_CONFIG_FLAG_NB_BITS is not defined (default to 16)."
   #endif
  #elif (NOS_CONFIG_FLAG_NB_BITS != 8) && (NOS_CONFIG_FLAG_NB_BITS != 16) && (NOS_CONFIG_FLAG_NB_BITS != 32)
   #error "nOSConfig.h: NOS_CONFIG_FLAG_NB_BITS set to invalid value: can be set to 8, 16 or 32."
  #endif
 #else
- #undef NOS_CONFIG_FLAG_CREATE_ENABLE
  #undef NOS_CONFIG_FLAG_NB_BITS
+#endif
+  
+#if !defined(NOS_CONFIG_QUEUE_ENABLE)
+ #define NOS_CONFIG_QUEUE_ENABLE                1
+ #if defined(NOS_USE_CONFIG_FILE)
+  #warning "nOSConfig.h: NOS_CONFIG_QUEUE_ENABLE is not defined (enabled by default)."
+ #endif
+#endif
+  
+#if !defined(NOS_CONFIG_MEM_ENABLE)
+ #define NOS_CONFIG_MEM_ENABLE                  1
+ #if defined(NOS_USE_CONFIG_FILE)
+  #warning "nOSConfig.h: NOS_CONFIG_MEM_ENABLE is not defined (enabled by default)."
+ #endif
 #endif
 
 #if !defined(NOS_CONFIG_TIMER_ENABLE)
- #define NOS_CONFIG_TIMER_ENABLE                0
+ #define NOS_CONFIG_TIMER_ENABLE                1
+ #define NOS_CONFIG_TIMER_THREAD_PRIO           0
+ #define NOS_CONFIG_TIMER_THREAD_STACK_SIZE     128
  #if defined(NOS_USE_CONFIG_FILE)
-  #warning "nOSConfig.h: NOS_CONFIG_TIMER_ENABLE is not defined (disabled by default)."
+  #warning "nOSConfig.h: NOS_CONFIG_TIMER_ENABLE is not defined (enabled by default)."
+ #endif
+ #if (NOS_CONFIG_SEM_ENABLE == 0)
+  #error "nOSConfig.h: NOS_CONFIG_SEM_ENABLE need to be enable when NOS_CONFIG_TIMER_ENABLE is enable."
  #endif
 #elif (NOS_CONFIG_TIMER_ENABLE > 0)
  #if (NOS_CONFIG_SEM_ENABLE == 0)
@@ -129,6 +144,9 @@ extern "C" {
    #warning "nOSConfig.h: NOS_CONFIG_TIMER_THREAD_STACK_SIZE is not defined (default to 128)."
   #endif
  #endif
+#else
+ #undef NOS_CONFIG_TIMER_THREAD_PRIO
+ #undef NOS_CONFIG_TIMER_THREAD_STACK_SIZE
 #endif
 
 typedef struct _nOS_List        nOS_List;
@@ -141,20 +159,24 @@ typedef struct _nOS_Sem         nOS_Sem;
 #if (NOS_CONFIG_MUTEX_ENABLE > 0)
 typedef struct _nOS_Mutex       nOS_Mutex;
 #endif
+#if (NOS_CONFIG_QUEUE_ENABLE > 0)
 typedef struct _nOS_Queue       nOS_Queue;
+#endif
 #if (NOS_CONFIG_FLAG_ENABLE > 0)
 typedef struct _nOS_Flag        nOS_Flag;
 typedef struct _nOS_FlagContext nOS_FlagContext;
 typedef struct _nOS_FlagResult  nOS_FlagResult;
 #if (NOS_CONFIG_FLAG_NB_BITS == 8)
-typedef uint8_t                 flags_t;
+#define nOS_FlagBits            uint8_t
 #elif (NOS_CONFIG_FLAG_NB_BITS == 16)
-typedef uint16_t                flags_t;
+#define nOS_FlagBits            uint16_t
 #else   /* NOS_CONFIG_FLAG_NB_BITS == 32 */
-typedef uint32_t                flags_t;
+#define nOS_FlagBits            uint32_t
 #endif
 #endif
+#if (NOS_CONFIG_MEM_ENABLE > 0)
 typedef struct _nOS_Mem         nOS_Mem;
+#endif
 #if (NOS_CONFIG_TIMER_ENABLE > 0)
 typedef struct _nOS_Timer       nOS_Timer;
 #endif
@@ -193,7 +215,7 @@ struct _nOS_Node
 
 struct _nOS_Thread
 {
-    stack_t         *stackPtr;
+    nOS_Stack       *stackPtr;
     uint8_t         prio;
     nOS_Error       error;
     uint8_t         state;
@@ -231,6 +253,7 @@ struct _nOS_Mutex
 };
 #endif
 
+#if (NOS_CONFIG_QUEUE_ENABLE > 0)
 struct _nOS_Queue
 {
     nOS_Event       e;
@@ -241,28 +264,30 @@ struct _nOS_Queue
     uint16_t        r;
     uint16_t        w;
 };
+#endif
 
 #if (NOS_CONFIG_FLAG_ENABLE > 0)
 struct _nOS_Flag
 {
     nOS_Event       e;
-    flags_t         flags;
+    nOS_FlagBits    flags;
 };
 
 struct _nOS_FlagContext
 {
     uint8_t         opt;
-    flags_t         flags;
-    flags_t         *rflags;
+    nOS_FlagBits    flags;
+    nOS_FlagBits    *rflags;
 };
 
 struct _nOS_FlagResult
 {
     uint8_t         sched;
-    flags_t         rflags;
+    nOS_FlagBits    rflags;
 };
 #endif
 
+#if (NOS_CONFIG_MEM_ENABLE > 0)
 struct _nOS_Mem
 {
     nOS_Event       e;
@@ -274,6 +299,7 @@ struct _nOS_Mem
     uint16_t        max;
 #endif
 };
+#endif
 
 #if (NOS_CONFIG_TIMER_ENABLE > 0)
 struct _nOS_Timer
@@ -320,61 +346,13 @@ struct _nOS_Timer
 #define NOS_TIMER_OPT               0x01
 #define NOS_TIMER_RUNNING           0x80
 
-#define NOS_LIST(l)                                                             \
-    nOS_List l = {                                                              \
-        NULL,                                                                   \
-        NULL                                                                    \
-    }
-
-#if (NOS_CONFIG_SEM_ENABLE > 0)
-#define NOS_SEM(s,c,m)                                                          \
-    nOS_Sem s = {                                                               \
-        {                                                                       \
-            {                                                                   \
-                NULL,                                                           \
-                NULL                                                            \
-            }                                                                   \
-        },                                                                      \
-        c,                                                                      \
-        m                                                                       \
-    }
-#endif
-
-#if (NOS_CONFIG_MUTEX_ENABLE > 0)
- #define NOS_MUTEX(x,t,p)                                                       \
-    nOS_Mutex x = {                                                             \
-        {                                                                       \
-            {                                                                   \
-                NULL,                                                           \
-                NULL                                                            \
-            }                                                                   \
-        },                                                                      \
-        t,                                                                      \
-        0,                                                                      \
-        p,                                                                      \
-        0,                                                                      \
-        NULL                                                                    \
-    }
-#endif
-    
-#if (NOS_CONFIG_FLAG_ENABLE > 0)
- #define NOS_FLAG(f,v)                                                          \
-    nOS_Flag f = {                                                              \
-        {                                                                       \
-            {                                                                   \
-                NULL,                                                           \
-                NULL                                                            \
-            }                                                                   \
-        },                                                                      \
-        v                                                                       \
-    }
-#endif
-
 #if defined(NOS_PRIVATE)
 NOS_EXTERN nOS_Thread   nOS_mainThread;
 
 NOS_EXTERN uint8_t      nOS_isrNestingCounter;
+#if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
 NOS_EXTERN uint8_t      nOS_lockNestingCounter;
+#endif
 
 NOS_EXTERN nOS_Thread   *nOS_runningThread;
 NOS_EXTERN nOS_Thread   *nOS_highPrioThread;
@@ -420,10 +398,14 @@ nOS_Error   nOS_Init                    (void);
 nOS_Error   nOS_Sched                   (void);
 nOS_Error   nOS_Yield                   (void);
 void        nOS_Tick                    (void);
+#if (NOS_CONFIG_SLEEP_ENABLE > 0)
 nOS_Error   nOS_Sleep                   (uint16_t dly);
+#endif
 
+#if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
 nOS_Error   nOS_SchedLock               (void);
 nOS_Error   nOS_SchedUnlock             (void);
+#endif
 
 void        nOS_ListInit                (nOS_List *list);
 void*       nOS_ListHead                (nOS_List *list);
@@ -433,9 +415,9 @@ void        nOS_ListRotate              (nOS_List *list);
 void        nOS_ListWalk                (nOS_List *list, void(*callback)(void*, void*), void *arg);
 
 #if (NOS_CONFIG_THREAD_SUSPEND_ENABLE > 0)
-nOS_Error   nOS_ThreadCreate            (nOS_Thread *thread, void(*func)(void*), void *arg, stack_t *sp, size_t ssize, uint8_t prio, uint8_t state);
+nOS_Error   nOS_ThreadCreate            (nOS_Thread *thread, void(*func)(void*), void *arg, nOS_Stack *stack, size_t ssize, uint8_t prio, uint8_t state);
 #else
-nOS_Error   nOS_ThreadCreate            (nOS_Thread *thread, void(*func)(void*), void *arg, stack_t *sp, size_t ssize, uint8_t prio);
+nOS_Error   nOS_ThreadCreate            (nOS_Thread *thread, void(*func)(void*), void *arg, nOS_Stack *stack, size_t ssize, uint8_t prio);
 #endif
 #if (NOS_CONFIG_THREAD_SUSPEND_ENABLE > 0)
 nOS_Error   nOS_ThreadSuspend           (nOS_Thread *thread);
@@ -452,36 +434,34 @@ nOS_Error   nOS_EventWait               (nOS_Event *event, uint8_t state, uint16
 nOS_Thread* nOS_EventSignal             (nOS_Event *event);
 
 #if (NOS_CONFIG_SEM_ENABLE > 0)
-#if (NOS_CONFIG_SEM_CREATE_ENABLE > 0)
 nOS_Error   nOS_SemCreate               (nOS_Sem *sem, uint16_t cntr, uint16_t max);
-#endif
 nOS_Error   nOS_SemTake                 (nOS_Sem *sem, uint16_t tout);
 nOS_Error   nOS_SemGive                 (nOS_Sem *sem);
 #endif
 
 #if (NOS_CONFIG_MUTEX_ENABLE > 0)
-#if (NOS_CONFIG_MUTEX_CREATE_ENABLE > 0)
 nOS_Error   nOS_MutexCreate             (nOS_Mutex *mutex, uint8_t type, uint8_t prio);
-#endif
 nOS_Error   nOS_MutexLock               (nOS_Mutex *mutex, uint16_t tout);
 nOS_Error   nOS_MutexUnlock             (nOS_Mutex *mutex);
 #endif
 
+#if (NOS_CONFIG_QUEUE_ENABLE > 0)
 nOS_Error   nOS_QueueCreate             (nOS_Queue *queue, void *buffer, uint16_t bsize, uint16_t max);
 nOS_Error   nOS_QueueRead               (nOS_Queue *queue, void *buffer, uint16_t tout);
 nOS_Error   nOS_QueueWrite              (nOS_Queue *queue, void *buffer);
+#endif
 
 #if (NOS_CONFIG_FLAG_ENABLE > 0)
-#if (NOS_CONFIG_FLAG_CREATE_ENABLE > 0)
-nOS_Error   nOS_FlagCreate              (nOS_Flag *flag, flags_t flags);
-#endif
-nOS_Error   nOS_FlagWait                (nOS_Flag *flag, uint8_t opt, flags_t flags, flags_t *res, uint16_t tout);
-nOS_Error   nOS_FlagSend                (nOS_Flag *flag, flags_t flags, flags_t mask);
+nOS_Error   nOS_FlagCreate              (nOS_Flag *flag, nOS_FlagBits flags);
+nOS_Error   nOS_FlagWait                (nOS_Flag *flag, uint8_t opt, nOS_FlagBits flags, nOS_FlagBits *res, uint16_t tout);
+nOS_Error   nOS_FlagSend                (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits mask);
 #endif
 
+#if (NOS_CONFIG_MEM_ENABLE > 0)
 nOS_Error   nOS_MemCreate               (nOS_Mem *mem, void *buffer, size_t bsize, uint16_t max);
 void*       nOS_MemAlloc                (nOS_Mem *mem, uint16_t tout);
 nOS_Error   nOS_MemFree                 (nOS_Mem *mem, void *block);
+#endif
 
 #if (NOS_CONFIG_TIMER_ENABLE > 0)
 void        nOS_TimerInit               (void);

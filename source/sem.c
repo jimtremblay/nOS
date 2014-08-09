@@ -14,7 +14,6 @@ extern "C" {
 #endif
 
 #if (NOS_CONFIG_SEM_ENABLE > 0)
-#if (NOS_CONFIG_SEM_CREATE_ENABLE > 0)
 nOS_Error nOS_SemCreate (nOS_Sem *sem, uint16_t count, uint16_t max)
 {
     nOS_Error   err;
@@ -39,7 +38,6 @@ nOS_Error nOS_SemCreate (nOS_Sem *sem, uint16_t count, uint16_t max)
 
     return err;
 }
-#endif  /* NOS_CONFIG_SEM_CREATE_ENABLE */
 
 /* nOS_SemTake
  * sem: must be a valid semaphore object

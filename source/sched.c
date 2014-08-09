@@ -442,6 +442,7 @@ nOS_Error nOS_Sched(void)
     return err;
 }
 
+#if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
 nOS_Error nOS_SchedLock(void)
 {
     nOS_Error   err;
@@ -484,6 +485,7 @@ nOS_Error nOS_SchedUnlock(void)
 
     return err;
 }
+#endif  /* NOS_CONFIG_SCHED_LOCK_ENABLE */
 
 nOS_Error nOS_Yield(void)
 {
@@ -516,6 +518,7 @@ void nOS_Tick(void)
 #endif
 }
 
+#if (NOS_CONFIG_SLEEP_ENABLE > 0)
 nOS_Error nOS_Sleep (uint16_t dly)
 {
     nOS_Error   err;
@@ -537,6 +540,7 @@ nOS_Error nOS_Sleep (uint16_t dly)
 
     return err;
 }
+#endif  /* NOS_CONFIG_SLEEP_ENABLE */
 
 #if defined(__cplusplus)
 }

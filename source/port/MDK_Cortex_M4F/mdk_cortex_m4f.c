@@ -13,7 +13,7 @@
 extern "C" {
 #endif
 
-NOS_STACK(isrStack,NOS_CONFIG_ISR_STACK_SIZE);
+static nOS_Stack isrStack[NOS_CONFIG_ISR_STACK_SIZE];
 
 void nOS_PortInit(void)
 {
@@ -33,15 +33,15 @@ void nOS_PortInit(void)
     nOS_CriticalLeave();
 }
 
-void nOS_ContextInit(nOS_Thread *thread, stack_t *stack, size_t ssize, void(*func)(void*), void *arg)
+void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, void(*func)(void*), void *arg)
 {
-    stack_t *tos = (stack_t*)((stack_t)(stack + (ssize - 1)) & 0xfffffff8);
+    nOS_Stack *tos = (nOS_Stack*)((uint32_t)(stack + (ssize - 1)) & 0xfffffff8);
 
     *(--tos) = 0x01000000;      /* xPSR */
-    *(--tos) = (stack_t)func;   /* PC */
+    *(--tos) = (nOS_Stack)func; /* PC */
     *(--tos) = 0x00000000;      /* LR */
     tos     -= 4;               /* R12, R3, R2 and R1 */
-    *(--tos) = (stack_t)arg;    /* R0 */
+    *(--tos) = (nOS_Stack)arg;  /* R0 */
     *(--tos) = 0xfffffffd;      /* EXC_RETURN */
     tos     -= 8;               /* R11, R10, R9, R8, R7, R6, R5 and R4 */
 

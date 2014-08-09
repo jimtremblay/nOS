@@ -13,6 +13,7 @@
 extern "C" {
 #endif
 
+#if (NOS_CONFIG_MEM_ENABLE > 0)
 #if (NOS_CONFIG_SAFE > 0)
 static nOS_Error SanityCheck(nOS_Mem *mem, void *block)
 {
@@ -232,6 +233,7 @@ nOS_Error nOS_MemFree(nOS_Mem *mem, void *block)
 
     return err;
 }
+#endif  /* NOS_CONFIG_MEM_ENABLE */
 
 #if defined(__cplusplus)
 }

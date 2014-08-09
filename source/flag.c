@@ -21,7 +21,7 @@ static void TestFlag (void *payload, void *arg)
     nOS_Flag        *flag = (nOS_Flag*)thread->event;
     nOS_FlagContext *ctx = (nOS_FlagContext*)thread->context;
     nOS_FlagResult  *res = (nOS_FlagResult*)arg;
-    flags_t         r;
+    nOS_FlagBits    r;
 
     /* Verify flags from object with wanted flags from waiting thread. */
     r = flag->flags & ctx->flags;
@@ -43,7 +43,6 @@ static void TestFlag (void *payload, void *arg)
     }
 }
 
-#if (NOS_CONFIG_FLAG_CREATE_ENABLE > 0)
 /*
  * Name        : nOS_FlagCreate
  *
@@ -60,7 +59,7 @@ static void TestFlag (void *payload, void *arg)
  *               behaviour is undefined and must be called one time
  *               ONLY for each flag object.
  */
-nOS_Error nOS_FlagCreate (nOS_Flag *flag, flags_t flags)
+nOS_Error nOS_FlagCreate (nOS_Flag *flag, nOS_FlagBits flags)
 {
     nOS_Error   err;
 
@@ -79,7 +78,6 @@ nOS_Error nOS_FlagCreate (nOS_Flag *flag, flags_t flags)
 
     return err;
 }
-#endif  /* NOS_CONFIG_FLAG_CREATE_ENABLE */
 
 /*
  * Name        : nOS_FlagWait
@@ -114,12 +112,12 @@ nOS_Error nOS_FlagCreate (nOS_Flag *flag, flags_t flags)
  *
  * Note        : Safe to be called from threads ONLY with scheduler unlocked.
  */
-nOS_Error nOS_FlagWait (nOS_Flag *flag, uint8_t opt, flags_t flags,
-                        flags_t *res, uint16_t tout)
+nOS_Error nOS_FlagWait (nOS_Flag *flag, uint8_t opt, nOS_FlagBits flags,
+                        nOS_FlagBits *res, uint16_t tout)
 {
     nOS_Error       err;
     nOS_FlagContext ctx;
-    flags_t         r;
+    nOS_FlagBits    r;
 
 #if (NOS_CONFIG_SAFE > 0)
     if (flag == NULL) {
@@ -191,7 +189,7 @@ nOS_Error nOS_FlagWait (nOS_Flag *flag, uint8_t opt, flags_t flags,
  *
  * Note        : Safe to be called from threads, idle and ISR.
  */
-nOS_Error nOS_FlagSend (nOS_Flag *flag, flags_t flags, flags_t mask)
+nOS_Error nOS_FlagSend (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits mask)
 {
     nOS_Error       err;
     nOS_FlagResult  res;

@@ -86,6 +86,7 @@ void SignalThread (nOS_Thread *thread)
     }
 }
 
+#if (NOS_CONFIG_THREAD_SET_PRIO_ENABLE > 0) || (NOS_CONFIG_MUTEX_ENABLE > 0)
 /* This is an internal function */
 void SetThreadPriority (nOS_Thread *thread, uint8_t prio)
 {
@@ -102,13 +103,14 @@ void SetThreadPriority (nOS_Thread *thread, uint8_t prio)
         }
     }
 }
+#endif
 
 #if (NOS_CONFIG_THREAD_SUSPEND_ENABLE > 0)
 nOS_Error nOS_ThreadCreate (nOS_Thread *thread, void(*func)(void*), void *arg,
-                            stack_t *stack, size_t ssize, uint8_t prio, uint8_t state)
+                            nOS_Stack *stack, size_t ssize, uint8_t prio, uint8_t state)
 #else
 nOS_Error nOS_ThreadCreate (nOS_Thread *thread, void(*func)(void*), void *arg,
-                            stack_t *stack, size_t ssize, uint8_t prio)
+                            nOS_Stack *stack, size_t ssize, uint8_t prio)
 #endif
 {
     nOS_Error   err;
@@ -259,6 +261,7 @@ nOS_Error nOS_ThreadResumeAll (void)
 }
 #endif  /* NOS_CONFIG_THREAD_SUSPEND_ENABLE */
 
+#if (NOS_CONFIG_THREAD_SET_PRIO_ENABLE > 0)
 nOS_Error nOS_ThreadSetPriority (nOS_Thread *thread, uint8_t prio)
 {
     nOS_Error   err;
@@ -299,6 +302,7 @@ uint8_t nOS_ThreadGetPriority (nOS_Thread *thread)
 
     return prio;
 }
+#endif  /* NOS_CONFIG_THREAD_SET_PRIO_ENABLE */
 
 nOS_Thread* nOS_ThreadRunning(void)
 {

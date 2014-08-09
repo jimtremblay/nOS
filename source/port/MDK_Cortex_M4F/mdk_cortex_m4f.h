@@ -15,9 +15,7 @@
 extern "C" {
 #endif
 
-typedef uint32_t                            stack_t;
-
-#define NOS_STACK(s,l)                      __align(8) stack_t s[l]
+typedef uint32_t                            nOS_Stack;
 
 #define NOS_UNUSED(v)                       (void)v
 
@@ -109,7 +107,7 @@ void func##_ISR(void)
 void        nOS_PortInit        (void);
 #endif  /* NOS_PRIVATE */
 
-void        nOS_ContextInit     (nOS_Thread *thread, stack_t *stack, size_t ssize, void(*func)(void*), void *arg);
+void        nOS_ContextInit     (nOS_Thread *thread, nOS_Stack *stack, size_t ssize, void(*func)(void*), void *arg);
 
 #if defined(__cplusplus)
 }

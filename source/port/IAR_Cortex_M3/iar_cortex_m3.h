@@ -16,9 +16,7 @@
 extern "C" {
 #endif
 
-typedef uint32_t                            stack_t;
-
-#define NOS_STACK(s,l)                      _Pragma("data_alignment=8") stack_t s[l]
+typedef uint32_t                            nOS_Stack;
 
 #define NOS_UNUSED(v)                       (void)v
 
@@ -39,10 +37,8 @@ typedef uint32_t                            stack_t;
  #if defined(NOS_USE_CONFIG_FILE)
   #warning "nOSConfig.h: NOS_CONFIG_ISR_STACK_SIZE is not defined (default to 128)."
  #endif
-#else
- #if NOS_CONFIG_ISR_STACK_SIZE == 0
-  #error "nOSConfig.h: NOS_CONFIG_ISR_STACK_SIZE is set to invalid value."
- #endif
+#elif (NOS_CONFIG_ISR_STACK_SIZE == 0)
+ #error "nOSConfig.h: NOS_CONFIG_ISR_STACK_SIZE is set to invalid value."
 #endif
 
 #if !defined(NOS_CONFIG_MAX_UNSAFE_ISR_PRIO)
@@ -103,7 +99,7 @@ void func##_ISR(void)
 void        nOS_PortInit        (void);
 #endif  /* NOS_PRIVATE */
 
-void        nOS_ContextInit     (nOS_Thread *thread, stack_t *stack, size_t ssize, void(*func)(void*), void *arg);
+void        nOS_ContextInit     (nOS_Thread *thread, nOS_Stack *stack, size_t ssize, void(*func)(void*), void *arg);
 
 #if defined(__cplusplus)
 }

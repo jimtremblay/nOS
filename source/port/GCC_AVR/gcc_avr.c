@@ -20,18 +20,18 @@ extern "C" {
  #if NOS_CONFIG_ISR_STACK_SIZE == 0
   #error "nOSConfig.h: NOS_CONFIG_ISR_STACK_SIZE is set to invalid value."
  #else
-  NOS_STACK(isrStack,NOS_CONFIG_ISR_STACK_SIZE);
+  static nOS_Stack isrStack[NOS_CONFIG_ISR_STACK_SIZE];
  #endif
 #endif
 
-void nOS_ContextInit(nOS_Thread *thread, stack_t *stack, size_t ssize, void(*func)(void*), void *arg)
+void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, void(*func)(void*), void *arg)
 {
     /* Stack grow from high to low address */
-    stack_t *tos = stack + (ssize - 1);
+    nOS_Stack *tos = stack + (ssize - 1);
 
     /* Simulate a call to thread function */
-    *tos-- = (uint8_t)((uint16_t)func);
-    *tos-- = (uint8_t)((uint16_t)func >> 8);
+    *tos-- = (nOS_Stack)((uint16_t)func);
+    *tos-- = (nOS_Stack)((uint16_t)func >> 8);
 #ifdef __AVR_3_BYTE_PC__
     *tos-- = 0x00;                                  /* Always set high part of address to 0 */
 #endif
@@ -47,8 +47,8 @@ void nOS_ContextInit(nOS_Thread *thread, stack_t *stack, size_t ssize, void(*fun
 #endif
     *tos-- = 0;                                     /* R1 always 0 */
      tos  -= 22;                                    /* R2 to R23 */
-    *tos-- = (uint8_t)((uint16_t)arg);              /* R24: arg LSB */
-    *tos-- = (uint8_t)((uint16_t)arg >> 8);         /* R25: arg MSB */
+    *tos-- = (nOS_Stack)((uint16_t)arg);            /* R24: arg LSB */
+    *tos-- = (nOS_Stack)((uint16_t)arg >> 8);       /* R25: arg MSB */
      tos  -= 6;                                     /* R26 to R31 */
 
     thread->stackPtr = tos;
@@ -65,7 +65,7 @@ void nOS_ContextSwitch(void)
     asm volatile("ret");
 }
 
-stack_t *nOS_IsrEnter (stack_t *sp)
+nOS_Stack *nOS_IsrEnter (nOS_Stack *sp)
 {
     if (nOS_isrNestingCounter == 0) {
         nOS_runningThread->stackPtr = sp;
@@ -80,7 +80,7 @@ stack_t *nOS_IsrEnter (stack_t *sp)
     return sp;
 }
 
-stack_t *nOS_IsrLeave (stack_t *sp)
+nOS_Stack *nOS_IsrLeave (nOS_Stack *sp)
 {
     nOS_isrNestingCounter--;
     if (nOS_isrNestingCounter == 0) {

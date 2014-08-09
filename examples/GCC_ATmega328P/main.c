@@ -23,21 +23,15 @@ void ThreadA(void *arg);
 void ThreadB(void *arg);
 void ThreadC(void *arg);
 
-#if (NOS_CONFIG_SEM_CREATE_ENABLE > 0)
 nOS_Sem semA;
 nOS_Sem semB;
 nOS_Sem semC;
-#else
-NOS_SEM(semA, 0, 1);
-NOS_SEM(semB, 0, 1);
-NOS_SEM(semC, 0, 1);
-#endif
 nOS_Thread threadA;
 nOS_Thread threadB;
 nOS_Thread threadC;
-stack_t threadAStack[THREAD_STACK_SIZE];
-stack_t threadBStack[THREAD_STACK_SIZE];
-stack_t threadCStack[THREAD_STACK_SIZE];
+nOS_Stack threadAStack[THREAD_STACK_SIZE];
+nOS_Stack threadBStack[THREAD_STACK_SIZE];
+nOS_Stack threadCStack[THREAD_STACK_SIZE];
 
 void ThreadA(void *arg)
 {
@@ -99,11 +93,9 @@ int main (void)
 
     nOS_Init();
 
-#if (NOS_CONFIG_SEM_CREATE_ENABLE > 0)
     nOS_SemCreate(&semA, 0, 1);
     nOS_SemCreate(&semB, 0, 1);
     nOS_SemCreate(&semC, 0, 1);
-#endif
 
 #if (NOS_CONFIG_THREAD_SUSPEND_ENABLE > 0)
     nOS_ThreadCreate(&threadA, ThreadA, (void*)300, threadAStack, THREAD_STACK_SIZE, 5, NOS_SUSPENDED);
