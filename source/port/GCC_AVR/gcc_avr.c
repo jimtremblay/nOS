@@ -12,12 +12,12 @@
 #define NOS_PRIVATE
 #include "nOS.h"
 
-#ifdef __cplusplus
+#if defined(__cplusplus)
 extern "C" {
 #endif
 
 #if defined(NOS_CONFIG_ISR_STACK_SIZE)
- #if NOS_CONFIG_ISR_STACK_SIZE == 0
+ #if (NOS_CONFIG_ISR_STACK_SIZE == 0)
   #error "nOSConfig.h: NOS_CONFIG_ISR_STACK_SIZE is set to invalid value."
  #else
   static nOS_Stack isrStack[NOS_CONFIG_ISR_STACK_SIZE];
@@ -32,24 +32,62 @@ void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, void(*f
     /* Simulate a call to thread function */
     *tos-- = (nOS_Stack)((uint16_t)func);
     *tos-- = (nOS_Stack)((uint16_t)func >> 8);
-#ifdef __AVR_3_BYTE_PC__
+#if defined(__AVR_3_BYTE_PC__)
     *tos-- = 0x00;                                  /* Always set high part of address to 0 */
 #endif
 
     /* Simulate a call of nOS_PushContext */
+#if (NOS_CONFIG_DEBUG > 0)
+    *tos-- = 0x01;                                  /* R0 */
+#else
      tos  -= 1;                                     /* R0 */
+#endif
     *tos-- = 0x80;                                  /* SREG: Interrupts enabled */
-#ifdef __AVR_HAVE_RAMPZ__
+#if defined(__AVR_HAVE_RAMPZ__)
      tos  -= 1;                                     /* RAMPZ */
 #endif
-#ifdef __AVR_3_BYTE_PC__
+#if defined(__AVR_3_BYTE_PC__)
      tos  -= 1;                                     /* EIND */
 #endif
-    *tos-- = 0;                                     /* R1 always 0 */
+    *tos-- = 0x00;                                  /* R1 always 0 */
+#if (NOS_CONFIG_DEBUG > 0)
+    *tos-- = 0x02;                                  /* R2 */
+    *tos-- = 0x03;                                  /* R3 */
+    *tos-- = 0x04;                                  /* R4 */
+    *tos-- = 0x05;                                  /* R5 */
+    *tos-- = 0x06;                                  /* R6 */
+    *tos-- = 0x07;                                  /* R7 */
+    *tos-- = 0x08;                                  /* R8 */
+    *tos-- = 0x09;                                  /* R9 */
+    *tos-- = 0x10;                                  /* R10 */
+    *tos-- = 0x11;                                  /* R11 */
+    *tos-- = 0x12;                                  /* R12 */
+    *tos-- = 0x13;                                  /* R13 */
+    *tos-- = 0x14;                                  /* R14 */
+    *tos-- = 0x15;                                  /* R15 */
+    *tos-- = 0x16;                                  /* R16 */
+    *tos-- = 0x17;                                  /* R17 */
+    *tos-- = 0x18;                                  /* R18 */
+    *tos-- = 0x19;                                  /* R19 */
+    *tos-- = 0x20;                                  /* R20 */
+    *tos-- = 0x21;                                  /* R21 */
+    *tos-- = 0x22;                                  /* R22 */
+    *tos-- = 0x23;                                  /* R23 */
+#else
      tos  -= 22;                                    /* R2 to R23 */
+#endif
     *tos-- = (nOS_Stack)((uint16_t)arg);            /* R24: arg LSB */
     *tos-- = (nOS_Stack)((uint16_t)arg >> 8);       /* R25: arg MSB */
+#if (NOS_CONFIG_DEBUG > 0)
+    *tos-- = 0x26;                                  /* R26 */
+    *tos-- = 0x27;                                  /* R27 */
+    *tos-- = 0x28;                                  /* R28 */
+    *tos-- = 0x29;                                  /* R29 */
+    *tos-- = 0x30;                                  /* R30 */
+    *tos-- = 0x31;                                  /* R31 */
+#else
      tos  -= 6;                                     /* R26 to R31 */
+#endif
 
     thread->stackPtr = tos;
 }
@@ -69,11 +107,11 @@ nOS_Stack *nOS_IsrEnter (nOS_Stack *sp)
 {
     if (nOS_isrNestingCounter == 0) {
         nOS_runningThread->stackPtr = sp;
-        #if defined(NOS_CONFIG_ISR_STACK_SIZE)
+#if defined(NOS_CONFIG_ISR_STACK_SIZE)
         sp = &isrStack[NOS_CONFIG_ISR_STACK_SIZE-1];
-        #else
+#else
         sp = nOS_mainThread.stackPtr;
-        #endif
+#endif
     }
     nOS_isrNestingCounter++;
 
@@ -97,6 +135,6 @@ nOS_Stack *nOS_IsrLeave (nOS_Stack *sp)
     return sp;
 }
 
-#ifdef __cplusplus
+#if defined(__cplusplus)
 }
 #endif

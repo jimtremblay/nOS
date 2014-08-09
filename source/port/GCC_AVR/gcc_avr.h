@@ -12,7 +12,7 @@
 #include <stdint.h>
 #include <avr/interrupt.h>
 
-#ifdef __cplusplus
+#if defined(__cplusplus)
 extern "C" {
 #endif
 
@@ -22,7 +22,7 @@ typedef uint8_t                 nOS_Stack;
 
 #define NOS_MEM_ALIGNMENT       1
 
-#ifdef __AVR_HAVE_RAMPZ__
+#if defined(__AVR_HAVE_RAMPZ__)
 #define PUSH_RAMPZ                                                  \
     asm volatile ("in   r0, %0                      \n\t"           \
                   "push r0                          \n\t"           \
@@ -32,7 +32,7 @@ typedef uint8_t                 nOS_Stack;
 #define PUSH_RAMPZ
 #endif
 
-#ifdef __AVR_3_BYTE_PC__
+#if defined(__AVR_3_BYTE_PC__)
 #define PUSH_EIND                                                   \
     asm volatile ("in   r0, %0                      \n\t"           \
                   "push r0                          \n\t"           \
@@ -42,7 +42,7 @@ typedef uint8_t                 nOS_Stack;
 #define PUSH_EIND
 #endif
 
-#ifdef __AVR_HAVE_RAMPZ__
+#if defined(__AVR_HAVE_RAMPZ__)
 #define POP_RAMPZ                                                   \
     asm volatile ("pop  r0                          \n\t"           \
                   "out  %0, r0                      \n\t"           \
@@ -52,7 +52,7 @@ typedef uint8_t                 nOS_Stack;
 #define POP_RAMPZ
 #endif
 
-#ifdef __AVR_3_BYTE_PC__
+#if defined(__AVR_3_BYTE_PC__)
 #define POP_EIND                                                    \
     asm volatile ("pop  r0                          \n\t"           \
                   "out  %0, r0                      \n\t"           \
@@ -187,7 +187,7 @@ void        nOS_ContextInit     (nOS_Thread *thread, nOS_Stack *stack, size_t ss
 /* Absolutely need a naked function because function call push the return address on the stack */
 void        nOS_ContextSwitch   (void) __attribute__ ( ( naked ) );
 
-#ifdef __cplusplus
+#if defined(__cplusplus)
 }
 #endif
 

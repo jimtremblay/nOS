@@ -25,6 +25,20 @@ extern "C" {
 #if defined(NOS_USE_CONFIG_FILE)
 #include "nOSConfig.h"
 #endif
+  
+#if !defined(NOS_CONFIG_DEBUG)
+ #define NOS_CONFIG_DEBUG                       0
+ #if defined(NOS_USE_CONFIG_FILE)
+  #warning "nOSConfig.h: NOS_CONFIG_DEBUG is not defined (disabled by default)."
+ #endif
+#endif
+  
+#if !defined(NOS_CONFIG_SAFE)
+ #define NOS_CONFIG_SAFE                        1
+ #if defined(NOS_USE_CONFIG_FILE)
+  #warning "nOSConfig.h: NOS_CONFIG_SAFE is not defined (enabled by default)."
+ #endif
+#endif
 
 #if !defined(NOS_CONFIG_MAX_THREAD_PRIO)
  #define NOS_CONFIG_MAX_THREAD_PRIO             15
@@ -33,13 +47,6 @@ extern "C" {
  #endif
 #elif NOS_CONFIG_MAX_THREAD_PRIO > 255
  #error "nOSConfig.h: NOS_CONFIG_MAX_THREAD_PRIO can't be higher than 255."
-#endif
-
-#if !defined(NOS_CONFIG_SAFE)
- #define NOS_CONFIG_SAFE                        1
- #if defined(NOS_USE_CONFIG_FILE)
-  #warning "nOSConfig.h: NOS_CONFIG_SAFE is not defined (enabled by default)."
- #endif
 #endif
   
 #if !defined(NOS_CONFIG_SCHED_LOCK_ENABLE)

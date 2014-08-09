@@ -1,3 +1,6 @@
+/* Define to value other than 0 to enable debug code. */
+#define NOS_CONFIG_DEBUG                        0
+
 /* Define to value other than 0 to enable arguments checking in nOS API. */
 #define NOS_CONFIG_SAFE                         0
 
