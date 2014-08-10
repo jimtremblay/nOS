@@ -95,24 +95,34 @@ __asm void PendSV_Handler(void)
     extern nOS_runningThread;
     extern nOS_highPrioThread;
 
-    /* Set interrupt mask to disable interrupts that use nOS API */
-    MOV         R0,         #NOS_PORT_MAX_UNSAFE_BASEPRI
-    MSR         BASEPRI,    R0
+    /* Disable interrupt */
+    CPSID       I
     ISB
 
     /* Save PSP before doing anything, PendSV_Handler already running on MSP */
-    MRS         R12,        PSP
+    MRS         R0,         PSP
     ISB
 
     /* Get the location of nOS_runningThread */
     LDR         R3,         =nOS_runningThread
     LDR         R2,         [R3]
-
-    /* Push remaining registers on thread stack */
-    STMDB       R12!,       {R4-R11}
-
+    
+    /* Make space for the remaining registers */
+    SUBS        R0,         R0,             #32
+    
     /* Save psp to nOS_Thread object of current running thread */
-    STR         R12,        [R2]
+    STR         R0,         [R2]
+
+    /* Push low registers on thread stack */
+    STMIA       R0!,        {R4-R7}
+    
+    /* Copy high registers to low registers */
+    MOV         R4,         R8
+    MOV         R5,         R9
+    MOV         R6,         R10
+    MOV         R7,         R11
+    /* Push high registers on thread stack */
+    STMIA       R0!,        {R4-R7}
 
     /* Copy nOS_highPrioThread to nOS_runningThread */
     LDR         R1,         =nOS_highPrioThread
@@ -121,18 +131,31 @@ __asm void PendSV_Handler(void)
 
     /* Restore psp from nOS_Thread object of high prio thread */
     LDR         R2,         [R1]
-    LDR         R12,        [R2]
+    LDR         R0,         [R2]
+    
+    /* Move to the high registers */
+    ADDS        R0,         R0,             #16
 
-    /* Pop registers from thread stack */
-    LDMIA       R12!,       {R4-R11}
+    /* Pop high registers from thread stack */
+    LDMIA       R0!,        {R4-R7}
+    /* Copy low registers to high registers */
+    MOV         R11,        R7
+    MOV         R10,        R6
+    MOV         R9,         R5
+    MOV         R8,         R4
 
     /* Restore psp to high prio thread stack */
-    MSR         PSP,        R12
+    MSR         PSP,        R0
     ISB
+    
+    /* Go back for the low registers */
+    SUBS        R0,         R0,             #32
+    
+    /* Pop low registers from thread stack */
+    LDMIA      R0!,        {R4-R7}
 
-    /* Clear interrupt mask to re-enable interrupts */
-    MOV         R0,         #0
-    MSR         BASEPRI,    R0
+    /* Enable interrupt */
+    CPSIE      I
     ISB
 
     /* Return */
