@@ -20,6 +20,8 @@
  #include "port/IAR_Cortex_M3/iar_cortex_m3.c"
 #elif defined(__ICCARM__) && (__CORE__ == __ARM7EM__)
  #include "port/IAR_Cortex_M4F/iar_cortex_m4f.c"
+#elif defined(__CC_ARM) && (defined(__TARGET_CPU_CORTEX_M0) || defined(__TARGET_CPU_CORTEX_M0_))
+ #include "port/MDK_Cortex_M0/mdk_cortex_m0.c"
 #elif defined(__CC_ARM) && defined(__TARGET_CPU_CORTEX_M3)
  #include "port/MDK_Cortex_M3/mdk_cortex_m3.c"
 #elif defined(__CC_ARM) && (defined(__TARGET_CPU_CORTEX_M4) || defined(__TARGET_CPU_CORTEX_M4_FP))

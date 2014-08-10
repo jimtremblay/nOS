@@ -87,4 +87,4 @@ void        nOS_ContextInit     (nOS_Thread *thread, nOS_Stack *stack, size_t ss
 }
 #endif
 
-#endif /* MDK_CORTEX_M3_H */
+#endif /* MDK_CORTEX_M0_H */
