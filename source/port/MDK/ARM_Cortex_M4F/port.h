@@ -6,8 +6,8 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-#ifndef MDK_CORTEX_M4F_H
-#define MDK_CORTEX_M4F_H
+#ifndef PORT_H
+#define PORT_H
 
 #include <stdint.h>
 
@@ -113,4 +113,4 @@ void        nOS_ContextInit     (nOS_Thread *thread, nOS_Stack *stack, size_t ss
 }
 #endif
 
-#endif /* MDK_CORTEX_M4F_H */
+#endif /* PORT_H */

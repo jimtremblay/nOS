@@ -6,8 +6,8 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-#ifndef IAR_CORTEX_M4F_H
-#define IAR_CORTEX_M4F_H
+#ifndef PORT_H
+#define PORT_H
 
 #include <stdint.h>
 #include <intrinsics.h>
@@ -107,4 +107,4 @@ void        nOS_ContextInit     (nOS_Thread *thread, nOS_Stack *stack, size_t ss
 }
 #endif
 
-#endif /* IAR_CORTEX_M4F_H */
+#endif /* PORT_H */

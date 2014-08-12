@@ -6,8 +6,8 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-#ifndef GCC_AVR_H
-#define GCC_AVR_H
+#ifndef PORT_H
+#define PORT_H
 
 #include <stdint.h>
 #include <avr/interrupt.h>
@@ -191,4 +191,4 @@ void        nOS_ContextSwitch   (void) __attribute__ ( ( naked ) );
 }
 #endif
 
-#endif /* GCC_AVR_H */
+#endif /* PORT_H */
