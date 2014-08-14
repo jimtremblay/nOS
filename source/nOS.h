@@ -25,14 +25,14 @@ extern "C" {
 #if defined(NOS_USE_CONFIG_FILE)
 #include "nOSConfig.h"
 #endif
-  
+
 #if !defined(NOS_CONFIG_DEBUG)
  #define NOS_CONFIG_DEBUG                       0
  #if defined(NOS_USE_CONFIG_FILE)
   #warning "nOSConfig.h: NOS_CONFIG_DEBUG is not defined (disabled by default)."
  #endif
 #endif
-  
+
 #if !defined(NOS_CONFIG_SAFE)
  #define NOS_CONFIG_SAFE                        1
  #if defined(NOS_USE_CONFIG_FILE)
@@ -48,14 +48,14 @@ extern "C" {
 #elif NOS_CONFIG_MAX_THREAD_PRIO > 255
  #error "nOSConfig.h: NOS_CONFIG_MAX_THREAD_PRIO can't be higher than 255."
 #endif
-  
+
 #if !defined(NOS_CONFIG_SCHED_LOCK_ENABLE)
  #define NOS_CONFIG_SCHED_LOCK_ENABLE           1
  #if defined(NOS_USE_CONFIG_FILE)
   #warning "nOSConfig.h: NOS_CONFIG_SCHED_LOCK_ENABLE is not defined (enabled by default)."
  #endif
 #endif
-  
+
 #if !defined(NOS_CONFIG_SLEEP_ENABLE)
  #define NOS_CONFIG_SLEEP_ENABLE                1
  #if defined(NOS_USE_CONFIG_FILE)
@@ -69,7 +69,7 @@ extern "C" {
   #warning "nOSConfig.h: NOS_CONFIG_THREAD_SUSPEND_ENABLE is not defined (enabled by default)."
  #endif
 #endif
-  
+
 #if !defined(NOS_CONFIG_THREAD_SET_PRIO_ENABLE)
  #define NOS_CONFIG_THREAD_SET_PRIO_ENABLE      1
  #if defined(NOS_USE_CONFIG_FILE)
@@ -83,14 +83,14 @@ extern "C" {
   #warning "nOSConfig.h: NOS_CONFIG_SEM_ENABLE is not defined (enabled by default)."
  #endif
 #endif
-  
+
 #if !defined(NOS_CONFIG_MUTEX_ENABLE)
  #define NOS_CONFIG_MUTEX_ENABLE                1
  #if defined(NOS_USE_CONFIG_FILE)
   #warning "nOSConfig.h: NOS_CONFIG_MUTEX_ENABLE is not defined (enabled by default)."
  #endif
 #endif
-  
+
 #if !defined(NOS_CONFIG_FLAG_ENABLE)
  #define NOS_CONFIG_FLAG_ENABLE                 1
  #if defined(NOS_USE_CONFIG_FILE)
@@ -108,14 +108,14 @@ extern "C" {
 #else
  #undef NOS_CONFIG_FLAG_NB_BITS
 #endif
-  
+
 #if !defined(NOS_CONFIG_QUEUE_ENABLE)
  #define NOS_CONFIG_QUEUE_ENABLE                1
  #if defined(NOS_USE_CONFIG_FILE)
   #warning "nOSConfig.h: NOS_CONFIG_QUEUE_ENABLE is not defined (enabled by default)."
  #endif
 #endif
-  
+
 #if !defined(NOS_CONFIG_MEM_ENABLE)
  #define NOS_CONFIG_MEM_ENABLE                  1
  #if defined(NOS_USE_CONFIG_FILE)
