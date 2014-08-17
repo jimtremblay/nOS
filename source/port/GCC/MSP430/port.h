@@ -22,6 +22,79 @@ typedef uint16_t                nOS_Stack;
 
 #define NOS_MEM_ALIGNMENT       2
 
+#if defined(__MSP430X__)
+#define nOS_ContextSave()                                                       \
+    asm volatile (                                                              \
+        "push.w     sr                          \n"                             \
+        "                                       \n"                             \
+        /* Push all registers to running thread stack */                        \
+        "pushm.w    #12,                r15     \n"                             \
+        "                                       \n"                             \
+        /* Save stack pointer to running thread structure */                    \
+        "mov.w      &nOS_runningThread, r12     \n"                             \
+        "mov.w      sp,                 0(r12)  \n"                             \
+    )
+
+#define nOS_ContextRestore()                                                    \
+    asm volatile (                                                              \
+        /* Restore stack pointer from high prio thread structure */             \
+        "mov.w      &nOS_runningThread, r12     \n"                             \
+        "mov.w      @r12,               sp      \n"                             \
+        "                                       \n"                             \
+        /* Pop all registers from high prio thread stack */                     \
+        "popm.w     #12,                r15     \n"                             \
+        "                                       \n"                             \
+        "pop.w      sr                          \n"                             \
+    )
+#else
+#define nOS_ContextSave()                                                       \
+    asm volatile (                                                              \
+        "push.w     sr                          \n"                             \
+        "                                       \n"                             \
+        /* Push all registers to running thread stack */                        \
+        "push.w     r4                          \n"                             \
+        "push.w     r5                          \n"                             \
+        "push.w     r6                          \n"                             \
+        "push.w     r7                          \n"                             \
+        "push.w     r8                          \n"                             \
+        "push.w     r9                          \n"                             \
+        "push.w     r10                         \n"                             \
+        "push.w     r11                         \n"                             \
+        "push.w     r12                         \n"                             \
+        "push.w     r13                         \n"                             \
+        "push.w     r14                         \n"                             \
+        "push.w     r15                         \n"                             \
+        "                                       \n"                             \
+        /* Save stack pointer to running thread structure */                    \
+        "mov.w      &nOS_runningThread, r12     \n"                             \
+        "mov.w      sp,                 0(r12)  \n"                             \
+    )
+
+#define nOS_ContextRestore()                                                    \
+    asm volatile (                                                              \
+        /* Restore stack pointer from high prio thread structure */             \
+        "mov.w      &nOS_runningThread, r12     \n"                             \
+        "mov.w      @r12,               sp      \n"                             \
+        "                                       \n"                             \
+        /* Pop all registers from high prio thread stack */                     \
+        "pop.w      r15                         \n"                             \
+        "pop.w      r14                         \n"                             \
+        "pop.w      r13                         \n"                             \
+        "pop.w      r12                         \n"                             \
+        "pop.w      r11                         \n"                             \
+        "pop.w      r10                         \n"                             \
+        "pop.w      r9                          \n"                             \
+        "pop.w      r8                          \n"                             \
+        "pop.w      r7                          \n"                             \
+        "pop.w      r6                          \n"                             \
+        "pop.w      r5                          \n"                             \
+        "pop.w      r4                          \n"                             \
+        "                                       \n"                             \
+        "pop.w      sr                          \n"                             \
+    )
+#endif
+
+
 #define nOS_CriticalEnter()                                                     \
 {                                                                               \
     volatile uint16_t _sr;                                                      \
@@ -45,40 +118,22 @@ void __attribute__ ((__interrupt__(vect), naked)) vect##_ISR(void)              
 }                                                                               \
 void vect##_ISR_L2(void)                                                        \
 {                                                                               \
+    nOS_ContextSave();                                                          \
     asm volatile (                                                              \
-        "push.w     sr                          \n"                             \
-        "                                       \n"                             \
-        /* Push all registers to running thread stack */                        \
-        "pushm.w    #12,                r15     \n"                             \
-        "                                       \n"                             \
-        /* Save stack pointer to running thread structure */                    \
-        "mov.w      &nOS_runningThread, r12     \n"                             \
-        "mov.w      sp,                 0(r12)  \n"                             \
-        "                                       \n"                             \
         "mov.w      sp,                 r12     \n"                             \
         "call       #nOS_IsrEnter               \n"                             \
         "mov.w      r12,                sp      \n"                             \
     );                                                                          \
     vect##_ISR_L3();                                                            \
+    __disable_interrupt();                                                      \
+    __no_operation();                                                           \
     asm volatile (                                                              \
-        "dint                                   \n"                             \
-        "nop                                    \n"                             \
-        "                                       \n"                             \
         "mov.w      sp,                 r12     \n"                             \
         "call       #nOS_IsrLeave               \n"                             \
         "mov.w      r12,                sp      \n"                             \
-        "                                       \n"                             \
-        /* Restore stack pointer from high prio thread structure */             \
-        "mov.w      &nOS_runningThread, r12     \n"                             \
-        "mov.w      @r12,               sp      \n"                             \
-        "                                       \n"                             \
-        /* Pop all registers from high prio thread stack */                     \
-        "popm.w     #12,                r15     \n"                             \
-        "                                       \n"                             \
-        "pop.w      sr                          \n"                             \
-        "                                       \n"                             \
-        "ret                                    \n"                             \
     );                                                                          \
+    nOS_ContextRestore();                                                       \
+    asm volatile ("ret");                                                       \
 }                                                                               \
 inline void vect##_ISR_L3(void)
 

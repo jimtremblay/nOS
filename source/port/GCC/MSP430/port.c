@@ -55,29 +55,10 @@ void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, void(*f
 
 void nOS_ContextSwitch(void)
 {
-    asm volatile (
-        "push.w     sr                                      \n"
-        "                                                   \n"
-        /* Push all registers to running thread stack */
-        "pushm.w    #12,                r15                 \n"
-        "                                                   \n"
-        /* Save stack pointer to running thread structure */
-        "mov.w      &nOS_runningThread, r12                 \n"
-        "mov.w      sp,                 0(r12)              \n"
-        "                                                   \n"
-        "mov.w      nOS_highPrioThread, nOS_runningThread   \n"
-        "                                                   \n"
-        /* Restore stack pointer from high prio thread structure */
-        "mov.w      &nOS_runningThread, r12                 \n"
-        "mov.w      @r12,               sp                  \n"
-        "                                                   \n"
-        /* Pop all registers from high prio thread stack */
-        "popm.w     #12,                r15                 \n"
-        "                                                   \n"
-        "pop.w      sr                                      \n"
-        "                                                   \n"
-        "ret                                                \n"
-    );
+    nOS_ContextSave();
+    nOS_runningThread = nOS_highPrioThread;
+    nOS_ContextRestore();
+    asm volatile ("ret");
 }
 
 nOS_Stack* nOS_IsrEnter (nOS_Stack *sp)
