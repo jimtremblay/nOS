@@ -73,5 +73,4 @@ PendSV_Handler:
     BX          LR
     NOP
 
-    /* Not needed in this file */
-    /* END */
+    END
