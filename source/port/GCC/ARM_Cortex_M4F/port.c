@@ -94,7 +94,7 @@ void nOS_IsrLeave (void)
 void PendSV_Handler(void)
 {
     __asm volatile (
-        "MOV        R0,         %0                  \n" /* Set interrupt mask to disable interrupts that use nOS API */
+        "MOV        R0,         %[UNSAFE_BASEPRI]   \n" /* Set interrupt mask to disable interrupts that use nOS API */
         "MSR        BASEPRI,    R0                  \n"
         "ISB                                        \n"
         "                                           \n"
@@ -109,6 +109,7 @@ void PendSV_Handler(void)
         "IT         EQ                              \n"
         "VSTMDBEQ   R12!,       {S16-S31}           \n"
 #endif
+        "                                           \n"
         "STMDB      R12!,       {R4-R11, LR}        \n" /* Push remaining registers on thread stack */
         "                                           \n"
         "STR        R12,        [R2]                \n" /* Save psp to nOS_Thread object of current running thread */
@@ -127,6 +128,7 @@ void PendSV_Handler(void)
         "IT         EQ                              \n"
         "VLDMIAEQ   R12!,       {S16-S31}           \n"
 #endif
+        "                                           \n"
         "MSR        PSP,        R12                 \n" /* Restore psp to high prio thread stack */
         "ISB                                        \n"
         "                                           \n"
@@ -141,7 +143,7 @@ void PendSV_Handler(void)
         "runningThread: .word nOS_runningThread     \n"
         "highPrioThread: .word nOS_highPrioThread   \n"
         :
-        : "I" (NOS_PORT_MAX_UNSAFE_BASEPRI)
+        : [UNSAFE_BASEPRI] "I" (NOS_PORT_MAX_UNSAFE_BASEPRI)
     );
 }
 

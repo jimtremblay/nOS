@@ -59,56 +59,56 @@ __attribute__( ( always_inline ) ) static inline uint32_t GetMSP (void)
 {
     uint32_t r;
 
-    __asm volatile ("MRS %0, MSP" : "=r" (r));
+    __asm volatile ("MRS %[result], MSP" : [result] "=r" (r));
 
     return r;
 }
 
 __attribute__( ( always_inline ) ) static inline void SetMSP (uint32_t r)
 {
-    __asm volatile ("MSR MSP, %0" :: "r" (r));
+    __asm volatile ("MSR MSP, %[input]" :: [input] "r" (r));
 }
 
 __attribute__( ( always_inline ) ) static inline uint32_t GetPSP (void)
 {
     uint32_t r;
 
-    __asm volatile ("MRS %0, PSP" : "=r" (r));
+    __asm volatile ("MRS %[result], PSP" : [result] "=r" (r));
 
     return r;
 }
 
 __attribute__( ( always_inline ) ) static inline void SetPSP (uint32_t r)
 {
-    __asm volatile ("MSR PSP, %0" :: "r" (r));
+    __asm volatile ("MSR PSP, %[input]" :: [input] "r" (r));
 }
 
 __attribute__( ( always_inline ) ) static inline uint32_t GetCONTROL (void)
 {
     uint32_t r;
 
-    __asm volatile ("MRS %0, CONTROL" : "=r" (r));
+    __asm volatile ("MRS %[result], CONTROL" : [result] "=r" (r));
 
     return r;
 }
 
 __attribute__( ( always_inline ) ) static inline void SetCONTROL (uint32_t r)
 {
-    __asm volatile ("MSR CONTROL, %0" :: "r" (r));
+    __asm volatile ("MSR CONTROL, %[input]" :: [input] "r" (r));
 }
 
 __attribute__( ( always_inline ) ) static inline uint32_t GetBASEPRI (void)
 {
     uint32_t r;
 
-    __asm volatile ("MRS %0, BASEPRI" : "=r" (r));
+    __asm volatile ("MRS %[result], BASEPRI" : [result] "=r" (r));
 
     return r;
 }
 
 __attribute__( ( always_inline ) ) static inline void SetBASEPRI (uint32_t r)
 {
-    __asm volatile ("MSR BASEPRI, %0" :: "r" (r));
+    __asm volatile ("MSR BASEPRI, %[input]" :: [input] "r" (r));
 }
 
 __attribute__( ( always_inline ) ) static inline void DSB (void)
@@ -130,9 +130,9 @@ __attribute__( ( always_inline ) ) static inline uint32_t nOS_PortCLZ(uint32_t n
 {
     uint32_t    r;
     __asm volatile (
-        "CLZ    %0, %1"
-        : "=r" (r)
-        : "r" (n)
+        "CLZ    %[result], %[input]"
+        : [result] "=r" (r)
+        : [input] "r" (n)
     );
     return r;
 }
