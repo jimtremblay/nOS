@@ -95,13 +95,8 @@ __asm void PendSV_Handler(void)
     extern nOS_runningThread;
     extern nOS_highPrioThread;
 
-    /* Set interrupt mask to disable interrupts that use nOS API */
-    MOV         R0,         #NOS_PORT_MAX_UNSAFE_BASEPRI
-    MSR         BASEPRI,    R0
-    ISB
-
     /* Save PSP before doing anything, PendSV_Handler already running on MSP */
-    MRS         R12,        PSP
+    MRS         R0,         PSP
     ISB
 
     /* Get the location of nOS_runningThread */
@@ -109,10 +104,10 @@ __asm void PendSV_Handler(void)
     LDR         R2,         [R3]
 
     /* Push remaining registers on thread stack */
-    STMDB       R12!,       {R4-R11}
+    STMDB       R0!,        {R4-R11}
 
     /* Save psp to nOS_Thread object of current running thread */
-    STR         R12,        [R2]
+    STR         R0,         [R2]
 
     /* Copy nOS_highPrioThread to nOS_runningThread */
     LDR         R1,         =nOS_highPrioThread
@@ -121,18 +116,13 @@ __asm void PendSV_Handler(void)
 
     /* Restore psp from nOS_Thread object of high prio thread */
     LDR         R2,         [R1]
-    LDR         R12,        [R2]
+    LDR         R0,         [R2]
 
     /* Pop registers from thread stack */
-    LDMIA       R12!,       {R4-R11}
+    LDMIA       R0!,        {R4-R11}
 
     /* Restore psp to high prio thread stack */
-    MSR         PSP,        R12
-    ISB
-
-    /* Clear interrupt mask to re-enable interrupts */
-    MOV         R0,         #0
-    MSR         BASEPRI,    R0
+    MSR         PSP,        R0
     ISB
 
     /* Return */

@@ -95,10 +95,6 @@ __asm void PendSV_Handler(void)
     extern nOS_runningThread;
     extern nOS_highPrioThread;
 
-    /* Disable interrupt */
-    CPSID       I
-    ISB
-
     /* Save PSP before doing anything, PendSV_Handler already running on MSP */
     MRS         R0,         PSP
     ISB
@@ -153,10 +149,6 @@ __asm void PendSV_Handler(void)
     
     /* Pop low registers from thread stack */
     LDMIA      R0!,        {R4-R7}
-
-    /* Enable interrupt */
-    CPSIE      I
-    ISB
 
     /* Return */
     BX          LR

@@ -15,10 +15,6 @@
     PUBLIC PendSV_Handler
 
 PendSV_Handler:
-    /* Disable interrupt */
-    CPSID       I
-    ISB
-
     /* Save PSP before doing anything, PendSV_Handler already running on MSP */
     MRS         R0,        PSP
     ISB
@@ -49,7 +45,7 @@ PendSV_Handler:
     LDR         R0,         [R1]
     STR         R0,         [R3]
 
-    /* Restore psp from nOS_Thread object of high prio thread */
+    /* Restore PSP from nOS_Thread object of high prio thread */
     LDR         R2,         [R1]
     LDR         R0,         [R2]
 
@@ -73,10 +69,6 @@ PendSV_Handler:
 
     /* Pop low registers from thread stack */
     LDMIA       R0!,        {R4-R7}
-
-    /* Enable interrupt */
-    CPSIE       I
-    ISB
 
     BX          LR
     NOP
