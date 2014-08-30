@@ -35,7 +35,21 @@ void nOS_PortInit(void)
 
 void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, void(*func)(void*), void *arg)
 {
-    nOS_Stack *tos = (nOS_Stack*)((uint32_t)(stack + (ssize - 1)) & 0xfffffff8UL);
+    nOS_Stack *tos = (nOS_Stack*)((uint32_t)(stack + (ssize - 1)));
+    
+    /* Just to know if the thread has overflow his stack */
+#if (NOS_CONFIG_DEBUG > 0)
+    *tos-- = 0xffffffffUL;
+    *tos-- = 0xffffffffUL;
+#endif
+
+    /* 
+     * We need to be aligned to 4 bytes boundary before multiple push
+     * to be alligned to 8 bytes boundary at the end.
+     */
+    if (((uint32_t)tos & 0x00000007UL) == 0x00000000UL) {
+        tos--;
+    }
 
 #if defined(__TARGET_FPU_VFP)
     *tos-- = 0x00000000UL;      /* FPSCR */
@@ -69,7 +83,7 @@ void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, void(*f
     *tos-- = 0x02020202UL;      /* R2 */
     *tos-- = 0x01010101UL;      /* R1 */
 #else
-    tos     -= 4;               /* R12, R3, R2 and R1 */
+    tos   -= 4;                 /* R12, R3, R2 and R1 */
 #endif
     *tos-- = (nOS_Stack)arg;    /* R0 */
 #if defined(__TARGET_FPU_VFP)
@@ -109,7 +123,7 @@ void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, void(*f
     *tos-- = 0x05050505UL;      /* R5 */
     *tos   = 0x04040404UL;      /* R4 */
 #else
-    tos     -= 8;               /* R11, R10, R9, R8, R7, R6, R5 and R4 */
+    tos   -= 8;                 /* R11, R10, R9, R8, R7, R6, R5 and R4 */
 #endif
 
     thread->stackPtr = tos;

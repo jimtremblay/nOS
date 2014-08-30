@@ -31,7 +31,21 @@ void nOS_PortInit(void)
 
 void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, void(*func)(void*), void *arg)
 {
-    nOS_Stack *tos = (nOS_Stack*)((uint32_t)(stack + (ssize - 1)) & 0xfffffff8UL);
+    nOS_Stack *tos = (nOS_Stack*)((uint32_t)(stack + (ssize - 1)));
+    
+    /* Just to know if the thread has overflow his stack */
+#if (NOS_CONFIG_DEBUG > 0)
+    *tos-- = 0xffffffffUL;
+    *tos-- = 0xffffffffUL;
+#endif
+    
+    /* 
+     * We need to be aligned to 4 bytes boundary before multiple push
+     * to be alligned to 8 bytes boundary at the end.
+     */
+    if (((uint32_t)tos & 0x00000007UL) == 0x00000000UL) {
+        tos--;
+    }
 
 #if defined(__ARMVFP__)
     *tos-- = 0x00000000UL;      /* FPSCR */
