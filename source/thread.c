@@ -124,7 +124,7 @@ nOS_Error nOS_ThreadCreate (nOS_Thread *thread, void(*func)(void*), void *arg,
         err = NOS_E_INV_VAL;
     } else if (ssize == 0) {
         err = NOS_E_INV_VAL;
-    } else if (prio > NOS_CONFIG_MAX_THREAD_PRIO) {
+    } else if (prio > NOS_CONFIG_HIGHEST_THREAD_PRIO) {
         err = NOS_E_INV_VAL;
 #if (NOS_CONFIG_THREAD_SUSPEND_ENABLE > 0)
     } else if ((state != NOS_READY) && (state != NOS_SUSPENDED)) {
@@ -273,7 +273,7 @@ nOS_Error nOS_ThreadSetPriority (nOS_Thread *thread, uint8_t prio)
     nOS_Error   err;
 
 #if (NOS_CONFIG_SAFE > 0)
-    if (prio > NOS_CONFIG_MAX_THREAD_PRIO) {
+    if (prio > NOS_CONFIG_HIGHEST_THREAD_PRIO) {
         err = NOS_E_INV_VAL;
     } else
 #endif

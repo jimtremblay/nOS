@@ -404,12 +404,10 @@ nOS_Error nOS_Init(void)
     nOS_mainThread.full.payload = &nOS_mainThread;
     nOS_mainThread.readyWaiting.payload = &nOS_mainThread;
 
-    nOS_CriticalEnter();
     nOS_ListAppend(&nOS_fullList, &nOS_mainThread.full);
     AppendThreadToReadyList(&nOS_mainThread);
     nOS_runningThread = &nOS_mainThread;
     nOS_highPrioThread = &nOS_mainThread;
-    nOS_CriticalLeave();
 
 #if (NOS_CONFIG_TIMER_ENABLE > 0)
     nOS_TimerInit();

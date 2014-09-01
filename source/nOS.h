@@ -40,13 +40,13 @@ extern "C" {
  #endif
 #endif
 
-#if !defined(NOS_CONFIG_MAX_THREAD_PRIO)
- #define NOS_CONFIG_MAX_THREAD_PRIO             15
+#if !defined(NOS_CONFIG_HIGHEST_THREAD_PRIO)
+ #define NOS_CONFIG_HIGHEST_THREAD_PRIO             15
  #if defined(NOS_USE_CONFIG_FILE)
-  #warning "nOSConfig.h: NOS_CONFIG_MAX_THREAD_PRIO is not defined (default to 15)."
+  #warning "nOSConfig.h: NOS_CONFIG_HIGHEST_THREAD_PRIO is not defined (default to 15)."
  #endif
-#elif NOS_CONFIG_MAX_THREAD_PRIO > 255
- #error "nOSConfig.h: NOS_CONFIG_MAX_THREAD_PRIO can't be higher than 255."
+#elif NOS_CONFIG_HIGHEST_THREAD_PRIO > 255
+ #error "nOSConfig.h: NOS_CONFIG_HIGHEST_THREAD_PRIO can't be higher than 255."
 #endif
 
 #if !defined(NOS_CONFIG_SCHED_LOCK_ENABLE)
@@ -151,8 +151,8 @@ extern "C" {
   #if defined(NOS_USE_CONFIG_FILE)
    #warning "nOSConfig.h: NOS_CONFIG_TIMER_THREAD_PRIO is not defined (default to 0)."
   #endif
- #elif (NOS_CONFIG_TIMER_THREAD_PRIO > NOS_CONFIG_MAX_THREAD_PRIO)
-  #error "nOSConfig.h: NOS_CONFIG_TIMER_THREAD_PRIO is higher than NOS_CONFIG_MAX_THREAD_PRIO."
+ #elif (NOS_CONFIG_TIMER_THREAD_PRIO > NOS_CONFIG_HIGHEST_THREAD_PRIO)
+  #error "nOSConfig.h: NOS_CONFIG_TIMER_THREAD_PRIO is higher than NOS_CONFIG_HIGHEST_THREAD_PRIO."
  #endif
  #if !defined(NOS_CONFIG_TIMER_THREAD_STACK_SIZE)
   #define NOS_CONFIG_TIMER_THREAD_STACK_SIZE    128
@@ -374,26 +374,26 @@ NOS_EXTERN nOS_Thread   *nOS_runningThread;
 NOS_EXTERN nOS_Thread   *nOS_highPrioThread;
 
 NOS_EXTERN nOS_List     nOS_fullList;
-NOS_EXTERN nOS_List     nOS_readyList[NOS_CONFIG_MAX_THREAD_PRIO+1];
+NOS_EXTERN nOS_List     nOS_readyList[NOS_CONFIG_HIGHEST_THREAD_PRIO+1];
 #if defined(NOS_PORT_SCHED_USE_32_BITS)
-#if NOS_CONFIG_MAX_THREAD_PRIO < 32
+#if NOS_CONFIG_HIGHEST_THREAD_PRIO < 32
 NOS_EXTERN uint32_t     nOS_readyPrio;
-#elif NOS_CONFIG_MAX_THREAD_PRIO < 256
+#elif NOS_CONFIG_HIGHEST_THREAD_PRIO < 256
 NOS_EXTERN uint32_t     nOS_readyGroup;
 NOS_EXTERN uint32_t     nOS_readyPrio[8];
-#endif  /* NOS_CONFIG_MAX_THREAD_PRIO */
+#endif  /* NOS_CONFIG_HIGHEST_THREAD_PRIO */
 #else   /* NOS_PORT_SCHED_USE_32_BITS */
-#if NOS_CONFIG_MAX_THREAD_PRIO < 8
+#if NOS_CONFIG_HIGHEST_THREAD_PRIO < 8
 NOS_EXTERN uint8_t      nOS_readyPrio;
-#elif NOS_CONFIG_MAX_THREAD_PRIO < 16
+#elif NOS_CONFIG_HIGHEST_THREAD_PRIO < 16
 NOS_EXTERN uint16_t     nOS_readyPrio;
-#elif NOS_CONFIG_MAX_THREAD_PRIO < 64
+#elif NOS_CONFIG_HIGHEST_THREAD_PRIO < 64
 NOS_EXTERN uint8_t      nOS_readyGroup;
 NOS_EXTERN uint8_t      nOS_readyPrio[8];
-#elif NOS_CONFIG_MAX_THREAD_PRIO < 256
+#elif NOS_CONFIG_HIGHEST_THREAD_PRIO < 256
 NOS_EXTERN uint16_t     nOS_readyGroup;
 NOS_EXTERN uint16_t     nOS_readyPrio[16];
-#endif  /* NOS_CONFIG_MAX_THREAD_PRIO */
+#endif  /* NOS_CONFIG_HIGHEST_THREAD_PRIO */
 #endif  /* NOS_PORT_SCHED_USE_32_BITS */
 #endif  /* NOS_PRIVATE */
 
