@@ -59,7 +59,6 @@
 			<Add option="-DSTM32L152RC" />
 			<Add option="-DSTM32L1XX_MDP" />
 			<Add option="-DUSE_STDPERIPH_DRIVER" />
-			<Add option="-DNOS_USE_CONFIG_FILE" />
 			<Add option="-fno-strict-aliasing" />
 			<Add directory=".\inc" />
 			<Add directory=".\src" />

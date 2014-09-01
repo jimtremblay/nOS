@@ -172,7 +172,7 @@
         </option>
         <option>
           <name>CCDefines</name>
-          <state>NOS_USE_CONFIG_FILE</state>
+          <state></state>
         </option>
         <option>
           <name>CCPreprocFile</name>

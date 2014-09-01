@@ -22,9 +22,7 @@ extern "C" {
  #define NOS_EXTERN     extern
 #endif
 
-#if defined(NOS_USE_CONFIG_FILE)
 #include "nOSConfig.h"
-#endif
 
 #if !defined(NOS_CONFIG_DEBUG)
  #define NOS_CONFIG_DEBUG                       0
