@@ -29,7 +29,7 @@ void nOS_PortInit(void)
     *sp-- = 0x76543210UL;
     *sp-- = 0xfedcba98UL;
 #endif
-    /* Set PSP to local ISR stack */
+    /* Set MSP to local ISR stack */
     SetMSP((uint32_t)sp);
     /* Set current stack to PSP and privileged mode */
     SetCONTROL(GetCONTROL() | 0x00000002UL);
