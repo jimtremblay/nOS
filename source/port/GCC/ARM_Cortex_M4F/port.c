@@ -175,12 +175,12 @@ void PendSV_Handler(void)
         "                                           \n"
         "STR        R0,         [R2]                \n" /* Save PSP to nOS_Thread object of current running thread */
         "                                           \n"
-        "LDR        R1,         highPrioThread      \n" /* Copy nOS_highPrioThread to nOS_runningThread */
-        "LDR        R0,         [R1]                \n"
-        "STR        R0,         [R3]                \n"
+        "LDR        R1,         highPrioThread      \n" /* Get the location of nOS_highPrioThread */
+        "LDR        R2,         [R1]                \n"
         "                                           \n"
-        "LDR        R2,         [R1]                \n" /* Restore PSP from nOS_Thread object of high prio thread */
-        "LDR        R0,         [R2]                \n"
+        "STR        R2,         [R3]                \n" /* Copy nOS_highPrioThread to nOS_runningThread */
+        "                                           \n"
+        "LDR        R0,         [R2]                \n" /* Restore PSP from nOS_Thread object of high prio thread */
         "                                           \n"
         "LDMIA      R0!,        {R4-R11, LR}        \n" /* Pop registers from thread stack */
         "                                           \n"
@@ -192,7 +192,6 @@ void PendSV_Handler(void)
         "ISB                                        \n"
         "                                           \n"
         "BX         LR                              \n" /* Return */
-        "NOP                                        \n"
         "                                           \n"
         ".align 2                                   \n"
         "runningThread: .word nOS_runningThread     \n"
