@@ -209,7 +209,8 @@ typedef enum _nOS_Error
     NOS_E_AGAIN = -9,
     NOS_E_OWNER = -10,
     NOS_E_EMPTY = -11,
-    NOS_E_FULL = -12
+    NOS_E_FULL = -12,
+    NOS_E_INIT = -13
 } nOS_Error;
 
 #include "port.h"
@@ -361,6 +362,8 @@ struct _nOS_Timer
 #define NOS_TIMER_RUNNING           0x80
 
 #if defined(NOS_PRIVATE)
+NOS_EXTERN uint8_t      nOS_initialized;
+
 NOS_EXTERN nOS_Thread   nOS_mainThread;
 
 NOS_EXTERN uint8_t      nOS_isrNestingCounter;

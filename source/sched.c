@@ -393,7 +393,13 @@ nOS_Thread* nOS_EventSignal (nOS_Event *event)
 
 nOS_Error nOS_Init(void)
 {
-    nOS_PortInit();
+    /* Block context switching until initialization is completed */
+    nOS_initialized = 0;
+
+    nOS_isrNestingCounter = 0;
+#if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
+    nOS_lockNestingCounter = 0;
+#endif
 
     nOS_mainThread.prio = NOS_PRIO_IDLE;
     nOS_mainThread.state = NOS_READY;
@@ -409,9 +415,14 @@ nOS_Error nOS_Init(void)
     nOS_runningThread = &nOS_mainThread;
     nOS_highPrioThread = &nOS_mainThread;
 
+    nOS_PortInit();
+
 #if (NOS_CONFIG_TIMER_ENABLE > 0)
     nOS_TimerInit();
 #endif
+
+    /* Context switching is possible after this point */
+    nOS_initialized = 1;
 
     return NOS_OK;
 }
@@ -420,19 +431,21 @@ nOS_Error nOS_Sched(void)
 {
     nOS_Error   err;
 
-    /* Recheck if current running thread is the highest prio thread */
-
-    if (nOS_isrNestingCounter > 0) {
+    /* Switch only is initialization is completed */
+    if (!nOS_initialized) {
+        err = NOS_E_INIT;
+    } else if (nOS_isrNestingCounter > 0) {
         err = NOS_E_ISR;
     }
 #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
+    /* switch only from thread without scheduler locked */
     else if (nOS_lockNestingCounter > 0) {
         err = NOS_E_LOCKED;
     }
 #endif
     else {
         nOS_CriticalEnter();
-        /* switch only from thread without scheduler locked */
+        /* Recheck if current running thread is the highest prio thread */
         nOS_highPrioThread = SchedHighPrio();
         if (nOS_runningThread != nOS_highPrioThread) {
             nOS_ContextSwitch();
