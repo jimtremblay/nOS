@@ -18,15 +18,17 @@ static nOS_Stack isrStack[NOS_CONFIG_ISR_STACK_SIZE];
 void nOS_PortInit(void)
 {
     nOS_Stack *sp = &isrStack[NOS_CONFIG_ISR_STACK_SIZE-1];
-    /* Copy msp to psp */
-    __set_PSP(__get_MSP());
+
 #if (NOS_CONFIG_DEBUG > 0)
     isrStack[0] = 0x01234567UL;
     isrStack[1] = 0x89abcdefUL;
     *sp-- = 0x76543210UL;
     *sp-- = 0xfedcba98UL;
 #endif
-    /* Set msp to local isr stack */
+
+    /* Copy MSP to PSP */
+    __set_PSP(__get_MSP());
+    /* Set MSP to local ISR stack */
     __set_MSP((unsigned long)sp);
 #if defined(__ARMVFP__)
     /* Set current stack to PSP, privileged mode and save FPU state */

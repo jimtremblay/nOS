@@ -40,13 +40,14 @@ PendSV_Handler:
     /* Push high registers on thread stack */
     STMIA       R0!,        {R4-R7}
 
-    /* Copy nOS_highPrioThread to nOS_runningThread */
+    /* Get the location of nOS_highPrioThread */
     LDR         R1,         =nOS_highPrioThread
-    LDR         R0,         [R1]
-    STR         R0,         [R3]
+    LDR         R2,         [R1]
+    
+    /* Copy nOS_highPrioThread to nOS_runningThread */
+    STR         R2,         [R3]
 
     /* Restore PSP from nOS_Thread object of high prio thread */
-    LDR         R2,         [R1]
     LDR         R0,         [R2]
 
     /* Move to the high registers */

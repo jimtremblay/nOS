@@ -146,6 +146,7 @@ void PendSV_Handler(void)
         "LDMIA      R0!,        {R4-R7}             \n" /* Pop low registers from thread stack */
         "                                           \n"
         "BX         LR                              \n" /* Return */
+        "NOP                                        \n"
         "                                           \n"
         ".align 2                                   \n"
         "runningThread: .word nOS_runningThread     \n"

@@ -21,14 +21,15 @@ void nOS_PortInit(void)
 {
     nOS_Stack *sp = (nOS_Stack*)((uint32_t)&isrStack[NOS_CONFIG_ISR_STACK_SIZE-1] & 0xfffffff8UL);
 
-    /* Copy MSP to PSP */
-    SetPSP(GetMSP());
 #if (NOS_CONFIG_DEBUG > 0)
     isrStack[0] = 0x01234567UL;
     isrStack[1] = 0x89abcdefUL;
     *sp-- = 0x76543210UL;
     *sp-- = 0xfedcba98UL;
 #endif
+    
+    /* Copy MSP to PSP */
+    SetPSP(GetMSP());
     /* Set MSP to local ISR stack */
     SetMSP((uint32_t)sp);
     /* Set current stack to PSP and privileged mode */
