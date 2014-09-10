@@ -328,6 +328,10 @@ struct _nOS_Timer
 };
 #endif
 
+#ifndef UINT16_MAX
+#define UINT16_MAX                  65535
+#endif
+
 #define NOS_PRIO_IDLE               0
 
 #define NOS_NO_WAIT                 0
