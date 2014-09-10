@@ -71,7 +71,7 @@ void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, void(*f
     *tos--   = 0x05050505UL;    /* R5 */
     *tos     = 0x04040404UL;    /* R4 */
 #else
-     tos    -= 8;               /* R11, R10, R9, R8, R7, R6, R5 and R4 */
+     tos    -= 7;               /* R11, R10, R9, R8, R7, R6, R5 and R4 */
 #endif
 
     thread->stackPtr = tos;
