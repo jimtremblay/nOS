@@ -29,11 +29,11 @@ void nOS_PortInit(void)
     *sp-- = 0xfedcba98UL;
 #endif
 
-    /* Copy msp to psp */
+    /* Copy MSP to PSP */
     _psp = _msp;
-    /* Set msp to local isr stack */
+    /* Set MSP to local ISR stack */
     _msp = ((uint32_t)sp);
-    /* Set current stack to psp and priviledge mode */
+    /* Set current stack to PSP and privileged mode */
     _control |= 0x00000002UL;
     /* Set PendSV exception to lowest priority */
     *(volatile uint32_t *)0xe000ed20UL |= 0x00ff0000UL;
