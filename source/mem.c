@@ -86,7 +86,7 @@ nOS_Error nOS_MemCreate (nOS_Mem *mem, void *buffer, size_t bsize, uint16_t max)
     } else if (bsize < sizeof(void**)) {
         err = NOS_E_INV_VAL;
 #if (NOS_MEM_ALIGNMENT > 1)
-    } else if ((unsigned int)buffer % NOS_MEM_ALIGNMENT != 0) {
+    } else if ((unsigned long)buffer % NOS_MEM_ALIGNMENT != 0) {
         err = NOS_E_INV_VAL;
 #endif
     } else if (max == 0) {
