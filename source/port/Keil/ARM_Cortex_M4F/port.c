@@ -20,17 +20,23 @@ void nOS_PortInit(void)
     register uint32_t volatile _msp __asm("msp");
     register uint32_t volatile _psp __asm("psp");
     register uint32_t volatile _control __asm("control");
+    nOS_Stack *sp = (nOS_Stack*)((uint32_t)&isrStack[NOS_CONFIG_ISR_STACK_SIZE-1] & 0xfffffff8UL);
 
-    nOS_CriticalEnter();
-    /* Copy msp to psp */
+#if (NOS_CONFIG_DEBUG > 0)
+    isrStack[0] = 0x01234567UL;
+    isrStack[1] = 0x89abcdefUL;
+    *sp-- = 0x76543210UL;
+    *sp-- = 0xfedcba98UL;
+#endif
+
+    /* Copy MSP to PSP */
     _psp = _msp;
-    /* Set msp to local isr stack */
-    _msp = (((uint32_t)&isrStack[NOS_CONFIG_ISR_STACK_SIZE-1]) & 0xfffffff8UL);
-    /* Set current stack to psp and priviledge mode */
+    /* Set MSP to local ISR stack */
+    _msp = ((uint32_t)sp);
+    /* Set current stack to PSP and privileged mode */
     _control |= 0x00000002UL;
     /* Set PendSV exception to lowest priority */
     *(volatile uint32_t *)0xe000ed20UL |= 0x00ff0000UL;
-    nOS_CriticalLeave();
 }
 
 void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, void(*func)(void*), void *arg)
@@ -39,8 +45,10 @@ void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, void(*f
     
     /* Just to know if the thread has overflow his stack */
 #if (NOS_CONFIG_DEBUG > 0)
-    *tos-- = 0xffffffffUL;
-    *tos-- = 0xffffffffUL;
+    *stack++ = 0x01234567UL;
+    *stack   = 0x89abcdefUL;
+    *tos--   = 0x76543210UL;
+    *tos--   = 0xfedcba98UL;
 #endif
 
     /* 
@@ -123,7 +131,7 @@ void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, void(*f
     *tos-- = 0x05050505UL;      /* R5 */
     *tos   = 0x04040404UL;      /* R4 */
 #else
-    tos   -= 8;                 /* R11, R10, R9, R8, R7, R6, R5 and R4 */
+    tos   -= 7;                 /* R11, R10, R9, R8, R7, R6, R5 and R4 */
 #endif
 
     thread->stackPtr = tos;
@@ -180,11 +188,10 @@ __asm void PendSV_Handler(void)
 
     /* Copy nOS_highPrioThread to nOS_runningThread */
     LDR         R1,         =nOS_highPrioThread
-    LDR         R0,         [R1]
-    STR         R0,         [R3]
+    LDR         R2,         [R1]
+    STR         R2,         [R3]
 
     /* Restore PSP from nOS_Thread object of high prio thread */
-    LDR         R2,         [R1]
     LDR         R0,         [R2]
 
     /* Pop registers from thread stack */
@@ -201,7 +208,6 @@ __asm void PendSV_Handler(void)
 
     /* Return */
     BX          LR
-    NOP
 }
 
 #if defined(__cplusplus)
