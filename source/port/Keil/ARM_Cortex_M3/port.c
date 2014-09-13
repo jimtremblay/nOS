@@ -20,46 +20,59 @@ void nOS_PortInit(void)
     register uint32_t volatile _msp __asm("msp");
     register uint32_t volatile _psp __asm("psp");
     register uint32_t volatile _control __asm("control");
+    nOS_Stack *sp = (nOS_Stack*)((uint32_t)&isrStack[NOS_CONFIG_ISR_STACK_SIZE-1] & 0xfffffff8UL);
 
-    nOS_CriticalEnter();
-    /* Copy msp to psp */
+#if (NOS_CONFIG_DEBUG > 0)
+    isrStack[0] = 0x01234567UL;
+    isrStack[1] = 0x89abcdefUL;
+    *sp-- = 0x76543210UL;
+    *sp-- = 0xfedcba98UL;
+#endif
+
+    /* Copy MSP to PSP */
     _psp = _msp;
-    /* Set msp to local isr stack */
-    _msp = (((uint32_t)&isrStack[NOS_CONFIG_ISR_STACK_SIZE-1]) & 0xfffffff8UL);
-    /* Set current stack to psp and priviledge mode */
+    /* Set MSP to local ISR stack */
+    _msp = ((uint32_t)sp);
+    /* Set current stack to PSP and priviledge mode */
     _control |= 0x00000002UL;
-    /* Set PendSV and SysTick to lowest priority */
-    *(volatile uint32_t *)0xe000ed20UL |= 0xffff0000UL;
-    nOS_CriticalLeave();
+    /* Set PendSV exception to lowest priority */
+    *(volatile uint32_t *)0xe000ed20UL |= 0x00ff0000UL;
 }
 
 void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, void(*func)(void*), void *arg)
 {
     nOS_Stack *tos = (nOS_Stack*)((uint32_t)(stack + (ssize - 1)) & 0xfffffff8UL);
-
-    *(--tos) = 0x01000000UL;    /* xPSR */
-    *(--tos) = (nOS_Stack)func; /* PC */
-    *(--tos) = 0x00000000UL;    /* LR */
+    
 #if (NOS_CONFIG_DEBUG > 0)
-    *(--tos) = 0x12121212UL;    /* R12 */
-    *(--tos) = 0x03030303UL;    /* R3 */
-    *(--tos) = 0x02020202UL;    /* R2 */
-    *(--tos) = 0x01010101UL;    /* R1 */
-#else
-    tos     -= 4;               /* R12, R3, R2 and R1 */
+    *stack++ = 0x01234567UL;
+    *stack   = 0x89abcdefUL;
+    *tos--   = 0x76543210UL;
+    *tos--   = 0xfedcba98UL;
 #endif
-    *(--tos) = (nOS_Stack)arg;  /* R0 */
+
+    *tos--   = 0x01000000UL;    /* xPSR */
+    *tos--   = (nOS_Stack)func; /* PC */
+    *tos--   = 0x00000000UL;    /* LR */
 #if (NOS_CONFIG_DEBUG > 0)
-    *(--tos) = 0x11111111UL;    /* R11 */
-    *(--tos) = 0x10101010UL;    /* R10 */
-    *(--tos) = 0x09090909UL;    /* R9 */
-    *(--tos) = 0x08080808UL;    /* R8 */
-    *(--tos) = 0x07070707UL;    /* R7 */
-    *(--tos) = 0x06060606UL;    /* R6 */
-    *(--tos) = 0x05050505UL;    /* R5 */
-    *(--tos) = 0x04040404UL;    /* R4 */
+    *tos--   = 0x12121212UL;    /* R12 */
+    *tos--   = 0x03030303UL;    /* R3 */
+    *tos--   = 0x02020202UL;    /* R2 */
+    *tos--   = 0x01010101UL;    /* R1 */
 #else
-    tos     -= 8;               /* R11, R10, R9, R8, R7, R6, R5 and R4 */
+     tos    -= 4;               /* R12, R3, R2 and R1 */
+#endif
+    *tos--   = (nOS_Stack)arg;  /* R0 */
+#if (NOS_CONFIG_DEBUG > 0)
+    *tos--   = 0x11111111UL;    /* R11 */
+    *tos--   = 0x10101010UL;    /* R10 */
+    *tos--   = 0x09090909UL;    /* R9 */
+    *tos--   = 0x08080808UL;    /* R8 */
+    *tos--   = 0x07070707UL;    /* R7 */
+    *tos--   = 0x06060606UL;    /* R6 */
+    *tos--   = 0x05050505UL;    /* R5 */
+    *tos     = 0x04040404UL;    /* R4 */
+#else
+     tos    -= 7;               /* R11, R10, R9, R8, R7, R6, R5 and R4 */
 #endif
 
     thread->stackPtr = tos;
@@ -106,28 +119,26 @@ __asm void PendSV_Handler(void)
     /* Push remaining registers on thread stack */
     STMDB       R0!,        {R4-R11}
 
-    /* Save psp to nOS_Thread object of current running thread */
+    /* Save PSP to nOS_Thread object of current running thread */
     STR         R0,         [R2]
 
     /* Copy nOS_highPrioThread to nOS_runningThread */
     LDR         R1,         =nOS_highPrioThread
-    LDR         R0,         [R1]
-    STR         R0,         [R3]
-
-    /* Restore psp from nOS_Thread object of high prio thread */
     LDR         R2,         [R1]
+    STR         R2,         [R3]
+
+    /* Restore PSP from nOS_Thread object of high prio thread */
     LDR         R0,         [R2]
 
     /* Pop registers from thread stack */
     LDMIA       R0!,        {R4-R11}
 
-    /* Restore psp to high prio thread stack */
+    /* Restore PSP to high prio thread stack */
     MSR         PSP,        R0
     ISB
 
     /* Return */
     BX          LR
-    NOP
 }
 
 #if defined(__cplusplus)
