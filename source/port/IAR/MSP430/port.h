@@ -130,6 +130,8 @@ __task void vect##_ISR_L2(void)                                                 
         CALL_X" #nOS_IsrEnter                   \n"                             \
         MOV_X"  R12,    SP                      \n"                             \
         CALL_X" #"_STRINGIFY(vect##_ISR_L3)"    \n"                             \
+        "DINT                                   \n"                             \
+        "NOP                                    \n"                             \
         MOV_X"  SP,     R12                     \n"                             \
         CALL_X" #nOS_IsrLeave                   \n"                             \
         MOV_X"  R12,    SP                      \n"                             \
