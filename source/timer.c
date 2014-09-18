@@ -74,8 +74,12 @@ void nOS_TimerInit(void)
                      NULL,
                      timerStack,
                      NOS_CONFIG_TIMER_THREAD_STACK_SIZE,
-                     NOS_CONFIG_TIMER_THREAD_PRIO,
-                     NOS_READY);
+                     NOS_CONFIG_TIMER_THREAD_PRIO
+#if (NOS_CONFIG_THREAD_SUSPEND_ENABLE > 0)
+                     ,NOS_READY
+#endif
+                     );
+
 }
 
 void nOS_TimerTick(void)
