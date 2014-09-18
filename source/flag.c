@@ -136,6 +136,10 @@ nOS_Error nOS_FlagWait (nOS_Flag *flag, uint8_t opt, nOS_FlagBits flags,
         }
         /* If result is not cleared, then condition is met for waiting thread. */
         if (r != NOS_FLAG_NONE) {
+            if (opt & NOS_FLAG_CLEAR_ON_EXIT) {
+                /* Clear all flags that have awoken the waiting threads. */
+                flag->flags &= ~r;
+            }
             err = NOS_OK;
         /* Caller can't wait? Try again. */
         } else if (tout == NOS_NO_WAIT) {
