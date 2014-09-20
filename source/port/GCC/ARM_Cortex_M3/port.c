@@ -27,7 +27,7 @@ void nOS_PortInit(void)
     *sp-- = 0x76543210UL;
     *sp-- = 0xfedcba98UL;
 #endif
-    
+
     /* Copy MSP to PSP */
     SetPSP(GetMSP());
     /* Set MSP to local ISR stack */
