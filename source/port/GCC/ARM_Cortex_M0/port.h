@@ -146,14 +146,14 @@ void    nOS_IsrEnter    (void);
 void    nOS_IsrLeave    (void);
 
 #define NOS_ISR(func)                                                           \
-void func##_ISR(void);                                                          \
+void func##_ISR(void) __attribute__ ( ( always_inline ) );                      \
 void func(void)                                                                 \
 {                                                                               \
     nOS_IsrEnter();                                                             \
     func##_ISR();                                                               \
     nOS_IsrLeave();                                                             \
 }                                                                               \
-void func##_ISR(void)
+inline void func##_ISR(void)
 
 #if defined(NOS_PRIVATE)
 void        nOS_PortInit        (void);
