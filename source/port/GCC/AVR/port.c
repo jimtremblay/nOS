@@ -105,6 +105,7 @@ void nOS_ContextSwitch(void)
 
 nOS_Stack *nOS_IsrEnter (nOS_Stack *sp)
 {
+    /* Interrupts already disabled when entering in ISR */
     if (nOS_isrNestingCounter == 0) {
         nOS_runningThread->stackPtr = sp;
 #if defined(NOS_CONFIG_ISR_STACK_SIZE)
@@ -120,6 +121,7 @@ nOS_Stack *nOS_IsrEnter (nOS_Stack *sp)
 
 nOS_Stack *nOS_IsrLeave (nOS_Stack *sp)
 {
+    /* Interrupts already disabled before leaving ISR */
     nOS_isrNestingCounter--;
     if (nOS_isrNestingCounter == 0) {
 #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
