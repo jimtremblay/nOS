@@ -24,10 +24,28 @@ extern "C" {
  #endif
 #endif
 
+void nOS_PortInit(void)
+{
+#if defined(NOS_CONFIG_ISR_STACK_SIZE) && (NOS_CONFIG_DEBUG > 0)
+    uint16_t i;
+
+    for (i = 0; i < NOS_CONFIG_ISR_STACK_SIZE; i++) {
+        isrStack[i] = 0xff;
+    }
+#endif
+}
+
 void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, void(*func)(void*), void *arg)
 {
     /* Stack grow from high to low address */
     nOS_Stack *tos = stack + (ssize - 1);
+#if (NOS_CONFIG_DEBUG > 0)
+    uint16_t i;
+
+    for (i = 0; i < ssize; i++) {
+        stack[i] = 0xff;
+    }
+#endif
 
     /* Simulate a call to thread function */
     *tos-- = (nOS_Stack)((uint16_t)func);

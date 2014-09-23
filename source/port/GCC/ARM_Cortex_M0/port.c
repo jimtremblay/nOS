@@ -19,18 +19,18 @@ static nOS_Stack isrStack[NOS_CONFIG_ISR_STACK_SIZE];
 
 void nOS_PortInit(void)
 {
-    nOS_Stack *sp = (nOS_Stack*)((uint32_t)&isrStack[NOS_CONFIG_ISR_STACK_SIZE-1] & 0xfffffff8UL);
+#if (NOS_CONFIG_DEBUG > 0)
+    uint32_t i;
+
+    for (i = 0; i < NOS_CONFIG_ISR_STACK_SIZE; i++) {
+    	isrStack[i] = 0xffffffffUL;
+    }
+#endif
 
     /* Copy MSP to PSP */
     SetPSP(GetMSP());
-#if (NOS_CONFIG_DEBUG > 0)
-    isrStack[0] = 0x01234567UL;
-    isrStack[1] = 0x89abcdefUL;
-    *sp-- = 0x76543210UL;
-    *sp-- = 0xfedcba98UL;
-#endif
     /* Set MSP to local ISR stack */
-    SetMSP((uint32_t)sp);
+    SetMSP((uint32_t)&isrStack[NOS_CONFIG_ISR_STACK_SIZE]);
     /* Set current stack to PSP and priviledge mode */
     SetCONTROL(GetCONTROL() | 0x00000002UL);
     /* Set PendSV exception to lowest priority */
@@ -40,13 +40,12 @@ void nOS_PortInit(void)
 void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, void(*func)(void*), void *arg)
 {
     nOS_Stack *tos = (nOS_Stack*)((uint32_t)(stack + (ssize - 1)) & 0xfffffff8UL);
-
-    /* Just to know if the thread has overflow his stack */
 #if (NOS_CONFIG_DEBUG > 0)
-    *stack++ = 0x01234567UL;
-    *stack   = 0x89abcdefUL;
-    *tos--   = 0x76543210UL;
-    *tos--   = 0xfedcba98UL;
+    uint32_t i;
+
+    for (i = 0; i < ssize; i++) {
+		stack[i] = 0xffffffffUL;
+	}
 #endif
 
     *tos--   = 0x01000000UL;    /* xPSR */

@@ -19,18 +19,18 @@ static nOS_Stack isrStack[NOS_CONFIG_ISR_STACK_SIZE];
 
 void nOS_PortInit(void)
 {
-    nOS_Stack *sp = &isrStack[NOS_CONFIG_ISR_STACK_SIZE-1];
+#if (NOS_CONFIG_DEBUG > 0)
+    uint32_t i;
+
+    for (i = 0; i < NOS_CONFIG_ISR_STACK_SIZE; i++) {
+        isrStack[i] = 0xffffffffUL;
+    }
+#endif
 
     /* Copy MSP to PSP */
     SetPSP(GetMSP());
-#if (NOS_CONFIG_DEBUG > 0)
-    isrStack[0] = 0x01234567UL;
-    isrStack[1] = 0x89abcdefUL;
-    *sp-- = 0x76543210UL;
-    *sp-- = 0xfedcba98UL;
-#endif
     /* Set MSP to local ISR stack */
-    SetMSP((uint32_t)sp);
+    SetMSP((uint32_t)&isrStack[NOS_CONFIG_ISR_STACK_SIZE]);
 #if defined(__VFP_FP__) && !defined(__SOFTFP__)
     /* Set current stack to PSP, privileged mode and save FPU state */
     SetCONTROL(GetCONTROL() | 0x00000006UL);
@@ -44,18 +44,17 @@ void nOS_PortInit(void)
 
 void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, void(*func)(void*), void *arg)
 {
-    nOS_Stack *tos = (nOS_Stack*)((uint32_t)(stack + (ssize - 1)));
-
+    nOS_Stack *tos = (stack + (ssize - 1));
 #if (NOS_CONFIG_DEBUG > 0)
-    /* Place some fences around thread's stack to know if an overflow occurred */
-    *stack++ = 0x01234567UL;
-    *stack   = 0x89abcdefUL;
-    *tos--   = 0x76543210UL;
-    *tos--   = 0xfedcba98UL;
+    uint32_t i;
+
+    for (i = 0; i < ssize; i++) {
+        stack[i] = 0xffffffffUL;
+    }
 #endif
 
 #if defined(__VFP_FP__) && !defined(__SOFTFP__)
-    tos     -= 1;
+     tos    -= 1;
     *tos--   = 0x00000000UL;    /* FPSCR */
 #if (NOS_CONFIG_DEBUG > 0)
     *tos--   = 0x15151515UL;    /* S15 */
