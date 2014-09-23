@@ -125,7 +125,7 @@ nOS_Error nOS_TimerStart (nOS_Timer *timer)
 #endif
     {
         nOS_CriticalEnter();
-        timer->count = timer->delay;
+        timer->count  = timer->delay;
         timer->state |= NOS_TIMER_RUNNING;
         nOS_CriticalLeave();
         err = NOS_OK;
@@ -145,7 +145,7 @@ nOS_Error nOS_TimerStop (nOS_Timer *timer)
 #endif
     {
         nOS_CriticalEnter();
-        timer->state &= ~NOS_TIMER_RUNNING;
+        timer->state &=~ NOS_TIMER_RUNNING;
         nOS_CriticalLeave();
         err = NOS_OK;
     }
@@ -190,6 +190,7 @@ nOS_Error nOS_TimerReload (nOS_Timer *timer, uint16_t delay, uint8_t opt)
         if (timer->state & NOS_TIMER_RUNNING) {
             timer->count = delay;
         }
+        /* Change timer option without affecting current running state */
         timer->state ^= ((timer->state ^ opt) & NOS_TIMER_OPT);
         nOS_CriticalLeave();
         err = NOS_OK;

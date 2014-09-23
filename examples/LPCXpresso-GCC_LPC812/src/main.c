@@ -54,7 +54,7 @@ void ThreadC (void *arg)
 
 int main()
 {
-	Chip_SystemInit();
+    Chip_SystemInit();
     nOS_Init();
     
     SystemCoreClockUpdate();
