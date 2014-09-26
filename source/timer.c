@@ -134,6 +134,29 @@ nOS_Error nOS_TimerStart (nOS_Timer *timer)
     return err;
 }
 
+nOS_Error nOS_TimerRestart (nOS_Timer *timer, uint16_t delay, uint8_t opt)
+{
+    nOS_Error   err;
+
+#if (NOS_CONFIG_SAFE > 0)
+    if (timer == NULL) {
+        err = NOS_E_NULL;
+    } else if ((opt != NOS_TIMER_FREE_RUNNING) && (opt != NOS_TIMER_ONE_SHOT)) {
+        err = NOS_E_INV_VAL;
+    } else
+#endif
+    {
+        nOS_CriticalEnter();
+        timer->delay = delay;
+        timer->count = delay;
+        timer->state = (timer->state &~ NOS_TIMER_OPT) | (NOS_TIMER_RUNNING | opt);
+        nOS_CriticalLeave();
+        err = NOS_OK;
+    }
+
+    return err;
+}
+
 nOS_Error nOS_TimerStop (nOS_Timer *timer)
 {
     nOS_Error   err;

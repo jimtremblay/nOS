@@ -489,6 +489,7 @@ void        nOS_TimerInit               (void);
 void        nOS_TimerTick               (void);
 nOS_Error   nOS_TimerCreate             (nOS_Timer *timer, void(*callback)(void*), void *arg, uint16_t delay, uint8_t opt);
 nOS_Error   nOS_TimerStart              (nOS_Timer *timer);
+nOS_Error   nOS_TimerRestart            (nOS_Timer *timer, uint16_t delay, uint8_t opt);
 nOS_Error   nOS_TimerStop               (nOS_Timer *timer);
 nOS_Error   nOS_TimerCallback           (nOS_Timer *timer, void(*callback)(void*), void *arg);
 nOS_Error   nOS_TimerReload             (nOS_Timer *timer, uint16_t delay, uint8_t opt);
