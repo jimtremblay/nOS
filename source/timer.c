@@ -134,22 +134,20 @@ nOS_Error nOS_TimerStart (nOS_Timer *timer)
     return err;
 }
 
-nOS_Error nOS_TimerRestart (nOS_Timer *timer, uint16_t delay, uint8_t opt)
+nOS_Error nOS_TimerRestart (nOS_Timer *timer, uint16_t delay)
 {
     nOS_Error   err;
 
 #if (NOS_CONFIG_SAFE > 0)
     if (timer == NULL) {
         err = NOS_E_NULL;
-    } else if ((opt != NOS_TIMER_FREE_RUNNING) && (opt != NOS_TIMER_ONE_SHOT)) {
-        err = NOS_E_INV_VAL;
     } else
 #endif
     {
         nOS_CriticalEnter();
         timer->delay = delay;
         timer->count = delay;
-        timer->state = (timer->state &~ NOS_TIMER_OPT) | (NOS_TIMER_RUNNING | opt);
+        timer->state |= NOS_TIMER_RUNNING;
         nOS_CriticalLeave();
         err = NOS_OK;
     }
@@ -196,7 +194,26 @@ nOS_Error nOS_TimerCallback (nOS_Timer *timer, void(*callback)(void*), void *arg
     return err;
 }
 
-nOS_Error nOS_TimerReload (nOS_Timer *timer, uint16_t delay, uint8_t opt)
+nOS_Error nOS_TimerReload (nOS_Timer *timer, uint16_t delay)
+{
+    nOS_Error   err;
+
+#if (NOS_CONFIG_SAFE > 0)
+    if (timer == NULL) {
+        err = NOS_E_NULL;
+    } else
+#endif
+    {
+        nOS_CriticalEnter();
+        timer->delay = delay;
+        nOS_CriticalLeave();
+        err = NOS_OK;
+    }
+
+    return err;
+}
+
+nOS_Error nOS_TimerMode (nOS_Timer *timer, uint8_t opt)
 {
     nOS_Error   err;
 
@@ -209,12 +226,7 @@ nOS_Error nOS_TimerReload (nOS_Timer *timer, uint16_t delay, uint8_t opt)
 #endif
     {
         nOS_CriticalEnter();
-        timer->delay = delay;
-        if (timer->state & NOS_TIMER_RUNNING) {
-            timer->count = delay;
-        }
-        /* Change timer option without affecting current running state */
-        timer->state ^= ((timer->state ^ opt) & NOS_TIMER_OPT);
+        timer->state = (timer->state &~ NOS_TIMER_OPT) | opt;
         nOS_CriticalLeave();
         err = NOS_OK;
     }
