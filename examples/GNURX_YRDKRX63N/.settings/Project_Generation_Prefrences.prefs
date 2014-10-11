@@ -1,0 +1,47 @@
+Library\ Generator\ Command=rx-elf-libgen
+com.renesas.cdt.core.Assembler.option.includeFileDirectories="${workspace_loc\:/${ProjName}}/src";
+com.renesas.cdt.core.Compiler.option.includeFileDir.1991108743="${TCINSTALL}/lib/gcc/rx-elf/${GCC_VERSION}/include";"${TCINSTALL}/rx-elf/include";
+com.renesas.cdt.core.Compiler.option.includeFileDir.1997884270="${TCINSTALL}/lib/gcc/rx-elf/${GCC_VERSION}/include";"${TCINSTALL}/rx-elf/include";
+com.renesas.cdt.core.Compiler.option.includeFileDir.2039135173="${TCINSTALL}/lib/gcc/rx-elf/${GCC_VERSION}/include";"${TCINSTALL}/rx-elf/include";
+com.renesas.cdt.core.LibraryGenerator.option.ctype=false
+com.renesas.cdt.core.LibraryGenerator.option.libraryType=Project-Built
+com.renesas.cdt.core.LibraryGenerator.option.math=false
+com.renesas.cdt.core.LibraryGenerator.option.selectLibrary=Newlib
+com.renesas.cdt.core.LibraryGenerator.option.stdio=true
+com.renesas.cdt.core.LibraryGenerator.option.stdlib=true
+com.renesas.cdt.core.LibraryGenerator.option.string=true
+com.renesas.cdt.core.Linker.option.userDefinedOptions=-e_PowerON_Reset;
+com.renesas.cdt.rx.Debug.Compiler.option.cpuType=RX600
+com.renesas.cdt.rx.Debug.Compiler.option.cpuType.1255546544=RX600
+com.renesas.cdt.rx.Debug.Compiler.option.dataEndian=Little-endian data
+com.renesas.cdt.rx.Debug.Compiler.option.disableFPUInstructions=false
+com.renesas.cdt.rx.Debug.Compiler.option.genCodeForRX610=false
+com.renesas.cdt.rx.Debug.Compiler.option.genCodeForRX64M=false
+com.renesas.cdt.rx.Debug.Compiler.option.generateRXas100output=false
+com.renesas.cdt.rx.Debug.Compiler.option.macroDefines=__RX_LITTLE_ENDIAN__\=1;
+com.renesas.cdt.rx.Debug.Compiler.option.make64bitDouble=false
+com.renesas.cdt.rx.Debug.Linker.option.archiveLibraryFiles=${BuildArtifactFileBaseName};gcc;sim;
+com.renesas.cdt.rx.Debug.Linker.option.archiveSearchDirectories.2098707771="${CONFIGDIR}";"${TCINSTALL}/rx-elf/lib";"${TCINSTALL}/lib/gcc/rx-elf/${GCC_VERSION}";
+com.renesas.cdt.rx.HardwareDebug.Compiler.option.cpuType=RX600
+com.renesas.cdt.rx.HardwareDebug.Compiler.option.cpuType.611747377=RX600
+com.renesas.cdt.rx.HardwareDebug.Compiler.option.dataEndian=Little-endian data
+com.renesas.cdt.rx.HardwareDebug.Compiler.option.disableFPUInstructions=false
+com.renesas.cdt.rx.HardwareDebug.Compiler.option.genCodeForRX610=false
+com.renesas.cdt.rx.HardwareDebug.Compiler.option.genCodeForRX64M=false
+com.renesas.cdt.rx.HardwareDebug.Compiler.option.generateRXas100output=false
+com.renesas.cdt.rx.HardwareDebug.Compiler.option.macroDefines=__RX_LITTLE_ENDIAN__\=1;
+com.renesas.cdt.rx.HardwareDebug.Compiler.option.make64bitDouble=false
+com.renesas.cdt.rx.HardwareDebug.Linker.option.archiveLibraryFiles=${BuildArtifactFileBaseName};gcc;
+com.renesas.cdt.rx.HardwareDebug.Linker.option.archiveSearchDirectories.1862350494="${CONFIGDIR}";"${TCINSTALL}/lib/gcc/rx-elf/${GCC_VERSION}";
+com.renesas.cdt.rx.Release.Compiler.option.cpuType=RX600
+com.renesas.cdt.rx.Release.Compiler.option.cpuType.121448961=RX600
+com.renesas.cdt.rx.Release.Compiler.option.dataEndian=Little-endian data
+com.renesas.cdt.rx.Release.Compiler.option.disableFPUInstructions=false
+com.renesas.cdt.rx.Release.Compiler.option.genCodeForRX610=false
+com.renesas.cdt.rx.Release.Compiler.option.genCodeForRX64M=false
+com.renesas.cdt.rx.Release.Compiler.option.generateRXas100output=false
+com.renesas.cdt.rx.Release.Compiler.option.macroDefines=__RX_LITTLE_ENDIAN__\=1;
+com.renesas.cdt.rx.Release.Compiler.option.make64bitDouble=false
+com.renesas.cdt.rx.Release.Linker.option.archiveLibraryFiles=${BuildArtifactFileBaseName};gcc;
+com.renesas.cdt.rx.Release.Linker.option.archiveSearchDirectories.382777633="${CONFIGDIR}";"${TCINSTALL}/lib/gcc/rx-elf/${GCC_VERSION}";
+eclipse.preferences.version=1
