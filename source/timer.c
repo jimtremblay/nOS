@@ -49,7 +49,7 @@ static void TickTimer (void *payload, void *arg)
                     timer->count = timer->delay;
                 /* One-shot timer */
                 } else {
-                    timer->state &= ~NOS_TIMER_RUNNING;
+                    timer->state &=~ NOS_TIMER_RUNNING;
                 }
                 /* Call callback function outside of critical section */
                 cb = 1;

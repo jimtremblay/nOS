@@ -37,7 +37,7 @@ void ResumeThread (void *payload, void *arg)
     uint8_t     *sched = (uint8_t*)arg;
 
     if (thread->state & NOS_SUSPENDED) {
-        thread->state &= ~NOS_SUSPENDED;
+        thread->state &=~ NOS_SUSPENDED;
         if (thread->state == NOS_READY) {
             AppendThreadToReadyList(thread);
             if (thread->prio > nOS_runningThread->prio) {
@@ -50,6 +50,27 @@ void ResumeThread (void *payload, void *arg)
 }
 #endif  /* NOS_CONFIG_THREAD_SUSPEND_ENABLE */
 
+#if (NOS_CONFIG_THREAD_DELETE_ENABLE > 0)
+/* This is an internal function */
+void DeleteThread (void *payload, void *arg)
+{
+    nOS_Thread *thread = (nOS_Thread*)payload;
+
+    /* Avoid warning */
+    NOS_UNUSED(arg);
+
+    if (thread->state == NOS_READY) {
+        RemoveThreadFromReadyList(thread);
+    } else if (thread->state & NOS_WAITING) {
+        nOS_ListRemove(&thread->event->waitingList, &thread->readyWaiting);
+    }
+    thread->state   = NOS_STOPPED;
+    thread->event   = NULL;
+    thread->context = NULL;
+    thread->error   = NOS_OK;
+}
+#endif  /* NOS_CONFIG_THREAD_DELETE_ENABLE */
+
 /* This is an internal function */
 void TickThread (void *payload, void *arg)
 {
@@ -58,16 +79,17 @@ void TickThread (void *payload, void *arg)
     /* Avoid warning */
     NOS_UNUSED(arg);
 
-    if ((thread->state & NOS_WAITING) && (thread->timeout > 0)) {
+    if (thread->timeout > 0) {
         thread->timeout--;
         if (thread->timeout == 0) {
-            if ((thread->state & NOS_WAITING) == NOS_SLEEPING) {
+            if (thread->state & NOS_SLEEPING) {
+                thread->state &=~ NOS_SLEEPING;
                 thread->error = NOS_OK;
             } else {
                 nOS_ListRemove(&thread->event->waitingList, &thread->readyWaiting);
+                thread->state &=~ NOS_WAITING;
                 thread->error = NOS_E_TIMEOUT;
             }
-            thread->state &= ~NOS_WAITING;
             if (thread->state == NOS_READY) {
                 AppendThreadToReadyList(thread);
             }
@@ -80,7 +102,7 @@ void SignalThread (nOS_Thread *thread)
 {
     nOS_ListRemove(&thread->event->waitingList, &thread->readyWaiting);
     thread->error = NOS_OK;
-    thread->state &= ~NOS_WAITING;
+    thread->state &=~ NOS_WAITING;
     if (thread->state == NOS_READY) {
         AppendThreadToReadyList(thread);
     }
@@ -163,6 +185,45 @@ nOS_Error nOS_ThreadCreate (nOS_Thread *thread, void(*func)(void*), void *arg,
 
     return err;
 }
+
+#if (NOS_CONFIG_THREAD_DELETE_ENABLE > 0)
+nOS_Error nOS_ThreadDelete (nOS_Thread *thread)
+{
+    nOS_Error   err;
+
+    if (thread == NULL) {
+        thread = nOS_runningThread;
+    }
+
+    /* Main thread can't be deleted */
+    if (thread == &nOS_mainThread) {
+        err = NOS_E_IDLE;
+    } else if (thread == nOS_runningThread) {
+#if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
+        /* Can't switch context if scheduler is locked */
+        if (nOS_lockNestingCounter > 0) {
+            err = NOS_E_LOCKED;
+        } else
+#endif
+        {
+            err = NOS_OK;
+        }
+    } else {
+        err = NOS_OK;
+    }
+
+    if (err == NOS_OK) {
+        nOS_CriticalEnter();
+        DeleteThread(thread, NULL);
+        nOS_CriticalLeave();
+        if (thread == nOS_runningThread) {
+            nOS_Sched();
+        }
+    }
+
+    return err;
+}
+#endif
 
 #if (NOS_CONFIG_THREAD_SUSPEND_ENABLE > 0)
 nOS_Error nOS_ThreadSuspend (nOS_Thread *thread)

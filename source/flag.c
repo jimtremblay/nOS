@@ -138,7 +138,7 @@ nOS_Error nOS_FlagWait (nOS_Flag *flag, uint8_t opt, nOS_FlagBits flags,
         if (r != NOS_FLAG_NONE) {
             if (opt & NOS_FLAG_CLEAR_ON_EXIT) {
                 /* Clear all flags that have awoken the waiting threads. */
-                flag->flags &= ~r;
+                flag->flags &=~ r;
             }
             err = NOS_OK;
         /* Caller can't wait? Try again. */
@@ -214,7 +214,7 @@ nOS_Error nOS_FlagSend (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits mask)
         flag->flags ^= ((flag->flags ^ flags) & mask);
         nOS_ListWalk(&flag->e.waitingList, TestFlag, &res);
         /* Clear all flags that have awoken the waiting threads. */
-        flag->flags &= ~res.rflags;
+        flag->flags &=~ res.rflags;
         nOS_CriticalLeave();
         /* Schedule only if one of awoken thread has an higher priority. */
         if (res.sched != 0) {

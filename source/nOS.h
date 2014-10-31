@@ -26,80 +26,63 @@ extern "C" {
 
 #if !defined(NOS_CONFIG_DEBUG)
  #define NOS_CONFIG_DEBUG                       0
- #if defined(NOS_USE_CONFIG_FILE)
-  #warning "nOSConfig.h: NOS_CONFIG_DEBUG is not defined (disabled by default)."
- #endif
+ #warning "nOSConfig.h: NOS_CONFIG_DEBUG is not defined (disabled by default)."
 #endif
 
 #if !defined(NOS_CONFIG_SAFE)
  #define NOS_CONFIG_SAFE                        1
- #if defined(NOS_USE_CONFIG_FILE)
-  #warning "nOSConfig.h: NOS_CONFIG_SAFE is not defined (enabled by default)."
- #endif
+ #warning "nOSConfig.h: NOS_CONFIG_SAFE is not defined (enabled by default)."
 #endif
 
 #if !defined(NOS_CONFIG_HIGHEST_THREAD_PRIO)
  #define NOS_CONFIG_HIGHEST_THREAD_PRIO             15
- #if defined(NOS_USE_CONFIG_FILE)
-  #warning "nOSConfig.h: NOS_CONFIG_HIGHEST_THREAD_PRIO is not defined (default to 15)."
- #endif
+ #warning "nOSConfig.h: NOS_CONFIG_HIGHEST_THREAD_PRIO is not defined (default to 15)."
 #elif NOS_CONFIG_HIGHEST_THREAD_PRIO > 255
  #error "nOSConfig.h: NOS_CONFIG_HIGHEST_THREAD_PRIO can't be higher than 255."
 #endif
 
 #if !defined(NOS_CONFIG_SCHED_LOCK_ENABLE)
  #define NOS_CONFIG_SCHED_LOCK_ENABLE           1
- #if defined(NOS_USE_CONFIG_FILE)
-  #warning "nOSConfig.h: NOS_CONFIG_SCHED_LOCK_ENABLE is not defined (enabled by default)."
- #endif
+ #warning "nOSConfig.h: NOS_CONFIG_SCHED_LOCK_ENABLE is not defined (enabled by default)."
 #endif
 
 #if !defined(NOS_CONFIG_SLEEP_ENABLE)
  #define NOS_CONFIG_SLEEP_ENABLE                1
- #if defined(NOS_USE_CONFIG_FILE)
-  #warning "nOSConfig.h: NOS_CONFIG_SLEEP_ENABLE is not defined (enabled by default)."
- #endif
+ #warning "nOSConfig.h: NOS_CONFIG_SLEEP_ENABLE is not defined (enabled by default)."
 #endif
 
 #if !defined(NOS_CONFIG_THREAD_SUSPEND_ENABLE)
  #define NOS_CONFIG_THREAD_SUSPEND_ENABLE       1
- #if defined(NOS_USE_CONFIG_FILE)
-  #warning "nOSConfig.h: NOS_CONFIG_THREAD_SUSPEND_ENABLE is not defined (enabled by default)."
- #endif
+ #warning "nOSConfig.h: NOS_CONFIG_THREAD_SUSPEND_ENABLE is not defined (enabled by default)."
+#endif
+
+#if !defined(NOS_CONFIG_THREAD_DELETE_ENABLE)
+ #define NOS_CONFIG_THREAD_DELETE_ENABLE        1
+ #warning "nOSConfig.h: NOS_CONFIG_THREAD_DELETE_ENABLE is not defined (enabled by default)."
 #endif
 
 #if !defined(NOS_CONFIG_THREAD_SET_PRIO_ENABLE)
  #define NOS_CONFIG_THREAD_SET_PRIO_ENABLE      1
- #if defined(NOS_USE_CONFIG_FILE)
-  #warning "nOSConfig.h: NOS_CONFIG_THREAD_SET_PRIO_ENABLE is not defined (enabled by default)."
- #endif
+ #warning "nOSConfig.h: NOS_CONFIG_THREAD_SET_PRIO_ENABLE is not defined (enabled by default)."
 #endif
 
 #if !defined(NOS_CONFIG_SEM_ENABLE)
  #define NOS_CONFIG_SEM_ENABLE                  1
- #if defined(NOS_USE_CONFIG_FILE)
   #warning "nOSConfig.h: NOS_CONFIG_SEM_ENABLE is not defined (enabled by default)."
- #endif
 #endif
 
 #if !defined(NOS_CONFIG_MUTEX_ENABLE)
  #define NOS_CONFIG_MUTEX_ENABLE                1
- #if defined(NOS_USE_CONFIG_FILE)
-  #warning "nOSConfig.h: NOS_CONFIG_MUTEX_ENABLE is not defined (enabled by default)."
- #endif
+ #warning "nOSConfig.h: NOS_CONFIG_MUTEX_ENABLE is not defined (enabled by default)."
 #endif
 
 #if !defined(NOS_CONFIG_FLAG_ENABLE)
  #define NOS_CONFIG_FLAG_ENABLE                 1
- #if defined(NOS_USE_CONFIG_FILE)
-  #warning "nOSConfig.h: NOS_CONFIG_FLAG_ENABLE is not defined (enabled by default)."
- #endif
+ #warning "nOSConfig.h: NOS_CONFIG_FLAG_ENABLE is not defined (enabled by default)."
 #elif (NOS_CONFIG_FLAG_ENABLE > 0)
  #if !defined(NOS_CONFIG_FLAG_NB_BITS)
   #define NOS_CONFIG_FLAG_NB_BITS               16
-  #if defined(NOS_USE_CONFIG_FILE)
-   #warning "nOSConfig.h: NOS_CONFIG_FLAG_NB_BITS is not defined (default to 16)."
-  #endif
+  #warning "nOSConfig.h: NOS_CONFIG_FLAG_NB_BITS is not defined (default to 16)."
  #elif (NOS_CONFIG_FLAG_NB_BITS != 8) && (NOS_CONFIG_FLAG_NB_BITS != 16) && (NOS_CONFIG_FLAG_NB_BITS != 32)
   #error "nOSConfig.h: NOS_CONFIG_FLAG_NB_BITS set to invalid value: can be set to 8, 16 or 32."
  #endif
@@ -109,22 +92,16 @@ extern "C" {
 
 #if !defined(NOS_CONFIG_QUEUE_ENABLE)
  #define NOS_CONFIG_QUEUE_ENABLE                1
- #if defined(NOS_USE_CONFIG_FILE)
-  #warning "nOSConfig.h: NOS_CONFIG_QUEUE_ENABLE is not defined (enabled by default)."
- #endif
+ #warning "nOSConfig.h: NOS_CONFIG_QUEUE_ENABLE is not defined (enabled by default)."
 #endif
 
 #if !defined(NOS_CONFIG_MEM_ENABLE)
  #define NOS_CONFIG_MEM_ENABLE                  1
- #if defined(NOS_USE_CONFIG_FILE)
-  #warning "nOSConfig.h: NOS_CONFIG_MEM_ENABLE is not defined (enabled by default)."
- #endif
+ #warning "nOSConfig.h: NOS_CONFIG_MEM_ENABLE is not defined (enabled by default)."
 #elif (NOS_CONFIG_MEM_ENABLE > 0)
  #if !defined(NOS_CONFIG_MEM_SANITY_CHECK_ENABLE)
   #define NOS_CONFIG_MEM_SANITY_CHECK_ENABLE    1
-  #if defined(NOS_USE_CONFIG_FILE)
-   #warning "nOSConfig.h: NOS_CONFIG_MEM_SANITY_CHECK_ENABLE is not defined (enabled by default)."
-  #endif
+  #warning "nOSConfig.h: NOS_CONFIG_MEM_SANITY_CHECK_ENABLE is not defined (enabled by default)."
  #endif
 #else
  #undef NOS_CONFIG_MEM_SANITY_CHECK_ENABLE
@@ -134,9 +111,7 @@ extern "C" {
  #define NOS_CONFIG_TIMER_ENABLE                1
  #define NOS_CONFIG_TIMER_THREAD_PRIO           0
  #define NOS_CONFIG_TIMER_THREAD_STACK_SIZE     128
- #if defined(NOS_USE_CONFIG_FILE)
-  #warning "nOSConfig.h: NOS_CONFIG_TIMER_ENABLE is not defined (enabled by default)."
- #endif
+ #warning "nOSConfig.h: NOS_CONFIG_TIMER_ENABLE is not defined (enabled by default)."
  #if (NOS_CONFIG_SEM_ENABLE == 0)
   #error "nOSConfig.h: NOS_CONFIG_SEM_ENABLE need to be enable when NOS_CONFIG_TIMER_ENABLE is enable."
  #endif
@@ -146,17 +121,13 @@ extern "C" {
  #endif
  #if !defined(NOS_CONFIG_TIMER_THREAD_PRIO)
   #define NOS_CONFIG_TIMER_THREAD_PRIO          0
-  #if defined(NOS_USE_CONFIG_FILE)
-   #warning "nOSConfig.h: NOS_CONFIG_TIMER_THREAD_PRIO is not defined (default to 0)."
-  #endif
+  #warning "nOSConfig.h: NOS_CONFIG_TIMER_THREAD_PRIO is not defined (default to 0)."
  #elif (NOS_CONFIG_TIMER_THREAD_PRIO > NOS_CONFIG_HIGHEST_THREAD_PRIO)
   #error "nOSConfig.h: NOS_CONFIG_TIMER_THREAD_PRIO is higher than NOS_CONFIG_HIGHEST_THREAD_PRIO."
  #endif
  #if !defined(NOS_CONFIG_TIMER_THREAD_STACK_SIZE)
   #define NOS_CONFIG_TIMER_THREAD_STACK_SIZE    128
-  #if defined(NOS_USE_CONFIG_FILE)
-   #warning "nOSConfig.h: NOS_CONFIG_TIMER_THREAD_STACK_SIZE is not defined (default to 128)."
-  #endif
+  #warning "nOSConfig.h: NOS_CONFIG_TIMER_THREAD_STACK_SIZE is not defined (default to 128)."
  #endif
 #else
  #undef NOS_CONFIG_TIMER_THREAD_PRIO
@@ -181,11 +152,11 @@ typedef struct _nOS_Flag        nOS_Flag;
 typedef struct _nOS_FlagContext nOS_FlagContext;
 typedef struct _nOS_FlagResult  nOS_FlagResult;
 #if (NOS_CONFIG_FLAG_NB_BITS == 8)
-#define nOS_FlagBits            uint8_t
+typedef uint8_t                 nOS_FlagBits;
 #elif (NOS_CONFIG_FLAG_NB_BITS == 16)
-#define nOS_FlagBits            uint16_t
+typedef uint16_t                nOS_FlagBits;
 #else   /* NOS_CONFIG_FLAG_NB_BITS == 32 */
-#define nOS_FlagBits            uint32_t
+typedef uint32_t                nOS_FlagBits;
 #endif
 #endif
 #if (NOS_CONFIG_MEM_ENABLE > 0)
@@ -338,13 +309,13 @@ struct _nOS_Timer
 #define NOS_WAIT_INFINITE           UINT16_MAX
 
 #define NOS_READY                   0x00
-#define NOS_SLEEPING                0x01
-#define NOS_TAKING_SEM              0x02
-#define NOS_LOCKING_MUTEX           0x03
-#define NOS_READING_QUEUE           0x04
-#define NOS_WAITING_FLAG            0x05
-#define NOS_MEM_ALLOC               0x06
+#define NOS_TAKING_SEM              0x01
+#define NOS_LOCKING_MUTEX           0x02
+#define NOS_READING_QUEUE           0x03
+#define NOS_WAITING_FLAG            0x04
+#define NOS_MEM_ALLOC               0x05
 #define NOS_WAITING                 0x0F
+#define NOS_SLEEPING                0x20
 #define NOS_SUSPENDED               0x40
 #define NOS_STOPPED                 0x80
 
@@ -407,6 +378,7 @@ nOS_Thread* SchedHighPrio               (void);
 void        AppendThreadToReadyList     (nOS_Thread *thread);
 void        RemoveThreadFromReadyList   (nOS_Thread *thread);
 #if (NOS_CONFIG_THREAD_SUSPEND_ENABLE > 0)
+void        DeleteThread                (void *payload, void *arg);
 void        SuspendThread               (void *payload, void *arg);
 void        ResumeThread                (void *payload, void *arg);
 #endif
@@ -439,6 +411,9 @@ void        nOS_ListWalk                (nOS_List *list, void(*callback)(void*, 
 nOS_Error   nOS_ThreadCreate            (nOS_Thread *thread, void(*func)(void*), void *arg, nOS_Stack *stack, size_t ssize, uint8_t prio, uint8_t state);
 #else
 nOS_Error   nOS_ThreadCreate            (nOS_Thread *thread, void(*func)(void*), void *arg, nOS_Stack *stack, size_t ssize, uint8_t prio);
+#endif
+#if (NOS_CONFIG_THREAD_DELETE_ENABLE > 0)
+nOS_Error   nOS_ThreadDelete            (nOS_Thread *thread);
 #endif
 #if (NOS_CONFIG_THREAD_SUSPEND_ENABLE > 0)
 nOS_Error   nOS_ThreadSuspend           (nOS_Thread *thread);
