@@ -44,6 +44,8 @@
 #define NOS_CONFIG_TIMER_THREAD_PRIO            1
 /* Stack size of timer thread. */
 #define NOS_CONFIG_TIMER_THREAD_STACK_SIZE      128
+/* Timer counter width in bits (can be 8, 16 or 32) */
+#define NOS_CONFIG_TIMER_COUNT_WIDTH            16
 
 /*
  * Stack size to use from interrupt routines in number of nOS_Stack entries.

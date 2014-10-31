@@ -129,6 +129,12 @@ extern "C" {
   #define NOS_CONFIG_TIMER_THREAD_STACK_SIZE    128
   #warning "nOSConfig.h: NOS_CONFIG_TIMER_THREAD_STACK_SIZE is not defined (default to 128)."
  #endif
+ #if !defined(NOS_CONFIG_TIMER_COUNT_WIDTH)
+  #define NOS_CONFIG_TIMER_COUNT_WIDTH          16
+  #warning "nOSConfig.h: NOS_CONFIG_TIMER_COUNT_WIDTH is not defined (default to 16)."
+ #elif (NOS_CONFIG_TIMER_COUNT_WIDTH != 8) && (NOS_CONFIG_TIMER_COUNT_WIDTH != 16) && (NOS_CONFIG_TIMER_COUNT_WIDTH != 32)
+  #error "nOSConfig.h: NOS_CONFIG_TIMER_COUNT_WIDTH set to invalid value: can be set to 8, 16 or 32."
+ #endif
 #else
  #undef NOS_CONFIG_TIMER_THREAD_PRIO
  #undef NOS_CONFIG_TIMER_THREAD_STACK_SIZE
@@ -164,6 +170,13 @@ typedef struct _nOS_Mem         nOS_Mem;
 #endif
 #if (NOS_CONFIG_TIMER_ENABLE > 0)
 typedef struct _nOS_Timer       nOS_Timer;
+#if (NOS_CONFIG_TIMER_COUNT_WIDTH == 8)
+typedef uint8_t                 nOS_TimerCount;
+#elif (NOS_CONFIG_TIMER_COUNT_WIDTH == 16)
+typedef uint16_t                nOS_TimerCount;
+#else   /* NOS_CONFIG_TIMER_COUNT_WIDTH == 32 */
+typedef uint32_t                nOS_TimerCount;
+#endif
 #endif
 
 typedef enum _nOS_Error
@@ -291,8 +304,8 @@ struct _nOS_Mem
 struct _nOS_Timer
 {
     uint8_t         state;
-    uint16_t        count;
-    uint16_t        delay;
+    nOS_TimerCount  count;
+    nOS_TimerCount  reload;
     void(*callback)(void*);
     void            *arg;
     nOS_Node        node;
@@ -462,14 +475,14 @@ nOS_Error   nOS_MemFree                 (nOS_Mem *mem, void *block);
 #if (NOS_CONFIG_TIMER_ENABLE > 0)
 void        nOS_TimerInit               (void);
 void        nOS_TimerTick               (void);
-nOS_Error   nOS_TimerCreate             (nOS_Timer *timer, void(*callback)(void*), void *arg, uint16_t delay, uint8_t opt);
+nOS_Error   nOS_TimerCreate             (nOS_Timer *timer, void(*callback)(void*), void *arg, nOS_TimerCount reload, uint8_t opt);
 nOS_Error   nOS_TimerStart              (nOS_Timer *timer);
-nOS_Error   nOS_TimerRestart            (nOS_Timer *timer, uint16_t delay);
+nOS_Error   nOS_TimerRestart            (nOS_Timer *timer, nOS_TimerCount reload);
 nOS_Error   nOS_TimerStop               (nOS_Timer *timer);
-nOS_Error   nOS_TimerCallback           (nOS_Timer *timer, void(*callback)(void*), void *arg);
-nOS_Error   nOS_TimerReload             (nOS_Timer *timer, uint16_t delay);
-nOS_Error   nOS_TimerMode               (nOS_Timer *timer, uint8_t opt);
-uint8_t     nOS_TimerRunning            (nOS_Timer *timer);
+nOS_Error   nOS_TimerSetCallback        (nOS_Timer *timer, void(*callback)(void*), void *arg);
+nOS_Error   nOS_TimerSetReloadValue     (nOS_Timer *timer, nOS_TimerCount reload);
+nOS_Error   nOS_TimerSetMode            (nOS_Timer *timer, uint8_t opt);
+uint8_t     nOS_TimerIsRunning          (nOS_Timer *timer);
 #endif
 
 #if defined(__cplusplus)

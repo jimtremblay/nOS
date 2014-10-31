@@ -46,7 +46,7 @@ static void TickTimer (void *payload, void *arg)
             timer->count--;
             if (timer->count == 0) {
                 if (timer->state & NOS_TIMER_FREE_RUNNING) {
-                    timer->count = timer->delay;
+                    timer->count = timer->reload;
                 /* One-shot timer */
                 } else {
                     timer->state &=~ NOS_TIMER_RUNNING;
@@ -87,7 +87,7 @@ void nOS_TimerTick(void)
     nOS_SemGive(&timerSem);
 }
 
-nOS_Error nOS_TimerCreate (nOS_Timer *timer, void(*callback)(void*), void *arg, uint16_t delay, uint8_t opt)
+nOS_Error nOS_TimerCreate (nOS_Timer *timer, void(*callback)(void*), void *arg, nOS_TimerCount reload, uint8_t opt)
 {
     nOS_Error   err;
 
@@ -100,7 +100,7 @@ nOS_Error nOS_TimerCreate (nOS_Timer *timer, void(*callback)(void*), void *arg, 
 #endif
     {
         timer->count = 0;
-        timer->delay = delay;
+        timer->reload = reload;
         timer->state = opt;
         timer->callback = callback;
         timer->arg = arg;
@@ -125,7 +125,7 @@ nOS_Error nOS_TimerStart (nOS_Timer *timer)
 #endif
     {
         nOS_CriticalEnter();
-        timer->count  = timer->delay;
+        timer->count  = timer->reload;
         timer->state |= NOS_TIMER_RUNNING;
         nOS_CriticalLeave();
         err = NOS_OK;
@@ -134,7 +134,7 @@ nOS_Error nOS_TimerStart (nOS_Timer *timer)
     return err;
 }
 
-nOS_Error nOS_TimerRestart (nOS_Timer *timer, uint16_t delay)
+nOS_Error nOS_TimerRestart (nOS_Timer *timer, nOS_TimerCount reload)
 {
     nOS_Error   err;
 
@@ -145,8 +145,8 @@ nOS_Error nOS_TimerRestart (nOS_Timer *timer, uint16_t delay)
 #endif
     {
         nOS_CriticalEnter();
-        timer->delay = delay;
-        timer->count = delay;
+        timer->reload = reload;
+        timer->count  = reload;
         timer->state |= NOS_TIMER_RUNNING;
         nOS_CriticalLeave();
         err = NOS_OK;
@@ -174,7 +174,7 @@ nOS_Error nOS_TimerStop (nOS_Timer *timer)
     return err;
 }
 
-nOS_Error nOS_TimerCallback (nOS_Timer *timer, void(*callback)(void*), void *arg)
+nOS_Error nOS_TimerSetCallback (nOS_Timer *timer, void(*callback)(void*), void *arg)
 {
     nOS_Error   err;
 
@@ -194,7 +194,7 @@ nOS_Error nOS_TimerCallback (nOS_Timer *timer, void(*callback)(void*), void *arg
     return err;
 }
 
-nOS_Error nOS_TimerReload (nOS_Timer *timer, uint16_t delay)
+nOS_Error nOS_TimerSetReloadValue (nOS_Timer *timer, nOS_TimerCount reload)
 {
     nOS_Error   err;
 
@@ -205,7 +205,7 @@ nOS_Error nOS_TimerReload (nOS_Timer *timer, uint16_t delay)
 #endif
     {
         nOS_CriticalEnter();
-        timer->delay = delay;
+        timer->reload = reload;
         nOS_CriticalLeave();
         err = NOS_OK;
     }
@@ -213,7 +213,7 @@ nOS_Error nOS_TimerReload (nOS_Timer *timer, uint16_t delay)
     return err;
 }
 
-nOS_Error nOS_TimerMode (nOS_Timer *timer, uint8_t opt)
+nOS_Error nOS_TimerSetMode (nOS_Timer *timer, uint8_t opt)
 {
     nOS_Error   err;
 
@@ -234,7 +234,7 @@ nOS_Error nOS_TimerMode (nOS_Timer *timer, uint8_t opt)
     return err;
 }
 
-uint8_t nOS_TimerRunning (nOS_Timer *timer)
+uint8_t nOS_TimerIsRunning (nOS_Timer *timer)
 {
     uint8_t running = 0;
 
