@@ -14,6 +14,8 @@
 
 /* Enable or disable thread resume/suspend at run-time. */
 #define NOS_CONFIG_THREAD_SUSPEND_ENABLE        1
+/* Enable or disable thread deletion at run-time. */
+#define NOS_CONFIG_THREAD_DELETE_ENABLE         1
 /* Enable or disable thread set/get priority at run-time. */
 #define NOS_CONFIG_THREAD_SET_PRIO_ENABLE       1
 
