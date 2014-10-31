@@ -109,8 +109,10 @@ extern "C" {
 
 #if !defined(NOS_CONFIG_TIMER_ENABLE)
  #define NOS_CONFIG_TIMER_ENABLE                1
+ #define NOS_CONFIG_TIMER_DELETE_ENABLE         1
  #define NOS_CONFIG_TIMER_THREAD_PRIO           0
  #define NOS_CONFIG_TIMER_THREAD_STACK_SIZE     128
+ #define NOS_CONFIG_TIMER_COUNT_WIDTH           16
  #warning "nOSConfig.h: NOS_CONFIG_TIMER_ENABLE is not defined (enabled by default)."
  #if (NOS_CONFIG_SEM_ENABLE == 0)
   #error "nOSConfig.h: NOS_CONFIG_SEM_ENABLE need to be enable when NOS_CONFIG_TIMER_ENABLE is enable."
@@ -118,6 +120,10 @@ extern "C" {
 #elif (NOS_CONFIG_TIMER_ENABLE > 0)
  #if (NOS_CONFIG_SEM_ENABLE == 0)
   #error "nOSConfig.h: NOS_CONFIG_SEM_ENABLE need to be enable when NOS_CONFIG_TIMER_ENABLE is enable."
+ #endif
+ #if !defined(NOS_CONFIG_TIMER_DELETE_ENABLE)
+  #define NOS_CONFIG_TIMER_DELETE_ENABLE        1
+  #warning "nOSConfig.h: NOS_CONFIG_TIMER_DELETE_ENABLE is not defined (enabled by default)."
  #endif
  #if !defined(NOS_CONFIG_TIMER_THREAD_PRIO)
   #define NOS_CONFIG_TIMER_THREAD_PRIO          0
@@ -136,8 +142,10 @@ extern "C" {
   #error "nOSConfig.h: NOS_CONFIG_TIMER_COUNT_WIDTH set to invalid value: can be set to 8, 16 or 32."
  #endif
 #else
+ #undef NOS_CONFIG_TIMER_DELETE_ENABLE
  #undef NOS_CONFIG_TIMER_THREAD_PRIO
  #undef NOS_CONFIG_TIMER_THREAD_STACK_SIZE
+ #undef NOS_CONFIG_TIMER_COUNT_WIDTH
 #endif
 
 typedef struct _nOS_List        nOS_List;
@@ -346,8 +354,10 @@ struct _nOS_Timer
 
 #define NOS_TIMER_ONE_SHOT          0x00
 #define NOS_TIMER_FREE_RUNNING      0x01
-#define NOS_TIMER_OPT               0x01
-#define NOS_TIMER_RUNNING           0x80
+#define NOS_TIMER_MODE              0x01
+#define NOS_TIMER_MODE              0x01
+#define NOS_TIMER_RUNNING           0x40
+#define NOS_TIMER_DELETED           0x80
 
 #if defined(NOS_PRIVATE)
 NOS_EXTERN uint8_t      nOS_initialized;
@@ -476,11 +486,14 @@ nOS_Error   nOS_MemFree                 (nOS_Mem *mem, void *block);
 void        nOS_TimerInit               (void);
 void        nOS_TimerTick               (void);
 nOS_Error   nOS_TimerCreate             (nOS_Timer *timer, void(*callback)(void*), void *arg, nOS_TimerCount reload, uint8_t opt);
+#if (NOS_CONFIG_TIMER_DELETE_ENABLE > 0)
+nOS_Error   nOS_TimerDelete             (nOS_Timer *timer);
+#endif
 nOS_Error   nOS_TimerStart              (nOS_Timer *timer);
 nOS_Error   nOS_TimerRestart            (nOS_Timer *timer, nOS_TimerCount reload);
+nOS_Error   nOS_TimerReload             (nOS_Timer *timer, nOS_TimerCount reload);
 nOS_Error   nOS_TimerStop               (nOS_Timer *timer);
 nOS_Error   nOS_TimerSetCallback        (nOS_Timer *timer, void(*callback)(void*), void *arg);
-nOS_Error   nOS_TimerSetReloadValue     (nOS_Timer *timer, nOS_TimerCount reload);
 nOS_Error   nOS_TimerSetMode            (nOS_Timer *timer, uint8_t opt);
 uint8_t     nOS_TimerIsRunning          (nOS_Timer *timer);
 #endif
