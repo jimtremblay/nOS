@@ -40,6 +40,8 @@
 
 /* Enable or disable timer thread with callback. */
 #define NOS_CONFIG_TIMER_ENABLE                 1
+/* Enable or disable dynamic timer deletion */
+#define NOS_CONFIG_TIMER_DELETE_ENABLE          1
 /* Priority of timer thread. */
 #define NOS_CONFIG_TIMER_THREAD_PRIO            1
 /* Stack size of timer thread. */
