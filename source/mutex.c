@@ -190,7 +190,7 @@ nOS_Error nOS_MutexUnlock (nOS_Mutex *mutex)
                 mutex->count--;
                 if (mutex->count == 0) {
                     SetThreadPriority(mutex->owner, mutex->backup);
-                    thread = nOS_EventSignal((nOS_Event*)mutex);
+                    thread = nOS_EventSignal((nOS_Event*)mutex, NOS_OK);
                     if (thread != NULL) {
                         mutex->count++;
                         mutex->owner = thread;

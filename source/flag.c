@@ -30,7 +30,7 @@ static void TestFlag (void *payload, void *arg)
     }
     /* If conditions are met, wake up the thread and give it the result. */
     if (r != NOS_FLAG_NONE) {
-        SignalThread(thread);
+        SignalThread(thread, NOS_OK);
         *ctx->rflags = r;
         /* Accumulate awoken flags if waiting thread want to clear it when awoken. */
         if (ctx->opt & NOS_FLAG_CLEAR_ON_EXIT) {
@@ -38,7 +38,7 @@ static void TestFlag (void *payload, void *arg)
         }
         /* Indicate that we need a preemptive scheduling. */
         if (thread->prio > nOS_runningThread->prio) {
-            res->sched = 1;
+            res->sched = true;
         }
     }
 }
@@ -78,6 +78,41 @@ nOS_Error nOS_FlagCreate (nOS_Flag *flag, nOS_FlagBits flags)
 
     return err;
 }
+
+#if (NOS_CONFIG_FLAG_DELETE_ENABLE > 0)
+nOS_Error nOS_FlagDelete (nOS_Flag *flag)
+{
+    nOS_Thread  *thread;
+    nOS_Error   err;
+    bool        sched = false;
+
+#if (NOS_CONFIG_SAFE > 0)
+    if (flag == NULL) {
+        err = NOS_E_NULL;
+    } else
+#endif
+    {
+        nOS_CriticalEnter();
+        do {
+            thread = nOS_EventSignal((nOS_Event*)flag, NOS_E_DELETED);
+            if (thread != NULL) {
+                if ((thread->state == NOS_READY) && (thread->prio > nOS_runningThread->prio)) {
+                    sched = true;
+                }
+            }
+        } while (thread != NULL);
+        flag->flags = NOS_FLAG_NONE;
+        nOS_CriticalLeave();
+        err = NOS_OK;
+    }
+
+    if (sched) {
+        nOS_Sched();
+    }
+
+    return err;
+}
+#endif
 
 /*
  * Name        : nOS_FlagWait
@@ -209,7 +244,7 @@ nOS_Error nOS_FlagSend (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits mask)
 #endif
     {
         res.rflags = NOS_FLAG_NONE;
-        res.sched = 0;
+        res.sched = false;
         nOS_CriticalEnter();
         flag->flags ^= ((flag->flags ^ flags) & mask);
         nOS_ListWalk(&flag->e.waitingList, TestFlag, &res);
@@ -217,7 +252,7 @@ nOS_Error nOS_FlagSend (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits mask)
         flag->flags &=~ res.rflags;
         nOS_CriticalLeave();
         /* Schedule only if one of awoken thread has an higher priority. */
-        if (res.sched != 0) {
+        if (res.sched) {
             nOS_Sched();
         }
         err = NOS_OK;

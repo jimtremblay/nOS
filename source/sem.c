@@ -39,6 +39,42 @@ nOS_Error nOS_SemCreate (nOS_Sem *sem, uint16_t count, uint16_t max)
     return err;
 }
 
+#if (NOS_CONFIG_SEM_DELETE_ENABLE > 0)
+nOS_Error nOS_SemDelete (nOS_Sem *sem)
+{
+    nOS_Thread  *thread;
+    nOS_Error   err;
+    bool        sched = false;
+
+#if (NOS_CONFIG_SAFE > 0)
+    if (sem == NULL) {
+        err = NOS_E_NULL;
+    } else
+#endif
+    {
+        nOS_CriticalEnter();
+        do {
+            thread = nOS_EventSignal((nOS_Event*)sem, NOS_E_DELETED);
+            if (thread != NULL) {
+                if ((thread->state == NOS_READY) && (thread->prio > nOS_runningThread->prio)) {
+                    sched = true;
+                }
+            }
+        } while (thread != NULL);
+        sem->count = 0;
+        sem->max = 0;
+        nOS_CriticalLeave();
+        err = NOS_OK;
+    }
+
+    if (sched) {
+        nOS_Sched();
+    }
+
+    return err;
+}
+#endif
+
 /* nOS_SemTake
  * sem: must be a valid semaphore object
  * tout: NOS_NO_TIMEOUT = wait indefinitely
@@ -109,7 +145,7 @@ nOS_Error nOS_SemGive (nOS_Sem *sem)
 #endif
     {
         nOS_CriticalEnter();
-        thread = nOS_EventSignal((nOS_Event*)sem);
+        thread = nOS_EventSignal((nOS_Event*)sem, NOS_OK);
         if (thread != NULL) {
             if ((thread->state == NOS_READY) && (thread->prio > nOS_runningThread->prio)) {
                 nOS_Sched();

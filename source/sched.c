@@ -379,13 +379,13 @@ nOS_Error nOS_EventWait (nOS_Event *event, uint8_t state, uint16_t tout)
     return nOS_runningThread->error;
 }
 
-nOS_Thread* nOS_EventSignal (nOS_Event *event)
+nOS_Thread* nOS_EventSignal (nOS_Event *event, nOS_Error err)
 {
     nOS_Thread  *thread;
 
     thread = (nOS_Thread*)nOS_ListHead(&event->waitingList);
     if (thread != NULL) {
-        SignalThread(thread);
+        SignalThread(thread, err);
     }
 
     return thread;

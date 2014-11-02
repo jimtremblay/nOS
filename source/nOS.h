@@ -10,6 +10,7 @@
 #define NOS_H
 
 #include <stdint.h>
+#include <stdbool.h>
 #include <stdlib.h>
 
 #if defined(__cplusplus)
@@ -69,6 +70,13 @@ extern "C" {
 #if !defined(NOS_CONFIG_SEM_ENABLE)
  #define NOS_CONFIG_SEM_ENABLE                  1
   #warning "nOSConfig.h: NOS_CONFIG_SEM_ENABLE is not defined (enabled by default)."
+#elif (NOS_CONFIG_SEM_ENABLE > 0)
+ #if !defined(NOS_CONFIG_SEM_DELETE_ENABLE)
+  #define NOS_CONFIG_SEM_DELETE_ENABLE          1
+  #warning "nOSConfig.h: NOS_CONFIG_SEM_DELETE_ENABLE is not defined (enabled by default)."
+ #endif
+#else
+ #undef NOS_CONFIG_SEM_DELETE_ENABLE
 #endif
 
 #if !defined(NOS_CONFIG_MUTEX_ENABLE)
@@ -80,6 +88,10 @@ extern "C" {
  #define NOS_CONFIG_FLAG_ENABLE                 1
  #warning "nOSConfig.h: NOS_CONFIG_FLAG_ENABLE is not defined (enabled by default)."
 #elif (NOS_CONFIG_FLAG_ENABLE > 0)
+ #if !defined(NOS_CONFIG_FLAG_DELETE_ENABLE)
+  #define NOS_CONFIG_FLAG_DELETE_ENABLE         1
+  #warning "nOSConfig.h: NOS_CONFIG_FLAG_DELETE_ENABLE is not defined (enabled by default)."
+ #endif
  #if !defined(NOS_CONFIG_FLAG_NB_BITS)
   #define NOS_CONFIG_FLAG_NB_BITS               16
   #warning "nOSConfig.h: NOS_CONFIG_FLAG_NB_BITS is not defined (default to 16)."
@@ -87,6 +99,7 @@ extern "C" {
   #error "nOSConfig.h: NOS_CONFIG_FLAG_NB_BITS set to invalid value: can be set to 8, 16 or 32."
  #endif
 #else
+ #undef NOS_CONFIG_FLAG_DELETE_ENABLE
  #undef NOS_CONFIG_FLAG_NB_BITS
 #endif
 
@@ -202,7 +215,8 @@ typedef enum _nOS_Error
     NOS_E_OWNER = -10,
     NOS_E_EMPTY = -11,
     NOS_E_FULL = -12,
-    NOS_E_INIT = -13
+    NOS_E_INIT = -13,
+    NOS_E_DELETED = -14
 } nOS_Error;
 
 #include "port.h"
@@ -289,7 +303,7 @@ struct _nOS_FlagContext
 
 struct _nOS_FlagResult
 {
-    uint8_t         sched;
+    bool            sched;
     nOS_FlagBits    rflags;
 };
 #endif
@@ -407,7 +421,7 @@ void        ResumeThread                (void *payload, void *arg);
 #endif
 void        SetThreadPriority           (nOS_Thread *thread, uint8_t prio);
 void        TickThread                  (void *payload, void *arg);
-void        SignalThread                (nOS_Thread  *thread);
+void        SignalThread                (nOS_Thread *thread, nOS_Error err);
 #endif /* NOS_PRIVATE */
 
 nOS_Error   nOS_Init                    (void);
@@ -450,10 +464,13 @@ nOS_Thread* nOS_ThreadRunning           (void);
 
 void        nOS_EventCreate             (nOS_Event *event);
 nOS_Error   nOS_EventWait               (nOS_Event *event, uint8_t state, uint16_t tout);
-nOS_Thread* nOS_EventSignal             (nOS_Event *event);
+nOS_Thread* nOS_EventSignal             (nOS_Event *event, nOS_Error err);
 
 #if (NOS_CONFIG_SEM_ENABLE > 0)
 nOS_Error   nOS_SemCreate               (nOS_Sem *sem, uint16_t cntr, uint16_t max);
+#if (NOS_CONFIG_SEM_DELETE_ENABLE > 0)
+nOS_Error   nOS_SemDelete               (nOS_Sem *sem);
+#endif
 nOS_Error   nOS_SemTake                 (nOS_Sem *sem, uint16_t tout);
 nOS_Error   nOS_SemGive                 (nOS_Sem *sem);
 #endif
@@ -472,6 +489,9 @@ nOS_Error   nOS_QueueWrite              (nOS_Queue *queue, void *buffer);
 
 #if (NOS_CONFIG_FLAG_ENABLE > 0)
 nOS_Error   nOS_FlagCreate              (nOS_Flag *flag, nOS_FlagBits flags);
+#if (NOS_CONFIG_FLAG_DELETE_ENABLE > 0)
+nOS_Error   nOS_FlagDelete              (nOS_Flag *flag);
+#endif
 nOS_Error   nOS_FlagWait                (nOS_Flag *flag, uint8_t opt, nOS_FlagBits flags, nOS_FlagBits *res, uint16_t tout);
 nOS_Error   nOS_FlagSend                (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits mask);
 #endif
@@ -495,7 +515,7 @@ nOS_Error   nOS_TimerReload             (nOS_Timer *timer, nOS_TimerCount reload
 nOS_Error   nOS_TimerStop               (nOS_Timer *timer);
 nOS_Error   nOS_TimerSetCallback        (nOS_Timer *timer, void(*callback)(void*), void *arg);
 nOS_Error   nOS_TimerSetMode            (nOS_Timer *timer, uint8_t opt);
-uint8_t     nOS_TimerIsRunning          (nOS_Timer *timer);
+bool        nOS_TimerIsRunning          (nOS_Timer *timer);
 #endif
 
 #if defined(__cplusplus)

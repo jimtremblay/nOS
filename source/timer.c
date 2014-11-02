@@ -256,19 +256,19 @@ nOS_Error nOS_TimerSetMode (nOS_Timer *timer, uint8_t mode)
     return err;
 }
 
-uint8_t nOS_TimerIsRunning (nOS_Timer *timer)
+bool nOS_TimerIsRunning (nOS_Timer *timer)
 {
-    uint8_t running = 0;
+    bool running = false;
 
 #if (NOS_CONFIG_SAFE > 0)
     if (timer == NULL) {
-        running = 0;
+        running = false;
     } else
 #endif
     {
         nOS_CriticalEnter();
         if (timer->state & NOS_TIMER_RUNNING) {
-            running = 1;
+            running = true;
         }
         nOS_CriticalLeave();
     }

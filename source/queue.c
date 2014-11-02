@@ -101,7 +101,7 @@ nOS_Error nOS_QueueWrite (nOS_Queue *queue, void *buffer)
 #endif
     {
         nOS_CriticalEnter();
-        thread = nOS_EventSignal((nOS_Event*)queue);
+        thread = nOS_EventSignal((nOS_Event*)queue, NOS_OK);
         if (thread != NULL) {
             memcpy(thread->context, buffer, queue->bsize);
             if ((thread->state == NOS_READY) && (thread->prio > nOS_runningThread->prio)) {

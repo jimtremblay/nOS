@@ -21,12 +21,16 @@
 
 /* Enable or disable semaphore. */
 #define NOS_CONFIG_SEM_ENABLE                   1
+/* Enable or disable semaphore deletion at run-time. */
+#define NOS_CONFIG_SEM_DELETE_ENABLE            1
 
 /* Enable or disable mutex. */
 #define NOS_CONFIG_MUTEX_ENABLE                 1
 
 /* Enable or disable flag. */
 #define NOS_CONFIG_FLAG_ENABLE                  1
+/* Enable or disable flag deletion at run-time. */
+#define NOS_CONFIG_FLAG_DELETE_ENABLE           1
 /* Size of flag in bits (can be 8, 16 or 32) */
 #define NOS_CONFIG_FLAG_NB_BITS                 32
 

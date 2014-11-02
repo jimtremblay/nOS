@@ -226,7 +226,7 @@ nOS_Error nOS_MemFree(nOS_Mem *mem, void *block)
 #endif
     {
         nOS_CriticalEnter();
-        thread = nOS_EventSignal((nOS_Event*)mem);
+        thread = nOS_EventSignal((nOS_Event*)mem, NOS_OK);
         if (thread != NULL) {
             *(void**)thread->context = block;
             if ((thread->state == NOS_READY) && (thread->prio > nOS_runningThread->prio)) {

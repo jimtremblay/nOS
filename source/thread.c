@@ -98,10 +98,10 @@ void TickThread (void *payload, void *arg)
 }
 
 /* This is an internal function */
-void SignalThread (nOS_Thread *thread)
+void SignalThread (nOS_Thread *thread, nOS_Error err)
 {
     nOS_ListRemove(&thread->event->waitingList, &thread->readyWaiting);
-    thread->error = NOS_OK;
+    thread->error = err;
     thread->state &=~ NOS_WAITING;
     if (thread->state == NOS_READY) {
         AppendThreadToReadyList(thread);
