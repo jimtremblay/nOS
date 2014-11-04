@@ -364,7 +364,7 @@
               <MiscControls></MiscControls>
               <Define></Define>
               <Undefine></Undefine>
-              <IncludePath>.\;..\..\source;..\..\source\port\Keil\ARM_Cortex_M4F</IncludePath>
+              <IncludePath>.\;..\..\source;..\..\source\port\Keil\ARM_Cortex_M4</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -460,7 +460,7 @@
             <File>
               <FileName>port.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\source\port\Keil\ARM_Cortex_M4F\port.c</FilePath>
+              <FilePath>..\..\source\port\Keil\ARM_Cortex_M4\port.c</FilePath>
             </File>
           </Files>
         </Group>

@@ -69,7 +69,7 @@
 			<Add directory=".\SPL\inc" />
 			<Add directory=".\SPL\src" />
 			<Add directory="..\..\source" />
-			<Add directory="..\..\source\port\GCC\ARM_Cortex_M4F" />
+			<Add directory="..\..\source\port\GCC\ARM_Cortex_M4" />
 			<Add directory=".\config" />
 		</Compiler>
 		<Linker>
@@ -226,10 +226,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\..\source\nOS.h" />
-		<Unit filename="..\..\source\port\GCC\ARM_Cortex_M4F\port.c">
+		<Unit filename="..\..\source\port\GCC\ARM_Cortex_M4\port.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="..\..\source\port\GCC\ARM_Cortex_M4F\port.h" />
+		<Unit filename="..\..\source\port\GCC\ARM_Cortex_M4\port.h" />
 		<Unit filename="..\..\source\queue.c">
 			<Option compilerVar="CC" />
 		</Unit>

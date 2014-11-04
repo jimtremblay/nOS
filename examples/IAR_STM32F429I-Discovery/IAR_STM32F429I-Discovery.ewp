@@ -303,7 +303,7 @@
           <name>CCIncludePath2</name>
           <state>$PROJ_DIR$\</state>
           <state>$PROJ_DIR$\..\..\source</state>
-          <state>$PROJ_DIR$\..\..\source\port\IAR\ARM_Cortex_M4F</state>
+          <state>$PROJ_DIR$\..\..\source\port\IAR\ARM_Cortex_M4</state>
           <state>$PROJ_DIR$\CMSIS\Device\ST\STM32F4xx\Include</state>
           <state>$PROJ_DIR$\CMSIS\Include</state>
         </option>
@@ -1900,10 +1900,10 @@
       <name>$PROJ_DIR$\..\..\source\mutex.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\source\port\IAR\ARM_Cortex_M4F\port.c</name>
+      <name>$PROJ_DIR$\..\..\source\port\IAR\ARM_Cortex_M4\port.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\source\port\IAR\ARM_Cortex_M4F\portasm.s</name>
+      <name>$PROJ_DIR$\..\..\source\port\IAR\ARM_Cortex_M4\portasm.s</name>
     </file>
     <file>
       <name>$PROJ_DIR$\..\..\source\queue.c</name>
