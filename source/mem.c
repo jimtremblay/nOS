@@ -170,7 +170,7 @@ void *nOS_MemAlloc(nOS_Mem *mem, uint16_t tout)
             block = NULL;
         } else {
             nOS_runningThread->context = (void*)&block;
-            err = nOS_EventWait((nOS_Event*)mem, NOS_MEM_ALLOC, tout);
+            err = nOS_EventWait((nOS_Event*)mem, NOS_THREAD_ALLOC_MEM, tout);
             if (err != NOS_OK) {
                 block = NULL;
             }
@@ -229,7 +229,7 @@ nOS_Error nOS_MemFree(nOS_Mem *mem, void *block)
         thread = nOS_EventSignal((nOS_Event*)mem, NOS_OK);
         if (thread != NULL) {
             *(void**)thread->context = block;
-            if ((thread->state == NOS_READY) && (thread->prio > nOS_runningThread->prio)) {
+            if ((thread->state == NOS_THREAD_READY) && (thread->prio > nOS_runningThread->prio)) {
                 nOS_Sched();
             }
         } else {

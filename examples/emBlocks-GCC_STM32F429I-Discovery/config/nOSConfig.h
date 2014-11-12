@@ -23,6 +23,8 @@
 #define NOS_CONFIG_SEM_ENABLE                   1
 /* Enable or disable semaphore deletion at run-time. */
 #define NOS_CONFIG_SEM_DELETE_ENABLE            1
+/* Semaphore count width in bits (can be 8, 16 or 32) */
+#define NOS_CONFIG_SEM_COUNT_WIDTH              16
 
 /* Enable or disable mutex. */
 #define NOS_CONFIG_MUTEX_ENABLE                 1

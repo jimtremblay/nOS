@@ -367,7 +367,7 @@ void nOS_EventCreate (nOS_Event *event)
 nOS_Error nOS_EventWait (nOS_Event *event, uint8_t state, uint16_t tout)
 {
     RemoveThreadFromReadyList(nOS_runningThread);
-    nOS_runningThread->state = state;
+    nOS_runningThread->state |= (state & NOS_THREAD_WAITING);
     nOS_runningThread->event = event;
     nOS_runningThread->timeout = (tout == NOS_WAIT_INFINITE) ? 0 : tout;
     if (event != NULL) {
@@ -394,15 +394,15 @@ nOS_Thread* nOS_EventSignal (nOS_Event *event, nOS_Error err)
 nOS_Error nOS_Init(void)
 {
     /* Block context switching until initialization is completed */
-    nOS_initialized = 0;
+    nOS_initialized = false;
 
     nOS_isrNestingCounter = 0;
 #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
     nOS_lockNestingCounter = 0;
 #endif
 
-    nOS_mainThread.prio = NOS_PRIO_IDLE;
-    nOS_mainThread.state = NOS_READY;
+    nOS_mainThread.prio = NOS_THREAD_PRIO_IDLE;
+    nOS_mainThread.state = NOS_THREAD_READY;
     nOS_mainThread.error = NOS_OK;
     nOS_mainThread.timeout = 0;
     nOS_mainThread.event = NULL;
@@ -422,7 +422,7 @@ nOS_Error nOS_Init(void)
 #endif
 
     /* Context switching is possible after this point */
-    nOS_initialized = 1;
+    nOS_initialized = true;
 
     return NOS_OK;
 }
@@ -431,7 +431,7 @@ nOS_Error nOS_Sched(void)
 {
     nOS_Error   err;
 
-    /* Switch only is initialization is completed */
+    /* Switch only if initialization is completed */
     if (!nOS_initialized) {
         err = NOS_E_INIT;
     } else if (nOS_isrNestingCounter > 0) {
@@ -558,7 +558,7 @@ nOS_Error nOS_Sleep (uint16_t dly)
         err = NOS_E_IDLE;
     } else {
         nOS_CriticalEnter();
-        err = nOS_EventWait(NULL, NOS_SLEEPING, dly);
+        err = nOS_EventWait(NULL, NOS_THREAD_SLEEPING, dly);
         nOS_CriticalLeave();
     }
 

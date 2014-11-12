@@ -96,7 +96,7 @@ nOS_Error nOS_FlagDelete (nOS_Flag *flag)
         do {
             thread = nOS_EventSignal((nOS_Event*)flag, NOS_E_DELETED);
             if (thread != NULL) {
-                if ((thread->state == NOS_READY) && (thread->prio > nOS_runningThread->prio)) {
+                if ((thread->state == NOS_THREAD_READY) && (thread->prio > nOS_runningThread->prio)) {
                     sched = true;
                 }
             }
@@ -198,7 +198,7 @@ nOS_Error nOS_FlagWait (nOS_Flag *flag, uint8_t opt, nOS_FlagBits flags,
             ctx.opt     = opt;
             ctx.rflags  = &r;
             nOS_runningThread->context = &ctx;
-            err = nOS_EventWait((nOS_Event*)flag, NOS_WAITING_FLAG, tout);
+            err = nOS_EventWait((nOS_Event*)flag, NOS_THREAD_WAITING_FLAG, tout);
         }
         nOS_CriticalLeave();
 

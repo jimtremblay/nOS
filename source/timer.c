@@ -45,7 +45,7 @@ static void TickTimer (void *payload, void *arg)
         if (timer->count > 0) {
             timer->count--;
             if (timer->count == 0) {
-                if (timer->state & NOS_TIMER_FREE_RUNNING) {
+                if ((timer->state & NOS_TIMER_MODE) == NOS_TIMER_FREE_RUNNING) {
                     timer->count = timer->reload;
                 /* One-shot timer */
                 } else {
@@ -76,7 +76,7 @@ void nOS_TimerInit(void)
                      NOS_CONFIG_TIMER_THREAD_STACK_SIZE,
                      NOS_CONFIG_TIMER_THREAD_PRIO
 #if (NOS_CONFIG_THREAD_SUSPEND_ENABLE > 0)
-                     ,NOS_READY
+                     ,NOS_THREAD_READY
 #endif
                      );
 
@@ -96,12 +96,14 @@ nOS_Error nOS_TimerCreate (nOS_Timer *timer, void(*callback)(void*), void *arg, 
         err = NOS_E_NULL;
     } else if ((mode != NOS_TIMER_FREE_RUNNING) && (mode != NOS_TIMER_ONE_SHOT)) {
         err = NOS_E_INV_VAL;
+    } else if (timer->state != NOS_TIMER_DELETED) {
+        err = NOS_E_INV_VAL;
     } else
 #endif
     {
         timer->count = 0;
         timer->reload = reload;
-        timer->state = mode;
+        timer->state = NOS_TIMER_CREATED | (mode & NOS_TIMER_MODE);
         timer->callback = callback;
         timer->arg = arg;
         timer->node.payload = (void *)timer;
@@ -122,6 +124,8 @@ nOS_Error nOS_TimerDelete (nOS_Timer *timer)
 #if (NOS_CONFIG_SAFE > 0)
     if (timer == NULL) {
         err = NOS_E_NULL;
+    } else if (timer->state == NOS_TIMER_DELETED) {
+        err = NOS_E_DELETED;
     } else
 #endif
     {
@@ -143,6 +147,8 @@ nOS_Error nOS_TimerStart (nOS_Timer *timer)
 #if (NOS_CONFIG_SAFE > 0)
     if (timer == NULL) {
         err = NOS_E_NULL;
+    } else if (timer->state == NOS_TIMER_DELETED) {
+        err = NOS_E_DELETED;
     } else
 #endif
     {
@@ -163,6 +169,8 @@ nOS_Error nOS_TimerRestart (nOS_Timer *timer, nOS_TimerCount reload)
 #if (NOS_CONFIG_SAFE > 0)
     if (timer == NULL) {
         err = NOS_E_NULL;
+    } else if (timer->state == NOS_TIMER_DELETED) {
+        err = NOS_E_DELETED;
     } else
 #endif
     {
@@ -184,6 +192,8 @@ nOS_Error nOS_TimerReload (nOS_Timer *timer, nOS_TimerCount reload)
 #if (NOS_CONFIG_SAFE > 0)
     if (timer == NULL) {
         err = NOS_E_NULL;
+    } else if (timer->state == NOS_TIMER_DELETED) {
+        err = NOS_E_DELETED;
     } else
 #endif
     {
@@ -203,6 +213,8 @@ nOS_Error nOS_TimerStop (nOS_Timer *timer)
 #if (NOS_CONFIG_SAFE > 0)
     if (timer == NULL) {
         err = NOS_E_NULL;
+    } else if (timer->state == NOS_TIMER_DELETED) {
+        err = NOS_E_DELETED;
     } else
 #endif
     {
@@ -222,6 +234,8 @@ nOS_Error nOS_TimerSetCallback (nOS_Timer *timer, void(*callback)(void*), void *
 #if (NOS_CONFIG_SAFE > 0)
     if (timer == NULL) {
         err = NOS_E_NULL;
+    } else if (timer->state == NOS_TIMER_DELETED) {
+        err = NOS_E_DELETED;
     } else
 #endif
     {
@@ -244,6 +258,8 @@ nOS_Error nOS_TimerSetMode (nOS_Timer *timer, uint8_t mode)
         err = NOS_E_NULL;
     } else if ((mode != NOS_TIMER_FREE_RUNNING) && (mode != NOS_TIMER_ONE_SHOT)) {
         err = NOS_E_INV_VAL;
+    } else if (timer->state == NOS_TIMER_DELETED) {
+        err = NOS_E_DELETED;
     } else
 #endif
     {

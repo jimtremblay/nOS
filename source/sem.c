@@ -14,7 +14,7 @@ extern "C" {
 #endif
 
 #if (NOS_CONFIG_SEM_ENABLE > 0)
-nOS_Error nOS_SemCreate (nOS_Sem *sem, uint16_t count, uint16_t max)
+nOS_Error nOS_SemCreate (nOS_Sem *sem, nOS_SemCount count, nOS_SemCount max)
 {
     nOS_Error   err;
 
@@ -56,7 +56,7 @@ nOS_Error nOS_SemDelete (nOS_Sem *sem)
         do {
             thread = nOS_EventSignal((nOS_Event*)sem, NOS_E_DELETED);
             if (thread != NULL) {
-                if ((thread->state == NOS_READY) && (thread->prio > nOS_runningThread->prio)) {
+                if ((thread->state == NOS_THREAD_READY) && (thread->prio > nOS_runningThread->prio)) {
                     sched = true;
                 }
             }
@@ -119,7 +119,7 @@ nOS_Error nOS_SemTake (nOS_Sem *sem, uint16_t tout)
             err = NOS_E_IDLE;
         /* Calling thread must wait on sem. */
         } else {
-            err = nOS_EventWait((nOS_Event*)sem, NOS_TAKING_SEM, tout);
+            err = nOS_EventWait((nOS_Event*)sem, NOS_THREAD_TAKING_SEM, tout);
         }
         nOS_CriticalLeave();
     }
@@ -147,7 +147,7 @@ nOS_Error nOS_SemGive (nOS_Sem *sem)
         nOS_CriticalEnter();
         thread = nOS_EventSignal((nOS_Event*)sem, NOS_OK);
         if (thread != NULL) {
-            if ((thread->state == NOS_READY) && (thread->prio > nOS_runningThread->prio)) {
+            if ((thread->state == NOS_THREAD_READY) && (thread->prio > nOS_runningThread->prio)) {
                 nOS_Sched();
             }
             err = NOS_OK;

@@ -13,6 +13,18 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+#ifndef UINT8_MAX
+#define UINT8_MAX                   255U
+#endif
+
+#ifndef UINT16_MAX
+#define UINT16_MAX                  65535U
+#endif
+
+#ifndef UINT32_MAX
+#define UINT32_MAX                  4294967295UL
+#endif
+
 #if defined(__cplusplus)
 extern "C" {
 #endif
@@ -69,14 +81,29 @@ extern "C" {
 
 #if !defined(NOS_CONFIG_SEM_ENABLE)
  #define NOS_CONFIG_SEM_ENABLE                  1
-  #warning "nOSConfig.h: NOS_CONFIG_SEM_ENABLE is not defined (enabled by default)."
-#elif (NOS_CONFIG_SEM_ENABLE > 0)
+ #warning "nOSConfig.h: NOS_CONFIG_SEM_ENABLE is not defined (enabled by default)."
+#endif
+#if (NOS_CONFIG_SEM_ENABLE > 0)
  #if !defined(NOS_CONFIG_SEM_DELETE_ENABLE)
   #define NOS_CONFIG_SEM_DELETE_ENABLE          1
   #warning "nOSConfig.h: NOS_CONFIG_SEM_DELETE_ENABLE is not defined (enabled by default)."
  #endif
+ #if !defined(NOS_CONFIG_SEM_COUNT_WIDTH)
+  #define NOS_CONFIG_SEM_COUNT_WIDTH            16
+  #warning "nOSConfig.h: NOS_CONFIG_SEM_COUNT_WIDTH is not defined (default to 16)."
+ #elif (NOS_CONFIG_SEM_COUNT_WIDTH != 8) && (NOS_CONFIG_SEM_COUNT_WIDTH != 16) && (NOS_CONFIG_SEM_COUNT_WIDTH != 32)
+  #error "nOSConfig.h: NOS_CONFIG_SEM_COUNT_WIDTH set to invalid value: can be set to 8, 16 or 32."
+ #endif
+ #if (NOS_CONFIG_SEM_COUNT_WIDTH == 8)
+  #define NOS_SEM_COUNT_MAX                     UINT8_MAX
+ #elif (NOS_CONFIG_SEM_COUNT_WIDTH == 16)
+  #define NOS_SEM_COUNT_MAX                     UINT16_MAX
+ #elif (NOS_CONFIG_SEM_COUNT_WIDTH == 32)
+  #define NOS_SEM_COUNT_MAX                     UINT32_MAX
+ #endif
 #else
  #undef NOS_CONFIG_SEM_DELETE_ENABLE
+ #undef NOS_CONFIG_SEM_COUNT_WIDTH
 #endif
 
 #if !defined(NOS_CONFIG_MUTEX_ENABLE)
@@ -87,7 +114,8 @@ extern "C" {
 #if !defined(NOS_CONFIG_FLAG_ENABLE)
  #define NOS_CONFIG_FLAG_ENABLE                 1
  #warning "nOSConfig.h: NOS_CONFIG_FLAG_ENABLE is not defined (enabled by default)."
-#elif (NOS_CONFIG_FLAG_ENABLE > 0)
+#endif
+#if (NOS_CONFIG_FLAG_ENABLE > 0)
  #if !defined(NOS_CONFIG_FLAG_DELETE_ENABLE)
   #define NOS_CONFIG_FLAG_DELETE_ENABLE         1
   #warning "nOSConfig.h: NOS_CONFIG_FLAG_DELETE_ENABLE is not defined (enabled by default)."
@@ -111,7 +139,8 @@ extern "C" {
 #if !defined(NOS_CONFIG_MEM_ENABLE)
  #define NOS_CONFIG_MEM_ENABLE                  1
  #warning "nOSConfig.h: NOS_CONFIG_MEM_ENABLE is not defined (enabled by default)."
-#elif (NOS_CONFIG_MEM_ENABLE > 0)
+#endif
+#if (NOS_CONFIG_MEM_ENABLE > 0)
  #if !defined(NOS_CONFIG_MEM_SANITY_CHECK_ENABLE)
   #define NOS_CONFIG_MEM_SANITY_CHECK_ENABLE    1
   #warning "nOSConfig.h: NOS_CONFIG_MEM_SANITY_CHECK_ENABLE is not defined (enabled by default)."
@@ -122,15 +151,9 @@ extern "C" {
 
 #if !defined(NOS_CONFIG_TIMER_ENABLE)
  #define NOS_CONFIG_TIMER_ENABLE                1
- #define NOS_CONFIG_TIMER_DELETE_ENABLE         1
- #define NOS_CONFIG_TIMER_THREAD_PRIO           0
- #define NOS_CONFIG_TIMER_THREAD_STACK_SIZE     128
- #define NOS_CONFIG_TIMER_COUNT_WIDTH           16
  #warning "nOSConfig.h: NOS_CONFIG_TIMER_ENABLE is not defined (enabled by default)."
- #if (NOS_CONFIG_SEM_ENABLE == 0)
-  #error "nOSConfig.h: NOS_CONFIG_SEM_ENABLE need to be enable when NOS_CONFIG_TIMER_ENABLE is enable."
- #endif
-#elif (NOS_CONFIG_TIMER_ENABLE > 0)
+#endif
+#if (NOS_CONFIG_TIMER_ENABLE > 0)
  #if (NOS_CONFIG_SEM_ENABLE == 0)
   #error "nOSConfig.h: NOS_CONFIG_SEM_ENABLE need to be enable when NOS_CONFIG_TIMER_ENABLE is enable."
  #endif
@@ -167,6 +190,13 @@ typedef struct _nOS_Thread      nOS_Thread;
 typedef struct _nOS_Event       nOS_Event;
 #if (NOS_CONFIG_SEM_ENABLE > 0)
 typedef struct _nOS_Sem         nOS_Sem;
+#if (NOS_CONFIG_SEM_COUNT_WIDTH == 8)
+typedef uint8_t                 nOS_SemCount;
+#elif (NOS_CONFIG_SEM_COUNT_WIDTH == 16)
+typedef uint16_t                nOS_SemCount;
+#else /* NOS_CONFIG_SEM_COUNT_WIDTH == 32 */
+typedef uint32_t                nOS_SemCount;
+#endif
 #endif
 #if (NOS_CONFIG_MUTEX_ENABLE > 0)
 typedef struct _nOS_Mutex       nOS_Mutex;
@@ -257,8 +287,8 @@ struct _nOS_Event
 struct _nOS_Sem
 {
     nOS_Event       e;
-    uint16_t        count;
-    uint16_t        max;
+    nOS_SemCount    count;
+    nOS_SemCount    max;
 };
 #endif
 
@@ -280,8 +310,8 @@ struct _nOS_Queue
     nOS_Event       e;
     uint8_t         *buffer;
     uint16_t        bsize;
-    uint16_t        max;
-    uint16_t        count;
+    uint16_t        bmax;
+    uint16_t        bcount;
     uint16_t        r;
     uint16_t        w;
 };
@@ -334,27 +364,21 @@ struct _nOS_Timer
 };
 #endif
 
-#ifndef UINT16_MAX
-#define UINT16_MAX                  65535
-#endif
-
-#define NOS_PRIO_IDLE               0
-
 #define NOS_NO_WAIT                 0
 #define NOS_WAIT_INFINITE           UINT16_MAX
 
-#define NOS_READY                   0x00
-#define NOS_TAKING_SEM              0x01
-#define NOS_LOCKING_MUTEX           0x02
-#define NOS_READING_QUEUE           0x03
-#define NOS_WAITING_FLAG            0x04
-#define NOS_MEM_ALLOC               0x05
-#define NOS_WAITING                 0x0F
-#define NOS_SLEEPING                0x20
-#define NOS_SUSPENDED               0x40
-#define NOS_STOPPED                 0x80
+#define NOS_THREAD_PRIO_IDLE        0
 
-#define NOS_SEM_COUNT_MAX           UINT16_MAX
+#define NOS_THREAD_STOPPED          0x00
+#define NOS_THREAD_TAKING_SEM       0x01
+#define NOS_THREAD_LOCKING_MUTEX    0x02
+#define NOS_THREAD_READING_QUEUE    0x03
+#define NOS_THREAD_WAITING_FLAG     0x04
+#define NOS_THREAD_ALLOC_MEM        0x05
+#define NOS_THREAD_WAITING          0x0F
+#define NOS_THREAD_SLEEPING         0x20
+#define NOS_THREAD_SUSPENDED        0x40
+#define NOS_THREAD_READY            0x80
 
 #define NOS_MUTEX_NORMAL            0
 #define NOS_MUTEX_RECURSIVE         1
@@ -366,15 +390,15 @@ struct _nOS_Timer
 #define NOS_FLAG_CLEAR_ON_EXIT      0x02
 #define NOS_FLAG_NONE               0
 
+#define NOS_TIMER_DELETED           0x00
 #define NOS_TIMER_ONE_SHOT          0x00
 #define NOS_TIMER_FREE_RUNNING      0x01
 #define NOS_TIMER_MODE              0x01
-#define NOS_TIMER_MODE              0x01
-#define NOS_TIMER_RUNNING           0x40
-#define NOS_TIMER_DELETED           0x80
+#define NOS_TIMER_RUNNING           0x02
+#define NOS_TIMER_CREATED           0x80
 
 #if defined(NOS_PRIVATE)
-NOS_EXTERN uint8_t      nOS_initialized;
+NOS_EXTERN bool         nOS_initialized;
 
 NOS_EXTERN nOS_Thread   nOS_mainThread;
 
@@ -458,7 +482,7 @@ nOS_Error   nOS_ThreadSuspendAll        (void);
 nOS_Error   nOS_ThreadResume            (nOS_Thread *thread);
 nOS_Error   nOS_ThreadResumeAll         (void);
 #endif
-uint8_t     nOS_ThreadGetPriority       (nOS_Thread *thread);
+int16_t     nOS_ThreadGetPriority       (nOS_Thread *thread);
 nOS_Error   nOS_ThreadSetPriority       (nOS_Thread *thread, uint8_t prio);
 nOS_Thread* nOS_ThreadRunning           (void);
 
@@ -467,7 +491,7 @@ nOS_Error   nOS_EventWait               (nOS_Event *event, uint8_t state, uint16
 nOS_Thread* nOS_EventSignal             (nOS_Event *event, nOS_Error err);
 
 #if (NOS_CONFIG_SEM_ENABLE > 0)
-nOS_Error   nOS_SemCreate               (nOS_Sem *sem, uint16_t cntr, uint16_t max);
+nOS_Error   nOS_SemCreate               (nOS_Sem *sem, nOS_SemCount cntr, nOS_SemCount max);
 #if (NOS_CONFIG_SEM_DELETE_ENABLE > 0)
 nOS_Error   nOS_SemDelete               (nOS_Sem *sem);
 #endif
@@ -482,7 +506,7 @@ nOS_Error   nOS_MutexUnlock             (nOS_Mutex *mutex);
 #endif
 
 #if (NOS_CONFIG_QUEUE_ENABLE > 0)
-nOS_Error   nOS_QueueCreate             (nOS_Queue *queue, void *buffer, uint16_t bsize, uint16_t max);
+nOS_Error   nOS_QueueCreate             (nOS_Queue *queue, void *buffer, uint16_t bsize, uint16_t bmax);
 nOS_Error   nOS_QueueRead               (nOS_Queue *queue, void *buffer, uint16_t tout);
 nOS_Error   nOS_QueueWrite              (nOS_Queue *queue, void *buffer);
 #endif

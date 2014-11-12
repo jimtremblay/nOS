@@ -152,7 +152,7 @@ nOS_Error nOS_MutexLock (nOS_Mutex *mutex, uint16_t tout)
                     SetThreadPriority(mutex->owner, nOS_runningThread->prio);
                 }
             }
-            err = nOS_EventWait((nOS_Event*)mutex, NOS_LOCKING_MUTEX, tout);
+            err = nOS_EventWait((nOS_Event*)mutex, NOS_THREAD_LOCKING_MUTEX, tout);
         }
         nOS_CriticalLeave();
     }
@@ -198,7 +198,7 @@ nOS_Error nOS_MutexUnlock (nOS_Mutex *mutex)
                         if (mutex->prio != NOS_MUTEX_PRIO_INHERIT) {
                             SetThreadPriority(thread, mutex->prio);
                         }
-                        if ((thread->state == NOS_READY) && (thread->prio > nOS_runningThread->prio)) {
+                        if ((thread->state == NOS_THREAD_READY) && (thread->prio > nOS_runningThread->prio)) {
                             nOS_Sched();
                         }
                     } else {

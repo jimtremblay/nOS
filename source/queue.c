@@ -16,7 +16,7 @@ extern "C" {
 #endif
 
 #if (NOS_CONFIG_QUEUE_ENABLE > 0)
-nOS_Error nOS_QueueCreate (nOS_Queue *queue, void *buffer, uint16_t bsize, uint16_t max)
+nOS_Error nOS_QueueCreate (nOS_Queue *queue, void *buffer, uint16_t bsize, uint16_t bmax)
 {
     nOS_Error   err;
 
@@ -27,7 +27,7 @@ nOS_Error nOS_QueueCreate (nOS_Queue *queue, void *buffer, uint16_t bsize, uint1
         err = NOS_E_NULL;
     } else if (bsize == 0) {
         err = NOS_E_INV_VAL;
-    } else if (max == 0) {
+    } else if (bmax == 0) {
         err = NOS_E_INV_VAL;
     } else
 #endif
@@ -36,8 +36,8 @@ nOS_Error nOS_QueueCreate (nOS_Queue *queue, void *buffer, uint16_t bsize, uint1
         nOS_EventCreate((nOS_Event*)queue);
         queue->buffer = (uint8_t*)buffer;
         queue->bsize = bsize;
-        queue->max = max;
-        queue->count = 0;
+        queue->bmax = bmax;
+        queue->bcount = 0;
         queue->r = 0;
         queue->w = 0;
         nOS_CriticalLeave();
@@ -60,10 +60,10 @@ nOS_Error nOS_QueueRead (nOS_Queue *queue, void *buffer, uint16_t tout)
 #endif
     {
         nOS_CriticalEnter();
-        if (queue->count > 0) {
+        if (queue->bcount > 0) {
             memcpy(buffer, &queue->buffer[queue->r * queue->bsize], queue->bsize);
-            queue->r = (queue->r + queue->bsize) % queue->max;
-            queue->count--;
+            queue->r = (queue->r + 1) % queue->bmax;
+            queue->bcount--;
             err = NOS_OK;
         } else if (tout == NOS_NO_WAIT) {
             err = NOS_E_EMPTY;
@@ -79,7 +79,7 @@ nOS_Error nOS_QueueRead (nOS_Queue *queue, void *buffer, uint16_t tout)
             err = NOS_E_IDLE;
         } else {
             nOS_runningThread->context = buffer;
-            err = nOS_EventWait((nOS_Event*)queue, NOS_READING_QUEUE, tout);
+            err = nOS_EventWait((nOS_Event*)queue, NOS_THREAD_READING_QUEUE, tout);
         }
         nOS_CriticalLeave();
     }
@@ -104,14 +104,14 @@ nOS_Error nOS_QueueWrite (nOS_Queue *queue, void *buffer)
         thread = nOS_EventSignal((nOS_Event*)queue, NOS_OK);
         if (thread != NULL) {
             memcpy(thread->context, buffer, queue->bsize);
-            if ((thread->state == NOS_READY) && (thread->prio > nOS_runningThread->prio)) {
+            if ((thread->state == NOS_THREAD_READY) && (thread->prio > nOS_runningThread->prio)) {
                 nOS_Sched();
             }
             err = NOS_OK;
-        } else if (queue->count < queue->max) {
+        } else if (queue->bcount < queue->bmax) {
             memcpy(&queue->buffer[queue->w * queue->bsize], buffer, queue->bsize);
-            queue->w = (queue->w + queue->bsize) % queue->max;
-            queue->count++;
+            queue->w = (queue->w + 1) % queue->bmax;
+            queue->bcount++;
             err = NOS_OK;
         } else {
             err = NOS_E_FULL;
