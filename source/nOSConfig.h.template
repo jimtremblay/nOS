@@ -70,3 +70,6 @@
  * Not used on all platforms.
  */
 #define NOS_CONFIG_MAX_UNSAFE_ISR_PRIO          5
+
+/* Number of call entries which will be reserved on each thread stack (EWAVR only) */
+#define NOS_CONFIG_CALL_STACK_SIZE              16
