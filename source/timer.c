@@ -279,6 +279,8 @@ bool nOS_TimerIsRunning (nOS_Timer *timer)
 #if (NOS_CONFIG_SAFE > 0)
     if (timer == NULL) {
         running = false;
+    } else if (timer->state == NOS_TIMER_DELETED) {
+        running = false;
     } else
 #endif
     {

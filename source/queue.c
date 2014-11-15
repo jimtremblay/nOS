@@ -23,6 +23,8 @@ nOS_Error nOS_QueueCreate (nOS_Queue *queue, void *buffer, uint16_t bsize, uint1
 #if (NOS_CONFIG_SAFE > 0)
     if (queue == NULL) {
         err = NOS_E_NULL;
+    } else if (queue->e.type != NOS_EVENT_TYPE_UNKOWN) {
+        err = NOS_E_INV_VAL;
     } else if (buffer == NULL) {
         err = NOS_E_NULL;
     } else if (bsize == 0) {
@@ -33,7 +35,11 @@ nOS_Error nOS_QueueCreate (nOS_Queue *queue, void *buffer, uint16_t bsize, uint1
 #endif
     {
         nOS_CriticalEnter();
+#if (NOS_CONFIG_SAFE > 0)
+        nOS_EventCreate((nOS_Event*)queue, NOS_EVENT_TYPE_QUEUE);
+#else
         nOS_EventCreate((nOS_Event*)queue);
+#endif
         queue->buffer = (uint8_t*)buffer;
         queue->bsize = bsize;
         queue->bmax = bmax;
@@ -47,6 +53,37 @@ nOS_Error nOS_QueueCreate (nOS_Queue *queue, void *buffer, uint16_t bsize, uint1
     return err;
 }
 
+#if (NOS_CONFIG_QUEUE_DELETE_ENABLE > 0)
+nOS_Error nOS_QueueDelete (nOS_Queue *queue)
+{
+    nOS_Error   err;
+
+#if (NOS_CONFIG_SAFE > 0)
+    if (queue == NULL) {
+        err = NOS_E_NULL;
+    } else if (queue->e.type != NOS_EVENT_TYPE_QUEUE) {
+        err = NOS_E_INV_VAL;
+    } else
+#endif
+    {
+        nOS_CriticalEnter();
+        queue->buffer = NULL;
+        queue->bsize = 0;
+        queue->bmax = 0;
+        queue->bcount = 0;
+        queue->r = 0;
+        queue->w = 0;
+        if (nOS_EventDelete((nOS_Event*)queue)) {
+            nOS_Sched();
+        }
+        nOS_CriticalLeave();
+        err = NOS_OK;
+    }
+
+    return err;
+}
+#endif
+
 nOS_Error nOS_QueueRead (nOS_Queue *queue, void *buffer, uint16_t tout)
 {
     nOS_Error   err;
@@ -54,6 +91,8 @@ nOS_Error nOS_QueueRead (nOS_Queue *queue, void *buffer, uint16_t tout)
 #if (NOS_CONFIG_SAFE > 0)
     if (queue == NULL) {
         err = NOS_E_NULL;
+    } else if (queue->e.type != NOS_EVENT_TYPE_QUEUE) {
+        err = NOS_E_INV_VAL;
     } else if (buffer == NULL) {
         err = NOS_E_NULL;
     } else
@@ -61,7 +100,7 @@ nOS_Error nOS_QueueRead (nOS_Queue *queue, void *buffer, uint16_t tout)
     {
         nOS_CriticalEnter();
         if (queue->bcount > 0) {
-            memcpy(buffer, &queue->buffer[queue->r * queue->bsize], queue->bsize);
+            memcpy(buffer, &queue->buffer[(size_t)queue->r * (size_t)queue->bsize], queue->bsize);
             queue->r = (queue->r + 1) % queue->bmax;
             queue->bcount--;
             err = NOS_OK;
@@ -95,6 +134,8 @@ nOS_Error nOS_QueueWrite (nOS_Queue *queue, void *buffer)
 #if (NOS_CONFIG_SAFE > 0)
     if (queue == NULL) {
         err = NOS_E_NULL;
+    } else if (queue->e.type != NOS_EVENT_TYPE_QUEUE) {
+        err = NOS_E_INV_VAL;
     } else if (buffer == NULL) {
         err = NOS_E_NULL;
     } else
@@ -109,7 +150,7 @@ nOS_Error nOS_QueueWrite (nOS_Queue *queue, void *buffer)
             }
             err = NOS_OK;
         } else if (queue->bcount < queue->bmax) {
-            memcpy(&queue->buffer[queue->w * queue->bsize], buffer, queue->bsize);
+            memcpy(&queue->buffer[(size_t)queue->w * (size_t)queue->bsize], buffer, queue->bsize);
             queue->w = (queue->w + 1) % queue->bmax;
             queue->bcount++;
             err = NOS_OK;

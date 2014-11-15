@@ -359,9 +359,36 @@ void nOS_ListWalk (nOS_List *list, void(*callback)(void*,void*), void *arg)
     }
 }
 
+#if (NOS_CONFIG_SAFE > 0)
+void nOS_EventCreate (nOS_Event *event, nOS_EventType type)
+#else
 void nOS_EventCreate (nOS_Event *event)
+#endif
 {
+#if (NOS_CONFIG_SAFE > 0)
+    event->type = type;
+#endif
     nOS_ListInit(&event->waitingList);
+}
+
+bool nOS_EventDelete (nOS_Event *event)
+{
+    nOS_Thread  *thread;
+    bool        sched = false;
+
+    do {
+        thread = nOS_EventSignal(event, NOS_E_DELETED);
+        if (thread != NULL) {
+            if ((thread->state == NOS_THREAD_READY) && (thread->prio > nOS_runningThread->prio)) {
+                sched = true;
+            }
+        }
+    } while (thread != NULL);
+#if (NOS_CONFIG_SAFE > 0)
+    event->type = NOS_EVENT_TYPE_UNKOWN;
+#endif
+
+    return sched;
 }
 
 nOS_Error nOS_EventWait (nOS_Event *event, uint8_t state, uint16_t tout)

@@ -66,11 +66,17 @@ nOS_Error nOS_FlagCreate (nOS_Flag *flag, nOS_FlagBits flags)
 #if (NOS_CONFIG_SAFE > 0)
     if (flag == NULL) {
         err = NOS_E_FULL;
+    } else if (flag->e.type != NOS_EVENT_TYPE_UNKOWN) {
+        err = NOS_E_INV_VAL;
     } else
 #endif
     {
         nOS_CriticalEnter();
+#if (NOS_CONFIG_SAFE > 0)
+        nOS_EventCreate((nOS_Event*)flag, NOS_EVENT_TYPE_FLAG);
+#else
         nOS_EventCreate((nOS_Event*)flag);
+#endif
         flag->flags = flags;
         nOS_CriticalLeave();
         err = NOS_OK;
@@ -82,32 +88,23 @@ nOS_Error nOS_FlagCreate (nOS_Flag *flag, nOS_FlagBits flags)
 #if (NOS_CONFIG_FLAG_DELETE_ENABLE > 0)
 nOS_Error nOS_FlagDelete (nOS_Flag *flag)
 {
-    nOS_Thread  *thread;
     nOS_Error   err;
-    bool        sched = false;
 
 #if (NOS_CONFIG_SAFE > 0)
     if (flag == NULL) {
         err = NOS_E_NULL;
+    } else if (flag->e.type != NOS_EVENT_TYPE_FLAG) {
+        err = NOS_E_INV_VAL;
     } else
 #endif
     {
         nOS_CriticalEnter();
-        do {
-            thread = nOS_EventSignal((nOS_Event*)flag, NOS_E_DELETED);
-            if (thread != NULL) {
-                if ((thread->state == NOS_THREAD_READY) && (thread->prio > nOS_runningThread->prio)) {
-                    sched = true;
-                }
-            }
-        } while (thread != NULL);
         flag->flags = NOS_FLAG_NONE;
+        if (nOS_EventDelete((nOS_Event*)flag)) {
+            nOS_Sched();
+        }
         nOS_CriticalLeave();
         err = NOS_OK;
-    }
-
-    if (sched) {
-        nOS_Sched();
     }
 
     return err;
@@ -157,6 +154,8 @@ nOS_Error nOS_FlagWait (nOS_Flag *flag, uint8_t opt, nOS_FlagBits flags,
 #if (NOS_CONFIG_SAFE > 0)
     if (flag == NULL) {
         err = NOS_E_NULL;
+    } else if (flag->e.type != NOS_EVENT_TYPE_FLAG) {
+        err = NOS_E_INV_VAL;
     } else
 #endif
     {
@@ -240,6 +239,8 @@ nOS_Error nOS_FlagSend (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits mask)
 #if (NOS_CONFIG_SAFE > 0)
     if (flag == NULL) {
         err = NOS_E_NULL;
+    } else if (flag->e.type != NOS_EVENT_TYPE_FLAG) {
+        err = NOS_E_INV_VAL;
     } else
 #endif
     {

@@ -81,6 +81,8 @@ nOS_Error nOS_MemCreate (nOS_Mem *mem, void *buffer, size_t bsize, uint16_t max)
 #if (NOS_CONFIG_SAFE > 0)
     if (mem == NULL) {
         err = NOS_E_NULL;
+    } else if (mem->e.type != NOS_EVENT_TYPE_UNKOWN) {
+        err = NOS_E_INV_VAL;
     } else if (buffer == NULL) {
         err = NOS_E_NULL;
     } else if (bsize < sizeof(void**)) {
@@ -95,7 +97,11 @@ nOS_Error nOS_MemCreate (nOS_Mem *mem, void *buffer, size_t bsize, uint16_t max)
 #endif
     {
         nOS_CriticalEnter();
+#if (NOS_CONFIG_SAFE > 0)
+        nOS_EventCreate((nOS_Event*)mem, NOS_EVENT_TYPE_MEM);
+#else
         nOS_EventCreate((nOS_Event*)mem);
+#endif
         /* Initialize the single-link list */
         list = NULL;
         for (i = 0; i < max-1; i++) {
@@ -117,6 +123,38 @@ nOS_Error nOS_MemCreate (nOS_Mem *mem, void *buffer, size_t bsize, uint16_t max)
 
     return err;
 }
+
+#if (NOS_CONFIG_MEM_DELETE_ENABLE > 0)
+nOS_Error nOS_MemDelete (nOS_Mem *mem)
+{
+    nOS_Error   err;
+
+#if (NOS_CONFIG_SAFE > 0)
+    if (mem == NULL) {
+        err = NOS_E_NULL;
+    } else if (mem->e.type != NOS_EVENT_TYPE_MEM) {
+        err = NOS_E_INV_VAL;
+    } else
+#endif
+    {
+        nOS_CriticalEnter();
+        mem->list = NULL;
+        mem->count = 0;
+#if (NOS_CONFIG_MEM_SANITY_CHECK_ENABLE > 0)
+        mem->buffer = NULL;
+        mem->bsize = 0;
+        mem->max = 0;
+#endif
+        if (nOS_EventDelete((nOS_Event*)mem)) {
+            nOS_Sched();
+        }
+        nOS_CriticalLeave();
+        err = NOS_OK;
+    }
+
+    return err;
+}
+#endif
 
 /*
  * Name        : nOS_MemAlloc
@@ -147,6 +185,8 @@ void *nOS_MemAlloc(nOS_Mem *mem, uint16_t tout)
 #if (NOS_CONFIG_SAFE > 0)
     if (mem == NULL) {
         block = NULL;
+    } else if (mem->e.type != NOS_EVENT_TYPE_MEM) {
+        err = NOS_E_INV_VAL;
     } else
 #endif
     {
@@ -213,6 +253,8 @@ nOS_Error nOS_MemFree(nOS_Mem *mem, void *block)
 #if (NOS_CONFIG_SAFE > 0)
     if (mem == NULL) {
         err = NOS_E_NULL;
+    } else if (mem->e.type != NOS_EVENT_TYPE_MEM) {
+        err = NOS_E_INV_VAL;
     } else if (block == NULL) {
         err = NOS_E_NULL;
     } else

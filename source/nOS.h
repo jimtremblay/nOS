@@ -110,6 +110,14 @@ extern "C" {
  #define NOS_CONFIG_MUTEX_ENABLE                1
  #warning "nOSConfig.h: NOS_CONFIG_MUTEX_ENABLE is not defined (enabled by default)."
 #endif
+#if (NOS_CONFIG_MUTEX_ENABLE > 0)
+ #if !defined(NOS_CONFIG_MUTEX_DELETE_ENABLE)
+  #define NOS_CONFIG_MUTEX_DELETE_ENABLE        1
+  #warning "nOSConfig.h: NOS_CONFIG_MUTEX_DELETE_ENABLE is not defined (enabled by default)."
+ #endif
+#else
+ #undef NOS_CONFIG_MUTEX_DELETE_ENABLE
+#endif
 
 #if !defined(NOS_CONFIG_FLAG_ENABLE)
  #define NOS_CONFIG_FLAG_ENABLE                 1
@@ -135,17 +143,30 @@ extern "C" {
  #define NOS_CONFIG_QUEUE_ENABLE                1
  #warning "nOSConfig.h: NOS_CONFIG_QUEUE_ENABLE is not defined (enabled by default)."
 #endif
+#if (NOS_CONFIG_QUEUE_ENABLE > 0)
+ #if !defined(NOS_CONFIG_QUEUE_DELETE_ENABLE)
+  #define NOS_CONFIG_QUEUE_DELETE_ENABLE        1
+  #warning "nOSConfig.h: NOS_CONFIG_QUEUE_DELETE_ENABLE is not defined (enabled by default)."
+ #endif
+#else
+ #undef NOS_CONFIG_QUEUE_DELETE_ENABLE
+#endif
 
 #if !defined(NOS_CONFIG_MEM_ENABLE)
  #define NOS_CONFIG_MEM_ENABLE                  1
  #warning "nOSConfig.h: NOS_CONFIG_MEM_ENABLE is not defined (enabled by default)."
 #endif
 #if (NOS_CONFIG_MEM_ENABLE > 0)
+ #if !defined(NOS_CONFIG_MEM_DELETE_ENABLE)
+  #define NOS_CONFIG_MEM_DELETE_ENABLE          1
+  #warning "nOSConfig.h: NOS_CONFIG_MEM_DELETE_ENABLE is not defined (enabled by default)."
+ #endif
  #if !defined(NOS_CONFIG_MEM_SANITY_CHECK_ENABLE)
   #define NOS_CONFIG_MEM_SANITY_CHECK_ENABLE    1
   #warning "nOSConfig.h: NOS_CONFIG_MEM_SANITY_CHECK_ENABLE is not defined (enabled by default)."
  #endif
 #else
+ #undef NOS_CONFIG_MEM_DELETE_ENABLE
  #undef NOS_CONFIG_MEM_SANITY_CHECK_ENABLE
 #endif
 
@@ -187,6 +208,9 @@ extern "C" {
 typedef struct _nOS_List        nOS_List;
 typedef struct _nOS_Node        nOS_Node;
 typedef struct _nOS_Thread      nOS_Thread;
+#if (NOS_CONFIG_SAFE > 0)
+typedef enum _nOS_EventType     nOS_EventType;
+#endif
 typedef struct _nOS_Event       nOS_Event;
 #if (NOS_CONFIG_SEM_ENABLE > 0)
 typedef struct _nOS_Sem         nOS_Sem;
@@ -278,8 +302,23 @@ struct _nOS_Thread
     nOS_Node        readyWaiting;
 };
 
+#if (NOS_CONFIG_SAFE > 0)
+enum _nOS_EventType
+{
+    NOS_EVENT_TYPE_UNKOWN = 0,
+    NOS_EVENT_TYPE_SEM,
+    NOS_EVENT_TYPE_MUTEX,
+    NOS_EVENT_TYPE_QUEUE,
+    NOS_EVENT_TYPE_FLAG,
+    NOS_EVENT_TYPE_MEM
+};
+#endif
+
 struct _nOS_Event
 {
+#if (NOS_CONFIG_SAFE > 0)
+    nOS_EventType   type;
+#endif
     nOS_List        waitingList;
 };
 
@@ -486,7 +525,12 @@ int16_t     nOS_ThreadGetPriority       (nOS_Thread *thread);
 nOS_Error   nOS_ThreadSetPriority       (nOS_Thread *thread, uint8_t prio);
 nOS_Thread* nOS_ThreadRunning           (void);
 
+#if (NOS_CONFIG_SAFE > 0)
+void        nOS_EventCreate             (nOS_Event *event, nOS_EventType type);
+#else
 void        nOS_EventCreate             (nOS_Event *event);
+#endif
+bool        nOS_EventDelete             (nOS_Event *event);
 nOS_Error   nOS_EventWait               (nOS_Event *event, uint8_t state, uint16_t tout);
 nOS_Thread* nOS_EventSignal             (nOS_Event *event, nOS_Error err);
 
@@ -501,12 +545,18 @@ nOS_Error   nOS_SemGive                 (nOS_Sem *sem);
 
 #if (NOS_CONFIG_MUTEX_ENABLE > 0)
 nOS_Error   nOS_MutexCreate             (nOS_Mutex *mutex, uint8_t type, uint8_t prio);
+#if (NOS_CONFIG_MUTEX_DELETE_ENABLE > 0)
+nOS_Error   nOS_MutexDelete             (nOS_Mutex *mutex);
+#endif
 nOS_Error   nOS_MutexLock               (nOS_Mutex *mutex, uint16_t tout);
 nOS_Error   nOS_MutexUnlock             (nOS_Mutex *mutex);
 #endif
 
 #if (NOS_CONFIG_QUEUE_ENABLE > 0)
 nOS_Error   nOS_QueueCreate             (nOS_Queue *queue, void *buffer, uint16_t bsize, uint16_t bmax);
+#if (NOS_CONFIG_QUEUE_DELETE_ENABLE > 0)
+nOS_Error   nOS_QueueDelete             (nOS_Queue *queue);
+#endif
 nOS_Error   nOS_QueueRead               (nOS_Queue *queue, void *buffer, uint16_t tout);
 nOS_Error   nOS_QueueWrite              (nOS_Queue *queue, void *buffer);
 #endif
@@ -522,6 +572,9 @@ nOS_Error   nOS_FlagSend                (nOS_Flag *flag, nOS_FlagBits flags, nOS
 
 #if (NOS_CONFIG_MEM_ENABLE > 0)
 nOS_Error   nOS_MemCreate               (nOS_Mem *mem, void *buffer, size_t bsize, uint16_t max);
+#if (NOS_CONFIG_MEM_DELETE_ENABLE > 0)
+nOS_Error   nOS_MemDelete               (nOS_Mem *mem);
+#endif
 void*       nOS_MemAlloc                (nOS_Mem *mem, uint16_t tout);
 nOS_Error   nOS_MemFree                 (nOS_Mem *mem, void *block);
 #endif

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <EmBlocks_project_file>
-	<EmBlocksVersion release="2.20" revision="1" />
+	<EmBlocksVersion release="2.30" revision="1" />
 	<FileVersion major="1" minor="0" />
 	<Project>
 		<Option title="emBlocks-GCC_STM32F429I-Discovery" />
@@ -195,6 +195,7 @@
 		<Unit filename="SPL\src\stm32f4xx_wwdg.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="config\nOSConfig.h" />
 		<Unit filename="cmsis\arm_common_tables.h" />
 		<Unit filename="cmsis\arm_math.h" />
 		<Unit filename="cmsis\core_cm4.h" />

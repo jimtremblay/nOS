@@ -21,6 +21,8 @@ nOS_Error nOS_SemCreate (nOS_Sem *sem, nOS_SemCount count, nOS_SemCount max)
 #if (NOS_CONFIG_SAFE > 0)
     if (sem == NULL) {
         err = NOS_E_NULL;
+    } else if (sem->e.type != NOS_EVENT_TYPE_UNKOWN) {
+        err = NOS_E_INV_VAL;
     } else if (max == 0) {
         err = NOS_E_INV_VAL;
     } else if (count > max) {
@@ -29,7 +31,11 @@ nOS_Error nOS_SemCreate (nOS_Sem *sem, nOS_SemCount count, nOS_SemCount max)
 #endif
     {
         nOS_CriticalEnter();
+#if (NOS_CONFIG_SAFE > 0)
+        nOS_EventCreate((nOS_Event*)sem, NOS_EVENT_TYPE_SEM);
+#else
         nOS_EventCreate((nOS_Event*)sem);
+#endif
         sem->count = count;
         sem->max = max;
         nOS_CriticalLeave();
@@ -42,33 +48,24 @@ nOS_Error nOS_SemCreate (nOS_Sem *sem, nOS_SemCount count, nOS_SemCount max)
 #if (NOS_CONFIG_SEM_DELETE_ENABLE > 0)
 nOS_Error nOS_SemDelete (nOS_Sem *sem)
 {
-    nOS_Thread  *thread;
     nOS_Error   err;
-    bool        sched = false;
 
 #if (NOS_CONFIG_SAFE > 0)
     if (sem == NULL) {
         err = NOS_E_NULL;
+    } else if (sem->e.type != NOS_EVENT_TYPE_SEM) {
+        err = NOS_E_INV_VAL;
     } else
 #endif
     {
         nOS_CriticalEnter();
-        do {
-            thread = nOS_EventSignal((nOS_Event*)sem, NOS_E_DELETED);
-            if (thread != NULL) {
-                if ((thread->state == NOS_THREAD_READY) && (thread->prio > nOS_runningThread->prio)) {
-                    sched = true;
-                }
-            }
-        } while (thread != NULL);
         sem->count = 0;
         sem->max = 0;
+        if (nOS_EventDelete((nOS_Event*)sem)) {
+            nOS_Sched();
+        }
         nOS_CriticalLeave();
         err = NOS_OK;
-    }
-
-    if (sched) {
-        nOS_Sched();
     }
 
     return err;
@@ -93,6 +90,8 @@ nOS_Error nOS_SemTake (nOS_Sem *sem, uint16_t tout)
 #if (NOS_CONFIG_SAFE > 0)
     if (sem == NULL) {
         err = NOS_E_NULL;
+    } else if (sem->e.type != NOS_EVENT_TYPE_SEM) {
+        err = NOS_E_INV_VAL;
     } else
 #endif
     {
@@ -141,6 +140,8 @@ nOS_Error nOS_SemGive (nOS_Sem *sem)
 #if (NOS_CONFIG_SAFE > 0)
     if (sem == NULL) {
         err = NOS_E_NULL;
+    } else if (sem->e.type != NOS_EVENT_TYPE_SEM) {
+        err = NOS_E_INV_VAL;
     } else
 #endif
     {

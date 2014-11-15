@@ -28,6 +28,8 @@
 
 /* Enable or disable mutex. */
 #define NOS_CONFIG_MUTEX_ENABLE                 1
+/* Enable or disable mutex deletion at run-time. */
+#define NOS_CONFIG_MUTEX_DELETE_ENABLE          1
 
 /* Enable or disable flag. */
 #define NOS_CONFIG_FLAG_ENABLE                  1
@@ -38,9 +40,13 @@
 
 /* Enable or disable queue. */
 #define NOS_CONFIG_QUEUE_ENABLE                 1
+/* Enable or disable queue deletion at run-time. */
+#define NOS_CONFIG_QUEUE_DELETE_ENABLE          1
 
 /* Enable or disable mem. */
 #define NOS_CONFIG_MEM_ENABLE                   1
+/* Enable or disable mem deletion at run-time. */
+#define NOS_CONFIG_MEM_DELETE_ENABLE            1
 /* Enable or disable sanity check of pointer when it is freed. */
 #define NOS_CONFIG_MEM_SANITY_CHECK_ENABLE      1
 
