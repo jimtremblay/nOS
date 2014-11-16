@@ -98,9 +98,9 @@ int main (void)
     nOS_SemCreate(&semC, 0, 1);
 
 #if (NOS_CONFIG_THREAD_SUSPEND_ENABLE > 0)
-    nOS_ThreadCreate(&threadA, ThreadA, (void*)300, threadAStack, THREAD_STACK_SIZE, 5, NOS_SUSPENDED);
-    nOS_ThreadCreate(&threadB, ThreadB, (void*)200, threadBStack, THREAD_STACK_SIZE, 4, NOS_SUSPENDED);
-    nOS_ThreadCreate(&threadC, ThreadC, (void*)100, threadCStack, THREAD_STACK_SIZE, 3, NOS_SUSPENDED);
+    nOS_ThreadCreate(&threadA, ThreadA, (void*)300, threadAStack, THREAD_STACK_SIZE, 5, NOS_THREAD_SUSPENDED);
+    nOS_ThreadCreate(&threadB, ThreadB, (void*)200, threadBStack, THREAD_STACK_SIZE, 4, NOS_THREAD_SUSPENDED);
+    nOS_ThreadCreate(&threadC, ThreadC, (void*)100, threadCStack, THREAD_STACK_SIZE, 3, NOS_THREAD_SUSPENDED);
 #else
     nOS_ThreadCreate(&threadA, ThreadA, (void*)300, threadAStack, THREAD_STACK_SIZE, 5);
     nOS_ThreadCreate(&threadB, ThreadB, (void*)200, threadBStack, THREAD_STACK_SIZE, 4);

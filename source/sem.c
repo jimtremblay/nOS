@@ -21,7 +21,7 @@ nOS_Error nOS_SemCreate (nOS_Sem *sem, nOS_SemCount count, nOS_SemCount max)
 #if (NOS_CONFIG_SAFE > 0)
     if (sem == NULL) {
         err = NOS_E_NULL;
-    } else if (sem->e.type != NOS_EVENT_TYPE_UNKOWN) {
+    } else if (sem->e.type != NOS_EVENT_INVALID) {
         err = NOS_E_INV_VAL;
     } else if (max == 0) {
         err = NOS_E_INV_VAL;
@@ -32,7 +32,7 @@ nOS_Error nOS_SemCreate (nOS_Sem *sem, nOS_SemCount count, nOS_SemCount max)
     {
         nOS_CriticalEnter();
 #if (NOS_CONFIG_SAFE > 0)
-        nOS_EventCreate((nOS_Event*)sem, NOS_EVENT_TYPE_SEM);
+        nOS_EventCreate((nOS_Event*)sem, NOS_EVENT_SEM);
 #else
         nOS_EventCreate((nOS_Event*)sem);
 #endif
@@ -53,7 +53,7 @@ nOS_Error nOS_SemDelete (nOS_Sem *sem)
 #if (NOS_CONFIG_SAFE > 0)
     if (sem == NULL) {
         err = NOS_E_NULL;
-    } else if (sem->e.type != NOS_EVENT_TYPE_SEM) {
+    } else if (sem->e.type != NOS_EVENT_SEM) {
         err = NOS_E_INV_VAL;
     } else
 #endif
@@ -90,7 +90,7 @@ nOS_Error nOS_SemTake (nOS_Sem *sem, uint16_t tout)
 #if (NOS_CONFIG_SAFE > 0)
     if (sem == NULL) {
         err = NOS_E_NULL;
-    } else if (sem->e.type != NOS_EVENT_TYPE_SEM) {
+    } else if (sem->e.type != NOS_EVENT_SEM) {
         err = NOS_E_INV_VAL;
     } else
 #endif
@@ -140,7 +140,7 @@ nOS_Error nOS_SemGive (nOS_Sem *sem)
 #if (NOS_CONFIG_SAFE > 0)
     if (sem == NULL) {
         err = NOS_E_NULL;
-    } else if (sem->e.type != NOS_EVENT_TYPE_SEM) {
+    } else if (sem->e.type != NOS_EVENT_SEM) {
         err = NOS_E_INV_VAL;
     } else
 #endif

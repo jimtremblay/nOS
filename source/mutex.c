@@ -50,7 +50,7 @@ nOS_Error nOS_MutexCreate (nOS_Mutex *mutex, uint8_t type, uint8_t prio)
 #if (NOS_CONFIG_SAFE > 0)
     if (mutex == NULL) {
         err = NOS_E_NULL;
-    } else if (mutex->e.type != NOS_EVENT_TYPE_UNKOWN) {
+    } else if (mutex->e.type != NOS_EVENT_INVALID) {
         err = NOS_E_INV_VAL;
     } else if ((type != NOS_MUTEX_NORMAL) && (type != NOS_MUTEX_RECURSIVE)) {
         err = NOS_E_INV_VAL;
@@ -59,7 +59,7 @@ nOS_Error nOS_MutexCreate (nOS_Mutex *mutex, uint8_t type, uint8_t prio)
     {
         nOS_CriticalEnter();
 #if (NOS_CONFIG_SAFE > 0)
-        nOS_EventCreate((nOS_Event*)mutex, NOS_EVENT_TYPE_MUTEX);
+        nOS_EventCreate((nOS_Event*)mutex, NOS_EVENT_MUTEX);
 #else
         nOS_EventCreate((nOS_Event*)mutex);
 #endif
@@ -83,7 +83,7 @@ nOS_Error nOS_MutexDelete (nOS_Mutex *mutex)
 #if (NOS_CONFIG_SAFE > 0)
     if (mutex == NULL) {
         err = NOS_E_NULL;
-    } else if (mutex->e.type != NOS_EVENT_TYPE_MUTEX) {
+    } else if (mutex->e.type != NOS_EVENT_MUTEX) {
         err = NOS_E_INV_VAL;
     } else
 #endif
@@ -121,7 +121,7 @@ nOS_Error nOS_MutexLock (nOS_Mutex *mutex, uint16_t tout)
 #if (NOS_CONFIG_SAFE > 0)
     if (mutex == NULL) {
         err = NOS_E_NULL;
-    } else if (mutex->e.type != NOS_EVENT_TYPE_MUTEX) {
+    } else if (mutex->e.type != NOS_EVENT_MUTEX) {
         err = NOS_E_INV_VAL;
     } else
 #endif
@@ -213,7 +213,7 @@ nOS_Error nOS_MutexUnlock (nOS_Mutex *mutex)
 #if (NOS_CONFIG_SAFE > 0)
     if (mutex == NULL) {
         err = NOS_E_NULL;
-    } else if (mutex->e.type != NOS_EVENT_TYPE_MUTEX) {
+    } else if (mutex->e.type != NOS_EVENT_MUTEX) {
         err = NOS_E_INV_VAL;
     } else
 #endif

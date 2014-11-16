@@ -81,7 +81,7 @@ nOS_Error nOS_MemCreate (nOS_Mem *mem, void *buffer, size_t bsize, uint16_t max)
 #if (NOS_CONFIG_SAFE > 0)
     if (mem == NULL) {
         err = NOS_E_NULL;
-    } else if (mem->e.type != NOS_EVENT_TYPE_UNKOWN) {
+    } else if (mem->e.type != NOS_EVENT_INVALID) {
         err = NOS_E_INV_VAL;
     } else if (buffer == NULL) {
         err = NOS_E_NULL;
@@ -98,7 +98,7 @@ nOS_Error nOS_MemCreate (nOS_Mem *mem, void *buffer, size_t bsize, uint16_t max)
     {
         nOS_CriticalEnter();
 #if (NOS_CONFIG_SAFE > 0)
-        nOS_EventCreate((nOS_Event*)mem, NOS_EVENT_TYPE_MEM);
+        nOS_EventCreate((nOS_Event*)mem, NOS_EVENT_MEM);
 #else
         nOS_EventCreate((nOS_Event*)mem);
 #endif
@@ -132,7 +132,7 @@ nOS_Error nOS_MemDelete (nOS_Mem *mem)
 #if (NOS_CONFIG_SAFE > 0)
     if (mem == NULL) {
         err = NOS_E_NULL;
-    } else if (mem->e.type != NOS_EVENT_TYPE_MEM) {
+    } else if (mem->e.type != NOS_EVENT_MEM) {
         err = NOS_E_INV_VAL;
     } else
 #endif
@@ -185,7 +185,7 @@ void *nOS_MemAlloc(nOS_Mem *mem, uint16_t tout)
 #if (NOS_CONFIG_SAFE > 0)
     if (mem == NULL) {
         block = NULL;
-    } else if (mem->e.type != NOS_EVENT_TYPE_MEM) {
+    } else if (mem->e.type != NOS_EVENT_MEM) {
         err = NOS_E_INV_VAL;
     } else
 #endif
@@ -253,7 +253,7 @@ nOS_Error nOS_MemFree(nOS_Mem *mem, void *block)
 #if (NOS_CONFIG_SAFE > 0)
     if (mem == NULL) {
         err = NOS_E_NULL;
-    } else if (mem->e.type != NOS_EVENT_TYPE_MEM) {
+    } else if (mem->e.type != NOS_EVENT_MEM) {
         err = NOS_E_INV_VAL;
     } else if (block == NULL) {
         err = NOS_E_NULL;

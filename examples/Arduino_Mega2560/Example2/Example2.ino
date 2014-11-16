@@ -63,8 +63,8 @@ void setup() {
   configHigh.level = HIGH;
   configHigh.sem = &semHigh;
   
-  nOS_ThreadCreate(&threadLow,  Thread, (void*)&configLow,  stackLow,  128, 7, NOS_READY);
-  nOS_ThreadCreate(&threadHigh, Thread, (void*)&configHigh, stackHigh, 128, 7, NOS_READY);
+  nOS_ThreadCreate(&threadLow,  Thread, (void*)&configLow,  stackLow,  128, 7, NOS_THREAD_READY);
+  nOS_ThreadCreate(&threadHigh, Thread, (void*)&configHigh, stackHigh, 128, 7, NOS_THREAD_READY);
 }
 
 void loop() {

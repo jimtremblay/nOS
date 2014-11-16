@@ -360,7 +360,7 @@ void nOS_ListWalk (nOS_List *list, void(*callback)(void*,void*), void *arg)
 }
 
 #if (NOS_CONFIG_SAFE > 0)
-void nOS_EventCreate (nOS_Event *event, nOS_EventType type)
+void nOS_EventCreate (nOS_Event *event, uint8_t type)
 #else
 void nOS_EventCreate (nOS_Event *event)
 #endif
@@ -385,7 +385,7 @@ bool nOS_EventDelete (nOS_Event *event)
         }
     } while (thread != NULL);
 #if (NOS_CONFIG_SAFE > 0)
-    event->type = NOS_EVENT_TYPE_UNKOWN;
+    event->type = NOS_EVENT_INVALID;
 #endif
 
     return sched;

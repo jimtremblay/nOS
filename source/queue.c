@@ -23,7 +23,7 @@ nOS_Error nOS_QueueCreate (nOS_Queue *queue, void *buffer, uint16_t bsize, uint1
 #if (NOS_CONFIG_SAFE > 0)
     if (queue == NULL) {
         err = NOS_E_NULL;
-    } else if (queue->e.type != NOS_EVENT_TYPE_UNKOWN) {
+    } else if (queue->e.type != NOS_EVENT_INVALID) {
         err = NOS_E_INV_VAL;
     } else if (buffer == NULL) {
         err = NOS_E_NULL;
@@ -36,7 +36,7 @@ nOS_Error nOS_QueueCreate (nOS_Queue *queue, void *buffer, uint16_t bsize, uint1
     {
         nOS_CriticalEnter();
 #if (NOS_CONFIG_SAFE > 0)
-        nOS_EventCreate((nOS_Event*)queue, NOS_EVENT_TYPE_QUEUE);
+        nOS_EventCreate((nOS_Event*)queue, NOS_EVENT_QUEUE);
 #else
         nOS_EventCreate((nOS_Event*)queue);
 #endif
@@ -61,7 +61,7 @@ nOS_Error nOS_QueueDelete (nOS_Queue *queue)
 #if (NOS_CONFIG_SAFE > 0)
     if (queue == NULL) {
         err = NOS_E_NULL;
-    } else if (queue->e.type != NOS_EVENT_TYPE_QUEUE) {
+    } else if (queue->e.type != NOS_EVENT_QUEUE) {
         err = NOS_E_INV_VAL;
     } else
 #endif
@@ -91,7 +91,7 @@ nOS_Error nOS_QueueRead (nOS_Queue *queue, void *buffer, uint16_t tout)
 #if (NOS_CONFIG_SAFE > 0)
     if (queue == NULL) {
         err = NOS_E_NULL;
-    } else if (queue->e.type != NOS_EVENT_TYPE_QUEUE) {
+    } else if (queue->e.type != NOS_EVENT_QUEUE) {
         err = NOS_E_INV_VAL;
     } else if (buffer == NULL) {
         err = NOS_E_NULL;
@@ -134,7 +134,7 @@ nOS_Error nOS_QueueWrite (nOS_Queue *queue, void *buffer)
 #if (NOS_CONFIG_SAFE > 0)
     if (queue == NULL) {
         err = NOS_E_NULL;
-    } else if (queue->e.type != NOS_EVENT_TYPE_QUEUE) {
+    } else if (queue->e.type != NOS_EVENT_QUEUE) {
         err = NOS_E_INV_VAL;
     } else if (buffer == NULL) {
         err = NOS_E_NULL;

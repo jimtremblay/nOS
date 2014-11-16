@@ -66,14 +66,14 @@ nOS_Error nOS_FlagCreate (nOS_Flag *flag, nOS_FlagBits flags)
 #if (NOS_CONFIG_SAFE > 0)
     if (flag == NULL) {
         err = NOS_E_FULL;
-    } else if (flag->e.type != NOS_EVENT_TYPE_UNKOWN) {
+    } else if (flag->e.type != NOS_EVENT_INVALID) {
         err = NOS_E_INV_VAL;
     } else
 #endif
     {
         nOS_CriticalEnter();
 #if (NOS_CONFIG_SAFE > 0)
-        nOS_EventCreate((nOS_Event*)flag, NOS_EVENT_TYPE_FLAG);
+        nOS_EventCreate((nOS_Event*)flag, NOS_EVENT_FLAG);
 #else
         nOS_EventCreate((nOS_Event*)flag);
 #endif
@@ -93,7 +93,7 @@ nOS_Error nOS_FlagDelete (nOS_Flag *flag)
 #if (NOS_CONFIG_SAFE > 0)
     if (flag == NULL) {
         err = NOS_E_NULL;
-    } else if (flag->e.type != NOS_EVENT_TYPE_FLAG) {
+    } else if (flag->e.type != NOS_EVENT_FLAG) {
         err = NOS_E_INV_VAL;
     } else
 #endif
@@ -154,7 +154,7 @@ nOS_Error nOS_FlagWait (nOS_Flag *flag, uint8_t opt, nOS_FlagBits flags,
 #if (NOS_CONFIG_SAFE > 0)
     if (flag == NULL) {
         err = NOS_E_NULL;
-    } else if (flag->e.type != NOS_EVENT_TYPE_FLAG) {
+    } else if (flag->e.type != NOS_EVENT_FLAG) {
         err = NOS_E_INV_VAL;
     } else
 #endif
@@ -239,7 +239,7 @@ nOS_Error nOS_FlagSend (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits mask)
 #if (NOS_CONFIG_SAFE > 0)
     if (flag == NULL) {
         err = NOS_E_NULL;
-    } else if (flag->e.type != NOS_EVENT_TYPE_FLAG) {
+    } else if (flag->e.type != NOS_EVENT_FLAG) {
         err = NOS_E_INV_VAL;
     } else
 #endif

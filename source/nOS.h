@@ -208,9 +208,6 @@ extern "C" {
 typedef struct _nOS_List        nOS_List;
 typedef struct _nOS_Node        nOS_Node;
 typedef struct _nOS_Thread      nOS_Thread;
-#if (NOS_CONFIG_SAFE > 0)
-typedef enum _nOS_EventType     nOS_EventType;
-#endif
 typedef struct _nOS_Event       nOS_Event;
 #if (NOS_CONFIG_SEM_ENABLE > 0)
 typedef struct _nOS_Sem         nOS_Sem;
@@ -302,22 +299,10 @@ struct _nOS_Thread
     nOS_Node        readyWaiting;
 };
 
-#if (NOS_CONFIG_SAFE > 0)
-enum _nOS_EventType
-{
-    NOS_EVENT_TYPE_UNKOWN = 0,
-    NOS_EVENT_TYPE_SEM,
-    NOS_EVENT_TYPE_MUTEX,
-    NOS_EVENT_TYPE_QUEUE,
-    NOS_EVENT_TYPE_FLAG,
-    NOS_EVENT_TYPE_MEM
-};
-#endif
-
 struct _nOS_Event
 {
 #if (NOS_CONFIG_SAFE > 0)
-    nOS_EventType   type;
+    uint8_t         type;
 #endif
     nOS_List        waitingList;
 };
@@ -418,6 +403,13 @@ struct _nOS_Timer
 #define NOS_THREAD_SLEEPING         0x20
 #define NOS_THREAD_SUSPENDED        0x40
 #define NOS_THREAD_READY            0x80
+
+#define NOS_EVENT_INVALID           0x00
+#define NOS_EVENT_SEM               0x01
+#define NOS_EVENT_MUTEX             0x02
+#define NOS_EVENT_QUEUE             0x03
+#define NOS_EVENT_FLAG              0x04
+#define NOS_EVENT_MEM               0x05
 
 #define NOS_MUTEX_NORMAL            0
 #define NOS_MUTEX_RECURSIVE         1
@@ -526,7 +518,7 @@ nOS_Error   nOS_ThreadSetPriority       (nOS_Thread *thread, uint8_t prio);
 nOS_Thread* nOS_ThreadRunning           (void);
 
 #if (NOS_CONFIG_SAFE > 0)
-void        nOS_EventCreate             (nOS_Event *event, nOS_EventType type);
+void        nOS_EventCreate             (nOS_Event *event, uint8_t type);
 #else
 void        nOS_EventCreate             (nOS_Event *event);
 #endif
