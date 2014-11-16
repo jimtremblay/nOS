@@ -115,8 +115,13 @@ extern "C" {
   #define NOS_CONFIG_MUTEX_DELETE_ENABLE        1
   #warning "nOSConfig.h: NOS_CONFIG_MUTEX_DELETE_ENABLE is not defined (enabled by default)."
  #endif
+ #if !defined(NOS_CONFIG_MUTEX_RECURSIVE_ENABLE)
+  #define NOS_CONFIG_MUTEX_RECURSIVE_ENABLE     1
+  #warning "nOSConfig.h: NOS_CONFIG_MUTEX_RECURSIVE_ENABLE is not defined (enabled by default)."
+ #endif
 #else
  #undef NOS_CONFIG_MUTEX_DELETE_ENABLE
+ #undef NOS_CONFIG_MUTEX_RECURSIVE_ENABLE
 #endif
 
 #if !defined(NOS_CONFIG_FLAG_ENABLE)
@@ -320,11 +325,13 @@ struct _nOS_Sem
 struct _nOS_Mutex
 {
     nOS_Event       e;
-    uint8_t         type;
-    uint8_t         count;
     uint8_t         prio;
     uint8_t         backup;
     nOS_Thread      *owner;
+#if (NOS_CONFIG_MUTEX_RECURSIVE_ENABLE > 0)
+    uint8_t         type;
+    uint8_t         count;
+#endif
 };
 #endif
 
@@ -366,12 +373,12 @@ struct _nOS_FlagResult
 struct _nOS_Mem
 {
     nOS_Event       e;
-    void            **list;
-    uint16_t        count;
+    void            **blist;
+    uint16_t        bcount;
 #if (NOS_CONFIG_MEM_SANITY_CHECK_ENABLE > 0)
     uint8_t         *buffer;
     uint16_t        bsize;
-    uint16_t        max;
+    uint16_t        bmax;
 #endif
 };
 #endif
@@ -536,7 +543,11 @@ nOS_Error   nOS_SemGive                 (nOS_Sem *sem);
 #endif
 
 #if (NOS_CONFIG_MUTEX_ENABLE > 0)
-nOS_Error   nOS_MutexCreate             (nOS_Mutex *mutex, uint8_t type, uint8_t prio);
+#if (NOS_CONFIG_MUTEX_RECURSIVE_ENABLE > 0)
+nOS_Error   nOS_MutexCreate             (nOS_Mutex *mutex, uint8_t prio, uint8_t type);
+#else
+nOS_Error   nOS_MutexCreate             (nOS_Mutex *mutex, uint8_t prio);
+#endif
 #if (NOS_CONFIG_MUTEX_DELETE_ENABLE > 0)
 nOS_Error   nOS_MutexDelete             (nOS_Mutex *mutex);
 #endif

@@ -14,11 +14,11 @@
 				<Option compiler="armgcc_eb" />
 				<Option projectDeviceOptionsRelation="0" />
 				<Compiler>
-					<Add option="-g3" />
-					<Add option="-O0" />
 					<Add option="-Wall" />
 					<Add option="-fdata-sections" />
 					<Add option="-ffunction-sections" />
+					<Add option="-O0" />
+					<Add option="-g3" />
 				</Compiler>
 				<Assembler>
 					<Add option="-Wa,--gdwarf-2" />
@@ -35,10 +35,9 @@
 				<Option compiler="armgcc_eb" />
 				<Option projectDeviceOptionsRelation="0" />
 				<Compiler>
-					<Add option="-O2" />
-					<Add option="-g2" />
 					<Add option="-fdata-sections" />
 					<Add option="-ffunction-sections" />
+					<Add option="-Os" />
 				</Compiler>
 				<Assembler>
 					<Add option="-Wa,--no-warn" />
@@ -195,13 +194,13 @@
 		<Unit filename="SPL\src\stm32f4xx_wwdg.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="config\nOSConfig.h" />
 		<Unit filename="cmsis\arm_common_tables.h" />
 		<Unit filename="cmsis\arm_math.h" />
 		<Unit filename="cmsis\core_cm4.h" />
 		<Unit filename="cmsis\core_cm4_simd.h" />
 		<Unit filename="cmsis\core_cmFunc.h" />
 		<Unit filename="cmsis\core_cmInstr.h" />
+		<Unit filename="config\nOSConfig.h" />
 		<Unit filename="inc\stm32f4xx.h" />
 		<Unit filename="inc\stm32f4xx_conf.h" />
 		<Unit filename="inc\system_stm32f4xx.h" />

@@ -23,16 +23,16 @@ static nOS_Error SanityCheck(nOS_Mem *mem, void *block)
     /* Memory block pointer is out of range? */
     if (block < (void*)mem->buffer) {
         err = NOS_E_INV_VAL;
-    } else if (block >= (void*)(mem->buffer + (mem->bsize * mem->max))) {
+    } else if (block >= (void*)(mem->buffer + (mem->bsize * mem->bmax))) {
         err = NOS_E_INV_VAL;
     /* Memory block pointer is multiple of block size? */
     } else if ((uint16_t)((uint8_t*)block - mem->buffer) % mem->bsize != 0) {
         err = NOS_E_INV_VAL;
-    } else if (mem->count == mem->max) {
+    } else if (mem->bcount == mem->bmax) {
         err = NOS_E_OVERFLOW;
     } else {
         /* Memory block is already free? */
-        p = (void*)mem->list;
+        p = (void*)mem->blist;
         while ((p != NULL) && (p != block)) {
             p = *(void**)p;
         }
@@ -72,11 +72,11 @@ static nOS_Error SanityCheck(nOS_Mem *mem, void *block)
  *               behavior is undefined. MUST be called one time
  *               ONLY for each mem object.
  */
-nOS_Error nOS_MemCreate (nOS_Mem *mem, void *buffer, size_t bsize, uint16_t max)
+nOS_Error nOS_MemCreate (nOS_Mem *mem, void *buffer, size_t bsize, uint16_t bmax)
 {
     nOS_Error   err;
     uint16_t    i;
-    void        **list;
+    void        **blist;
 
 #if (NOS_CONFIG_SAFE > 0)
     if (mem == NULL) {
@@ -91,7 +91,7 @@ nOS_Error nOS_MemCreate (nOS_Mem *mem, void *buffer, size_t bsize, uint16_t max)
     } else if ((uint32_t)buffer % NOS_MEM_ALIGNMENT != 0) {
         err = NOS_E_INV_VAL;
 #endif
-    } else if (max == 0) {
+    } else if (bmax == 0) {
         err = NOS_E_INV_VAL;
     } else
 #endif
@@ -103,19 +103,19 @@ nOS_Error nOS_MemCreate (nOS_Mem *mem, void *buffer, size_t bsize, uint16_t max)
         nOS_EventCreate((nOS_Event*)mem);
 #endif
         /* Initialize the single-link list */
-        list = NULL;
-        for (i = 0; i < max-1; i++) {
-            *(void**)buffer = list;
-            list = (void**)buffer;
+        blist = NULL;
+        for (i = 0; i < bmax-1; i++) {
+            *(void**)buffer = blist;
+            blist = (void**)buffer;
             buffer = ((uint8_t*)buffer + bsize);
         }
-        *(void**)buffer = list;
-        mem->list = (void**)buffer;
-        mem->count = max;
+        *(void**)buffer = blist;
+        mem->blist = (void**)buffer;
+        mem->bcount = bmax;
 #if (NOS_CONFIG_MEM_SANITY_CHECK_ENABLE > 0)
         mem->buffer = buffer;
         mem->bsize = bsize;
-        mem->max = max;
+        mem->bmax = bmax;
 #endif
         nOS_CriticalLeave();
         err = NOS_OK;
@@ -138,12 +138,12 @@ nOS_Error nOS_MemDelete (nOS_Mem *mem)
 #endif
     {
         nOS_CriticalEnter();
-        mem->list = NULL;
-        mem->count = 0;
+        mem->blist = NULL;
+        mem->bcount = 0;
 #if (NOS_CONFIG_MEM_SANITY_CHECK_ENABLE > 0)
         mem->buffer = NULL;
         mem->bsize = 0;
-        mem->max = 0;
+        mem->bmax = 0;
 #endif
         if (nOS_EventDelete((nOS_Event*)mem)) {
             nOS_Sched();
@@ -191,10 +191,10 @@ void *nOS_MemAlloc(nOS_Mem *mem, uint16_t tout)
 #endif
     {
         nOS_CriticalEnter();
-        if (mem->count > 0) {
-            block = (void*)mem->list;
-            mem->list = *(void**)block;
-            mem->count--;
+        if (mem->bcount > 0) {
+            block = (void*)mem->blist;
+            mem->blist = *(void**)block;
+            mem->bcount--;
         /* Caller can't wait? Try again. */
         } else if (tout == NOS_NO_WAIT) {
             block = NULL;
@@ -275,9 +275,9 @@ nOS_Error nOS_MemFree(nOS_Mem *mem, void *block)
                 nOS_Sched();
             }
         } else {
-            *(void**)block = mem->list;
-            mem->list = (void**)block;
-            mem->count++;
+            *(void**)block = mem->blist;
+            mem->blist = (void**)block;
+            mem->bcount++;
         }
         nOS_CriticalLeave();
         err = NOS_OK;

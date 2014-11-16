@@ -30,6 +30,8 @@
 #define NOS_CONFIG_MUTEX_ENABLE                 1
 /* Enable or disable mutex deletion at run-time. */
 #define NOS_CONFIG_MUTEX_DELETE_ENABLE          1
+/* Enable or disable recursive mutex */
+#define NOS_CONFIG_MUTEX_RECURSIVE_ENABLE       1
 
 /* Enable or disable flag. */
 #define NOS_CONFIG_FLAG_ENABLE                  1

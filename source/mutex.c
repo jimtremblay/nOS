@@ -43,7 +43,11 @@ extern "C" {
  *               behaviour is undefined and must be called one time
  *               ONLY for each mutex object.
  */
-nOS_Error nOS_MutexCreate (nOS_Mutex *mutex, uint8_t type, uint8_t prio)
+#if (NOS_CONFIG_MUTEX_RECURSIVE_ENABLE > 0)
+nOS_Error nOS_MutexCreate (nOS_Mutex *mutex, uint8_t prio, uint8_t type)
+#else
+nOS_Error nOS_MutexCreate (nOS_Mutex *mutex, uint8_t prio)
+#endif
 {
     nOS_Error   err;
 
@@ -52,8 +56,10 @@ nOS_Error nOS_MutexCreate (nOS_Mutex *mutex, uint8_t type, uint8_t prio)
         err = NOS_E_NULL;
     } else if (mutex->e.type != NOS_EVENT_INVALID) {
         err = NOS_E_INV_VAL;
+#if (NOS_CONFIG_MUTEX_RECURSIVE_ENABLE > 0)
     } else if ((type != NOS_MUTEX_NORMAL) && (type != NOS_MUTEX_RECURSIVE)) {
         err = NOS_E_INV_VAL;
+#endif
     } else
 #endif
     {
@@ -63,8 +69,10 @@ nOS_Error nOS_MutexCreate (nOS_Mutex *mutex, uint8_t type, uint8_t prio)
 #else
         nOS_EventCreate((nOS_Event*)mutex);
 #endif
+#if (NOS_CONFIG_MUTEX_RECURSIVE_ENABLE > 0)
         mutex->type = type;
         mutex->count = 0;
+#endif
         mutex->owner = NULL;
         mutex->prio = prio;
         mutex->backup = 0;
@@ -89,7 +97,9 @@ nOS_Error nOS_MutexDelete (nOS_Mutex *mutex)
 #endif
     {
         nOS_CriticalEnter();
+#if (NOS_CONFIG_MUTEX_RECURSIVE_ENABLE > 0)
         mutex->count = 0;
+#endif
         mutex->owner = NULL;
         if (nOS_EventDelete((nOS_Event*)mutex)) {
             nOS_Sched();
@@ -132,7 +142,9 @@ nOS_Error nOS_MutexLock (nOS_Mutex *mutex, uint16_t tout)
         nOS_CriticalEnter();
         /* Mutex available? Reserve it for calling thread */
         if (mutex->owner == NULL) {
+#if (NOS_CONFIG_MUTEX_RECURSIVE_ENABLE > 0)
             mutex->count++;
+#endif
             mutex->owner = nOS_runningThread;
             mutex->backup = nOS_runningThread->prio;
             if (mutex->prio != NOS_MUTEX_PRIO_INHERIT) {
@@ -143,6 +155,7 @@ nOS_Error nOS_MutexLock (nOS_Mutex *mutex, uint16_t tout)
             err = NOS_OK;
         /* Mutex owner relock it? */
         } else if (mutex->owner == nOS_runningThread) {
+#if (NOS_CONFIG_MUTEX_RECURSIVE_ENABLE > 0)
             if (mutex->type == NOS_MUTEX_RECURSIVE) {
                 if (mutex->count < UINT8_MAX) {
                     mutex->count++;
@@ -151,7 +164,9 @@ nOS_Error nOS_MutexLock (nOS_Mutex *mutex, uint16_t tout)
                     err = NOS_E_OVERFLOW;
                 }
             /* Binary mutex */
-            } else {
+            } else
+#endif
+            {
                 err = NOS_E_OVERFLOW;
             }
         /* Calling thread can't wait? Try again. */
@@ -224,12 +239,17 @@ nOS_Error nOS_MutexUnlock (nOS_Mutex *mutex)
         nOS_CriticalEnter();
         if (mutex->owner != NULL) {
             if (mutex->owner == nOS_runningThread) {
+#if (NOS_CONFIG_MUTEX_RECURSIVE_ENABLE > 0)
                 mutex->count--;
-                if (mutex->count == 0) {
+                if (mutex->count == 0)
+#endif
+                {
                     SetThreadPriority(mutex->owner, mutex->backup);
                     thread = nOS_EventSignal((nOS_Event*)mutex, NOS_OK);
                     if (thread != NULL) {
+#if (NOS_CONFIG_MUTEX_RECURSIVE_ENABLE > 0)
                         mutex->count++;
+#endif
                         mutex->owner = thread;
                         mutex->backup = thread->prio;
                         if (mutex->prio != NOS_MUTEX_PRIO_INHERIT) {
