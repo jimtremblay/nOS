@@ -179,14 +179,13 @@ nOS_Error nOS_MemDelete (nOS_Mem *mem)
  */
 void *nOS_MemAlloc(nOS_Mem *mem, uint16_t tout)
 {
-    int8_t  err;
     void    *block;
 
 #if (NOS_CONFIG_SAFE > 0)
     if (mem == NULL) {
         block = NULL;
     } else if (mem->e.type != NOS_EVENT_MEM) {
-        err = NOS_E_INV_VAL;
+        block = NULL;
     } else
 #endif
     {
@@ -210,8 +209,7 @@ void *nOS_MemAlloc(nOS_Mem *mem, uint16_t tout)
             block = NULL;
         } else {
             nOS_runningThread->context = (void*)&block;
-            err = nOS_EventWait((nOS_Event*)mem, NOS_THREAD_ALLOC_MEM, tout);
-            if (err != NOS_OK) {
+            if (nOS_EventWait((nOS_Event*)mem, NOS_THREAD_ALLOC_MEM, tout) != NOS_OK) {
                 block = NULL;
             }
         }
