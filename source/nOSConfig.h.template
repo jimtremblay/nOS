@@ -37,7 +37,7 @@
 #define NOS_CONFIG_FLAG_ENABLE                  1
 /* Enable or disable flag deletion at run-time. */
 #define NOS_CONFIG_FLAG_DELETE_ENABLE           1
-/* Size of flag in bits (can be 8, 16 or 32) */
+/* Size of flag in bits (can be 8, 16, 32 or 64) */
 #define NOS_CONFIG_FLAG_NB_BITS                 32
 
 /* Enable or disable queue. */

@@ -136,8 +136,8 @@ extern "C" {
  #if !defined(NOS_CONFIG_FLAG_NB_BITS)
   #define NOS_CONFIG_FLAG_NB_BITS               16
   #warning "nOSConfig.h: NOS_CONFIG_FLAG_NB_BITS is not defined (default to 16)."
- #elif (NOS_CONFIG_FLAG_NB_BITS != 8) && (NOS_CONFIG_FLAG_NB_BITS != 16) && (NOS_CONFIG_FLAG_NB_BITS != 32)
-  #error "nOSConfig.h: NOS_CONFIG_FLAG_NB_BITS set to invalid value: can be set to 8, 16 or 32."
+ #elif (NOS_CONFIG_FLAG_NB_BITS != 8) && (NOS_CONFIG_FLAG_NB_BITS != 16) && (NOS_CONFIG_FLAG_NB_BITS != 32) && (NOS_CONFIG_FLAG_NB_BITS != 64)
+  #error "nOSConfig.h: NOS_CONFIG_FLAG_NB_BITS set to invalid value: can be set to 8, 16, 32 or 64."
  #endif
 #else
  #undef NOS_CONFIG_FLAG_DELETE_ENABLE
@@ -238,8 +238,10 @@ typedef struct _nOS_FlagResult  nOS_FlagResult;
 typedef uint8_t                 nOS_FlagBits;
 #elif (NOS_CONFIG_FLAG_NB_BITS == 16)
 typedef uint16_t                nOS_FlagBits;
-#else   /* NOS_CONFIG_FLAG_NB_BITS == 32 */
+#elif (NOS_CONFIG_FLAG_NB_BITS == 32)
 typedef uint32_t                nOS_FlagBits;
+#else   /* NOS_CONFIG_FLAG_NB_BITS == 64 */
+typedef uint64_t                nOS_FlagBits;
 #endif
 #endif
 #if (NOS_CONFIG_MEM_ENABLE > 0)
