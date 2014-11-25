@@ -33,13 +33,9 @@ typedef uint32_t                            nOS_Stack;
 
 #if !defined(NOS_CONFIG_ISR_STACK_SIZE)
  #define NOS_CONFIG_ISR_STACK_SIZE          128
- #if defined(NOS_USE_CONFIG_FILE)
-  #warning "nOSConfig.h: NOS_CONFIG_ISR_STACK_SIZE is not defined (default to 128)."
- #endif
-#else
- #if NOS_CONFIG_ISR_STACK_SIZE == 0
-  #error "nOSConfig.h: NOS_CONFIG_ISR_STACK_SIZE is set to invalid value."
- #endif
+ #warning "nOSConfig.h: NOS_CONFIG_ISR_STACK_SIZE is not defined (default to 128)."
+#elif (NOS_CONFIG_ISR_STACK_SIZE == 0)
+ #error "nOSConfig.h: NOS_CONFIG_ISR_STACK_SIZE is set to invalid value."
 #endif
 
 #if !defined(NOS_CONFIG_MAX_UNSAFE_ISR_PRIO)
@@ -57,10 +53,8 @@ typedef uint32_t                            nOS_Stack;
 
 __attribute__( ( always_inline ) ) static inline uint32_t GetMSP (void)
 {
-    uint32_t r;
-
+    register uint32_t r;
     __asm volatile ("MRS %0, MSP" : "=r" (r));
-
     return r;
 }
 
@@ -71,10 +65,8 @@ __attribute__( ( always_inline ) ) static inline void SetMSP (uint32_t r)
 
 __attribute__( ( always_inline ) ) static inline uint32_t GetPSP (void)
 {
-    uint32_t r;
-
+    register uint32_t r;
     __asm volatile ("MRS %0, PSP" : "=r" (r));
-
     return r;
 }
 
@@ -85,10 +77,8 @@ __attribute__( ( always_inline ) ) static inline void SetPSP (uint32_t r)
 
 __attribute__( ( always_inline ) ) static inline uint32_t GetCONTROL (void)
 {
-    uint32_t r;
-
+    register uint32_t r;
     __asm volatile ("MRS %0, CONTROL" : "=r" (r));
-
     return r;
 }
 
@@ -99,10 +89,8 @@ __attribute__( ( always_inline ) ) static inline void SetCONTROL (uint32_t r)
 
 __attribute__( ( always_inline ) ) static inline uint32_t GetBASEPRI (void)
 {
-    uint32_t r;
-
+    register uint32_t r;
     __asm volatile ("MRS %0, BASEPRI" : "=r" (r));
-
     return r;
 }
 
@@ -128,7 +116,7 @@ __attribute__( ( always_inline ) ) static inline void NOP (void)
 
 __attribute__( ( always_inline ) ) static inline uint32_t nOS_PortCLZ(uint32_t n)
 {
-    uint32_t    r;
+    register uint32_t r;
     __asm volatile (
         "CLZ    %0, %1"
         : "=r" (r)

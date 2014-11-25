@@ -457,19 +457,26 @@ NOS_EXTERN nOS_List     nOS_readyList[NOS_CONFIG_HIGHEST_THREAD_PRIO+1];
 NOS_EXTERN uint32_t     nOS_readyPrio;
 #elif NOS_CONFIG_HIGHEST_THREAD_PRIO < 256
 NOS_EXTERN uint32_t     nOS_readyGroup;
-NOS_EXTERN uint32_t     nOS_readyPrio[8];
+NOS_EXTERN uint32_t     nOS_readyPrio[((NOS_CONFIG_HIGHEST_THREAD_PRIO+31)/32)];
 #endif  /* NOS_CONFIG_HIGHEST_THREAD_PRIO */
-#else   /* NOS_PORT_SCHED_USE_32_BITS */
+#elif defined(NOS_PORT_SCHED_USE_16_BITS)
+#if NOS_CONFIG_HIGHEST_THREAD_PRIO < 16
+NOS_EXTERN uint16_t     nOS_readyPrio;
+#elif NOS_CONFIG_HIGHEST_THREAD_PRIO < 256
+NOS_EXTERN uint16_t     nOS_readyGroup;
+NOS_EXTERN uint16_t     nOS_readyPrio[((NOS_CONFIG_HIGHEST_THREAD_PRIO+15)/16)];
+#endif  /* NOS_CONFIG_HIGHEST_THREAD_PRIO */
+#else   /* NOS_PORT_SCHED_USE_8_BITS */
 #if NOS_CONFIG_HIGHEST_THREAD_PRIO < 8
 NOS_EXTERN uint8_t      nOS_readyPrio;
 #elif NOS_CONFIG_HIGHEST_THREAD_PRIO < 16
 NOS_EXTERN uint16_t     nOS_readyPrio;
 #elif NOS_CONFIG_HIGHEST_THREAD_PRIO < 64
 NOS_EXTERN uint8_t      nOS_readyGroup;
-NOS_EXTERN uint8_t      nOS_readyPrio[8];
+NOS_EXTERN uint8_t      nOS_readyPrio[((NOS_CONFIG_HIGHEST_THREAD_PRIO+7)/8)];
 #elif NOS_CONFIG_HIGHEST_THREAD_PRIO < 256
 NOS_EXTERN uint16_t     nOS_readyGroup;
-NOS_EXTERN uint16_t     nOS_readyPrio[16];
+NOS_EXTERN uint16_t     nOS_readyPrio[((NOS_CONFIG_HIGHEST_THREAD_PRIO+15)/16)];
 #endif  /* NOS_CONFIG_HIGHEST_THREAD_PRIO */
 #endif  /* NOS_PORT_SCHED_USE_32_BITS */
 #endif  /* NOS_PRIVATE */

@@ -57,10 +57,8 @@ typedef uint32_t                            nOS_Stack;
 
 __attribute__( ( always_inline ) ) static inline uint32_t GetMSP (void)
 {
-    uint32_t r;
-
+    register uint32_t r;
     __asm volatile ("MRS %[result], MSP" : [result] "=r" (r));
-
     return r;
 }
 
@@ -71,10 +69,8 @@ __attribute__( ( always_inline ) ) static inline void SetMSP (uint32_t r)
 
 __attribute__( ( always_inline ) ) static inline uint32_t GetPSP (void)
 {
-    uint32_t r;
-
+    register uint32_t r;
     __asm volatile ("MRS %[result], PSP" : [result] "=r" (r));
-
     return r;
 }
 
@@ -85,10 +81,8 @@ __attribute__( ( always_inline ) ) static inline void SetPSP (uint32_t r)
 
 __attribute__( ( always_inline ) ) static inline uint32_t GetCONTROL (void)
 {
-    uint32_t r;
-
+    register uint32_t r;
     __asm volatile ("MRS %[result], CONTROL" : [result] "=r" (r));
-
     return r;
 }
 
@@ -99,10 +93,8 @@ __attribute__( ( always_inline ) ) static inline void SetCONTROL (uint32_t r)
 
 __attribute__( ( always_inline ) ) static inline uint32_t GetBASEPRI (void)
 {
-    uint32_t r;
-
+    register uint32_t r;
     __asm volatile ("MRS %[result], BASEPRI" : [result] "=r" (r));
-
     return r;
 }
 
@@ -128,7 +120,7 @@ __attribute__( ( always_inline ) ) static inline void NOP (void)
 
 __attribute__( ( always_inline ) ) static inline uint32_t nOS_PortCLZ(uint32_t n)
 {
-    uint32_t    r;
+    register uint32_t r;
     __asm volatile (
         "CLZ    %[result], %[input]"
         : [result] "=r" (r)

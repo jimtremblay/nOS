@@ -28,6 +28,7 @@ typedef uint16_t                nOS_Stack;
 
 #define NOS_UNUSED(v)           (void)v
 
+#define NOS_PORT_SCHED_USE_16_BITS
 #define NOS_MEM_ALIGNMENT       2
 
 #if (__DATA_MODEL__ == __DATA_MODEL_SMALL__)
