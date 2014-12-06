@@ -523,6 +523,7 @@ nOS_Error   nOS_ThreadCreate            (nOS_Thread *thread, void(*func)(void*),
 #if (NOS_CONFIG_THREAD_DELETE_ENABLE > 0)
 nOS_Error   nOS_ThreadDelete            (nOS_Thread *thread);
 #endif
+void        nOS_ThreadTick              (void);
 #if (NOS_CONFIG_THREAD_SUSPEND_ENABLE > 0)
 nOS_Error   nOS_ThreadSuspend           (nOS_Thread *thread);
 nOS_Error   nOS_ThreadSuspendAll        (void);

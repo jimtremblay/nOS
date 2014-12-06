@@ -630,10 +630,7 @@ nOS_Error nOS_Yield(void)
 
 void nOS_Tick(void)
 {
-    nOS_CriticalEnter();
-    nOS_ListWalk(&nOS_fullList, TickThread, NULL);
-    nOS_ListRotate(&nOS_readyList[nOS_runningThread->prio]);
-    nOS_CriticalLeave();
+    nOS_ThreadTick();
 
 #if (NOS_CONFIG_TIMER_ENABLE > 0)
     nOS_TimerTick();

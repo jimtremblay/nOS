@@ -237,6 +237,14 @@ nOS_Error nOS_ThreadDelete (nOS_Thread *thread)
 }
 #endif
 
+void nOS_ThreadTick(void)
+{
+    nOS_CriticalEnter();
+    nOS_ListWalk(&nOS_fullList, TickThread, NULL);
+    nOS_ListRotate(&nOS_readyList[nOS_runningThread->prio]);
+    nOS_CriticalLeave();
+}
+
 #if (NOS_CONFIG_THREAD_SUSPEND_ENABLE > 0)
 nOS_Error nOS_ThreadSuspend (nOS_Thread *thread)
 {
