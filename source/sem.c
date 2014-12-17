@@ -22,7 +22,7 @@ nOS_Error nOS_SemCreate (nOS_Sem *sem, nOS_SemCount count, nOS_SemCount max)
     if (sem == NULL) {
         err = NOS_E_NULL;
     } else if (sem->e.type != NOS_EVENT_INVALID) {
-        err = NOS_E_INV_VAL;
+        err = NOS_E_INV_OBJ;
     } else if (max == 0) {
         err = NOS_E_INV_VAL;
     } else if (count > max) {

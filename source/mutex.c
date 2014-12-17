@@ -55,7 +55,7 @@ nOS_Error nOS_MutexCreate (nOS_Mutex *mutex, uint8_t prio)
     if (mutex == NULL) {
         err = NOS_E_NULL;
     } else if (mutex->e.type != NOS_EVENT_INVALID) {
-        err = NOS_E_INV_VAL;
+        err = NOS_E_INV_OBJ;
 #if (NOS_CONFIG_MUTEX_RECURSIVE_ENABLE > 0)
     } else if ((type != NOS_MUTEX_NORMAL) && (type != NOS_MUTEX_RECURSIVE)) {
         err = NOS_E_INV_VAL;

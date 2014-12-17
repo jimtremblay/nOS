@@ -67,7 +67,7 @@ nOS_Error nOS_FlagCreate (nOS_Flag *flag, nOS_FlagBits flags)
     if (flag == NULL) {
         err = NOS_E_FULL;
     } else if (flag->e.type != NOS_EVENT_INVALID) {
-        err = NOS_E_INV_VAL;
+        err = NOS_E_INV_OBJ;
     } else
 #endif
     {
@@ -161,10 +161,7 @@ nOS_Error nOS_FlagWait (nOS_Flag *flag, uint8_t opt, nOS_FlagBits flags,
     {
         nOS_CriticalEnter();
         r = flag->flags & flags;
-        /*
-         * If thread is waiting for ALL flags,
-         * then clear result if NOT ALL flags set.
-         */
+        /* If thread is waiting for ALL flags, then clear result if NOT ALL flags set. */
         if (((opt & NOS_FLAG_WAIT) == NOS_FLAG_WAIT_ALL) && (r != flags)) {
             r = NOS_FLAG_NONE;
         }

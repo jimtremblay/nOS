@@ -24,7 +24,7 @@ nOS_Error nOS_QueueCreate (nOS_Queue *queue, void *buffer, uint16_t bsize, uint1
     if (queue == NULL) {
         err = NOS_E_NULL;
     } else if (queue->e.type != NOS_EVENT_INVALID) {
-        err = NOS_E_INV_VAL;
+        err = NOS_E_INV_OBJ;
     } else if (buffer == NULL) {
         err = NOS_E_NULL;
     } else if (bsize == 0) {
@@ -161,6 +161,46 @@ nOS_Error nOS_QueueWrite (nOS_Queue *queue, void *buffer)
     }
 
     return err;
+}
+
+bool nOS_QueueIsEmpty (nOS_Queue *queue)
+{
+    bool    empty;
+
+#if (NOS_CONFIG_SAFE > 0)
+    if (queue == NULL) {
+        empty = false;
+    } else if (queue->e.type != NOS_EVENT_QUEUE) {
+        empty = false;
+    } else
+#endif
+    {
+        nOS_CriticalEnter();
+        empty = (queue->bcount == 0);
+        nOS_CriticalLeave();
+    }
+
+    return empty;
+}
+
+bool nOS_QueueIsFull (nOS_Queue *queue)
+{
+    bool    full;
+
+#if (NOS_CONFIG_SAFE > 0)
+    if (queue == NULL) {
+        full = false;
+    } else if (queue->e.type != NOS_EVENT_QUEUE) {
+        full = false;
+    } else
+#endif
+    {
+        nOS_CriticalEnter();
+        full = (queue->bcount == queue->bmax);
+        nOS_CriticalLeave();
+    }
+
+    return full;
 }
 #endif  /* NOS_CONFIG_QUEUE_ENABLE */
 

@@ -274,7 +274,8 @@ typedef enum _nOS_Error
     NOS_E_EMPTY = -11,
     NOS_E_FULL = -12,
     NOS_E_INIT = -13,
-    NOS_E_DELETED = -14
+    NOS_E_DELETED = -14,
+    NOS_E_INV_OBJ = -15
 } nOS_Error;
 
 #include "port.h"
@@ -572,6 +573,8 @@ nOS_Error   nOS_QueueDelete             (nOS_Queue *queue);
 #endif
 nOS_Error   nOS_QueueRead               (nOS_Queue *queue, void *buffer, uint16_t tout);
 nOS_Error   nOS_QueueWrite              (nOS_Queue *queue, void *buffer);
+bool        nOS_QueueIsEmpty            (nOS_Queue *queue);
+bool        nOS_QueueIsFull             (nOS_Queue *queue);
 #endif
 
 #if (NOS_CONFIG_FLAG_ENABLE > 0)

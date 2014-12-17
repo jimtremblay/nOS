@@ -82,7 +82,7 @@ nOS_Error nOS_MemCreate (nOS_Mem *mem, void *buffer, size_t bsize, uint16_t bmax
     if (mem == NULL) {
         err = NOS_E_NULL;
     } else if (mem->e.type != NOS_EVENT_INVALID) {
-        err = NOS_E_INV_VAL;
+        err = NOS_E_INV_OBJ;
     } else if (buffer == NULL) {
         err = NOS_E_NULL;
     } else if (bsize < sizeof(void**)) {
