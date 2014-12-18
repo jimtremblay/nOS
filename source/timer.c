@@ -97,7 +97,7 @@ nOS_Error nOS_TimerCreate (nOS_Timer *timer, void(*callback)(void*), void *arg, 
     } else if ((mode != NOS_TIMER_FREE_RUNNING) && (mode != NOS_TIMER_ONE_SHOT)) {
         err = NOS_E_INV_VAL;
     } else if (timer->state != NOS_TIMER_DELETED) {
-        err = NOS_E_INV_VAL;
+        err = NOS_E_INV_OBJ;
     } else
 #endif
     {
@@ -274,7 +274,7 @@ nOS_Error nOS_TimerSetMode (nOS_Timer *timer, uint8_t mode)
 
 bool nOS_TimerIsRunning (nOS_Timer *timer)
 {
-    bool running = false;
+    bool running;
 
 #if (NOS_CONFIG_SAFE > 0)
     if (timer == NULL) {
@@ -285,9 +285,7 @@ bool nOS_TimerIsRunning (nOS_Timer *timer)
 #endif
     {
         nOS_CriticalEnter();
-        if (timer->state & NOS_TIMER_RUNNING) {
-            running = true;
-        }
+        running = (timer->state & NOS_TIMER_RUNNING) == NOS_TIMER_RUNNING;
         nOS_CriticalLeave();
     }
 

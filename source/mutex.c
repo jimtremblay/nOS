@@ -274,6 +274,47 @@ nOS_Error nOS_MutexUnlock (nOS_Mutex *mutex)
 
     return err;
 }
+
+bool nOS_MutexIsLocked (nOS_Mutex *mutex)
+{
+    bool    locked;
+
+#if (NOS_CONFIG_SAFE > 0)
+    if (mutex == NULL) {
+        locked = false;
+    } else if (mutex->e.type != NOS_EVENT_MUTEX) {
+        locked = false;
+    } else
+#endif
+    {
+        nOS_CriticalEnter();
+        locked = (mutex->owner != NULL);
+        nOS_CriticalLeave();
+    }
+
+    return locked;
+}
+
+nOS_Thread* nOS_MutexOwner (nOS_Mutex *mutex)
+{
+    nOS_Thread *owner;
+
+#if (NOS_CONFIG_SAFE > 0)
+    if (mutex == NULL) {
+        owner = NULL;
+    } else if (mutex->e.type != NOS_EVENT_MUTEX) {
+        owner = NULL;
+    } else
+#endif
+    {
+        nOS_CriticalEnter();
+
+        owner = mutex->owner;
+        nOS_CriticalLeave();
+    }
+
+    return owner;
+}
 #endif  /* NOS_CONFIG_MUTEX_ENABLE */
 
 #if defined(__cplusplus)

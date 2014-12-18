@@ -283,6 +283,26 @@ nOS_Error nOS_MemFree(nOS_Mem *mem, void *block)
 
     return err;
 }
+
+bool nOS_MemIsAvailable (nOS_Mem *mem)
+{
+    bool    avail;
+
+#if (NOS_CONFIG_SAFE > 0)
+    if (mem == NULL) {
+        avail = false;
+    } else if (mem->e.type != NOS_EVENT_MEM) {
+        avail = false;
+    } else
+#endif
+    {
+        nOS_CriticalEnter();
+        avail = (mem->bcount > 0);
+        nOS_CriticalLeave();
+    }
+
+    return avail;
+}
 #endif  /* NOS_CONFIG_MEM_ENABLE */
 
 #if defined(__cplusplus)

@@ -258,6 +258,30 @@ nOS_Error nOS_FlagSend (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits mask)
 
     return err;
 }
+
+nOS_FlagBits nOS_FlagTest (nOS_Flag *flag, nOS_FlagBits flags, bool all)
+{
+    nOS_FlagBits    res;
+
+#if (NOS_CONFIG_SAFE > 0)
+    if (flag == NULL) {
+        res = NOS_FLAG_NONE;
+    } else if (flag->e.type != NOS_EVENT_FLAG) {
+        res = NOS_FLAG_NONE;
+    } else
+#endif
+    {
+        nOS_CriticalEnter();
+        if (all) {
+            res = (flag->flags & flags) == flags ? flags : NOS_FLAG_NONE;
+        } else {
+            res = (flag->flags & flags);
+        }
+        nOS_CriticalLeave();
+    }
+
+    return res;
+}
 #endif  /* NOS_CONFIG_FLAG_ENABLE */
 
 #if defined(__cplusplus)

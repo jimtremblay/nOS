@@ -163,6 +163,26 @@ nOS_Error nOS_SemGive (nOS_Sem *sem)
 
     return err;
 }
+
+bool nOS_SemIsAvailable (nOS_Sem *sem)
+{
+    bool    avail;
+
+#if (NOS_CONFIG_SAFE > 0)
+    if (sem == NULL) {
+        avail = false;
+    } else if (sem->e.type != NOS_EVENT_SEM) {
+        avail = false;
+    } else
+#endif
+    {
+        nOS_CriticalEnter();
+        avail = (sem->count > 0);
+        nOS_CriticalLeave();
+    }
+
+    return avail;
+}
 #endif  /* NOS_CONFIG_SEM_ENABLE */
 
 #if defined(__cplusplus)

@@ -430,6 +430,8 @@ struct _nOS_Timer
 #define NOS_FLAG_WAIT_ALL           0x01
 #define NOS_FLAG_CLEAR_ON_EXIT      0x02
 #define NOS_FLAG_NONE               0
+#define NOS_FLAG_TEST_ANY           false
+#define NOS_FLAG_TEST_ALL           true
 
 #define NOS_TIMER_DELETED           0x00
 #define NOS_TIMER_ONE_SHOT          0x00
@@ -483,132 +485,137 @@ NOS_EXTERN uint16_t     nOS_readyPrio[((NOS_CONFIG_HIGHEST_THREAD_PRIO+15)/16)];
 #endif  /* NOS_PRIVATE */
 
 #if defined(NOS_PRIVATE)
-nOS_Thread* SchedHighPrio               (void);
-void        AppendThreadToReadyList     (nOS_Thread *thread);
-void        RemoveThreadFromReadyList   (nOS_Thread *thread);
+nOS_Thread*     SchedHighPrio               (void);
+void            AppendThreadToReadyList     (nOS_Thread *thread);
+void            RemoveThreadFromReadyList   (nOS_Thread *thread);
 #if (NOS_CONFIG_THREAD_SUSPEND_ENABLE > 0)
-void        DeleteThread                (void *payload, void *arg);
-void        SuspendThread               (void *payload, void *arg);
-void        ResumeThread                (void *payload, void *arg);
+void            DeleteThread                (void *payload, void *arg);
+void            SuspendThread               (void *payload, void *arg);
+void            ResumeThread                (void *payload, void *arg);
 #endif
-void        SetThreadPriority           (nOS_Thread *thread, uint8_t prio);
-void        TickThread                  (void *payload, void *arg);
-void        SignalThread                (nOS_Thread *thread, nOS_Error err);
+void            SetThreadPriority           (nOS_Thread *thread, uint8_t prio);
+void            TickThread                  (void *payload, void *arg);
+void            SignalThread                (nOS_Thread *thread, nOS_Error err);
 #endif /* NOS_PRIVATE */
 
-nOS_Error   nOS_Init                    (void);
-nOS_Error   nOS_Sched                   (void);
-nOS_Error   nOS_Yield                   (void);
-void        nOS_Tick                    (void);
+nOS_Error       nOS_Init                    (void);
+nOS_Error       nOS_Sched                   (void);
+nOS_Error       nOS_Yield                   (void);
+void            nOS_Tick                    (void);
 #if (NOS_CONFIG_SLEEP_ENABLE > 0)
-nOS_Error   nOS_Sleep                   (uint16_t dly);
+nOS_Error       nOS_Sleep                   (uint16_t dly);
 #endif
 
 #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
-nOS_Error   nOS_SchedLock               (void);
-nOS_Error   nOS_SchedUnlock             (void);
+nOS_Error       nOS_SchedLock               (void);
+nOS_Error       nOS_SchedUnlock             (void);
 #endif
 
-void        nOS_ListInit                (nOS_List *list);
-void*       nOS_ListHead                (nOS_List *list);
-void        nOS_ListAppend              (nOS_List *list, nOS_Node *node);
-void        nOS_ListRemove              (nOS_List *list, nOS_Node *node);
-void        nOS_ListRotate              (nOS_List *list);
-void        nOS_ListWalk                (nOS_List *list, void(*callback)(void*, void*), void *arg);
+void            nOS_ListInit                (nOS_List *list);
+void*           nOS_ListHead                (nOS_List *list);
+void            nOS_ListAppend              (nOS_List *list, nOS_Node *node);
+void            nOS_ListRemove              (nOS_List *list, nOS_Node *node);
+void            nOS_ListRotate              (nOS_List *list);
+void            nOS_ListWalk                (nOS_List *list, void(*callback)(void*, void*), void *arg);
 
 #if (NOS_CONFIG_THREAD_SUSPEND_ENABLE > 0)
-nOS_Error   nOS_ThreadCreate            (nOS_Thread *thread, void(*func)(void*), void *arg, nOS_Stack *stack, size_t ssize, uint8_t prio, uint8_t state);
+nOS_Error       nOS_ThreadCreate            (nOS_Thread *thread, void(*func)(void*), void *arg, nOS_Stack *stack, size_t ssize, uint8_t prio, uint8_t state);
 #else
-nOS_Error   nOS_ThreadCreate            (nOS_Thread *thread, void(*func)(void*), void *arg, nOS_Stack *stack, size_t ssize, uint8_t prio);
+nOS_Error       nOS_ThreadCreate            (nOS_Thread *thread, void(*func)(void*), void *arg, nOS_Stack *stack, size_t ssize, uint8_t prio);
 #endif
 #if (NOS_CONFIG_THREAD_DELETE_ENABLE > 0)
-nOS_Error   nOS_ThreadDelete            (nOS_Thread *thread);
+nOS_Error       nOS_ThreadDelete            (nOS_Thread *thread);
 #endif
-void        nOS_ThreadTick              (void);
+void            nOS_ThreadTick              (void);
 #if (NOS_CONFIG_THREAD_SUSPEND_ENABLE > 0)
-nOS_Error   nOS_ThreadSuspend           (nOS_Thread *thread);
-nOS_Error   nOS_ThreadSuspendAll        (void);
-nOS_Error   nOS_ThreadResume            (nOS_Thread *thread);
-nOS_Error   nOS_ThreadResumeAll         (void);
+nOS_Error       nOS_ThreadSuspend           (nOS_Thread *thread);
+nOS_Error       nOS_ThreadSuspendAll        (void);
+nOS_Error       nOS_ThreadResume            (nOS_Thread *thread);
+nOS_Error       nOS_ThreadResumeAll         (void);
 #endif
-int16_t     nOS_ThreadGetPriority       (nOS_Thread *thread);
-nOS_Error   nOS_ThreadSetPriority       (nOS_Thread *thread, uint8_t prio);
-nOS_Thread* nOS_ThreadRunning           (void);
+int16_t         nOS_ThreadGetPriority       (nOS_Thread *thread);
+nOS_Error       nOS_ThreadSetPriority       (nOS_Thread *thread, uint8_t prio);
+nOS_Thread*     nOS_ThreadRunning           (void);
 
 #if (NOS_CONFIG_SAFE > 0)
-void        nOS_EventCreate             (nOS_Event *event, uint8_t type);
+void            nOS_EventCreate             (nOS_Event *event, uint8_t type);
 #else
-void        nOS_EventCreate             (nOS_Event *event);
+void            nOS_EventCreate             (nOS_Event *event);
 #endif
-bool        nOS_EventDelete             (nOS_Event *event);
-nOS_Error   nOS_EventWait               (nOS_Event *event, uint8_t state, uint16_t tout);
-nOS_Thread* nOS_EventSignal             (nOS_Event *event, nOS_Error err);
+bool            nOS_EventDelete             (nOS_Event *event);
+nOS_Error       nOS_EventWait               (nOS_Event *event, uint8_t state, uint16_t tout);
+nOS_Thread*     nOS_EventSignal             (nOS_Event *event, nOS_Error err);
 
 #if (NOS_CONFIG_SEM_ENABLE > 0)
-nOS_Error   nOS_SemCreate               (nOS_Sem *sem, nOS_SemCount cntr, nOS_SemCount max);
+nOS_Error       nOS_SemCreate               (nOS_Sem *sem, nOS_SemCount cntr, nOS_SemCount max);
 #if (NOS_CONFIG_SEM_DELETE_ENABLE > 0)
-nOS_Error   nOS_SemDelete               (nOS_Sem *sem);
+nOS_Error       nOS_SemDelete               (nOS_Sem *sem);
 #endif
-nOS_Error   nOS_SemTake                 (nOS_Sem *sem, uint16_t tout);
-nOS_Error   nOS_SemGive                 (nOS_Sem *sem);
+nOS_Error       nOS_SemTake                 (nOS_Sem *sem, uint16_t tout);
+nOS_Error       nOS_SemGive                 (nOS_Sem *sem);
+bool            nOS_SemIsAvailable          (nOS_Sem *sem);
 #endif
 
 #if (NOS_CONFIG_MUTEX_ENABLE > 0)
 #if (NOS_CONFIG_MUTEX_RECURSIVE_ENABLE > 0)
-nOS_Error   nOS_MutexCreate             (nOS_Mutex *mutex, uint8_t prio, uint8_t type);
+nOS_Error       nOS_MutexCreate             (nOS_Mutex *mutex, uint8_t prio, uint8_t type);
 #else
-nOS_Error   nOS_MutexCreate             (nOS_Mutex *mutex, uint8_t prio);
+nOS_Error       nOS_MutexCreate             (nOS_Mutex *mutex, uint8_t prio);
 #endif
 #if (NOS_CONFIG_MUTEX_DELETE_ENABLE > 0)
-nOS_Error   nOS_MutexDelete             (nOS_Mutex *mutex);
+nOS_Error       nOS_MutexDelete             (nOS_Mutex *mutex);
 #endif
-nOS_Error   nOS_MutexLock               (nOS_Mutex *mutex, uint16_t tout);
-nOS_Error   nOS_MutexUnlock             (nOS_Mutex *mutex);
+nOS_Error       nOS_MutexLock               (nOS_Mutex *mutex, uint16_t tout);
+nOS_Error       nOS_MutexUnlock             (nOS_Mutex *mutex);
+bool            nOS_MutexIsLocked           (nOS_Mutex *mutex);
+nOS_Thread*     nOS_MutexOwner              (nOS_Mutex *mutex);
 #endif
 
 #if (NOS_CONFIG_QUEUE_ENABLE > 0)
-nOS_Error   nOS_QueueCreate             (nOS_Queue *queue, void *buffer, uint16_t bsize, uint16_t bmax);
+nOS_Error       nOS_QueueCreate             (nOS_Queue *queue, void *buffer, uint16_t bsize, uint16_t bmax);
 #if (NOS_CONFIG_QUEUE_DELETE_ENABLE > 0)
-nOS_Error   nOS_QueueDelete             (nOS_Queue *queue);
+nOS_Error       nOS_QueueDelete             (nOS_Queue *queue);
 #endif
-nOS_Error   nOS_QueueRead               (nOS_Queue *queue, void *buffer, uint16_t tout);
-nOS_Error   nOS_QueueWrite              (nOS_Queue *queue, void *buffer);
-bool        nOS_QueueIsEmpty            (nOS_Queue *queue);
-bool        nOS_QueueIsFull             (nOS_Queue *queue);
+nOS_Error       nOS_QueueRead               (nOS_Queue *queue, void *buffer, uint16_t tout);
+nOS_Error       nOS_QueueWrite              (nOS_Queue *queue, void *buffer);
+bool            nOS_QueueIsEmpty            (nOS_Queue *queue);
+bool            nOS_QueueIsFull             (nOS_Queue *queue);
 #endif
 
 #if (NOS_CONFIG_FLAG_ENABLE > 0)
-nOS_Error   nOS_FlagCreate              (nOS_Flag *flag, nOS_FlagBits flags);
+nOS_Error       nOS_FlagCreate              (nOS_Flag *flag, nOS_FlagBits flags);
 #if (NOS_CONFIG_FLAG_DELETE_ENABLE > 0)
-nOS_Error   nOS_FlagDelete              (nOS_Flag *flag);
+nOS_Error       nOS_FlagDelete              (nOS_Flag *flag);
 #endif
-nOS_Error   nOS_FlagWait                (nOS_Flag *flag, uint8_t opt, nOS_FlagBits flags, nOS_FlagBits *res, uint16_t tout);
-nOS_Error   nOS_FlagSend                (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits mask);
+nOS_Error       nOS_FlagWait                (nOS_Flag *flag, uint8_t opt, nOS_FlagBits flags, nOS_FlagBits *res, uint16_t tout);
+nOS_Error       nOS_FlagSend                (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits mask);
+nOS_FlagBits    nOS_FlagTest                (nOS_Flag *flag, nOS_FlagBits flags, bool all);
 #endif
 
 #if (NOS_CONFIG_MEM_ENABLE > 0)
-nOS_Error   nOS_MemCreate               (nOS_Mem *mem, void *buffer, size_t bsize, uint16_t max);
+nOS_Error       nOS_MemCreate               (nOS_Mem *mem, void *buffer, size_t bsize, uint16_t max);
 #if (NOS_CONFIG_MEM_DELETE_ENABLE > 0)
-nOS_Error   nOS_MemDelete               (nOS_Mem *mem);
+nOS_Error       nOS_MemDelete               (nOS_Mem *mem);
 #endif
-void*       nOS_MemAlloc                (nOS_Mem *mem, uint16_t tout);
-nOS_Error   nOS_MemFree                 (nOS_Mem *mem, void *block);
+void*           nOS_MemAlloc                (nOS_Mem *mem, uint16_t tout);
+nOS_Error       nOS_MemFree                 (nOS_Mem *mem, void *block);
+bool            nOS_MemIsAvailable          (nOS_Mem *mem);
 #endif
 
 #if (NOS_CONFIG_TIMER_ENABLE > 0)
-void        nOS_TimerInit               (void);
-void        nOS_TimerTick               (void);
-nOS_Error   nOS_TimerCreate             (nOS_Timer *timer, void(*callback)(void*), void *arg, nOS_TimerCount reload, uint8_t opt);
+void            nOS_TimerInit               (void);
+void            nOS_TimerTick               (void);
+nOS_Error       nOS_TimerCreate             (nOS_Timer *timer, void(*callback)(void*), void *arg, nOS_TimerCount reload, uint8_t opt);
 #if (NOS_CONFIG_TIMER_DELETE_ENABLE > 0)
-nOS_Error   nOS_TimerDelete             (nOS_Timer *timer);
+nOS_Error       nOS_TimerDelete             (nOS_Timer *timer);
 #endif
-nOS_Error   nOS_TimerStart              (nOS_Timer *timer);
-nOS_Error   nOS_TimerRestart            (nOS_Timer *timer, nOS_TimerCount reload);
-nOS_Error   nOS_TimerReload             (nOS_Timer *timer, nOS_TimerCount reload);
-nOS_Error   nOS_TimerStop               (nOS_Timer *timer);
-nOS_Error   nOS_TimerSetCallback        (nOS_Timer *timer, void(*callback)(void*), void *arg);
-nOS_Error   nOS_TimerSetMode            (nOS_Timer *timer, uint8_t opt);
-bool        nOS_TimerIsRunning          (nOS_Timer *timer);
+nOS_Error       nOS_TimerStart              (nOS_Timer *timer);
+nOS_Error       nOS_TimerRestart            (nOS_Timer *timer, nOS_TimerCount reload);
+nOS_Error       nOS_TimerReload             (nOS_Timer *timer, nOS_TimerCount reload);
+nOS_Error       nOS_TimerStop               (nOS_Timer *timer);
+nOS_Error       nOS_TimerSetCallback        (nOS_Timer *timer, void(*callback)(void*), void *arg);
+nOS_Error       nOS_TimerSetMode            (nOS_Timer *timer, uint8_t opt);
+bool            nOS_TimerIsRunning          (nOS_Timer *timer);
 #endif
 
 #if defined(__cplusplus)
