@@ -121,13 +121,13 @@ nOS_Error nOS_FlagDelete (nOS_Flag *flag)
  *               NOS_FLAG_CLEAR_ON_EXIT, ONLY awoken flags will be cleared.
  *
  * Arguments   : flag  : Pointer to flag object.
+ *               flags : All flags to wait.
+ *               res   : Pointer where to store awoken flags if needed. Only valid if
+ *                       returned error code is NOS_OK. Otherwise, res is unchanged.
  *               opt   : Waiting options
  *                       NOS_FLAG_WAIT_ALL      : Wait for all flags to be set.
  *                       NOS_FLAG_WAIT_ANY      : Wait for any flags to be set.
  *                       NOS_FLAG_CLEAR_ON_EXIT : Clear woken flags.
- *               flags : All flags to wait.
- *               res   : Pointer where to store awoken flags if needed. Only valid if
- *                       returned error code is NOS_OK. Otherwise, res is unchanged.
  *               tout  : Timeout value
  *                       NOS_NO_WAIT       : No waiting.
  *                       NOS_WAIT_INFINITE : Never timeout.
@@ -144,8 +144,8 @@ nOS_Error nOS_FlagDelete (nOS_Flag *flag)
  *
  * Note        : Safe to be called from threads ONLY with scheduler unlocked.
  */
-nOS_Error nOS_FlagWait (nOS_Flag *flag, uint8_t opt, nOS_FlagBits flags,
-                        nOS_FlagBits *res, uint16_t tout)
+nOS_Error nOS_FlagWait (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits *res,
+                        uint8_t opt, uint16_t tout)
 {
     nOS_Error       err;
     nOS_FlagContext ctx;

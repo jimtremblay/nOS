@@ -587,7 +587,7 @@ nOS_Error       nOS_FlagCreate              (nOS_Flag *flag, nOS_FlagBits flags)
 #if (NOS_CONFIG_FLAG_DELETE_ENABLE > 0)
 nOS_Error       nOS_FlagDelete              (nOS_Flag *flag);
 #endif
-nOS_Error       nOS_FlagWait                (nOS_Flag *flag, uint8_t opt, nOS_FlagBits flags, nOS_FlagBits *res, uint16_t tout);
+nOS_Error       nOS_FlagWait                (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits *res, uint8_t opt, uint16_t tout);
 nOS_Error       nOS_FlagSend                (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits mask);
 nOS_FlagBits    nOS_FlagTest                (nOS_Flag *flag, nOS_FlagBits flags, bool all);
 #endif
