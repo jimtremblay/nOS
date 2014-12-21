@@ -74,7 +74,8 @@
  * zero interrupt latency for high priority ISR. You should not call any nOS
  * API from interrupt handlers with priority higher than this setting. Can't
  * be set to zero.
- * Lower number = Higher priority
+ * Lower number = Higher priority (except PIC24)
+ * Higher number = Higher priority (PIC24 only, max value: 7)
  * Not used on all platforms.
  */
 #define NOS_CONFIG_MAX_UNSAFE_ISR_PRIO          5
