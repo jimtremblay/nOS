@@ -49,6 +49,20 @@ typedef uint16_t                            nOS_Stack;
 #define NOS_STRINGIFY(s)                    NOS_STR(s)
 #define NOS_STR(s)                          #s
 
+#if defined(__HAS_EDS__)
+#define PUSH_PAGE_REGISTER                                                      \
+    "PUSH   DSRPAG                      \n"                                     \
+    "PUSH   DSWPAG                      \n"
+#define POP_PAGE_REGISTER                                                       \
+    "POP    DSWPAG                      \n"                                     \
+    "POP    DSRPAG                      \n"
+#else
+#define PUSH_PAGE_REGISTER                                                      \
+    "PUSH   PSVPAG                      \n"
+#define POP_PAGE_REGISTER                                                       \
+    "POP    PSVPAG                      \n"
+#endif
+
 #define NOS_ISR(vect)                                                           \
 void __attribute__((naked)) vect##_ISR(void);                                   \
 void __attribute__((naked)) vect##_ISR_L2(void);                                \
@@ -73,7 +87,7 @@ void __attribute__((naked)) vect##_ISR(void)                                    
         "PUSH   RCOUNT                      \n"                                 \
         "PUSH   TBLPAG                      \n"                                 \
         "PUSH   CORCON                      \n"                                 \
-        "PUSH   PSVPAG                      \n"                                 \
+        PUSH_PAGE_REGISTER                                                      \
         "MOV    W15,                    W0  \n"                                 \
         "CALL   _nOS_IsrEnter               \n"                                 \
         "MOV    W0,                     W15 \n"                                 \
@@ -81,7 +95,7 @@ void __attribute__((naked)) vect##_ISR(void)                                    
         "MOV    W15,                    W0  \n"                                 \
         "CALL   _nOS_IsrLeave               \n"                                 \
         "MOV    W0,                     W15 \n"                                 \
-        "POP    PSVPAG                      \n"                                 \
+        POP_PAGE_REGISTER                                                       \
         "POP    CORCON                      \n"                                 \
         "POP    TBLPAG                      \n"                                 \
         "POP    RCOUNT                      \n"                                 \

@@ -46,7 +46,12 @@ void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, void(*f
      tos  += 16;                /* W1 to W14, RCOUNT, TBLPAG */
 #endif
     *tos++ = CORCON;            /* CORCON */
+#if defined(__HAS_EDS__)
+    *tos++ = DSRPAG;            /* DSRPAG */
+    *tos++ = DSWPAG;            /* DSWPAG */
+#else
     *tos++ = PSVPAG;            /* PSVPAG */
+#endif
 
     thread->stackPtr = tos;
 }
@@ -67,7 +72,7 @@ void __attribute__((naked)) nOS_ContextSwitch(void)
         "PUSH   RCOUNT                          \n"
         "PUSH   TBLPAG                          \n"
         "PUSH   CORCON                          \n"
-        "PUSH   PSVPAG                          \n"
+        PUSH_PAGE_REGISTER
 
         /* Get the location of nOS_runningThread */
         "MOV    #_nOS_runningThread,    W0      \n"
@@ -86,7 +91,7 @@ void __attribute__((naked)) nOS_ContextSwitch(void)
         "MOV    [W2],                   W15     \n"
 
         /* Pop all working registers */
-        "POP    PSVPAG                          \n"
+        POP_PAGE_REGISTER
         "POP    CORCON                          \n"
         "POP    TBLPAG                          \n"
         "POP    RCOUNT                          \n"
