@@ -40,7 +40,9 @@ typedef uint16_t                            nOS_Stack;
 {                                                                               \
     uint16_t _sr;                                                               \
     _sr = SRbits.IPL;                                                           \
-    SRbits.IPL = NOS_CONFIG_MAX_UNSAFE_ISR_PRIO;
+    if (SRbits.IPL < NOS_CONFIG_MAX_UNSAFE_ISR_PRIO) {                          \
+        SRbits.IPL = NOS_CONFIG_MAX_UNSAFE_ISR_PRIO;                            \
+    }
 
 #define nOS_CriticalLeave()                                                     \
     SRbits.IPL = _sr;                                                           \
@@ -91,7 +93,12 @@ void __attribute__((naked)) vect##_ISR(void)                                    
         "MOV    W15,                    W0  \n"                                 \
         "CALL   _nOS_IsrEnter               \n"                                 \
         "MOV    W0,                     W15 \n"                                 \
-        NOS_STRINGIFY(CALL _##vect##_ISR_L2 \n)                                 \
+    );                                                                          \
+    vect##_ISR_L2();                                                            \
+    if (SRbits.IPL < NOS_CONFIG_MAX_UNSAFE_ISR_PRIO) {                          \
+        SRbits.IPL = NOS_CONFIG_MAX_UNSAFE_ISR_PRIO;                            \
+    }                                                                           \
+    __asm volatile (                                                            \
         "MOV    W15,                    W0  \n"                                 \
         "CALL   _nOS_IsrLeave               \n"                                 \
         "MOV    W0,                     W15 \n"                                 \
