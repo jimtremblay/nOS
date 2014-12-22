@@ -41,33 +41,46 @@ typedef uint32_t                            nOS_Stack;
 
 __attribute__( ( always_inline ) ) static inline uint32_t GetIPL(void)
 {
-	uint32_t ipl;
-	__asm volatile(
-		"MVFC	PSW,			%0		\n"
-		"AND	#0x0F000000,	%0		\n"
-	: "=r" (ipl) );
-	return ipl;
+    uint32_t ipl;
+    __asm volatile(
+        "MVFC   PSW,            %0      \n"
+        "SHLR   #24,            %0      \n"
+    : "=r" (ipl) );
+    return ipl;
 }
 
 __attribute__( ( always_inline ) ) static inline void SetIPL(uint32_t ipl)
 {
-	uint32_t psw;
-	__asm volatile(
-		"MVFC	PSW,			%0		\n"
-		"AND	#0xF0FFFFFF,	%0		\n"
-		"OR		%1,				%0		\n"
-		"MVTC	%0,				PSW		\n"
-	: "=r" (psw), "=r" (ipl) );
+    uint32_t psw;
+    __asm volatile(
+        "MVFC   PSW,            %0      \n"
+        "SHLL   #24,            %1      \n"
+        "AND    #0xF0FFFFFF,    %0      \n"
+        "OR     %1,             %0      \n"
+        "MVTC   %0,             PSW     \n"
+    : "=r" (psw), "=r" (ipl) );
+}
+
+__attribute( ( always_inline ) ) static inline void EnableInterrupt(void)
+{
+    __asm volatile("SETPSW I");
+}
+
+__attribute( ( always_inline ) ) static inline void DisableInterrupt(void)
+{
+    __asm volatile("CLRPSW I");
 }
 
 #define nOS_CriticalEnter()                                                     \
 {                                                                               \
-    uint32_t _ipl = GetIPL();													\
-    __asm volatile ("MVTIPL %0" :: "i" (NOS_PORT_MAX_UNSAFE_IPL) )
+    uint32_t _ipl = GetIPL();                                                   \
+    if (_ipl < NOS_PORT_MAX_UNSAFE_IPL) {                                       \
+        __asm volatile ("MVTIPL %0" :: "i" (NOS_PORT_MAX_UNSAFE_IPL) );         \
+    }
     
 
 #define nOS_CriticalLeave()                                                     \
-	SetIPL(_ipl);																\
+    SetIPL(_ipl);                                                               \
 }
 
 #define nOS_ContextSwitch()                                     __asm("INT  #27")
@@ -76,13 +89,13 @@ void    nOS_IsrEnter    (void);
 void    nOS_IsrLeave    (void);
 
 #define NOS_ISR(vect)                                                           \
-void vect(void) __attribute__ ( ( interrupt ) );                 			    \
+void vect(void) __attribute__ ( ( interrupt ) );                                \
 void vect##_ISR(void);                                                          \
-void vect(void)													        		\
+void vect(void)                                                                 \
 {                                                                               \
     nOS_IsrEnter();                                                             \
     vect##_ISR();                                                               \
-    __asm volatile ("MVTIPL %0" :: "i" (NOS_PORT_MAX_UNSAFE_IPL) );				\
+    DisableInterrupt();                                                         \
     nOS_IsrLeave();                                                             \
 }                                                                               \
 __attribute__ ( ( always_inline ) ) inline void vect##_ISR(void)

@@ -43,8 +43,9 @@ typedef uint32_t                            nOS_Stack;
 #define nOS_CriticalEnter()                                                     \
 {                                                                               \
     __ilevel_t _ipl = __get_interrupt_level();                                  \
-    __set_interrupt_level(NOS_PORT_MAX_UNSAFE_IPL)
-    
+    if (_ipl < NOS_PORT_MAX_UNSAFE_IPL) {                                       \
+        __set_interrupt_level(NOS_PORT_MAX_UNSAFE_IPL);                         \
+    }
 
 #define nOS_CriticalLeave()                                                     \
     __set_interrupt_level(_ipl);                                                \
