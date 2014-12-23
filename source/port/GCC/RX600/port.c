@@ -13,22 +13,10 @@
 extern "C" {
 #endif
 
-static nOS_Stack isrStack[NOS_CONFIG_ISR_STACK_SIZE];
-
 void INT_Excep_ICU_SWINT(void) __attribute__((naked));
 
 void nOS_PortInit(void)
 {
-    nOS_Stack  *sp = &isrStack[NOS_CONFIG_ISR_STACK_SIZE-1];
-    uint32_t    reg;
-
-#if (NOS_CONFIG_DEBUG > 0)
-    isrStack[0] = 0x01234567UL;
-    isrStack[1] = 0x89abcdefUL;
-    *sp-- = 0x76543210UL;
-    *sp-- = 0xfedcba98UL;
-#endif
-
     /* Enable software interrupt */
     *(uint8_t*)0x00087203UL |= (uint8_t)0x08;
     /* Clear software interrupt */

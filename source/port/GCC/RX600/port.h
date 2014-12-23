@@ -23,15 +23,6 @@ typedef uint32_t                            nOS_Stack;
 
 #define NOS_PORT_SCHED_USE_32_BITS
 
-#if !defined(NOS_CONFIG_ISR_STACK_SIZE)
- #define NOS_CONFIG_ISR_STACK_SIZE          128
- #warning "nOSConfig.h: NOS_CONFIG_ISR_STACK_SIZE is not defined (default to 128)."
-#else
- #if NOS_CONFIG_ISR_STACK_SIZE == 0
-  #error "nOSConfig.h: NOS_CONFIG_ISR_STACK_SIZE is set to invalid value."
- #endif
-#endif
-
 #if !defined(NOS_CONFIG_MAX_UNSAFE_ISR_PRIO)
  #define NOS_CONFIG_MAX_UNSAFE_ISR_PRIO     4
  #warning "nOSConfig.h: NOS_CONFIG_MAX_UNSAFE_ISR_PRIO is not defined (default to 4)."
