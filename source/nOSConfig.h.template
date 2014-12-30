@@ -63,6 +63,13 @@
 /* Timer counter width in bits (can be 8, 16 or 32) */
 #define NOS_CONFIG_TIMER_COUNT_WIDTH            16
 
+/* Enable or disable time management. */
+#define NOS_CONFIG_TIME_ENABLE                  1
+/* Time ticks per second */
+#define NOS_CONFIG_TIME_TICKS_PER_SECOND        1000
+/* Time ticks counter width in bits (can be 32 or 64). */
+#define NOS_CONFIG_TIME_COUNT_WIDTH             32
+
 /*
  * Stack size to use from interrupt routines in number of nOS_Stack entries.
  * Not used on all platforms.

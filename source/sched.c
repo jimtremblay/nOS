@@ -524,6 +524,10 @@ nOS_Error nOS_Init(void)
     nOS_TimerInit();
 #endif
 
+#if (NOS_CONFIG_TIME_ENABLE > 0)
+    nOS_TimeInit();
+#endif
+
     /* Context switching is possible after this point */
     nOS_initialized = true;
 
@@ -634,6 +638,10 @@ void nOS_Tick(void)
 
 #if (NOS_CONFIG_TIMER_ENABLE > 0)
     nOS_TimerTick();
+#endif
+
+#if (NOS_CONFIG_TIME_ENABLE > 0)
+    nOS_TimeTick();
 #endif
 }
 

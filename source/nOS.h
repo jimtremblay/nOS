@@ -210,6 +210,25 @@ extern "C" {
  #undef NOS_CONFIG_TIMER_COUNT_WIDTH
 #endif
 
+#if !defined(NOS_CONFIG_TIME_ENABLE)
+ #define NOS_CONFIG_TIME_ENABLE                 0
+ #warning "nOSConfig.h: NOS_CONFIG_TIME_ENABLE is not defined (disabled by default)."
+#endif
+#if (NOS_CONFIG_TIME_ENABLE > 0)
+ #if !defined(NOS_CONFIG_TIME_TICKS_PER_SECOND)
+  #error "nOSConfig.h: NOS_CONFIG_TIME_TICKS_PER_SECOND is not defined."
+ #endif
+ #if !defined(NOS_CONFIG_TIME_COUNT_WIDTH)
+  #define NOS_CONFIG_TIME_COUNT_WIDTH           32
+  #warning "nOSConfig.h: NOS_CONFIG_TIME_COUNT_WIDTH is not defined (default to 32)."
+ #elif (NOS_CONFIG_TIME_COUNT_WIDTH != 32) && (NOS_CONFIG_TIME_COUNT_WIDTH != 64)
+  #error "nOSConfig.h: NOS_CONFIG_TIME_COUNT_WIDTH set to invalid value: can be set to 32 or 64."
+ #endif
+#else
+ #undef NOS_CONFIG_TIME_TICKS_PER_SECOND
+ #undef NOS_CONFIG_TIME_COUNT_WIDTH
+#endif
+
 typedef struct _nOS_List        nOS_List;
 typedef struct _nOS_Node        nOS_Node;
 typedef struct _nOS_Thread      nOS_Thread;
@@ -256,6 +275,14 @@ typedef uint16_t                nOS_TimerCount;
 #else   /* NOS_CONFIG_TIMER_COUNT_WIDTH == 32 */
 typedef uint32_t                nOS_TimerCount;
 #endif
+#endif
+#if (NOS_CONFIG_TIME_ENABLE > 0)
+#if (NOS_CONFIG_TIME_COUNT_WIDTH == 32)
+typedef uint32_t                nOS_Time;
+#else
+typedef uint64_t                nOS_Time;
+#endif
+typedef struct _nOS_TimeDate    nOS_TimeDate;
 #endif
 
 typedef enum _nOS_Error
@@ -395,6 +422,19 @@ struct _nOS_Timer
     void(*callback)(void*);
     void            *arg;
     nOS_Node        node;
+};
+#endif
+
+#if (NOS_CONFIG_TIME_ENABLE > 0)
+struct _nOS_TimeDate
+{
+    uint16_t        year;           /* From 1970 to ... */
+    uint8_t         month;          /* From 1 (January) to 12 (December) */
+    uint8_t         day;            /* From 1 to 31 */
+    uint8_t         weekday;        /* From 1 (Monday) to 7 (Sunday) */
+    uint8_t         hour;           /* From 0 to 23 */
+    uint8_t         minute;         /* From 0 to 59 */
+    uint8_t         second;         /* From 0 to 59 */
 };
 #endif
 
@@ -603,8 +643,10 @@ bool            nOS_MemIsAvailable          (nOS_Mem *mem);
 #endif
 
 #if (NOS_CONFIG_TIMER_ENABLE > 0)
+#if defined(NOS_PRIVATE)
 void            nOS_TimerInit               (void);
 void            nOS_TimerTick               (void);
+#endif
 nOS_Error       nOS_TimerCreate             (nOS_Timer *timer, void(*callback)(void*), void *arg, nOS_TimerCount reload, uint8_t opt);
 #if (NOS_CONFIG_TIMER_DELETE_ENABLE > 0)
 nOS_Error       nOS_TimerDelete             (nOS_Timer *timer);
@@ -616,6 +658,19 @@ nOS_Error       nOS_TimerStop               (nOS_Timer *timer);
 nOS_Error       nOS_TimerSetCallback        (nOS_Timer *timer, void(*callback)(void*), void *arg);
 nOS_Error       nOS_TimerSetMode            (nOS_Timer *timer, uint8_t opt);
 bool            nOS_TimerIsRunning          (nOS_Timer *timer);
+#endif
+
+#if (NOS_CONFIG_TIME_ENABLE > 0)
+#if defined(NOS_PRIVATE)
+void            nOS_TimeInit                (void);
+void            nOS_TimeTick                (void);
+#endif
+nOS_Time        nOS_TimeGet                 (void);
+void            nOS_TimeSet                 (nOS_Time time);
+nOS_TimeDate    nOS_TimeDateMake            (nOS_Time time);
+nOS_Time        nOS_TimeMake                (nOS_TimeDate *timedate);
+nOS_TimeDate    nOS_TimeDateGet             (void);
+void            nOS_TimeDateSet             (nOS_TimeDate *timedate);
 #endif
 
 #if defined(__cplusplus)
