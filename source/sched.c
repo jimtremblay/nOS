@@ -470,7 +470,7 @@ bool nOS_EventDelete (nOS_Event *event)
 nOS_Error nOS_EventWait (nOS_Event *event, uint8_t state, uint16_t tout)
 {
     RemoveThreadFromReadyList(nOS_runningThread);
-    nOS_runningThread->state |= (state & NOS_THREAD_WAITING);
+    nOS_runningThread->state |= (state & (NOS_THREAD_WAITING | NOS_THREAD_SLEEPING));
     nOS_runningThread->event = event;
     nOS_runningThread->timeout = (tout == NOS_WAIT_INFINITE) ? 0 : tout;
     if (event != NULL) {
@@ -646,7 +646,7 @@ void nOS_Tick(void)
 }
 
 #if (NOS_CONFIG_SLEEP_ENABLE > 0)
-nOS_Error nOS_Sleep (uint16_t dly)
+nOS_Error nOS_Sleep (uint16_t ticks)
 {
     nOS_Error   err;
 
@@ -659,14 +659,14 @@ nOS_Error nOS_Sleep (uint16_t dly)
         err = NOS_E_LOCKED;
     }
 #endif
-    else if (dly == 0) {
+    else if (nOS_runningThread == &nOS_mainThread) {
+        err = NOS_E_IDLE;
+    } else if (ticks == 0) {
         nOS_Yield();
         err = NOS_OK;
-    } else if (nOS_runningThread == &nOS_mainThread) {
-        err = NOS_E_IDLE;
     } else {
         nOS_CriticalEnter();
-        err = nOS_EventWait(NULL, NOS_THREAD_SLEEPING, dly);
+        err = nOS_EventWait(NULL, NOS_THREAD_SLEEPING, ticks);
         nOS_CriticalLeave();
     }
 

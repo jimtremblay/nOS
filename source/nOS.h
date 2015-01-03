@@ -543,7 +543,7 @@ nOS_Error       nOS_Sched                   (void);
 nOS_Error       nOS_Yield                   (void);
 void            nOS_Tick                    (void);
 #if (NOS_CONFIG_SLEEP_ENABLE > 0)
-nOS_Error       nOS_Sleep                   (uint16_t dly);
+nOS_Error       nOS_Sleep                   (uint16_t ticks);
 #endif
 
 #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
