@@ -18,7 +18,7 @@ ___interrupt_27:
     PUSH.L      R15
     
     /* Get running thread stack and adjust it to contains PSW, PC and R15 */
-    MVFC		USP,                    R15
+    MVFC        USP,                    R15
     SUB         #12,                    R15
     
     /* Set USP to adjusted value */
@@ -44,13 +44,13 @@ ___interrupt_27:
     /* Push accumulator register to running thread stack */
     MVFACHI     R15
     MVFACMI     R14
-    SHLL		#16, R14
+    SHLL        #16, R14
     PUSHM       R14-R15
 
     /* Save SP in nOS_runningThread object */
-    MOV.L		#_nOS_runningThread,    R15
-    MOV.L		[R15],                  R14
-    MOV.L		SP,                     [R14]
+    MOV.L       #_nOS_runningThread,    R15
+    MOV.L       [R15],                  R14
+    MOV.L       SP,                     [R14]
     
     /* nOS_runningThread = nOS_highPrioThread */
     MOV.L       #_nOS_highPrioThread,   R14

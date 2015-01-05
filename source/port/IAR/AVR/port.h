@@ -143,7 +143,7 @@ typedef uint8_t                 nOS_Stack;
         "ld     r0,     y+                  \n" /* SPH */                       \
         "out    0x3E,   r0                  \n"                                 \
         "ld     r0,     y+                  \n" /* SPL */                       \
-        "out	0x3D,   r0                  \n"                                 \
+        "out    0x3D,   r0                  \n"                                 \
         "ld     r0,     y+                  \n" /* SREG */                      \
         "out    0x3F,   r0                  \n"                                 \
         "ld     r0,     y+                  \n" /* R0 */                        \

@@ -21,7 +21,7 @@ void nOS_PortInit(void)
     uint32_t i;
 
     for (i = 0; i < NOS_CONFIG_ISR_STACK_SIZE; i++) {
-    	isrStack[i] = 0xffffffffUL;
+        isrStack[i] = 0xffffffffUL;
     }
 #endif
     
@@ -42,8 +42,8 @@ void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, void(*f
     uint32_t i;
 
     for (i = 0; i < ssize; i++) {
-		stack[i] = 0xffffffffUL;
-	}
+        stack[i] = 0xffffffffUL;
+    }
 #endif
 
     *(--tos) = 0x01000000UL;    /* xPSR */

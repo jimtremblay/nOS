@@ -97,69 +97,69 @@ void nOS_IsrLeave (void)
 
 void INT_Excep_ICU_SWINT(void)
 {
-	__asm volatile(
-		/* Push R15 on ISP (we will use it) */
-		"PUSH.L		R15								\n"
+    __asm volatile(
+        /* Push R15 on ISP (we will use it) */
+        "PUSH.L     R15                             \n"
 
-		/* Get running thread stack and adjust it to contains PSW, PC and R15 */
-		"MVFC		USP,					R15		\n"
-		"SUB		#12,					R15		\n"
+        /* Get running thread stack and adjust it to contains PSW, PC and R15 */
+        "MVFC       USP,                    R15     \n"
+        "SUB        #12,                    R15     \n"
 
-		/* Set USP to adjusted value */
-		"MVTC       R15,        			USP		\n"
+        /* Set USP to adjusted value */
+        "MVTC       R15,                    USP     \n"
 
-		/* Moved pushed registers from ISP to running thread stack */
-		"MOV.L      [R0],       			[R15]	\n"
-		"MOV.L     4[R0],      			   4[R15]	\n"
-		"MOV.L     8[R0],      			   8[R15]	\n"
+        /* Moved pushed registers from ISP to running thread stack */
+        "MOV.L      [R0],                   [R15]   \n"
+        "MOV.L     4[R0],                  4[R15]   \n"
+        "MOV.L     8[R0],                  8[R15]   \n"
 
-		/* Adjust ISP (Remove R15, PC and PSW from the stack) */
-		"ADD        #12,        			R0		\n"
+        /* Adjust ISP (Remove R15, PC and PSW from the stack) */
+        "ADD        #12,                    R0      \n"
 
-		/* At this point, we can continue on USP */
-		"SETPSW		U								\n"
+        /* At this point, we can continue on USP */
+        "SETPSW     U                               \n"
 
-		/* Push all remaining registers to running thread stack */
-		"PUSHM      R1-R14							\n"
+        /* Push all remaining registers to running thread stack */
+        "PUSHM      R1-R14                          \n"
 
-		/* Push floating-point status register to running thread stack */
-		"PUSHC      FPSW							\n"
+        /* Push floating-point status register to running thread stack */
+        "PUSHC      FPSW                            \n"
 
-		/* Push accumulator register to running thread stack */
-		"MVFACHI    R15								\n"
-		"MVFACMI    R14								\n"
-		"SHLL		#16,					R14		\n"
-		"PUSHM      R14-R15							\n"
+        /* Push accumulator register to running thread stack */
+        "MVFACHI    R15                             \n"
+        "MVFACMI    R14                             \n"
+        "SHLL       #16,                    R14     \n"
+        "PUSHM      R14-R15                         \n"
 
-		/* Save SP in nOS_runningThread object */
-		"MOV.L		#_nOS_runningThread,	R15		\n"
-		"MOV.L		[R15],                  R14		\n"
-		"MOV.L		R0,                     [R14]	\n"
+        /* Save SP in nOS_runningThread object */
+        "MOV.L      #_nOS_runningThread,    R15     \n"
+        "MOV.L      [R15],                  R14     \n"
+        "MOV.L      R0,                     [R14]   \n"
 
-		/* nOS_runningThread = nOS_highPrioThread */
-		"MOV.L      #_nOS_highPrioThread,	R14		\n"
-		"MOV.L      [R14],                  [R15]	\n"
+        /* nOS_runningThread = nOS_highPrioThread */
+        "MOV.L      #_nOS_highPrioThread,   R14     \n"
+        "MOV.L      [R14],                  [R15]   \n"
 
-		/* Restore SP from nOS_highPrioThread object */
-		"MOV.L      [R14],                  R15		\n"
-		"MOV.L      [R15],                  R0		\n"
+        /* Restore SP from nOS_highPrioThread object */
+        "MOV.L      [R14],                  R15     \n"
+        "MOV.L      [R15],                  R0      \n"
 
-		/* Pop accumulator register from high prio thread stack */
-		"POPM       R14-R15							\n"
-		"MVTACLO    R14								\n"
-		"MVTACHI    R15								\n"
+        /* Pop accumulator register from high prio thread stack */
+        "POPM       R14-R15                         \n"
+        "MVTACLO    R14                             \n"
+        "MVTACHI    R15                             \n"
 
-		/* Pop floating-point status register from high prio thread stack */
-		"POPC       FPSW							\n"
+        /* Pop floating-point status register from high prio thread stack */
+        "POPC       FPSW                            \n"
 
-		/* Pop all registers from high prio thread stack */
-		"POPM       R1-R15							\n"
+        /* Pop all registers from high prio thread stack */
+        "POPM       R1-R15                          \n"
 
-		/* Return from interrupt (will pop PC and PSW) */
-		"RTE										\n"
-		"NOP										\n"
-		"NOP										\n"
-	);
+        /* Return from interrupt (will pop PC and PSW) */
+        "RTE                                        \n"
+        "NOP                                        \n"
+        "NOP                                        \n"
+    );
 }
 
 #if defined(__cplusplus)
