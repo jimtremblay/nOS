@@ -478,6 +478,7 @@ struct _nOS_TimeDate
 #define NOS_TIMER_FREE_RUNNING      0x01
 #define NOS_TIMER_MODE              0x01
 #define NOS_TIMER_RUNNING           0x02
+#define NOS_TIMER_PAUSED            0x04
 #define NOS_TIMER_CREATED           0x80
 
 #if defined(NOS_PRIVATE)
@@ -652,11 +653,13 @@ nOS_Error       nOS_TimerCreate             (nOS_Timer *timer, void(*callback)(v
 nOS_Error       nOS_TimerDelete             (nOS_Timer *timer);
 #endif
 nOS_Error       nOS_TimerStart              (nOS_Timer *timer);
-nOS_Error       nOS_TimerRestart            (nOS_Timer *timer, nOS_TimerCount reload);
-nOS_Error       nOS_TimerReload             (nOS_Timer *timer, nOS_TimerCount reload);
 nOS_Error       nOS_TimerStop               (nOS_Timer *timer);
-nOS_Error       nOS_TimerSetCallback        (nOS_Timer *timer, void(*callback)(void*), void *arg);
-nOS_Error       nOS_TimerSetMode            (nOS_Timer *timer, uint8_t opt);
+nOS_Error       nOS_TimerRestart            (nOS_Timer *timer, nOS_TimerCount reload);
+nOS_Error       nOS_TimerPause              (nOS_Timer *timer);
+nOS_Error       nOS_TimerResume             (nOS_Timer *timer);
+nOS_Error       nOS_TimerChangeReload       (nOS_Timer *timer, nOS_TimerCount reload);
+nOS_Error       nOS_TimerChangeCallback     (nOS_Timer *timer, void(*callback)(void*), void *arg);
+nOS_Error       nOS_TimerChangeMode         (nOS_Timer *timer, uint8_t opt);
 bool            nOS_TimerIsRunning          (nOS_Timer *timer);
 #endif
 
@@ -665,12 +668,12 @@ bool            nOS_TimerIsRunning          (nOS_Timer *timer);
 void            nOS_TimeInit                (void);
 void            nOS_TimeTick                (void);
 #endif
-nOS_Time        nOS_TimeGet                 (void);
-void            nOS_TimeSet                 (nOS_Time time);
-nOS_TimeDate    nOS_TimeDateMake            (nOS_Time time);
-nOS_Time        nOS_TimeMake                (nOS_TimeDate *timedate);
-nOS_TimeDate    nOS_TimeDateGet             (void);
-void            nOS_TimeDateSet             (nOS_TimeDate *timedate);
+nOS_Time        nOS_TimeNow                 (void);
+void            nOS_TimeChange              (nOS_Time time);
+nOS_TimeDate    nOS_TimeConvert             (nOS_Time time);
+nOS_TimeDate    nOS_TimeDateNow             (void);
+void            nOS_TimeDateChange          (nOS_TimeDate *timedate);
+nOS_Time        nOS_TimeDateConvert         (nOS_TimeDate *timedate);
 #endif
 
 #if defined(__cplusplus)

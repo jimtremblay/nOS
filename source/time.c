@@ -45,7 +45,7 @@ void nOS_TimeTick (void)
     nOS_CriticalLeave();
 }
 
-nOS_Time nOS_TimeGet (void)
+nOS_Time nOS_TimeNow (void)
 {
     nOS_Time    time;
 
@@ -56,7 +56,7 @@ nOS_Time nOS_TimeGet (void)
     return time;
 }
 
-void nOS_TimeSet (nOS_Time time)
+void nOS_TimeChange (nOS_Time time)
 {
     nOS_CriticalEnter();
     timeCounter = time;
@@ -64,7 +64,7 @@ void nOS_TimeSet (nOS_Time time)
     nOS_CriticalLeave();
 }
 
-nOS_TimeDate nOS_TimeDateMake (nOS_Time time)
+nOS_TimeDate nOS_TimeConvert (nOS_Time time)
 {
     nOS_TimeDate    timedate;
     uint16_t        days;
@@ -107,7 +107,22 @@ nOS_TimeDate nOS_TimeDateMake (nOS_Time time)
     return timedate;
 }
 
-nOS_Time nOS_TimeMake (nOS_TimeDate *timedate)
+nOS_TimeDate nOS_TimeDateNow (void)
+{
+    return nOS_TimeConvert(nOS_TimeNow());
+}
+
+void nOS_TimeDateChange (nOS_TimeDate *timedate)
+{
+#if (NOS_CONFIG_SAFE > 0)
+    if (timedate != NULL)
+#endif
+    {
+        nOS_TimeChange(nOS_TimeDateConvert(timedate));
+    }
+}
+
+nOS_Time nOS_TimeDateConvert (nOS_TimeDate *timedate)
 {
     nOS_Time    time = 0;
 
@@ -143,21 +158,6 @@ nOS_Time nOS_TimeMake (nOS_TimeDate *timedate)
     }
 
     return time;
-}
-
-nOS_TimeDate nOS_TimeDateGet (void)
-{
-    return nOS_TimeDateMake(nOS_TimeGet());
-}
-
-void nOS_TimeDateSet (nOS_TimeDate *timedate)
-{
-#if (NOS_CONFIG_SAFE > 0)
-    if (timedate != NULL)
-#endif
-    {
-        nOS_TimeSet(nOS_TimeMake(timedate));
-    }
 }
 #endif  /* NOS_CONFIG_TIME_ENABLE */
 
