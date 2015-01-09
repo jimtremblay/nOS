@@ -43,7 +43,7 @@ void nOS_PortInit(void)
     *(volatile uint32_t *)0xe000ed20UL |= 0x00ff0000UL;
 }
 
-void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, void(*func)(void*), void *arg)
+void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg)
 {
     nOS_Stack *tos = (nOS_Stack*)((uint32_t)(stack + ssize) & 0xfffffff8UL);
 #if (NOS_CONFIG_DEBUG > 0)
@@ -79,7 +79,7 @@ void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, void(*f
 #endif
 #endif
     *(--tos) = 0x01000000UL;    /* xPSR */
-    *(--tos) = (nOS_Stack)func; /* PC */
+    *(--tos) = (nOS_Stack)entry;/* PC */
     *(--tos) = 0x00000000UL;    /* LR */
 #if (NOS_CONFIG_DEBUG > 0)
     *(--tos) = 0x12121212UL;    /* R12 */
@@ -185,7 +185,7 @@ __asm void PendSV_Handler(void)
     /* Get the location of nOS_highPrioThread */
     LDR         R1,         =nOS_highPrioThread
     LDR         R2,         [R1]
-    
+
     /* Copy nOS_highPrioThread to nOS_runningThread */
     STR         R2,         [R3]
 

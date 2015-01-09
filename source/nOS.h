@@ -231,7 +231,9 @@ extern "C" {
 
 typedef struct _nOS_List        nOS_List;
 typedef struct _nOS_Node        nOS_Node;
+typedef void(*nOS_NodeHandler)(void*,void*);
 typedef struct _nOS_Thread      nOS_Thread;
+typedef void(*nOS_ThreadEntry)(void*);
 typedef struct _nOS_Event       nOS_Event;
 #if (NOS_CONFIG_SEM_ENABLE > 0)
 typedef struct _nOS_Sem         nOS_Sem;
@@ -275,6 +277,7 @@ typedef uint16_t                nOS_TimerCount;
 #else   /* NOS_CONFIG_TIMER_COUNT_WIDTH == 32 */
 typedef uint32_t                nOS_TimerCount;
 #endif
+typedef void(*nOS_TimerCallback)(nOS_Timer*,void*);
 #endif
 #if (NOS_CONFIG_TIME_ENABLE > 0)
 #if (NOS_CONFIG_TIME_COUNT_WIDTH == 32)
@@ -309,58 +312,58 @@ typedef enum _nOS_Error
 
 struct _nOS_List
 {
-    nOS_Node        *head;
-    nOS_Node        *tail;
+    nOS_Node            *head;
+    nOS_Node            *tail;
 };
 
 struct _nOS_Node
 {
-    nOS_Node        *prev;
-    nOS_Node        *next;
-    void            *payload;
+    nOS_Node            *prev;
+    nOS_Node            *next;
+    void                *payload;
 };
 
 struct _nOS_Thread
 {
-    nOS_Stack       *stackPtr;
-    uint8_t         prio;
-    nOS_Error       error;
-    uint8_t         state;
-    uint16_t        timeout;
-    nOS_Event       *event;
-    void            *context;
+    nOS_Stack           *stackPtr;
+    uint8_t             prio;
+    nOS_Error           error;
+    uint8_t             state;
+    uint16_t            timeout;
+    nOS_Event           *event;
+    void                *context;
 
-    nOS_Node        full;
-    nOS_Node        readyWaiting;
+    nOS_Node            full;
+    nOS_Node            readyWaiting;
 };
 
 struct _nOS_Event
 {
 #if (NOS_CONFIG_SAFE > 0)
-    uint8_t         type;
+    uint8_t             type;
 #endif
-    nOS_List        waitingList;
+    nOS_List            waitingList;
 };
 
 #if (NOS_CONFIG_SEM_ENABLE > 0)
 struct _nOS_Sem
 {
-    nOS_Event       e;
-    nOS_SemCount    count;
-    nOS_SemCount    max;
+    nOS_Event           e;
+    nOS_SemCount        count;
+    nOS_SemCount        max;
 };
 #endif
 
 #if (NOS_CONFIG_MUTEX_ENABLE > 0)
 struct _nOS_Mutex
 {
-    nOS_Event       e;
-    uint8_t         prio;
-    uint8_t         backup;
-    nOS_Thread      *owner;
+    nOS_Event           e;
+    uint8_t             prio;
+    uint8_t             backup;
+    nOS_Thread          *owner;
 #if (NOS_CONFIG_MUTEX_RECURSIVE_ENABLE > 0)
-    uint8_t         type;
-    uint8_t         count;
+    uint8_t             type;
+    uint8_t             count;
 #endif
 };
 #endif
@@ -368,47 +371,47 @@ struct _nOS_Mutex
 #if (NOS_CONFIG_QUEUE_ENABLE > 0)
 struct _nOS_Queue
 {
-    nOS_Event       e;
-    uint8_t         *buffer;
-    uint16_t        bsize;
-    uint16_t        bmax;
-    uint16_t        bcount;
-    uint16_t        r;
-    uint16_t        w;
+    nOS_Event           e;
+    uint8_t             *buffer;
+    uint16_t            bsize;
+    uint16_t            bmax;
+    uint16_t            bcount;
+    uint16_t            r;
+    uint16_t            w;
 };
 #endif
 
 #if (NOS_CONFIG_FLAG_ENABLE > 0)
 struct _nOS_Flag
 {
-    nOS_Event       e;
-    nOS_FlagBits    flags;
+    nOS_Event           e;
+    nOS_FlagBits        flags;
 };
 
 struct _nOS_FlagContext
 {
-    uint8_t         opt;
-    nOS_FlagBits    flags;
-    nOS_FlagBits    *rflags;
+    uint8_t             opt;
+    nOS_FlagBits        flags;
+    nOS_FlagBits        *rflags;
 };
 
 struct _nOS_FlagResult
 {
-    bool            sched;
-    nOS_FlagBits    rflags;
+    bool                sched;
+    nOS_FlagBits        rflags;
 };
 #endif
 
 #if (NOS_CONFIG_MEM_ENABLE > 0)
 struct _nOS_Mem
 {
-    nOS_Event       e;
-    void            **blist;
-    uint16_t        bcount;
+    nOS_Event           e;
+    void                **blist;
+    uint16_t            bcount;
 #if (NOS_CONFIG_MEM_SANITY_CHECK_ENABLE > 0)
-    uint8_t         *buffer;
-    uint16_t        bsize;
-    uint16_t        bmax;
+    uint8_t             *buffer;
+    uint16_t            bsize;
+    uint16_t            bmax;
 #endif
 };
 #endif
@@ -416,12 +419,12 @@ struct _nOS_Mem
 #if (NOS_CONFIG_TIMER_ENABLE > 0)
 struct _nOS_Timer
 {
-    uint8_t         state;
-    nOS_TimerCount  count;
-    nOS_TimerCount  reload;
-    void(*callback)(nOS_Timer*,void*);
-    void            *arg;
-    nOS_Node        node;
+    uint8_t             state;
+    nOS_TimerCount      count;
+    nOS_TimerCount      reload;
+    nOS_TimerCallback   callback;
+    void                *arg;
+    nOS_Node            node;
 };
 #endif
 
@@ -557,12 +560,12 @@ void*           nOS_ListHead                (nOS_List *list);
 void            nOS_ListAppend              (nOS_List *list, nOS_Node *node);
 void            nOS_ListRemove              (nOS_List *list, nOS_Node *node);
 void            nOS_ListRotate              (nOS_List *list);
-void            nOS_ListWalk                (nOS_List *list, void(*callback)(void*, void*), void *arg);
+void            nOS_ListWalk                (nOS_List *list, nOS_NodeHandler handler, void *arg);
 
 #if (NOS_CONFIG_THREAD_SUSPEND_ENABLE > 0)
-nOS_Error       nOS_ThreadCreate            (nOS_Thread *thread, void(*func)(void*), void *arg, nOS_Stack *stack, size_t ssize, uint8_t prio, uint8_t state);
+nOS_Error       nOS_ThreadCreate            (nOS_Thread *thread, nOS_ThreadEntry entry, void *arg, nOS_Stack *stack, size_t ssize, uint8_t prio, uint8_t state);
 #else
-nOS_Error       nOS_ThreadCreate            (nOS_Thread *thread, void(*func)(void*), void *arg, nOS_Stack *stack, size_t ssize, uint8_t prio);
+nOS_Error       nOS_ThreadCreate            (nOS_Thread *thread, nOS_ThreadEntry entry, void *arg, nOS_Stack *stack, size_t ssize, uint8_t prio);
 #endif
 #if (NOS_CONFIG_THREAD_DELETE_ENABLE > 0)
 nOS_Error       nOS_ThreadDelete            (nOS_Thread *thread);
@@ -648,7 +651,7 @@ bool            nOS_MemIsAvailable          (nOS_Mem *mem);
 void            nOS_TimerInit               (void);
 void            nOS_TimerTick               (void);
 #endif
-nOS_Error       nOS_TimerCreate             (nOS_Timer *timer, void(*callback)(nOS_Timer*,void*), void *arg, nOS_TimerCount reload, uint8_t opt);
+nOS_Error       nOS_TimerCreate             (nOS_Timer *timer, nOS_TimerCallback callback, void *arg, nOS_TimerCount reload, uint8_t opt);
 #if (NOS_CONFIG_TIMER_DELETE_ENABLE > 0)
 nOS_Error       nOS_TimerDelete             (nOS_Timer *timer);
 #endif
@@ -658,7 +661,7 @@ nOS_Error       nOS_TimerRestart            (nOS_Timer *timer, nOS_TimerCount re
 nOS_Error       nOS_TimerPause              (nOS_Timer *timer);
 nOS_Error       nOS_TimerResume             (nOS_Timer *timer);
 nOS_Error       nOS_TimerChangeReload       (nOS_Timer *timer, nOS_TimerCount reload);
-nOS_Error       nOS_TimerChangeCallback     (nOS_Timer *timer, void(*callback)(nOS_Timer*,void*), void *arg);
+nOS_Error       nOS_TimerChangeCallback     (nOS_Timer *timer, nOS_TimerCallback callback, void *arg);
 nOS_Error       nOS_TimerChangeMode         (nOS_Timer *timer, uint8_t opt);
 bool            nOS_TimerIsRunning          (nOS_Timer *timer);
 #endif

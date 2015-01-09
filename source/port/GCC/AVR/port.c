@@ -35,7 +35,7 @@ void nOS_PortInit(void)
 #endif
 }
 
-void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, void(*func)(void*), void *arg)
+void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg)
 {
     /* Stack grow from high to low address */
     nOS_Stack *tos = stack + (ssize - 1);
@@ -48,8 +48,8 @@ void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, void(*f
 #endif
 
     /* Simulate a call to thread function */
-    *tos-- = (nOS_Stack)((uint16_t)func);
-    *tos-- = (nOS_Stack)((uint16_t)func >> 8);
+    *tos-- = (nOS_Stack)((uint16_t)entry);
+    *tos-- = (nOS_Stack)((uint16_t)entry >> 8);
 #if defined(__AVR_3_BYTE_PC__)
     *tos-- = 0x00;                                  /* Always set high part of address to 0 */
 #endif

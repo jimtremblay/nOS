@@ -173,7 +173,7 @@ inline void func##_ISR(void)
 void        nOS_PortInit        (void);
 #endif  /* NOS_PRIVATE */
 
-void        nOS_ContextInit     (nOS_Thread *thread, nOS_Stack *stack, size_t ssize, void(*func)(void*), void *arg);
+void        nOS_ContextInit     (nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg);
 
 #if defined(__cplusplus)
 }

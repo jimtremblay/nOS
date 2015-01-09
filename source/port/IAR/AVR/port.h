@@ -12,7 +12,7 @@
 #if defined(__cplusplus)
 extern "C" {
 #endif
-  
+
 #include <stdint.h>
 #include <intrinsics.h>
 
@@ -178,7 +178,7 @@ __task void vect##_ISR_L3(void)
 /* Unused function for this port */
 #define nOS_PortInit()
 
-void        nOS_ContextInit     (nOS_Thread *thread, nOS_Stack *stack, size_t ssize, void(*func)(void*), void *arg);
+void        nOS_ContextInit     (nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg);
 /* Absolutely need a naked function because function call push the return address on the hardware stack */
 __task void nOS_ContextSwitch   (void);
 

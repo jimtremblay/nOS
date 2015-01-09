@@ -68,7 +68,7 @@ __attribute( ( always_inline ) ) static inline void DisableInterrupt(void)
     if (_ipl < NOS_PORT_MAX_UNSAFE_IPL) {                                       \
         __asm volatile ("MVTIPL %0" :: "i" (NOS_PORT_MAX_UNSAFE_IPL) );         \
     }
-    
+
 
 #define nOS_CriticalLeave()                                                     \
     SetIPL(_ipl);                                                               \
@@ -95,7 +95,7 @@ __attribute__ ( ( always_inline ) ) inline void vect##_ISR(void)
 void    nOS_PortInit        (void);
 #endif
 
-void    nOS_ContextInit     (nOS_Thread *thread, nOS_Stack *stack, size_t ssize, void(*func)(void*), void *arg);
+void    nOS_ContextInit     (nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg);
 
 #if defined(__cplusplus)
 }

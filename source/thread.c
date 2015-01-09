@@ -130,10 +130,10 @@ void SetThreadPriority (nOS_Thread *thread, uint8_t prio)
 #endif
 
 #if (NOS_CONFIG_THREAD_SUSPEND_ENABLE > 0)
-nOS_Error nOS_ThreadCreate (nOS_Thread *thread, void(*func)(void*), void *arg,
+nOS_Error nOS_ThreadCreate (nOS_Thread *thread, nOS_ThreadEntry entry, void *arg,
                             nOS_Stack *stack, size_t ssize, uint8_t prio, uint8_t state)
 #else
-nOS_Error nOS_ThreadCreate (nOS_Thread *thread, void(*func)(void*), void *arg,
+nOS_Error nOS_ThreadCreate (nOS_Thread *thread, nOS_ThreadEntry entry, void *arg,
                             nOS_Stack *stack, size_t ssize, uint8_t prio)
 #endif
 {
@@ -144,7 +144,7 @@ nOS_Error nOS_ThreadCreate (nOS_Thread *thread, void(*func)(void*), void *arg,
         err = NOS_E_NULL;
     } else if (thread == &nOS_mainThread) {
         err = NOS_E_INV_VAL;
-    } else if (func == NULL) {
+    } else if (entry == NULL) {
         err = NOS_E_INV_VAL;
     } else if (stack == NULL) {
         err = NOS_E_INV_VAL;
@@ -174,7 +174,7 @@ nOS_Error nOS_ThreadCreate (nOS_Thread *thread, void(*func)(void*), void *arg,
         thread->error = NOS_OK;
         thread->full.payload = thread;
         thread->readyWaiting.payload = thread;
-        nOS_ContextInit(thread, stack, ssize, func, arg);
+        nOS_ContextInit(thread, stack, ssize, entry, arg);
         nOS_CriticalEnter();
         nOS_ListAppend(&nOS_fullList, &thread->full);
 #if (NOS_CONFIG_THREAD_SUSPEND_ENABLE > 0)

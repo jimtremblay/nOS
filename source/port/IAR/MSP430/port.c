@@ -21,12 +21,12 @@ extern "C" {
  #endif
 #endif
 
-void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, void(*func)(void*), void *arg)
+void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg)
 {
     /* Stack grow from high to low address */
     nOS_Stack   *tos    = stack + (ssize - 1);
     uint16_t    *tos16;
-    
+
 #if (NOS_CONFIG_DEBUG > 0)
     /* Place some fences around thread's stack to know if an overflow occurred */
     *stack++ = (nOS_Stack)0x01234567;
@@ -34,18 +34,18 @@ void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, void(*f
     *tos--   = (nOS_Stack)0x76543210;
     *tos--   = (nOS_Stack)0xfedcba98;
 #endif
-       
+
      tos16   = (uint16_t*)tos;
 #if (__CORE__ == __430X__)
-    *tos16-- = (uint16_t)((uint32_t)func >> 16);    /* PC MSB */
+    *tos16-- = (uint16_t)((uint32_t)entry >> 16);   /* PC MSB */
 #endif
-    *tos16-- = (uint16_t)((uint32_t)func);          /* PC LSB */
+    *tos16-- = (uint16_t)((uint32_t)entry);         /* PC LSB */
     *tos16-- = 0x0008;                              /* SR */
 #if (__CORE__ == __430X__) && ((__DATA_MODEL__ == __DATA_MODEL_MEDIUM__) || (__DATA_MODEL__ == __DATA_MODEL_LARGE__))
      tos16  -= 1;
 #endif
      tos     = (nOS_Stack*)tos16;
-     
+
 #if (NOS_CONFIG_DEBUG > 0)
     *tos-- = (nOS_Stack)0x15151515;     /* R15 */
     *tos-- = (nOS_Stack)0x14141414;     /* R14 */
@@ -112,7 +112,7 @@ nOS_Stack* nOS_IsrEnter (nOS_Stack *sp)
     }
     nOS_isrNestingCounter++;
     nOS_CriticalLeave();
-    
+
     return sp;
 }
 
@@ -131,7 +131,7 @@ nOS_Stack* nOS_IsrLeave (nOS_Stack *sp)
         sp = nOS_runningThread->stackPtr;
     }
     nOS_CriticalLeave();
-    
+
     return sp;
 }
 

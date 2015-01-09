@@ -26,7 +26,7 @@ void nOS_PortInit(void)
     *sp-- = 0x76543210UL;
     *sp-- = 0xfedcba98UL;
 #endif
-    
+
     __asm volatile (
         /* Set USP to current value of ISP */
         "MVFC   ISP,    %[reg]  \n"
@@ -47,7 +47,7 @@ void nOS_PortInit(void)
     *(uint8_t*)0x00087303UL = (uint8_t)1;
 }
 
-void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, void(*func)(void*), void *arg)
+void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg)
 {
     nOS_Stack *tos = (stack + (ssize - 1));
 
@@ -58,9 +58,9 @@ void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, void(*f
     *tos--   = 0x76543210UL;
     *tos--   = 0xfedcba98UL;
 #endif
-    
+
     *tos-- = 0x00030000UL;      /* Interrupts enabled, User stack selected, Supervisor mode */
-    *tos-- = (nOS_Stack)func;
+    *tos-- = (nOS_Stack)entry;
 #if (NOS_CONFIG_DEBUG > 0)
     *tos-- = 0x15151515UL;
     *tos-- = 0x14141414UL;
@@ -81,7 +81,7 @@ void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, void(*f
 #endif
     *tos-- = (nOS_Stack)arg;
     *tos-- = 0x00000100UL;      /* Floating-point status word (default) */
-#if (NOS_CONFIG_DEBUG > 0)    
+#if (NOS_CONFIG_DEBUG > 0)
     *tos-- = 0x01234567UL;      /* Accumulator high */
     *tos   = 0x89abcdefUL;      /* Accumulator low */
 #else

@@ -21,12 +21,12 @@ extern "C" {
  #endif
 #endif
 
-void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, void(*func)(void*), void *arg)
+void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg)
 {
     /* Stack grow from high to low address */
     nOS_Stack   *tos    = stack + (ssize - 1);
 
-    *tos-- = (uint16_t)(func);
+    *tos-- = (uint16_t)entry;           /* PC */
     *tos-- = 0x0008;                    /* Interrupts enabled */
 
 #if (NOS_CONFIG_DEBUG > 0)

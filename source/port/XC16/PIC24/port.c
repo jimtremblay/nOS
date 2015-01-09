@@ -17,11 +17,11 @@ extern "C" {
 static nOS_Stack isrStack[NOS_CONFIG_ISR_STACK_SIZE];
 #endif
 
-void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, void(*func)(void*), void *arg)
+void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg)
 {
     nOS_Stack *tos = (nOS_Stack*)((uint16_t)stack & 0xFFFE);
 
-    *tos++ = (nOS_Stack)func;   /* PC LSB */
+    *tos++ = (nOS_Stack)entry;  /* PC LSB */
     *tos++ = 0;                 /* PC MSB */
     *tos++ = 0;                 /* SR */
     *tos++ = (nOS_Stack)arg;    /* W0 */
@@ -120,7 +120,7 @@ nOS_Stack *nOS_IsrEnter (nOS_Stack *sp)
     }
     nOS_isrNestingCounter++;
     nOS_CriticalLeave();
-    
+
     return sp;
 }
 

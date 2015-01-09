@@ -423,14 +423,14 @@ void nOS_ListRotate (nOS_List *list)
 /* Return 0 to continue to walk into list
  * Return non-zero values to return from walk with last iterator payload
  */
-void nOS_ListWalk (nOS_List *list, void(*callback)(void*,void*), void *arg)
+void nOS_ListWalk (nOS_List *list, nOS_NodeHandler handler, void *arg)
 {
     nOS_Node    *it = list->head;
     nOS_Node    *next;
 
     while (it != NULL) {
         next = it->next;
-        callback(it->payload, arg);
+        handler(it->payload, arg);
         it = next;
     }
 }

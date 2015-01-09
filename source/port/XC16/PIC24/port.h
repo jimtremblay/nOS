@@ -125,7 +125,7 @@ nOS_Stack *nOS_IsrLeave (nOS_Stack *sp);
 
 #define nOS_PortInit()
 
-void        nOS_ContextInit     (nOS_Thread *thread, nOS_Stack *stack, size_t ssize, void(*func)(void*), void *arg);
+void        nOS_ContextInit     (nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg);
 void        nOS_ContextSwitch   (void);
 
 #if defined(__cplusplus)

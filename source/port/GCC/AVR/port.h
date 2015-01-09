@@ -194,7 +194,7 @@ inline void vect##_ISR_L2(void)
 
 void    nOS_PortInit        (void);
 
-void    nOS_ContextInit     (nOS_Thread *thread, nOS_Stack *stack, size_t ssize, void(*func)(void*), void *arg);
+void    nOS_ContextInit     (nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg);
 /* Absolutely need a naked function because function call push the return address on the stack */
 void    nOS_ContextSwitch   (void) __attribute__ ( ( naked ) );
 

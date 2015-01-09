@@ -38,7 +38,7 @@ void nOS_PortInit(void)
     *(volatile uint32_t *)0xe000ed20UL |= 0x00ff0000UL;
 }
 
-void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, void(*func)(void*), void *arg)
+void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg)
 {
     nOS_Stack *tos = (nOS_Stack*)((uint32_t)(stack + ssize) & 0xfffffff8UL);
 #if (NOS_CONFIG_DEBUG > 0)
@@ -50,7 +50,7 @@ void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, void(*f
 #endif
 
     *(--tos) = 0x01000000UL;    /* xPSR */
-    *(--tos) = (nOS_Stack)func; /* PC */
+    *(--tos) = (nOS_Stack)entry;/* PC */
     *(--tos) = 0x00000000UL;    /* LR */
 #if (NOS_CONFIG_DEBUG > 0)
     *(--tos) = 0x12121212UL;    /* R12 */
@@ -114,16 +114,16 @@ __asm void PendSV_Handler(void)
     /* Get the location of nOS_runningThread */
     LDR         R3,         =nOS_runningThread
     LDR         R2,         [R3]
-    
+
     /* Make space for the remaining registers */
     SUBS        R0,         R0,             #32
-    
+
     /* Save PSP to nOS_Thread object of current running thread */
     STR         R0,         [R2]
 
     /* Push low registers on thread stack */
     STMIA       R0!,        {R4-R7}
-    
+
     /* Copy high registers to low registers */
     MOV         R4,         R8
     MOV         R5,         R9
@@ -135,13 +135,13 @@ __asm void PendSV_Handler(void)
     /* Get the location of nOS_highPrioThread */
     LDR         R1,         =nOS_highPrioThread
     LDR         R2,         [R1]
-    
+
     /* Copy nOS_highPrioThread to nOS_runningThread */
     STR         R2,         [R3]
 
     /* Restore PSP from nOS_Thread object of high prio thread */
     LDR         R0,         [R2]
-    
+
     /* Move to the high registers */
     ADDS        R0,         R0,             #16
 
@@ -156,10 +156,10 @@ __asm void PendSV_Handler(void)
     /* Restore PSP to high prio thread stack */
     MSR         PSP,        R0
     ISB
-    
+
     /* Go back for the low registers */
     SUBS        R0,         R0,             #32
-    
+
     /* Pop low registers from thread stack */
     LDMIA      R0!,        {R4-R7}
 

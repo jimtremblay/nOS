@@ -143,7 +143,7 @@ inline void vect##_ISR_L3(void)
 nOS_Stack*  nOS_IsrEnter        (nOS_Stack *sp);
 nOS_Stack*  nOS_IsrLeave        (nOS_Stack *sp);
 
-void        nOS_ContextInit     (nOS_Thread *thread, nOS_Stack *stack, size_t ssize, void(*func)(void*), void *arg);
+void        nOS_ContextInit     (nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg);
 void        nOS_ContextSwitch   (void) __attribute__ ((naked));
 
 #if defined(__cplusplus)

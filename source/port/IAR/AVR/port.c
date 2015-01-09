@@ -13,19 +13,19 @@
 extern "C" {
 #endif
 
-void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, void(*func)(void*), void *arg)
+void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg)
 {
     /* Stack grow from high to low address */
     nOS_Stack *tohs = stack + (ssize - 1);
     nOS_Stack *tos;
-    
+
 #if (NOS_CONFIG_DEBUG > 0)
     *stack++ = 0x12;
     *stack   = 0x34;
     *tohs--  = 0xFE;
     *tohs--  = 0xDC;
 #endif
-    
+
 #if defined(__ATmega2560__) || defined(__ATmega2561__)
      tos     = tohs - (NOS_CONFIG_CALL_STACK_SIZE * 3);
 #else
@@ -34,12 +34,12 @@ void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, void(*f
 
     /* Simulate a call to thread function */
 #if defined(__ATmega2560__) || defined(__ATmega2561__)
-    *tohs--  = (nOS_Stack)((uint32_t)func);
-    *tohs--  = (nOS_Stack)((uint32_t)func >> 8);
-    *tohs--  = (nOS_Stack)((uint32_t)func >> 16);
+    *tohs--  = (nOS_Stack)((uint32_t)entry);
+    *tohs--  = (nOS_Stack)((uint32_t)entry >> 8);
+    *tohs--  = (nOS_Stack)((uint32_t)entry >> 16);
 #else
-    *tohs--  = (nOS_Stack)((uint16_t)func);
-    *tohs--  = (nOS_Stack)((uint16_t)func >> 8);
+    *tohs--  = (nOS_Stack)((uint16_t)entry);
+    *tohs--  = (nOS_Stack)((uint16_t)entry >> 8);
 #endif
 
     /* Simulate a call of nOS_PushContext */
