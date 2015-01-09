@@ -419,7 +419,7 @@ struct _nOS_Timer
     uint8_t         state;
     nOS_TimerCount  count;
     nOS_TimerCount  reload;
-    void(*callback)(void*);
+    void(*callback)(nOS_Timer*,void*);
     void            *arg;
     nOS_Node        node;
 };
@@ -648,7 +648,7 @@ bool            nOS_MemIsAvailable          (nOS_Mem *mem);
 void            nOS_TimerInit               (void);
 void            nOS_TimerTick               (void);
 #endif
-nOS_Error       nOS_TimerCreate             (nOS_Timer *timer, void(*callback)(void*), void *arg, nOS_TimerCount reload, uint8_t opt);
+nOS_Error       nOS_TimerCreate             (nOS_Timer *timer, void(*callback)(nOS_Timer*,void*), void *arg, nOS_TimerCount reload, uint8_t opt);
 #if (NOS_CONFIG_TIMER_DELETE_ENABLE > 0)
 nOS_Error       nOS_TimerDelete             (nOS_Timer *timer);
 #endif
@@ -658,7 +658,7 @@ nOS_Error       nOS_TimerRestart            (nOS_Timer *timer, nOS_TimerCount re
 nOS_Error       nOS_TimerPause              (nOS_Timer *timer);
 nOS_Error       nOS_TimerResume             (nOS_Timer *timer);
 nOS_Error       nOS_TimerChangeReload       (nOS_Timer *timer, nOS_TimerCount reload);
-nOS_Error       nOS_TimerChangeCallback     (nOS_Timer *timer, void(*callback)(void*), void *arg);
+nOS_Error       nOS_TimerChangeCallback     (nOS_Timer *timer, void(*callback)(nOS_Timer*,void*), void *arg);
 nOS_Error       nOS_TimerChangeMode         (nOS_Timer *timer, uint8_t opt);
 bool            nOS_TimerIsRunning          (nOS_Timer *timer);
 #endif
