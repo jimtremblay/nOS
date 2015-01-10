@@ -70,7 +70,7 @@ void nOS_TimeTick (void)
     if (timePrescaler == 0) {
         timeCounter++;
 #if (NOS_CONFIG_TIME_WAIT_ENABLE > 0)
-        nOS_ListWalk(&timeEvent.waitingList, TickTime, NULL);
+        nOS_ListWalk(&timeEvent.waitlist, TickTime, NULL);
 #endif
     }
     nOS_CriticalLeave();
@@ -87,12 +87,14 @@ nOS_Time nOS_TimeNow (void)
     return time;
 }
 
-void nOS_TimeChange (nOS_Time time)
+nOS_Error nOS_TimeChange (nOS_Time time)
 {
     nOS_CriticalEnter();
     timeCounter = time;
     timePrescaler = 0;
     nOS_CriticalLeave();
+
+    return NOS_OK;
 }
 
 nOS_TimeDate nOS_TimeConvert (nOS_Time time)
@@ -178,14 +180,20 @@ nOS_TimeDate nOS_TimeDateNow (void)
     return nOS_TimeConvert(nOS_TimeNow());
 }
 
-void nOS_TimeDateChange (nOS_TimeDate *timedate)
+nOS_Error nOS_TimeDateChange (nOS_TimeDate *timedate)
 {
+    nOS_Error   err;
+
 #if (NOS_CONFIG_SAFE > 0)
-    if (timedate != NULL)
+    if (timedate == NULL) {
+        err = NOS_E_NULL;
+    } else
 #endif
     {
-        nOS_TimeChange(nOS_TimeDateConvert(timedate));
+        err = nOS_TimeChange(nOS_TimeDateConvert(timedate));
     }
+
+    return err;
 }
 
 nOS_Time nOS_TimeDateConvert (nOS_TimeDate *timedate)

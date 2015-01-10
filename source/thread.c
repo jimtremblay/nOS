@@ -62,7 +62,7 @@ void DeleteThread (void *payload, void *arg)
     if (thread->state == NOS_THREAD_READY) {
         RemoveThreadFromReadyList(thread);
     } else if (thread->state & NOS_THREAD_WAITING) {
-        nOS_ListRemove(&thread->event->waitingList, &thread->readyWaiting);
+        nOS_ListRemove(&thread->event->waitlist, &thread->readywait);
     }
     thread->state   = NOS_THREAD_STOPPED;
     thread->event   = NULL;
@@ -96,7 +96,7 @@ void TickThread (void *payload, void *arg)
 void SignalThread (nOS_Thread *thread, nOS_Error err)
 {
     if (thread->event != NULL) {
-        nOS_ListRemove(&thread->event->waitingList, &thread->readyWaiting);
+        nOS_ListRemove(&thread->event->waitlist, &thread->readywait);
     }
     thread->error = err;
     thread->state &=~ (NOS_THREAD_WAITING | NOS_THREAD_SLEEPING);
@@ -169,7 +169,7 @@ nOS_Error nOS_ThreadCreate (nOS_Thread *thread, nOS_ThreadEntry entry, void *arg
         thread->context = NULL;
         thread->error = NOS_OK;
         thread->full.payload = thread;
-        thread->readyWaiting.payload = thread;
+        thread->readywait.payload = thread;
         nOS_ContextInit(thread, stack, ssize, entry, arg);
         nOS_CriticalEnter();
         nOS_ListAppend(&nOS_fullList, &thread->full);

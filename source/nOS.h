@@ -25,6 +25,10 @@
 #define UINT32_MAX                  4294967295UL
 #endif
 
+#ifndef UINT64_MAX
+#define UINT64_MAX                  18446744073709551615ULL
+#endif
+
 #if defined(__cplusplus)
 extern "C" {
 #endif
@@ -52,6 +56,13 @@ extern "C" {
  #warning "nOSConfig.h: NOS_CONFIG_HIGHEST_THREAD_PRIO is not defined (default to 15)."
 #elif NOS_CONFIG_HIGHEST_THREAD_PRIO > 255
  #error "nOSConfig.h: NOS_CONFIG_HIGHEST_THREAD_PRIO can't be higher than 255."
+#endif
+
+#if !defined(NOS_CONFIG_TICK_COUNT_WIDTH)
+ #define NOS_CONFIG_TICK_COUNT_WIDTH            16
+ #warning "nOSConfig.h: NOS_CONFIG_TICK_COUNT_WIDTH is not defined (default to 16)."
+#elif (NOS_CONFIG_TICK_COUNT_WIDTH != 8) && (NOS_CONFIG_TICK_COUNT_WIDTH != 16) && (NOS_CONFIG_TICK_COUNT_WIDTH != 32) && (NOS_CONFIG_TICK_COUNT_WIDTH != 64)
+ #error "nOSConfig.h: NOS_CONFIG_TICK_COUNT_WIDTH set to invalid value: can be set to 8, 16, 32 or 64."
 #endif
 
 #if !defined(NOS_CONFIG_SCHED_LOCK_ENABLE)
@@ -245,6 +256,15 @@ typedef void(*nOS_NodeHandler)(void*,void*);
 typedef struct _nOS_Thread          nOS_Thread;
 typedef void(*nOS_ThreadEntry)(void*);
 typedef struct _nOS_Event           nOS_Event;
+#if (NOS_CONFIG_TICK_COUNT_WIDTH == 8)
+typedef uint8_t                     nOS_TickCount;
+#elif (NOS_CONFIG_TICK_COUNT_WIDTH == 16)
+typedef uint16_t                    nOS_TickCount;
+#elif (NOS_CONFIG_TICK_COUNT_WIDTH == 32)
+typedef uint32_t                    nOS_TickCount;
+#elif (NOS_CONFIG_TICK_COUNT_WIDTH == 64)
+typedef uint64_t                    nOS_TickCount;
+#endif
 #if (NOS_CONFIG_SEM_ENABLE > 0)
 typedef struct _nOS_Sem             nOS_Sem;
 #if (NOS_CONFIG_SEM_COUNT_WIDTH == 8)
@@ -340,16 +360,16 @@ struct _nOS_Node
 
 struct _nOS_Thread
 {
-    nOS_Stack           *stackPtr;
+    nOS_Stack           *stkptr;
     uint8_t             prio;
     nOS_Error           error;
     uint8_t             state;
-    uint16_t            timeout;
+    nOS_TickCount       timeout;
     nOS_Event           *event;
     void                *context;
 
     nOS_Node            full;
-    nOS_Node            readyWaiting;
+    nOS_Node            readywait;
 };
 
 struct _nOS_Event
@@ -357,7 +377,7 @@ struct _nOS_Event
 #if (NOS_CONFIG_SAFE > 0)
     uint8_t             type;
 #endif
-    nOS_List            waitingList;
+    nOS_List            waitlist;
 };
 
 #if (NOS_CONFIG_SEM_ENABLE > 0)
@@ -464,12 +484,20 @@ struct _nOS_TimeContext
 #if (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
 struct _nOS_SleepContext
 {
-    uint16_t        tick;
+    nOS_TickCount   tickcnt;
 };
 #endif
 
 #define NOS_NO_WAIT                 0
+#if (NOS_CONFIG_TICK_COUNT_WIDTH == 8)
+#define NOS_WAIT_INFINITE           UINT8_MAX
+#elif (NOS_CONFIG_TICK_COUNT_WIDTH == 16)
 #define NOS_WAIT_INFINITE           UINT16_MAX
+#elif (NOS_CONFIG_TICK_COUNT_WIDTH == 32)
+#define NOS_WAIT_INFINITE           UINT32_MAX
+#elif (NOS_CONFIG_TICK_COUNT_WIDTH == 64)
+#define NOS_WAIT_INFINITE           UINT64_MAX
+#endif
 
 #define NOS_THREAD_PRIO_IDLE        0
 
@@ -544,12 +572,13 @@ nOS_Error       nOS_Init                    (void);
 nOS_Error       nOS_Sched                   (void);
 nOS_Error       nOS_Yield                   (void);
 void            nOS_Tick                    (void);
-uint16_t        nOS_TickCount               (void);
+nOS_TickCount   nOS_GetTickCount            (void);
+void            nOS_SetTickCount            (nOS_TickCount tick);
 #if (NOS_CONFIG_SLEEP_ENABLE > 0)
-nOS_Error       nOS_Sleep                   (uint16_t ticks);
+nOS_Error       nOS_Sleep                   (nOS_TickCount ticks);
 #endif
 #if (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
-nOS_Error       nOS_SleepUntil              (uint16_t tick);
+nOS_Error       nOS_SleepUntil              (nOS_TickCount tick);
 #endif
 
 #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
@@ -589,7 +618,7 @@ void            nOS_EventCreate             (nOS_Event *event, uint8_t type);
 void            nOS_EventCreate             (nOS_Event *event);
 #endif
 bool            nOS_EventDelete             (nOS_Event *event);
-nOS_Error       nOS_EventWait               (nOS_Event *event, uint8_t state, uint16_t tout);
+nOS_Error       nOS_EventWait               (nOS_Event *event, uint8_t state, nOS_TickCount tout);
 nOS_Thread*     nOS_EventSignal             (nOS_Event *event, nOS_Error err);
 
 #if (NOS_CONFIG_SEM_ENABLE > 0)
@@ -597,7 +626,7 @@ nOS_Error       nOS_SemCreate               (nOS_Sem *sem, nOS_SemCount cntr, nO
 #if (NOS_CONFIG_SEM_DELETE_ENABLE > 0)
 nOS_Error       nOS_SemDelete               (nOS_Sem *sem);
 #endif
-nOS_Error       nOS_SemTake                 (nOS_Sem *sem, uint16_t tout);
+nOS_Error       nOS_SemTake                 (nOS_Sem *sem, nOS_TickCount tout);
 nOS_Error       nOS_SemGive                 (nOS_Sem *sem);
 bool            nOS_SemIsAvailable          (nOS_Sem *sem);
 #endif
@@ -611,7 +640,7 @@ nOS_Error       nOS_MutexCreate             (nOS_Mutex *mutex, uint8_t prio);
 #if (NOS_CONFIG_MUTEX_DELETE_ENABLE > 0)
 nOS_Error       nOS_MutexDelete             (nOS_Mutex *mutex);
 #endif
-nOS_Error       nOS_MutexLock               (nOS_Mutex *mutex, uint16_t tout);
+nOS_Error       nOS_MutexLock               (nOS_Mutex *mutex, nOS_TickCount tout);
 nOS_Error       nOS_MutexUnlock             (nOS_Mutex *mutex);
 bool            nOS_MutexIsLocked           (nOS_Mutex *mutex);
 nOS_Thread*     nOS_MutexOwner              (nOS_Mutex *mutex);
@@ -622,7 +651,7 @@ nOS_Error       nOS_QueueCreate             (nOS_Queue *queue, void *buffer, uin
 #if (NOS_CONFIG_QUEUE_DELETE_ENABLE > 0)
 nOS_Error       nOS_QueueDelete             (nOS_Queue *queue);
 #endif
-nOS_Error       nOS_QueueRead               (nOS_Queue *queue, void *buffer, uint16_t tout);
+nOS_Error       nOS_QueueRead               (nOS_Queue *queue, void *buffer, nOS_TickCount tout);
 nOS_Error       nOS_QueueWrite              (nOS_Queue *queue, void *buffer);
 bool            nOS_QueueIsEmpty            (nOS_Queue *queue);
 bool            nOS_QueueIsFull             (nOS_Queue *queue);
@@ -633,7 +662,7 @@ nOS_Error       nOS_FlagCreate              (nOS_Flag *flag, nOS_FlagBits flags)
 #if (NOS_CONFIG_FLAG_DELETE_ENABLE > 0)
 nOS_Error       nOS_FlagDelete              (nOS_Flag *flag);
 #endif
-nOS_Error       nOS_FlagWait                (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits *res, uint8_t opt, uint16_t tout);
+nOS_Error       nOS_FlagWait                (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits *res, uint8_t opt, nOS_TickCount tout);
 nOS_Error       nOS_FlagSend                (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits mask);
 nOS_FlagBits    nOS_FlagTest                (nOS_Flag *flag, nOS_FlagBits flags, bool all);
 #endif
@@ -643,7 +672,7 @@ nOS_Error       nOS_MemCreate               (nOS_Mem *mem, void *buffer, size_t 
 #if (NOS_CONFIG_MEM_DELETE_ENABLE > 0)
 nOS_Error       nOS_MemDelete               (nOS_Mem *mem);
 #endif
-void*           nOS_MemAlloc                (nOS_Mem *mem, uint16_t tout);
+void*           nOS_MemAlloc                (nOS_Mem *mem, nOS_TickCount tout);
 nOS_Error       nOS_MemFree                 (nOS_Mem *mem, void *block);
 bool            nOS_MemIsAvailable          (nOS_Mem *mem);
 #endif
@@ -674,13 +703,13 @@ void            nOS_TimeInit                (void);
 void            nOS_TimeTick                (void);
 #endif
 nOS_Time        nOS_TimeNow                 (void);
-void            nOS_TimeChange              (nOS_Time time);
+nOS_Error       nOS_TimeChange              (nOS_Time time);
 nOS_TimeDate    nOS_TimeConvert             (nOS_Time time);
 #if (NOS_CONFIG_TIME_WAIT_ENABLE > 0)
 nOS_Error       nOS_TimeWait                (nOS_Time time);
 #endif
 nOS_TimeDate    nOS_TimeDateNow             (void);
-void            nOS_TimeDateChange          (nOS_TimeDate *timedate);
+nOS_Error       nOS_TimeDateChange          (nOS_TimeDate *timedate);
 nOS_Time        nOS_TimeDateConvert         (nOS_TimeDate *timedate);
 #if (NOS_CONFIG_TIME_WAIT_ENABLE > 0)
 nOS_Error       nOS_TimeDateWait            (nOS_TimeDate *timedate);

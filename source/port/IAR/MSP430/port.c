@@ -67,7 +67,7 @@ void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_Thr
      tos  -= 7;                         /* R11 to R4 */
 #endif
 
-    thread->stackPtr = tos;
+    thread->stkptr = tos;
 }
 
 __task void nOS_ContextSwitch(void)
@@ -103,11 +103,11 @@ nOS_Stack* nOS_IsrEnter (nOS_Stack *sp)
 {
     nOS_CriticalEnter();
     if (nOS_isrNestingCounter == 0) {
-        nOS_runningThread->stackPtr = sp;
+        nOS_runningThread->stkptr = sp;
 #if defined(NOS_CONFIG_ISR_STACK_SIZE)
         sp = &isrStack[NOS_CONFIG_ISR_STACK_SIZE-1];
 #else
-        sp = nOS_mainThread.stackPtr;
+        sp = nOS_mainThread.stkptr;
 #endif
     }
     nOS_isrNestingCounter++;
@@ -128,7 +128,7 @@ nOS_Stack* nOS_IsrLeave (nOS_Stack *sp)
             nOS_highPrioThread = SchedHighPrio();
             nOS_runningThread = nOS_highPrioThread;
         }
-        sp = nOS_runningThread->stackPtr;
+        sp = nOS_runningThread->stkptr;
     }
     nOS_CriticalLeave();
 

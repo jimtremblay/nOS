@@ -145,7 +145,7 @@ nOS_Error nOS_FlagDelete (nOS_Flag *flag)
  * Note        : Safe to be called from threads ONLY with scheduler unlocked.
  */
 nOS_Error nOS_FlagWait (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits *res,
-                        uint8_t opt, uint16_t tout)
+                        uint8_t opt, nOS_TickCount tout)
 {
     nOS_Error       err;
     nOS_FlagContext ctx;
@@ -245,7 +245,7 @@ nOS_Error nOS_FlagSend (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits mask)
         res.sched = false;
         nOS_CriticalEnter();
         flag->flags ^= ((flag->flags ^ flags) & mask);
-        nOS_ListWalk(&flag->e.waitingList, TestFlag, &res);
+        nOS_ListWalk(&flag->e.waitlist, TestFlag, &res);
         /* Clear all flags that have awoken the waiting threads. */
         flag->flags &=~ res.rflags;
         nOS_CriticalLeave();

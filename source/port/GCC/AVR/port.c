@@ -107,16 +107,16 @@ void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_Thr
      tos  -= 6;                                     /* R26 to R31 */
 #endif
 
-    thread->stackPtr = tos;
+    thread->stkptr = tos;
 }
 
 /* Absolutely need a naked function because function call push the return address on the stack */
 void nOS_ContextSwitch(void)
 {
     nOS_ContextPush();
-    nOS_runningThread->stackPtr = (uint8_t*)SP;
+    nOS_runningThread->stkptr = (uint8_t*)SP;
     nOS_runningThread = nOS_highPrioThread;
-    SP = (int)nOS_runningThread->stackPtr;
+    SP = (int)nOS_runningThread->stkptr;
     nOS_ContextPop();
     asm volatile("ret");
 }
@@ -125,11 +125,11 @@ nOS_Stack *nOS_IsrEnter (nOS_Stack *sp)
 {
     /* Interrupts already disabled when entering in ISR */
     if (nOS_isrNestingCounter == 0) {
-        nOS_runningThread->stackPtr = sp;
+        nOS_runningThread->stkptr = sp;
 #if defined(NOS_CONFIG_ISR_STACK_SIZE)
         sp = &isrStack[NOS_CONFIG_ISR_STACK_SIZE-1];
 #else
-        sp = nOS_mainThread.stackPtr;
+        sp = nOS_mainThread.stkptr;
 #endif
     }
     nOS_isrNestingCounter++;
@@ -149,7 +149,7 @@ nOS_Stack *nOS_IsrLeave (nOS_Stack *sp)
             nOS_highPrioThread = SchedHighPrio();
             nOS_runningThread = nOS_highPrioThread;
         }
-        sp = nOS_runningThread->stackPtr;
+        sp = nOS_runningThread->stkptr;
     }
 
     return sp;

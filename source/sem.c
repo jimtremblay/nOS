@@ -83,7 +83,7 @@ nOS_Error nOS_SemDelete (nOS_Sem *sem)
  * NOS_E_IDLE: Idle thread can't wait for semaphore
  * NOS_E_TIMEOUT: Semaphore can't be taken in required time
  */
-nOS_Error nOS_SemTake (nOS_Sem *sem, uint16_t tout)
+nOS_Error nOS_SemTake (nOS_Sem *sem, nOS_TickCount tout)
 {
     nOS_Error   err;
 

@@ -88,7 +88,7 @@ void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_Thr
      tos  -= 1;
 #endif
 
-    thread->stackPtr = tos;
+    thread->stkptr = tos;
 }
 
 void nOS_IsrEnter (void)

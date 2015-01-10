@@ -84,7 +84,7 @@ nOS_Error nOS_QueueDelete (nOS_Queue *queue)
 }
 #endif
 
-nOS_Error nOS_QueueRead (nOS_Queue *queue, void *buffer, uint16_t tout)
+nOS_Error nOS_QueueRead (nOS_Queue *queue, void *buffer, nOS_TickCount tout)
 {
     nOS_Error   err;
 
