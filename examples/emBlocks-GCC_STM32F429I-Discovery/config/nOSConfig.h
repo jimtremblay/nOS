@@ -11,6 +11,8 @@
 #define NOS_CONFIG_SCHED_LOCK_ENABLE            1
 /* Enable or disable sleeping from running thread. */
 #define NOS_CONFIG_SLEEP_ENABLE                 1
+/* Enable or disable sleeping until specified from running thread. */
+#define NOS_CONFIG_SLEEP_UNTIL_ENABLE           1
 
 /* Enable or disable thread resume/suspend at run-time. */
 #define NOS_CONFIG_THREAD_SUSPEND_ENABLE        1
@@ -65,6 +67,8 @@
 
 /* Enable or disable time management. */
 #define NOS_CONFIG_TIME_ENABLE                  1
+/* Enable or disable time waiting from running thread. */
+#define NOS_CONFIG_TIME_WAIT_ENABLE             1
 /* Time ticks per second */
 #define NOS_CONFIG_TIME_TICKS_PER_SECOND        1000
 /* Time ticks counter width in bits (can be 32 or 64). */

@@ -18,20 +18,48 @@ extern "C" {
 #define DAYS_PER_YEAR(y)            (IsLeapYear(y)?366:365)
 #define DAYS_PER_MONTH(m,y)         ((IsLeapYear(y)&&((m)==2))?29:daysPerMonth[(m)-1])
 
-static uint16_t timePrescaler;
-static nOS_Time timeCounter;
+#define MAX_TIME_SLEEP              ((NOS_WAIT_INFINITE-1)/NOS_CONFIG_TIME_TICKS_PER_SECOND)
+#define MAX_TICKS_SLEEP             (MAX_TIME_SLEEP*NOS_CONFIG_TIME_TICKS_PER_SECOND)
 
-static const uint8_t daysPerMonth[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+static uint16_t         timePrescaler;
+static nOS_Time         timeCounter;
+#if (NOS_CONFIG_TIME_WAIT_ENABLE > 0)
+static nOS_Event        timeEvent;
+#endif
+
+static const uint8_t    daysPerMonth[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
 static inline bool IsLeapYear (uint16_t year)
 {
     return ((((year % 4) == 0) && ((year % 100) != 0)) || ((year % 400) == 0));
 }
 
+#if (NOS_CONFIG_TIME_WAIT_ENABLE > 0)
+static void TickTime(void *payload, void *arg)
+{
+    nOS_Thread      *thread = (nOS_Thread*)payload;
+    nOS_TimeContext *ctx    = (nOS_TimeContext*)thread->context;
+
+    /* Avoid warning */
+    NOS_UNUSED(arg);
+
+    if (timeCounter == ctx->time) {
+        SignalThread(thread, NOS_OK);
+    }
+}
+#endif
+
 void nOS_TimeInit (void)
 {
     timePrescaler = 0;
     timeCounter = 0;
+#if (NOS_CONFIG_TIME_WAIT_ENABLE > 0)
+#if (NOS_CONFIG_SAFE > 0)
+    nOS_EventCreate(&timeEvent, NOS_EVENT_SLEEP);
+#else
+    nOS_EventCreate(&timeEvent);
+#endif
+#endif
 }
 
 void nOS_TimeTick (void)
@@ -41,6 +69,9 @@ void nOS_TimeTick (void)
     timePrescaler %= NOS_CONFIG_TIME_TICKS_PER_SECOND;
     if (timePrescaler == 0) {
         timeCounter++;
+#if (NOS_CONFIG_TIME_WAIT_ENABLE > 0)
+        nOS_ListWalk(&timeEvent.waitingList, TickTime, NULL);
+#endif
     }
     nOS_CriticalLeave();
 }
@@ -107,6 +138,41 @@ nOS_TimeDate nOS_TimeConvert (nOS_Time time)
     return timedate;
 }
 
+#if (NOS_CONFIG_TIME_WAIT_ENABLE > 0)
+nOS_Error nOS_TimeWait (nOS_Time time)
+{
+    nOS_Error       err;
+    nOS_TimeContext ctx;
+
+    if (nOS_isrNestingCounter > 0) {
+        err = NOS_E_ISR;
+    }
+#if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
+    /* Can't switch context when scheduler is locked */
+    else if (nOS_lockNestingCounter > 0) {
+        err = NOS_E_LOCKED;
+    }
+#endif
+    else if (nOS_runningThread == &nOS_mainThread) {
+        err = NOS_E_IDLE;
+    } else {
+        nOS_CriticalEnter();
+        if (timeCounter < time) {
+            err = NOS_E_ELAPSED;
+        } else if (timeCounter == time) {
+            err = NOS_OK;
+        } else {
+            ctx.time = time;
+            nOS_runningThread->context = &ctx;
+            err = nOS_EventWait(&timeEvent, NOS_THREAD_SLEEPING, NOS_WAIT_INFINITE);
+        }
+        nOS_CriticalLeave();
+    }
+
+    return err;
+}
+#endif
+
 nOS_TimeDate nOS_TimeDateNow (void)
 {
     return nOS_TimeConvert(nOS_TimeNow());
@@ -159,6 +225,24 @@ nOS_Time nOS_TimeDateConvert (nOS_TimeDate *timedate)
 
     return time;
 }
+
+#if (NOS_CONFIG_TIME_WAIT_ENABLE > 0)
+nOS_Error nOS_TimeDateWait (nOS_TimeDate *timedate)
+{
+    nOS_Error   err;
+
+#if (NOS_CONFIG_SAFE > 0)
+    if (timedate == NULL) {
+        err = NOS_E_NULL;
+    } else
+#endif
+    {
+        err = nOS_TimeWait(nOS_TimeDateConvert(timedate));
+    }
+
+    return err;
+}
+#endif
 #endif  /* NOS_CONFIG_TIME_ENABLE */
 
 #if defined(__cplusplus)

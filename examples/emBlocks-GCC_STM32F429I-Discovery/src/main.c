@@ -30,30 +30,45 @@ NOS_ISR(SysTick_Handler)
 
 void ThreadA (void *arg)
 {
+    uint16_t count;
+
     NOS_UNUSED(arg);
 
+    count = nOS_TickCount() + 500;
     while (1) {
-        nOS_SemTake(&semA, NOS_WAIT_INFINITE);
+        //nOS_SemTake(&semA, NOS_WAIT_INFINITE);
+        nOS_SleepUntil(count);
+        count += 500;
     }
 }
 
 void ThreadB (void *arg)
 {
+    uint16_t count;
+
     NOS_UNUSED(arg);
 
+    count = nOS_TickCount() + 500;
     while (1) {
-        nOS_SemTake(&semB, NOS_WAIT_INFINITE);
-        nOS_SemGive(&semA);
+        //nOS_SemTake(&semB, NOS_WAIT_INFINITE);
+        //nOS_SemGive(&semA);
+        nOS_SleepUntil(count);
+        count += 500;
     }
 }
 
 void ThreadC (void *arg)
 {
+    uint16_t count;
+
     NOS_UNUSED(arg);
 
+    count = nOS_TickCount() + 500;
     while (1) {
-        nOS_SemTake(&semC, NOS_WAIT_INFINITE);
-        nOS_SemGive(&semB);
+        //nOS_SemTake(&semC, NOS_WAIT_INFINITE);
+        //nOS_SemGive(&semB);
+        nOS_SleepUntil(count);
+        count += 500;
     }
 }
 

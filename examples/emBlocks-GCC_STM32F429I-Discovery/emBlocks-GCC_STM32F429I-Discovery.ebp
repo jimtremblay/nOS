@@ -216,7 +216,13 @@
 		</Unit>
 		<Unit filename="stm32f429zi_flash.ld" />
 		<Unit filename="stm32f429zi_sram.ld" />
+		<Unit filename="..\..\source\event.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="..\..\source\flag.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\source\list.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\..\source\mem.c">
@@ -251,7 +257,7 @@
 		<Extensions>
 			<code_completion />
 			<debugger>
-				<target_debugging_settings target="Release" active_interface="ST-link">
+				<target_debugging_settings target="Debug" active_interface="ST-link">
 					<debug_interface interface_id="ST-link" ip_address="localhost" ip_port="4242" path="${EMBLOCKS}\share\contrib" executable="STLinkGDB.exe" description="" dont_start_server="false" backoff_time="1000" options="0" reg_filter="0" active_family="STMicroelectronics">
 						<family_options family_id="STMicroelectronics">
 							<option opt_id="ID_JTAG_SWD" opt_value="swd" />
@@ -268,7 +274,7 @@
 						</family_options>
 					</debug_interface>
 				</target_debugging_settings>
-				<target_debugging_settings target="Debug" active_interface="ST-link">
+				<target_debugging_settings target="Release" active_interface="ST-link">
 					<debug_interface interface_id="ST-link" ip_address="localhost" ip_port="4242" path="${EMBLOCKS}\share\contrib" executable="STLinkGDB.exe" description="" dont_start_server="false" backoff_time="1000" options="0" reg_filter="0" active_family="STMicroelectronics">
 						<family_options family_id="STMicroelectronics">
 							<option opt_id="ID_JTAG_SWD" opt_value="swd" />

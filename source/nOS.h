@@ -48,7 +48,7 @@ extern "C" {
 #endif
 
 #if !defined(NOS_CONFIG_HIGHEST_THREAD_PRIO)
- #define NOS_CONFIG_HIGHEST_THREAD_PRIO             15
+ #define NOS_CONFIG_HIGHEST_THREAD_PRIO         15
  #warning "nOSConfig.h: NOS_CONFIG_HIGHEST_THREAD_PRIO is not defined (default to 15)."
 #elif NOS_CONFIG_HIGHEST_THREAD_PRIO > 255
  #error "nOSConfig.h: NOS_CONFIG_HIGHEST_THREAD_PRIO can't be higher than 255."
@@ -62,6 +62,11 @@ extern "C" {
 #if !defined(NOS_CONFIG_SLEEP_ENABLE)
  #define NOS_CONFIG_SLEEP_ENABLE                1
  #warning "nOSConfig.h: NOS_CONFIG_SLEEP_ENABLE is not defined (enabled by default)."
+#endif
+
+#if !defined(NOS_CONFIG_SLEEP_UNTIL_ENABLE)
+ #define NOS_CONFIG_SLEEP_UNTIL_ENABLE          1
+ #warning "nOSConfig.h: NOS_CONFIG_SLEEP_UNTIL_ENABLE is not defined (enabled by default)."
 #endif
 
 #if !defined(NOS_CONFIG_THREAD_SUSPEND_ENABLE)
@@ -215,6 +220,10 @@ extern "C" {
  #warning "nOSConfig.h: NOS_CONFIG_TIME_ENABLE is not defined (disabled by default)."
 #endif
 #if (NOS_CONFIG_TIME_ENABLE > 0)
+ #if !defined(NOS_CONFIG_TIME_WAIT_ENABLE)
+  #define NOS_CONFIG_TIME_WAIT_ENABLE           1
+  #warning "nOSConfig.h: NOS_CONFIG_TIME_WAIT_ENABLE is not defined (enabled by default)."
+ #endif
  #if !defined(NOS_CONFIG_TIME_TICKS_PER_SECOND)
   #error "nOSConfig.h: NOS_CONFIG_TIME_TICKS_PER_SECOND is not defined."
  #endif
@@ -225,67 +234,72 @@ extern "C" {
   #error "nOSConfig.h: NOS_CONFIG_TIME_COUNT_WIDTH set to invalid value: can be set to 32 or 64."
  #endif
 #else
+ #undef NOS_CONFIG_TIME_WAIT_ENABLE
  #undef NOS_CONFIG_TIME_TICKS_PER_SECOND
  #undef NOS_CONFIG_TIME_COUNT_WIDTH
 #endif
 
-typedef struct _nOS_List        nOS_List;
-typedef struct _nOS_Node        nOS_Node;
+typedef struct _nOS_List            nOS_List;
+typedef struct _nOS_Node            nOS_Node;
 typedef void(*nOS_NodeHandler)(void*,void*);
-typedef struct _nOS_Thread      nOS_Thread;
+typedef struct _nOS_Thread          nOS_Thread;
 typedef void(*nOS_ThreadEntry)(void*);
-typedef struct _nOS_Event       nOS_Event;
+typedef struct _nOS_Event           nOS_Event;
 #if (NOS_CONFIG_SEM_ENABLE > 0)
-typedef struct _nOS_Sem         nOS_Sem;
+typedef struct _nOS_Sem             nOS_Sem;
 #if (NOS_CONFIG_SEM_COUNT_WIDTH == 8)
-typedef uint8_t                 nOS_SemCount;
+typedef uint8_t                     nOS_SemCount;
 #elif (NOS_CONFIG_SEM_COUNT_WIDTH == 16)
-typedef uint16_t                nOS_SemCount;
+typedef uint16_t                    nOS_SemCount;
 #else /* NOS_CONFIG_SEM_COUNT_WIDTH == 32 */
-typedef uint32_t                nOS_SemCount;
+typedef uint32_t                    nOS_SemCount;
 #endif
 #endif
 #if (NOS_CONFIG_MUTEX_ENABLE > 0)
-typedef struct _nOS_Mutex       nOS_Mutex;
+typedef struct _nOS_Mutex           nOS_Mutex;
 #endif
 #if (NOS_CONFIG_QUEUE_ENABLE > 0)
-typedef struct _nOS_Queue       nOS_Queue;
+typedef struct _nOS_Queue           nOS_Queue;
 #endif
 #if (NOS_CONFIG_FLAG_ENABLE > 0)
-typedef struct _nOS_Flag        nOS_Flag;
-typedef struct _nOS_FlagContext nOS_FlagContext;
-typedef struct _nOS_FlagResult  nOS_FlagResult;
+typedef struct _nOS_Flag            nOS_Flag;
+typedef struct _nOS_FlagContext     nOS_FlagContext;
+typedef struct _nOS_FlagResult      nOS_FlagResult;
 #if (NOS_CONFIG_FLAG_NB_BITS == 8)
-typedef uint8_t                 nOS_FlagBits;
+typedef uint8_t                     nOS_FlagBits;
 #elif (NOS_CONFIG_FLAG_NB_BITS == 16)
-typedef uint16_t                nOS_FlagBits;
+typedef uint16_t                    nOS_FlagBits;
 #elif (NOS_CONFIG_FLAG_NB_BITS == 32)
-typedef uint32_t                nOS_FlagBits;
+typedef uint32_t                    nOS_FlagBits;
 #else   /* NOS_CONFIG_FLAG_NB_BITS == 64 */
-typedef uint64_t                nOS_FlagBits;
+typedef uint64_t                    nOS_FlagBits;
 #endif
 #endif
 #if (NOS_CONFIG_MEM_ENABLE > 0)
-typedef struct _nOS_Mem         nOS_Mem;
+typedef struct _nOS_Mem             nOS_Mem;
 #endif
 #if (NOS_CONFIG_TIMER_ENABLE > 0)
-typedef struct _nOS_Timer       nOS_Timer;
+typedef struct _nOS_Timer           nOS_Timer;
 #if (NOS_CONFIG_TIMER_COUNT_WIDTH == 8)
-typedef uint8_t                 nOS_TimerCount;
+typedef uint8_t                     nOS_TimerCount;
 #elif (NOS_CONFIG_TIMER_COUNT_WIDTH == 16)
-typedef uint16_t                nOS_TimerCount;
+typedef uint16_t                    nOS_TimerCount;
 #else   /* NOS_CONFIG_TIMER_COUNT_WIDTH == 32 */
-typedef uint32_t                nOS_TimerCount;
+typedef uint32_t                    nOS_TimerCount;
 #endif
 typedef void(*nOS_TimerCallback)(nOS_Timer*,void*);
 #endif
 #if (NOS_CONFIG_TIME_ENABLE > 0)
 #if (NOS_CONFIG_TIME_COUNT_WIDTH == 32)
-typedef uint32_t                nOS_Time;
+typedef uint32_t                    nOS_Time;
 #else
-typedef uint64_t                nOS_Time;
+typedef uint64_t                    nOS_Time;
 #endif
-typedef struct _nOS_TimeDate    nOS_TimeDate;
+typedef struct _nOS_TimeDate        nOS_TimeDate;
+typedef struct _nOS_TimeContext     nOS_TimeContext;
+#endif
+#if (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
+typedef struct _nOS_SleepContext    nOS_SleepContext;
 #endif
 
 typedef enum _nOS_Error
@@ -305,7 +319,8 @@ typedef enum _nOS_Error
     NOS_E_FULL = -12,
     NOS_E_INIT = -13,
     NOS_E_DELETED = -14,
-    NOS_E_INV_OBJ = -15
+    NOS_E_INV_OBJ = -15,
+    NOS_E_ELAPSED = -16
 } nOS_Error;
 
 #include "port.h"
@@ -439,6 +454,18 @@ struct _nOS_TimeDate
     uint8_t         minute;         /* From 0 to 59 */
     uint8_t         second;         /* From 0 to 59 */
 };
+
+struct _nOS_TimeContext
+{
+    nOS_Time        time;
+};
+#endif
+
+#if (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
+struct _nOS_SleepContext
+{
+    uint16_t        tick;
+};
 #endif
 
 #define NOS_NO_WAIT                 0
@@ -463,6 +490,7 @@ struct _nOS_TimeDate
 #define NOS_EVENT_QUEUE             0x03
 #define NOS_EVENT_FLAG              0x04
 #define NOS_EVENT_MEM               0x05
+#define NOS_EVENT_SLEEP             0x06
 
 #define NOS_MUTEX_NORMAL            0
 #define NOS_MUTEX_RECURSIVE         1
@@ -485,8 +513,6 @@ struct _nOS_TimeDate
 #define NOS_TIMER_CREATED           0x80
 
 #if defined(NOS_PRIVATE)
-NOS_EXTERN bool         nOS_initialized;
-
 NOS_EXTERN nOS_Thread   nOS_mainThread;
 
 NOS_EXTERN uint8_t      nOS_isrNestingCounter;
@@ -496,36 +522,8 @@ NOS_EXTERN uint8_t      nOS_lockNestingCounter;
 
 NOS_EXTERN nOS_Thread   *nOS_runningThread;
 NOS_EXTERN nOS_Thread   *nOS_highPrioThread;
-
 NOS_EXTERN nOS_List     nOS_fullList;
 NOS_EXTERN nOS_List     nOS_readyList[NOS_CONFIG_HIGHEST_THREAD_PRIO+1];
-#if defined(NOS_PORT_SCHED_USE_32_BITS)
-#if NOS_CONFIG_HIGHEST_THREAD_PRIO < 32
-NOS_EXTERN uint32_t     nOS_readyPrio;
-#elif NOS_CONFIG_HIGHEST_THREAD_PRIO < 256
-NOS_EXTERN uint32_t     nOS_readyGroup;
-NOS_EXTERN uint32_t     nOS_readyPrio[((NOS_CONFIG_HIGHEST_THREAD_PRIO+31)/32)];
-#endif  /* NOS_CONFIG_HIGHEST_THREAD_PRIO */
-#elif defined(NOS_PORT_SCHED_USE_16_BITS)
-#if NOS_CONFIG_HIGHEST_THREAD_PRIO < 16
-NOS_EXTERN uint16_t     nOS_readyPrio;
-#elif NOS_CONFIG_HIGHEST_THREAD_PRIO < 256
-NOS_EXTERN uint16_t     nOS_readyGroup;
-NOS_EXTERN uint16_t     nOS_readyPrio[((NOS_CONFIG_HIGHEST_THREAD_PRIO+15)/16)];
-#endif  /* NOS_CONFIG_HIGHEST_THREAD_PRIO */
-#else   /* NOS_PORT_SCHED_USE_8_BITS */
-#if NOS_CONFIG_HIGHEST_THREAD_PRIO < 8
-NOS_EXTERN uint8_t      nOS_readyPrio;
-#elif NOS_CONFIG_HIGHEST_THREAD_PRIO < 16
-NOS_EXTERN uint16_t     nOS_readyPrio;
-#elif NOS_CONFIG_HIGHEST_THREAD_PRIO < 64
-NOS_EXTERN uint8_t      nOS_readyGroup;
-NOS_EXTERN uint8_t      nOS_readyPrio[((NOS_CONFIG_HIGHEST_THREAD_PRIO+7)/8)];
-#elif NOS_CONFIG_HIGHEST_THREAD_PRIO < 256
-NOS_EXTERN uint16_t     nOS_readyGroup;
-NOS_EXTERN uint16_t     nOS_readyPrio[((NOS_CONFIG_HIGHEST_THREAD_PRIO+15)/16)];
-#endif  /* NOS_CONFIG_HIGHEST_THREAD_PRIO */
-#endif  /* NOS_PORT_SCHED_USE_32_BITS */
 #endif  /* NOS_PRIVATE */
 
 #if defined(NOS_PRIVATE)
@@ -546,8 +544,12 @@ nOS_Error       nOS_Init                    (void);
 nOS_Error       nOS_Sched                   (void);
 nOS_Error       nOS_Yield                   (void);
 void            nOS_Tick                    (void);
+uint16_t        nOS_TickCount               (void);
 #if (NOS_CONFIG_SLEEP_ENABLE > 0)
 nOS_Error       nOS_Sleep                   (uint16_t ticks);
+#endif
+#if (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
+nOS_Error       nOS_SleepUntil              (uint16_t tick);
 #endif
 
 #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
@@ -674,9 +676,15 @@ void            nOS_TimeTick                (void);
 nOS_Time        nOS_TimeNow                 (void);
 void            nOS_TimeChange              (nOS_Time time);
 nOS_TimeDate    nOS_TimeConvert             (nOS_Time time);
+#if (NOS_CONFIG_TIME_WAIT_ENABLE > 0)
+nOS_Error       nOS_TimeWait                (nOS_Time time);
+#endif
 nOS_TimeDate    nOS_TimeDateNow             (void);
 void            nOS_TimeDateChange          (nOS_TimeDate *timedate);
 nOS_Time        nOS_TimeDateConvert         (nOS_TimeDate *timedate);
+#if (NOS_CONFIG_TIME_WAIT_ENABLE > 0)
+nOS_Error       nOS_TimeDateWait            (nOS_TimeDate *timedate);
+#endif
 #endif
 
 #if defined(__cplusplus)

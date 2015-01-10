@@ -84,15 +84,9 @@ void TickThread (void *payload, void *arg)
         thread->timeout--;
         if (thread->timeout == 0) {
             if (thread->state & NOS_THREAD_SLEEPING) {
-                thread->state &=~ NOS_THREAD_SLEEPING;
-                thread->error = NOS_OK;
+                SignalThread(thread, NOS_OK);
             } else if (thread->state & NOS_THREAD_WAITING) {
-                nOS_ListRemove(&thread->event->waitingList, &thread->readyWaiting);
-                thread->state &=~ NOS_THREAD_WAITING;
-                thread->error = NOS_E_TIMEOUT;
-            }
-            if (thread->state == NOS_THREAD_READY) {
-                AppendThreadToReadyList(thread);
+                SignalThread(thread, NOS_E_TIMEOUT);
             }
         }
     }
@@ -101,9 +95,11 @@ void TickThread (void *payload, void *arg)
 /* This is an internal function */
 void SignalThread (nOS_Thread *thread, nOS_Error err)
 {
-    nOS_ListRemove(&thread->event->waitingList, &thread->readyWaiting);
+    if (thread->event != NULL) {
+        nOS_ListRemove(&thread->event->waitingList, &thread->readyWaiting);
+    }
     thread->error = err;
-    thread->state &=~ NOS_THREAD_WAITING;
+    thread->state &=~ (NOS_THREAD_WAITING | NOS_THREAD_SLEEPING);
     thread->timeout = 0;
     if (thread->state == NOS_THREAD_READY) {
         AppendThreadToReadyList(thread);
