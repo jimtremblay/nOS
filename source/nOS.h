@@ -343,7 +343,7 @@ typedef enum _nOS_Error
     NOS_E_ELAPSED = -16
 } nOS_Error;
 
-#include "port.h"
+#include "nOSPort.h"
 
 struct _nOS_List
 {
