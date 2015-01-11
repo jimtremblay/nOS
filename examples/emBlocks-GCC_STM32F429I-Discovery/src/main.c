@@ -34,7 +34,7 @@ void ThreadA (void *arg)
 
     NOS_UNUSED(arg);
 
-    count = nOS_TickCount() + 500;
+    count = nOS_GetTickCount() + 500;
     while (1) {
         //nOS_SemTake(&semA, NOS_WAIT_INFINITE);
         nOS_SleepUntil(count);
@@ -48,7 +48,7 @@ void ThreadB (void *arg)
 
     NOS_UNUSED(arg);
 
-    count = nOS_TickCount() + 500;
+    count = nOS_GetTickCount() + 500;
     while (1) {
         //nOS_SemTake(&semB, NOS_WAIT_INFINITE);
         //nOS_SemGive(&semA);
@@ -63,7 +63,7 @@ void ThreadC (void *arg)
 
     NOS_UNUSED(arg);
 
-    count = nOS_TickCount() + 500;
+    count = nOS_GetTickCount() + 500;
     while (1) {
         //nOS_SemTake(&semC, NOS_WAIT_INFINITE);
         //nOS_SemGive(&semB);

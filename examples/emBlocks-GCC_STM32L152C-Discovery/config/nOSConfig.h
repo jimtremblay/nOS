@@ -7,10 +7,15 @@
 /* Highest priority a thread can take (up to 255). */
 #define NOS_CONFIG_HIGHEST_THREAD_PRIO          31
 
+/* Size of ticks counter for sleep/timeout in bits (can be 8, 16, 32 and 64). */
+#define NOS_CONFIG_TICK_COUNT_WIDTH             32
+
 /* Enable or disable scheduler locking. */
 #define NOS_CONFIG_SCHED_LOCK_ENABLE            1
 /* Enable or disable sleeping from running thread. */
 #define NOS_CONFIG_SLEEP_ENABLE                 1
+/* Enable or disable sleeping until specified from running thread. */
+#define NOS_CONFIG_SLEEP_UNTIL_ENABLE           1
 
 /* Enable or disable thread resume/suspend at run-time. */
 #define NOS_CONFIG_THREAD_SUSPEND_ENABLE        1
@@ -62,6 +67,15 @@
 #define NOS_CONFIG_TIMER_THREAD_STACK_SIZE      128
 /* Timer counter width in bits (can be 8, 16 or 32) */
 #define NOS_CONFIG_TIMER_COUNT_WIDTH            16
+
+/* Enable or disable time management. */
+#define NOS_CONFIG_TIME_ENABLE                  1
+/* Enable or disable time waiting from running thread. */
+#define NOS_CONFIG_TIME_WAIT_ENABLE             1
+/* Time ticks per second */
+#define NOS_CONFIG_TIME_TICKS_PER_SECOND        1000
+/* Time ticks counter width in bits (can be 32 or 64). */
+#define NOS_CONFIG_TIME_COUNT_WIDTH             32
 
 /*
  * Stack size to use from interrupt routines in number of nOS_Stack entries.
