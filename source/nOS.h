@@ -466,25 +466,25 @@ struct _nOS_Timer
 #if (NOS_CONFIG_TIME_ENABLE > 0)
 struct _nOS_TimeDate
 {
-    uint16_t        year;           /* From 1970 to ... */
-    uint8_t         month;          /* From 1 (January) to 12 (December) */
-    uint8_t         day;            /* From 1 to 31 */
-    uint8_t         weekday;        /* From 1 (Monday) to 7 (Sunday) */
-    uint8_t         hour;           /* From 0 to 23 */
-    uint8_t         minute;         /* From 0 to 59 */
-    uint8_t         second;         /* From 0 to 59 */
+    uint16_t            year;           /* From 1970 to ... */
+    uint8_t             month;          /* From 1 (January) to 12 (December) */
+    uint8_t             day;            /* From 1 to 31 */
+    uint8_t             weekday;        /* From 1 (Monday) to 7 (Sunday) */
+    uint8_t             hour;           /* From 0 to 23 */
+    uint8_t             minute;         /* From 0 to 59 */
+    uint8_t             second;         /* From 0 to 59 */
 };
 
 struct _nOS_TimeContext
 {
-    nOS_Time        time;
+    nOS_Time            time;
 };
 #endif
 
 #if (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
 struct _nOS_SleepContext
 {
-    nOS_TickCount   tickcnt;
+    nOS_TickCount       tickcnt;
 };
 #endif
 
