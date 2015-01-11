@@ -119,10 +119,10 @@ nOS_Error nOS_MemCreate (nOS_Mem *mem, void *buffer, size_t bsize, uint16_t bmax
         }
         *(void**)buffer = blist;
         mem->blist = (void**)buffer;
-        mem->bcount = bmax;
 #if (NOS_CONFIG_MEM_SANITY_CHECK_ENABLE > 0)
         mem->buffer = buffer;
         mem->bsize = bsize;
+        mem->bcount = bmax;
         mem->bmax = bmax;
 #endif
         nOS_CriticalLeave();
@@ -147,10 +147,10 @@ nOS_Error nOS_MemDelete (nOS_Mem *mem)
     {
         nOS_CriticalEnter();
         mem->blist = NULL;
-        mem->bcount = 0;
 #if (NOS_CONFIG_MEM_SANITY_CHECK_ENABLE > 0)
         mem->buffer = NULL;
         mem->bsize = 0;
+        mem->bcount = 0;
         mem->bmax = 0;
 #endif
         if (nOS_EventDelete((nOS_Event*)mem)) {
@@ -198,10 +198,12 @@ void *nOS_MemAlloc(nOS_Mem *mem, nOS_TickCount tout)
 #endif
     {
         nOS_CriticalEnter();
-        if (mem->bcount > 0) {
+        if (mem->blist != NULL) {
             block = (void*)mem->blist;
             mem->blist = *(void**)block;
+#if (NOS_CONFIG_MEM_SANITY_CHECK_ENABLE > 0)
             mem->bcount--;
+#endif
         /* Caller can't wait? Try again. */
         } else if (tout == NOS_NO_WAIT) {
             block = NULL;
@@ -283,7 +285,9 @@ nOS_Error nOS_MemFree(nOS_Mem *mem, void *block)
         } else {
             *(void**)block = mem->blist;
             mem->blist = (void**)block;
+#if (NOS_CONFIG_MEM_SANITY_CHECK_ENABLE > 0)
             mem->bcount++;
+#endif
         }
         nOS_CriticalLeave();
         err = NOS_OK;
@@ -305,7 +309,7 @@ bool nOS_MemIsAvailable (nOS_Mem *mem)
 #endif
     {
         nOS_CriticalEnter();
-        avail = (mem->bcount > 0);
+        avail = (mem->blist != NULL);
         nOS_CriticalLeave();
     }
 

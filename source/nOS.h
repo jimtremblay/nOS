@@ -442,10 +442,10 @@ struct _nOS_Mem
 {
     nOS_Event           e;
     void                **blist;
-    uint16_t            bcount;
 #if (NOS_CONFIG_MEM_SANITY_CHECK_ENABLE > 0)
     uint8_t             *buffer;
     uint16_t            bsize;
+    uint16_t            bcount;
     uint16_t            bmax;
 #endif
 };
