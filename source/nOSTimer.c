@@ -87,7 +87,7 @@ void nOS_TimerTick(void)
     nOS_SemGive(&timerSem);
 }
 
-nOS_Error nOS_TimerCreate (nOS_Timer *timer, nOS_TimerCallback callback, void *arg, nOS_TimerCount reload, uint8_t mode)
+nOS_Error nOS_TimerCreate (nOS_Timer *timer, nOS_TimerCallback callback, void *arg, nOS_TimerCounter reload, uint8_t mode)
 {
     nOS_Error   err;
 
@@ -183,7 +183,7 @@ nOS_Error nOS_TimerStop (nOS_Timer *timer)
     return err;
 }
 
-nOS_Error nOS_TimerRestart (nOS_Timer *timer, nOS_TimerCount reload)
+nOS_Error nOS_TimerRestart (nOS_Timer *timer, nOS_TimerCounter reload)
 {
     nOS_Error   err;
 
@@ -248,7 +248,7 @@ nOS_Error nOS_TimerResume (nOS_Timer *timer)
     return err;
 }
 
-nOS_Error nOS_TimerChangeReload (nOS_Timer *timer, nOS_TimerCount reload)
+nOS_Error nOS_TimerChangeReload (nOS_Timer *timer, nOS_TimerCounter reload)
 {
     nOS_Error   err;
 

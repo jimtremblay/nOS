@@ -185,7 +185,7 @@ nOS_Error nOS_MemDelete (nOS_Mem *mem)
  *
  * Note        : Caller is responsible to free the block when memory is no longer needed.
  */
-void *nOS_MemAlloc(nOS_Mem *mem, nOS_TickCount tout)
+void *nOS_MemAlloc(nOS_Mem *mem, nOS_TickCounter tout)
 {
     void    *block;
 

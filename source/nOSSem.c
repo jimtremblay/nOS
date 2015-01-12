@@ -14,7 +14,7 @@ extern "C" {
 #endif
 
 #if (NOS_CONFIG_SEM_ENABLE > 0)
-nOS_Error nOS_SemCreate (nOS_Sem *sem, nOS_SemCount count, nOS_SemCount max)
+nOS_Error nOS_SemCreate (nOS_Sem *sem, nOS_SemCounter count, nOS_SemCounter max)
 {
     nOS_Error   err;
 
@@ -83,7 +83,7 @@ nOS_Error nOS_SemDelete (nOS_Sem *sem)
  * NOS_E_IDLE: Idle thread can't wait for semaphore
  * NOS_E_TIMEOUT: Semaphore can't be taken in required time
  */
-nOS_Error nOS_SemTake (nOS_Sem *sem, nOS_TickCount tout)
+nOS_Error nOS_SemTake (nOS_Sem *sem, nOS_TickCounter tout)
 {
     nOS_Error   err;
 

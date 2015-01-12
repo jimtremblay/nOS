@@ -124,7 +124,7 @@ nOS_Error nOS_MutexDelete (nOS_Mutex *mutex)
  * NOS_E_TIMEOUT: Mutex can't be taken in required time
  * NOS_E_OVERFLOW: Mutex have been locked too much times
  */
-nOS_Error nOS_MutexLock (nOS_Mutex *mutex, nOS_TickCount tout)
+nOS_Error nOS_MutexLock (nOS_Mutex *mutex, nOS_TickCounter tout)
 {
     nOS_Error   err;
 

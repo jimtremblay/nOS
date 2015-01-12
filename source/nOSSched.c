@@ -50,7 +50,7 @@ static uint16_t         readyPrio[((NOS_CONFIG_HIGHEST_THREAD_PRIO+15)/16)];
 static nOS_Event        sleepEvent;
 #endif
 
-static nOS_TickCount    tickCount;
+static nOS_TickCounter  tickCounter;
 
 #if (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
 static void TickSleeper(void *payload, void *arg)
@@ -61,7 +61,7 @@ static void TickSleeper(void *payload, void *arg)
     /* Avoid warning */
     NOS_UNUSED(arg);
 
-    if (tickCount == ctx->tickcnt) {
+    if (tickCounter == ctx->tickcnt) {
         SignalThread(thread, NOS_OK);
     }
 }
@@ -444,7 +444,7 @@ nOS_Error nOS_Init(void)
     nOS_runningThread = &nOS_mainThread;
     nOS_highPrioThread = &nOS_mainThread;
 
-    tickCount = 0;
+    tickCounter = 0;
 
 #if (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
 #if (NOS_CONFIG_SAFE > 0)
@@ -571,7 +571,7 @@ nOS_Error nOS_Yield(void)
 void nOS_Tick(void)
 {
     nOS_CriticalEnter();
-    tickCount++;
+    tickCounter++;
     nOS_CriticalLeave();
 
     nOS_ThreadTick();
@@ -589,26 +589,19 @@ void nOS_Tick(void)
 #endif
 }
 
-nOS_TickCount nOS_GetTickCount(void)
+nOS_TickCounter nOS_TickCount(void)
 {
-    nOS_TickCount   tickcnt;
+    nOS_TickCounter   tickcnt;
 
     nOS_CriticalEnter();
-    tickcnt = tickCount;
+    tickcnt = tickCounter;
     nOS_CriticalLeave();
 
     return tickcnt;
 }
 
-void nOS_SetTickCount(nOS_TickCount tickcnt)
-{
-    nOS_CriticalEnter();
-    tickCount = tickcnt;
-    nOS_CriticalLeave();
-}
-
 #if (NOS_CONFIG_SLEEP_ENABLE > 0)
-nOS_Error nOS_Sleep (nOS_TickCount ticks)
+nOS_Error nOS_Sleep (nOS_TickCounter ticks)
 {
     nOS_Error   err;
 
@@ -637,7 +630,7 @@ nOS_Error nOS_Sleep (nOS_TickCount ticks)
 #endif  /* NOS_CONFIG_SLEEP_ENABLE */
 
 #if (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
-nOS_Error nOS_SleepUntil (nOS_TickCount tickcnt)
+nOS_Error nOS_SleepUntil (nOS_TickCounter tickcnt)
 {
     nOS_Error           err;
     nOS_SleepContext    ctx;
@@ -655,7 +648,7 @@ nOS_Error nOS_SleepUntil (nOS_TickCount tickcnt)
         err = NOS_E_IDLE;
     } else {
         nOS_CriticalEnter();
-        if (tickcnt == tickCount) {
+        if (tickcnt == tickCounter) {
             err = NOS_OK;
         } else {
             ctx.tickcnt = tickcnt;

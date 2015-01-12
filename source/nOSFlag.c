@@ -145,7 +145,7 @@ nOS_Error nOS_FlagDelete (nOS_Flag *flag)
  * Note        : Safe to be called from threads ONLY with scheduler unlocked.
  */
 nOS_Error nOS_FlagWait (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits *res,
-                        uint8_t opt, nOS_TickCount tout)
+                        uint8_t opt, nOS_TickCounter tout)
 {
     nOS_Error       err;
     nOS_FlagContext ctx;

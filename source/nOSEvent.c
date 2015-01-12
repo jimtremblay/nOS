@@ -45,7 +45,7 @@ bool nOS_EventDelete (nOS_Event *event)
     return sched;
 }
 
-nOS_Error nOS_EventWait (nOS_Event *event, uint8_t state, nOS_TickCount tout)
+nOS_Error nOS_EventWait (nOS_Event *event, uint8_t state, nOS_TickCounter tout)
 {
     RemoveThreadFromReadyList(nOS_runningThread);
     nOS_runningThread->state |= (state & (NOS_THREAD_WAITING | NOS_THREAD_SLEEPING));
