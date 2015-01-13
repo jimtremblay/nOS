@@ -550,7 +550,7 @@ NOS_EXTERN uint8_t      nOS_lockNestingCounter;
 
 NOS_EXTERN nOS_Thread   *nOS_runningThread;
 NOS_EXTERN nOS_Thread   *nOS_highPrioThread;
-NOS_EXTERN nOS_List     nOS_mainList;
+NOS_EXTERN nOS_List     nOS_fullList;
 NOS_EXTERN nOS_List     nOS_readyList[NOS_CONFIG_HIGHEST_THREAD_PRIO+1];
 #endif  /* NOS_PRIVATE */
 

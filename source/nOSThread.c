@@ -172,7 +172,7 @@ nOS_Error nOS_ThreadCreate (nOS_Thread *thread, nOS_ThreadEntry entry, void *arg
         thread->readyWait.payload = thread;
         nOS_ContextInit(thread, stack, ssize, entry, arg);
         nOS_CriticalEnter();
-        nOS_ListAppend(&nOS_mainList, &thread->full);
+        nOS_ListAppend(&nOS_fullList, &thread->full);
 #if (NOS_CONFIG_THREAD_SUSPEND_ENABLE > 0)
         if (thread->state == NOS_THREAD_READY)
 #endif
@@ -236,7 +236,7 @@ nOS_Error nOS_ThreadDelete (nOS_Thread *thread)
 void nOS_ThreadTick(void)
 {
     nOS_CriticalEnter();
-    nOS_ListWalk(&nOS_mainList, TickThread, NULL);
+    nOS_ListWalk(&nOS_fullList, TickThread, NULL);
     nOS_ListRotate(&nOS_readyList[nOS_runningThread->prio]);
     nOS_CriticalLeave();
 }
@@ -298,7 +298,7 @@ nOS_Error nOS_ThreadSuspendAll (void)
 #endif
     {
         nOS_CriticalEnter();
-        nOS_ListWalk(&nOS_mainList, SuspendThread, NULL);
+        nOS_ListWalk(&nOS_fullList, SuspendThread, NULL);
         nOS_CriticalLeave();
         if (nOS_runningThread != &nOS_mainHandle) {
             nOS_Sched();
@@ -342,7 +342,7 @@ nOS_Error nOS_ThreadResumeAll (void)
     bool sched = false;
 
     nOS_CriticalEnter();
-    nOS_ListWalk(&nOS_mainList, ResumeThread, &sched);
+    nOS_ListWalk(&nOS_fullList, ResumeThread, &sched);
     nOS_CriticalLeave();
 
     if (sched) {

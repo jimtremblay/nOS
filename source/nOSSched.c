@@ -439,7 +439,7 @@ nOS_Error nOS_Init(void)
     nOS_mainHandle.full.payload = &nOS_mainHandle;
     nOS_mainHandle.readyWait.payload = &nOS_mainHandle;
 
-    nOS_ListAppend(&nOS_mainList, &nOS_mainHandle.full);
+    nOS_ListAppend(&nOS_fullList, &nOS_mainHandle.full);
     AppendThreadToReadyList(&nOS_mainHandle);
     nOS_runningThread = &nOS_mainHandle;
     nOS_highPrioThread = &nOS_mainHandle;
