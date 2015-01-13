@@ -61,7 +61,7 @@ static void TickSleeper(void *payload, void *arg)
     /* Avoid warning */
     NOS_UNUSED(arg);
 
-    if (tickCounter == ctx->tickcnt) {
+    if (tickCounter == ctx->tick) {
         SignalThread(thread, NOS_OK);
     }
 }
@@ -630,7 +630,7 @@ nOS_Error nOS_Sleep (nOS_TickCounter ticks)
 #endif  /* NOS_CONFIG_SLEEP_ENABLE */
 
 #if (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
-nOS_Error nOS_SleepUntil (nOS_TickCounter tickcnt)
+nOS_Error nOS_SleepUntil (nOS_TickCounter tick)
 {
     nOS_Error           err;
     nOS_SleepContext    ctx;
@@ -648,10 +648,10 @@ nOS_Error nOS_SleepUntil (nOS_TickCounter tickcnt)
         err = NOS_E_IDLE;
     } else {
         nOS_CriticalEnter();
-        if (tickcnt == tickCounter) {
+        if (tick == tickCounter) {
             err = NOS_OK;
         } else {
-            ctx.tickcnt = tickcnt;
+            ctx.tick = tick;
             nOS_runningThread->context = &ctx;
             err = nOS_EventWait(&sleepEvent, NOS_THREAD_SLEEPING, NOS_WAIT_INFINITE);
         }

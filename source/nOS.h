@@ -484,7 +484,7 @@ struct _nOS_TimeContext
 #if (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
 struct _nOS_SleepContext
 {
-    nOS_TickCounter     tickcnt;
+    nOS_TickCounter     tick;
 };
 #endif
 
