@@ -19,7 +19,7 @@ static void TickTimer (void *payload, void *arg);
 
 static nOS_List     timerList;
 static nOS_Sem      timerSem;
-static nOS_Thread   timerThread;
+static nOS_Thread   timerHandle;
 static nOS_Stack    timerStack[NOS_CONFIG_TIMER_THREAD_STACK_SIZE];
 
 static void ThreadTimer (void *arg)
@@ -36,7 +36,7 @@ static void ThreadTimer (void *arg)
 static void TickTimer (void *payload, void *arg)
 {
     nOS_Timer   *timer = (nOS_Timer *)payload;
-    uint8_t     cb = 0;
+    bool        call = false;
 
     NOS_UNUSED(arg);
 
@@ -52,13 +52,13 @@ static void TickTimer (void *payload, void *arg)
                     timer->state &=~ NOS_TIMER_RUNNING;
                 }
                 /* Call callback function outside of critical section */
-                cb = 1;
+                call = true;
             }
         }
     }
     nOS_CriticalLeave();
 
-    if (cb) {
+    if (call) {
         if (timer->callback != NULL) {
             timer->callback(timer, timer->arg);
         }
@@ -69,7 +69,7 @@ void nOS_TimerInit(void)
 {
     nOS_ListInit(&timerList);
     nOS_SemCreate(&timerSem, 0, NOS_SEM_COUNT_MAX);
-    nOS_ThreadCreate(&timerThread,
+    nOS_ThreadCreate(&timerHandle,
                      ThreadTimer,
                      NULL,
                      timerStack,

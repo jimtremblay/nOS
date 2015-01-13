@@ -360,7 +360,7 @@ struct _nOS_Node
 
 struct _nOS_Thread
 {
-    nOS_Stack           *stkptr;
+    nOS_Stack           *stackPtr;
     uint8_t             prio;
     nOS_Error           error;
     uint8_t             state;
@@ -369,7 +369,7 @@ struct _nOS_Thread
     void                *context;
 
     nOS_Node            full;
-    nOS_Node            readywait;
+    nOS_Node            readyWait;
 };
 
 struct _nOS_Event
@@ -377,7 +377,7 @@ struct _nOS_Event
 #if (NOS_CONFIG_SAFE > 0)
     uint8_t             type;
 #endif
-    nOS_List            waitlist;
+    nOS_List            waitList;
 };
 
 #if (NOS_CONFIG_SEM_ENABLE > 0)
@@ -541,7 +541,7 @@ struct _nOS_SleepContext
 #define NOS_TIMER_CREATED           0x80
 
 #if defined(NOS_PRIVATE)
-NOS_EXTERN nOS_Thread   nOS_mainThread;
+NOS_EXTERN nOS_Thread   nOS_mainHandle;
 
 NOS_EXTERN uint8_t      nOS_isrNestingCounter;
 #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
@@ -550,7 +550,7 @@ NOS_EXTERN uint8_t      nOS_lockNestingCounter;
 
 NOS_EXTERN nOS_Thread   *nOS_runningThread;
 NOS_EXTERN nOS_Thread   *nOS_highPrioThread;
-NOS_EXTERN nOS_List     nOS_fullList;
+NOS_EXTERN nOS_List     nOS_mainList;
 NOS_EXTERN nOS_List     nOS_readyList[NOS_CONFIG_HIGHEST_THREAD_PRIO+1];
 #endif  /* NOS_PRIVATE */
 
@@ -563,7 +563,7 @@ void            DeleteThread                (void *payload, void *arg);
 void            SuspendThread               (void *payload, void *arg);
 void            ResumeThread                (void *payload, void *arg);
 #endif
-void            SetThreadPriority           (nOS_Thread *thread, uint8_t prio);
+void            ChangeThreadPrio           (nOS_Thread *thread, uint8_t prio);
 void            TickThread                  (void *payload, void *arg);
 void            SignalThread                (nOS_Thread *thread, nOS_Error err);
 #endif /* NOS_PRIVATE */

@@ -114,7 +114,7 @@ nOS_Error nOS_QueueRead (nOS_Queue *queue, void *buffer, nOS_TickCounter tout)
             err = NOS_E_LOCKED;
         }
 #endif
-        else if (nOS_runningThread == &nOS_mainThread) {
+        else if (nOS_runningThread == &nOS_mainHandle) {
             err = NOS_E_IDLE;
         } else {
             nOS_runningThread->context = buffer;

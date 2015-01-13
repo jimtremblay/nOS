@@ -70,7 +70,7 @@ void nOS_TimeTick (void)
     if (timePrescaler == 0) {
         timeCounter++;
 #if (NOS_CONFIG_TIME_WAIT_ENABLE > 0)
-        nOS_ListWalk(&timeEvent.waitlist, TickTime, NULL);
+        nOS_ListWalk(&timeEvent.waitList, TickTime, NULL);
 #endif
     }
     nOS_CriticalLeave();
@@ -155,7 +155,7 @@ nOS_Error nOS_TimeWait (nOS_Time time)
         err = NOS_E_LOCKED;
     }
 #endif
-    else if (nOS_runningThread == &nOS_mainThread) {
+    else if (nOS_runningThread == &nOS_mainHandle) {
         err = NOS_E_IDLE;
     } else {
         nOS_CriticalEnter();

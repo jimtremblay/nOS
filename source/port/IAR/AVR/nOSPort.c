@@ -95,7 +95,7 @@ void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_Thr
      tos  -= 11;                                    /* R18 to R27, R30, R31 */
 #endif
 
-    thread->stkptr = tos;
+    thread->stackPtr = tos;
 }
 
 /* Absolutely need a naked function because function call push the return address on the stack */
@@ -122,7 +122,7 @@ void nOS_IsrEnter (nOS_Stack *sp)
 {
     /* Interrupts already disabled when entering in ISR */
     if (nOS_isrNestingCounter == 0) {
-        nOS_runningThread->stkptr = sp;
+        nOS_runningThread->stackPtr = sp;
     }
     nOS_isrNestingCounter++;
 }
@@ -139,7 +139,7 @@ nOS_Stack *nOS_IsrLeave (nOS_Stack *sp)
             nOS_highPrioThread = SchedHighPrio();
             nOS_runningThread = nOS_highPrioThread;
         }
-        sp = nOS_runningThread->stkptr;
+        sp = nOS_runningThread->stackPtr;
     }
 
     return sp;

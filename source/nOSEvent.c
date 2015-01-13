@@ -22,7 +22,7 @@ void nOS_EventCreate (nOS_Event *event)
 #if (NOS_CONFIG_SAFE > 0)
     event->type = type;
 #endif
-    nOS_ListInit(&event->waitlist);
+    nOS_ListInit(&event->waitList);
 }
 
 bool nOS_EventDelete (nOS_Event *event)
@@ -52,7 +52,7 @@ nOS_Error nOS_EventWait (nOS_Event *event, uint8_t state, nOS_TickCounter tout)
     nOS_runningThread->event = event;
     nOS_runningThread->timeout = (tout == NOS_WAIT_INFINITE) ? 0 : tout;
     if (event != NULL) {
-        nOS_ListAppend(&event->waitlist, &nOS_runningThread->readywait);
+        nOS_ListAppend(&event->waitList, &nOS_runningThread->readyWait);
     }
 
     nOS_Sched();
@@ -64,7 +64,7 @@ nOS_Thread* nOS_EventSignal (nOS_Event *event, nOS_Error err)
 {
     nOS_Thread  *thread;
 
-    thread = (nOS_Thread*)nOS_ListHead(&event->waitlist);
+    thread = (nOS_Thread*)nOS_ListHead(&event->waitList);
     if (thread != NULL) {
         SignalThread(thread, err);
     }

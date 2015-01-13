@@ -22,7 +22,7 @@ void SuspendThread (void *payload, void *arg)
     /* Avoid warning */
     NOS_UNUSED(arg);
 
-    if (thread != &nOS_mainThread) {
+    if (thread != &nOS_mainHandle) {
         if (thread->state == NOS_THREAD_READY) {
             RemoveThreadFromReadyList(thread);
         }
@@ -62,7 +62,7 @@ void DeleteThread (void *payload, void *arg)
     if (thread->state == NOS_THREAD_READY) {
         RemoveThreadFromReadyList(thread);
     } else if (thread->state & NOS_THREAD_WAITING) {
-        nOS_ListRemove(&thread->event->waitlist, &thread->readywait);
+        nOS_ListRemove(&thread->event->waitList, &thread->readyWait);
     }
     thread->state   = NOS_THREAD_STOPPED;
     thread->event   = NULL;
@@ -96,7 +96,7 @@ void TickThread (void *payload, void *arg)
 void SignalThread (nOS_Thread *thread, nOS_Error err)
 {
     if (thread->event != NULL) {
-        nOS_ListRemove(&thread->event->waitlist, &thread->readywait);
+        nOS_ListRemove(&thread->event->waitList, &thread->readyWait);
     }
     thread->error = err;
     thread->state &=~ (NOS_THREAD_WAITING | NOS_THREAD_SLEEPING);
@@ -108,7 +108,7 @@ void SignalThread (nOS_Thread *thread, nOS_Error err)
 
 #if (NOS_CONFIG_THREAD_SET_PRIO_ENABLE > 0) || (NOS_CONFIG_MUTEX_ENABLE > 0)
 /* This is an internal function */
-void SetThreadPriority (nOS_Thread *thread, uint8_t prio)
+void ChangeThreadPrio (nOS_Thread *thread, uint8_t prio)
 {
     if (thread->prio != prio)
     {
@@ -138,7 +138,7 @@ nOS_Error nOS_ThreadCreate (nOS_Thread *thread, nOS_ThreadEntry entry, void *arg
 #if (NOS_CONFIG_SAFE > 0)
     if (thread == NULL) {
         err = NOS_E_NULL;
-    } else if (thread == &nOS_mainThread) {
+    } else if (thread == &nOS_mainHandle) {
         err = NOS_E_INV_VAL;
     } else if (entry == NULL) {
         err = NOS_E_INV_VAL;
@@ -169,10 +169,10 @@ nOS_Error nOS_ThreadCreate (nOS_Thread *thread, nOS_ThreadEntry entry, void *arg
         thread->context = NULL;
         thread->error = NOS_OK;
         thread->full.payload = thread;
-        thread->readywait.payload = thread;
+        thread->readyWait.payload = thread;
         nOS_ContextInit(thread, stack, ssize, entry, arg);
         nOS_CriticalEnter();
-        nOS_ListAppend(&nOS_fullList, &thread->full);
+        nOS_ListAppend(&nOS_mainList, &thread->full);
 #if (NOS_CONFIG_THREAD_SUSPEND_ENABLE > 0)
         if (thread->state == NOS_THREAD_READY)
 #endif
@@ -200,7 +200,7 @@ nOS_Error nOS_ThreadDelete (nOS_Thread *thread)
 
 #if (NOS_CONFIG_SAFE > 0)
     /* Main thread can't be deleted */
-    if (thread == &nOS_mainThread) {
+    if (thread == &nOS_mainHandle) {
         err = NOS_E_IDLE;
     } else if (thread == nOS_runningThread) {
 #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
@@ -236,7 +236,7 @@ nOS_Error nOS_ThreadDelete (nOS_Thread *thread)
 void nOS_ThreadTick(void)
 {
     nOS_CriticalEnter();
-    nOS_ListWalk(&nOS_fullList, TickThread, NULL);
+    nOS_ListWalk(&nOS_mainList, TickThread, NULL);
     nOS_ListRotate(&nOS_readyList[nOS_runningThread->prio]);
     nOS_CriticalLeave();
 }
@@ -252,7 +252,7 @@ nOS_Error nOS_ThreadSuspend (nOS_Thread *thread)
 
 #if (NOS_CONFIG_SAFE > 0)
     /* Main thread can't be suspended */
-    if (thread == &nOS_mainThread) {
+    if (thread == &nOS_mainHandle) {
         err = NOS_E_IDLE;
     } else if (thread == nOS_runningThread) {
 #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
@@ -291,16 +291,16 @@ nOS_Error nOS_ThreadSuspendAll (void)
 #if (NOS_CONFIG_SAFE > 0)
 #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
     /* Can't suspend all threads from other threads when scheduler is locked */
-    if ((nOS_lockNestingCounter > 0) && (nOS_runningThread != &nOS_mainThread)) {
+    if ((nOS_lockNestingCounter > 0) && (nOS_runningThread != &nOS_mainHandle)) {
         err = NOS_E_LOCKED;
     } else
 #endif
 #endif
     {
         nOS_CriticalEnter();
-        nOS_ListWalk(&nOS_fullList, SuspendThread, NULL);
+        nOS_ListWalk(&nOS_mainList, SuspendThread, NULL);
         nOS_CriticalLeave();
-        if (nOS_runningThread != &nOS_mainThread) {
+        if (nOS_runningThread != &nOS_mainHandle) {
             nOS_Sched();
         }
         err = NOS_OK;
@@ -318,7 +318,7 @@ nOS_Error nOS_ThreadResume (nOS_Thread *thread)
         err = NOS_E_NULL;
     } else if (thread == nOS_runningThread) {
         err = NOS_E_INV_VAL;
-    } else if (thread == &nOS_mainThread) {
+    } else if (thread == &nOS_mainHandle) {
         err = NOS_E_INV_VAL;
     } else if (thread->state == NOS_THREAD_STOPPED) {
         err = NOS_E_INV_VAL;
@@ -342,7 +342,7 @@ nOS_Error nOS_ThreadResumeAll (void)
     bool sched = false;
 
     nOS_CriticalEnter();
-    nOS_ListWalk(&nOS_fullList, ResumeThread, &sched);
+    nOS_ListWalk(&nOS_mainList, ResumeThread, &sched);
     nOS_CriticalLeave();
 
     if (sched) {
@@ -371,7 +371,7 @@ nOS_Error nOS_ThreadSetPriority (nOS_Thread *thread, uint8_t prio)
 #endif
     {
         nOS_CriticalEnter();
-        SetThreadPriority(thread, prio);
+        ChangeThreadPrio(thread, prio);
         if (thread->prio > nOS_runningThread->prio) {
             nOS_Sched();
         }

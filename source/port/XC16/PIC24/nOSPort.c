@@ -53,7 +53,7 @@ void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_Thr
     *tos++ = PSVPAG;            /* PSVPAG */
 #endif
 
-    thread->stkptr = tos;
+    thread->stackPtr = tos;
 }
 
 void __attribute__((naked)) nOS_ContextSwitch(void)
@@ -111,11 +111,11 @@ nOS_Stack *nOS_IsrEnter (nOS_Stack *sp)
 {
     nOS_CriticalEnter();
     if (nOS_isrNestingCounter == 0) {
-        nOS_runningThread->stkptr = sp;
+        nOS_runningThread->stackPtr = sp;
 #if (NOS_CONFIG_ISR_STACK_SIZE > 0)
         sp = &isrStack[0];
 #else
-        sp = nOS_mainThread.stkptr;
+        sp = nOS_mainHandle.stackPtr;
 #endif
     }
     nOS_isrNestingCounter++;
@@ -135,7 +135,7 @@ nOS_Stack *nOS_IsrLeave (nOS_Stack *sp)
         {
             nOS_highPrioThread = SchedHighPrio();
             nOS_runningThread = nOS_highPrioThread;
-            sp = nOS_runningThread->stkptr;
+            sp = nOS_runningThread->stackPtr;
         }
     }
     nOS_CriticalLeave();

@@ -186,7 +186,7 @@ nOS_Error nOS_FlagWait (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits *res,
         }
 #endif
         /* Main thread can't wait */
-        else if (nOS_runningThread == &nOS_mainThread) {
+        else if (nOS_runningThread == &nOS_mainHandle) {
             err = NOS_E_IDLE;
         /* Calling thread must wait on flag. */
         } else {
@@ -245,7 +245,7 @@ nOS_Error nOS_FlagSend (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits mask)
         res.sched = false;
         nOS_CriticalEnter();
         flag->flags ^= ((flag->flags ^ flags) & mask);
-        nOS_ListWalk(&flag->e.waitlist, TestFlag, &res);
+        nOS_ListWalk(&flag->e.waitList, TestFlag, &res);
         /* Clear all flags that have awoken the waiting threads. */
         flag->flags &=~ res.rflags;
         nOS_CriticalLeave();
