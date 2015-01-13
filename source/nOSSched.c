@@ -16,41 +16,41 @@
 extern "C" {
 #endif
 
-static bool                 nOS_initialized;
+static bool                 initialized;
 
 #if defined(NOS_PORT_SCHED_USE_32_BITS)
 #if NOS_CONFIG_HIGHEST_THREAD_PRIO < 32
-static uint32_t             nOS_readyPrio;
+static uint32_t             readyPrio;
 #elif NOS_CONFIG_HIGHEST_THREAD_PRIO < 256
-static uint32_t             nOS_readyGroup;
-static uint32_t             nOS_readyPrio[((NOS_CONFIG_HIGHEST_THREAD_PRIO+31)/32)];
+static uint32_t             readyGroup;
+static uint32_t             readyPrio[((NOS_CONFIG_HIGHEST_THREAD_PRIO+31)/32)];
 #endif  /* NOS_CONFIG_HIGHEST_THREAD_PRIO */
 #elif defined(NOS_PORT_SCHED_USE_16_BITS)
 #if NOS_CONFIG_HIGHEST_THREAD_PRIO < 16
-static uint16_t             nOS_readyPrio;
+static uint16_t             readyPrio;
 #elif NOS_CONFIG_HIGHEST_THREAD_PRIO < 256
-static uint16_t             nOS_readyGroup;
-static uint16_t             nOS_readyPrio[((NOS_CONFIG_HIGHEST_THREAD_PRIO+15)/16)];
+static uint16_t             readyGroup;
+static uint16_t             readyPrio[((NOS_CONFIG_HIGHEST_THREAD_PRIO+15)/16)];
 #endif  /* NOS_CONFIG_HIGHEST_THREAD_PRIO */
 #else   /* NOS_PORT_SCHED_USE_8_BITS */
 #if NOS_CONFIG_HIGHEST_THREAD_PRIO < 8
-static uint8_t              nOS_readyPrio;
+static uint8_t              readyPrio;
 #elif NOS_CONFIG_HIGHEST_THREAD_PRIO < 16
-static uint16_t             nOS_readyPrio;
+static uint16_t             readyPrio;
 #elif NOS_CONFIG_HIGHEST_THREAD_PRIO < 64
-static uint8_t              nOS_readyGroup;
-static uint8_t              nOS_readyPrio[((NOS_CONFIG_HIGHEST_THREAD_PRIO+7)/8)];
+static uint8_t              readyGroup;
+static uint8_t              readyPrio[((NOS_CONFIG_HIGHEST_THREAD_PRIO+7)/8)];
 #elif NOS_CONFIG_HIGHEST_THREAD_PRIO < 256
-static uint16_t             nOS_readyGroup;
-static uint16_t             nOS_readyPrio[((NOS_CONFIG_HIGHEST_THREAD_PRIO+15)/16)];
+static uint16_t             readyGroup;
+static uint16_t             readyPrio[((NOS_CONFIG_HIGHEST_THREAD_PRIO+15)/16)];
 #endif  /* NOS_CONFIG_HIGHEST_THREAD_PRIO */
 #endif  /* NOS_PORT_SCHED_USE_32_BITS */
 
 #if (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
-static nOS_Event            nOS_sleepEvent;
+static nOS_Event            sleepEvent;
 #endif
 
-static nOS_TickCounter      nOS_tickCounter;
+static nOS_TickCounter      tickCounter;
 
 #if (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
 static void TickSleeper(void *payload, void *arg)
@@ -61,7 +61,7 @@ static void TickSleeper(void *payload, void *arg)
     /* Avoid warning */
     NOS_UNUSED(arg);
 
-    if (nOS_tickCounter == ctx->tickcnt) {
+    if (tickCounter == ctx->tickcnt) {
         SignalThread(thread, NOS_OK);
     }
 }
@@ -69,7 +69,7 @@ static void TickSleeper(void *payload, void *arg)
 static void SleepTick(void)
 {
     nOS_CriticalEnter();
-    nOS_ListWalk(&nOS_sleepEvent.waitList, TickSleeper, NULL);
+    nOS_ListWalk(&sleepEvent.waitList, TickSleeper, NULL);
     nOS_CriticalLeave();
 }
 #endif
@@ -81,7 +81,7 @@ nOS_Thread* SchedHighPrio(void)
 {
     uint32_t    prio;
 
-    prio = (31 - nOS_PortCLZ(nOS_readyPrio));
+    prio = (31 - nOS_PortCLZ(readyPrio));
 
     return (nOS_Thread*)nOS_readyList[prio].head->payload;
 }
@@ -91,8 +91,8 @@ nOS_Thread* SchedHighPrio(void)
     uint32_t    group;
     uint32_t    prio;
 
-    group   = (31 - nOS_PortCLZ(nOS_readyGroup));
-    prio    = (31 - nOS_PortCLZ(nOS_readyPrio[group]));
+    group   = (31 - nOS_PortCLZ(readyGroup));
+    prio    = (31 - nOS_PortCLZ(readyPrio[group]));
 
     return (nOS_Thread*)nOS_readyList[(group << 5) | prio].head->payload;
 }
@@ -108,7 +108,7 @@ nOS_Thread* SchedHighPrio(void)
 {
     uint32_t    prio;
 
-    prio = nOS_readyPrio;
+    prio = readyPrio;
     prio |= prio >> 1; // first round down to one less than a power of 2
     prio |= prio >> 2;
     prio |= prio >> 4;
@@ -124,7 +124,7 @@ nOS_Thread* SchedHighPrio(void)
     uint32_t    group;
     uint32_t    prio;
 
-    group = nOS_readyGroup;
+    group = readyGroup;
     group |= group >> 1;
     group |= group >> 2;
     group |= group >> 4;
@@ -132,7 +132,7 @@ nOS_Thread* SchedHighPrio(void)
     group |= group >> 16;
     group = (uint32_t)tableDeBruijn[(uint32_t)(group * 0x07c4acddUL) >> 27];
 
-    prio = nOS_readyPrio[group];
+    prio = readyPrio[group];
     prio |= prio >> 1; // first round down to one less than a power of 2
     prio |= prio >> 2;
     prio |= prio >> 4;
@@ -154,7 +154,7 @@ nOS_Thread* SchedHighPrio(void)
 {
     uint16_t    prio;
 
-    prio = nOS_readyPrio;
+    prio = readyPrio;
     prio |= prio >> 1; // first round down to one less than a power of 2
     prio |= prio >> 2;
     prio |= prio >> 4;
@@ -169,14 +169,14 @@ nOS_Thread* SchedHighPrio(void)
     uint16_t    group;
     uint16_t    prio;
 
-    group = nOS_readyGroup;
+    group = readyGroup;
     group |= group >> 1; // first round down to one less than a power of 2
     group |= group >> 2;
     group |= group >> 4;
     group |= group >> 8;
     group = tableDeBruijn[(uint16_t)(group * 0xf2d) >> 12];
 
-    prio = nOS_readyPrio[group];
+    prio = readyPrio[group];
     prio |= prio >> 1; // first round down to one less than a power of 2
     prio |= prio >> 2;
     prio |= prio >> 4;
@@ -197,7 +197,7 @@ nOS_Thread* SchedHighPrio(void)
 {
     uint8_t prio;
 
-    prio = nOS_readyPrio;
+    prio = readyPrio;
     prio |= prio >> 1; // first round down to one less than a power of 2
     prio |= prio >> 2;
     prio |= prio >> 4;
@@ -215,7 +215,7 @@ nOS_Thread* SchedHighPrio(void)
 {
     uint16_t    prio;
 
-    prio = nOS_readyPrio;
+    prio = readyPrio;
     prio |= prio >> 1; // first round down to one less than a power of 2
     prio |= prio >> 2;
     prio |= prio >> 4;
@@ -235,13 +235,13 @@ nOS_Thread* SchedHighPrio(void)
     uint8_t     group;
     uint8_t     prio;
 
-    group = nOS_readyGroup;
+    group = readyGroup;
     group |= group >> 1; // first round down to one less than a power of 2
     group |= group >> 2;
     group |= group >> 4;
     group = tableDeBruijn[(uint8_t)(group * 0x1d) >> 5];
 
-    prio = nOS_readyPrio[group];
+    prio = readyPrio[group];
     prio |= prio >> 1; // first round down to one less than a power of 2
     prio |= prio >> 2;
     prio |= prio >> 4;
@@ -260,14 +260,14 @@ nOS_Thread* SchedHighPrio(void)
     uint16_t    group;
     uint16_t    prio;
 
-    group = nOS_readyGroup;
+    group = readyGroup;
     group |= group >> 1; // first round down to one less than a power of 2
     group |= group >> 2;
     group |= group >> 4;
     group |= group >> 8;
     group = tableDeBruijn[(uint16_t)(group * 0xf2d) >> 12];
 
-    prio = nOS_readyPrio[group];
+    prio = readyPrio[group];
     prio |= prio >> 1; // first round down to one less than a power of 2
     prio |= prio >> 2;
     prio |= prio >> 4;
@@ -287,13 +287,13 @@ void AppendThreadToReadyList (nOS_Thread *thread)
 
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO < 32)
     nOS_ListAppend(&nOS_readyList[prio], &thread->readyWait);
-    nOS_readyPrio |= (0x00000001UL << prio);
+    readyPrio |= (0x00000001UL << prio);
 #elif (NOS_CONFIG_HIGHEST_THREAD_PRIO < 256)
     uint32_t    group = (prio >> 5UL) & 0x00000007UL;
 
     nOS_ListAppend(&nOS_readyList[prio], &thread->readyWait);
-    nOS_readyPrio[group] |= (0x00000001UL << (prio & 0x0000001fUL));
-    nOS_readyGroup |= (0x00000001UL << group);
+    readyPrio[group] |= (0x00000001UL << (prio & 0x0000001fUL));
+    readyGroup |= (0x00000001UL << group);
 #endif  /* NOS_CONFIG_HIGHEST_THREAD_PRIO */
 }
 void RemoveThreadFromReadyList (nOS_Thread *thread)
@@ -304,16 +304,16 @@ void RemoveThreadFromReadyList (nOS_Thread *thread)
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO < 32)
     nOS_ListRemove(&nOS_readyList[prio], &thread->readyWait);
     if (nOS_readyList[prio].head == NULL) {
-        nOS_readyPrio &=~ (0x00000001UL << prio);
+        readyPrio &=~ (0x00000001UL << prio);
     }
 #elif (NOS_CONFIG_HIGHEST_THREAD_PRIO < 256)
     uint32_t    group = (prio >> 5UL) & 0x00000007UL;
 
     nOS_ListRemove(&nOS_readyList[prio], &thread->readyWait);
     if (nOS_readyList[prio].head == NULL) {
-        nOS_readyPrio[group] &=~ (0x00000001UL << (prio & 0x0000001fUL));
-        if (nOS_readyPrio[group] == 0x00000000UL) {
-            nOS_readyGroup &=~ (0x00000001UL << group);
+        readyPrio[group] &=~ (0x00000001UL << (prio & 0x0000001fUL));
+        if (readyPrio[group] == 0x00000000UL) {
+            readyGroup &=~ (0x00000001UL << group);
         }
     }
 #endif  /* NOS_CONFIG_HIGHEST_THREAD_PRIO */
@@ -326,13 +326,13 @@ void AppendThreadToReadyList (nOS_Thread *thread)
 
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO < 16)
     nOS_ListAppend(&nOS_readyList[prio], &thread->readyWait);
-    nOS_readyPrio |= (0x0001 << prio);
+    readyPrio |= (0x0001 << prio);
 #elif (NOS_CONFIG_HIGHEST_THREAD_PRIO < 256)
     uint16_t    group = (prio >> 4) & 0x000F;
 
     nOS_ListAppend(&nOS_readyList[prio], &thread->readyWait);
-    nOS_readyPrio[group] |= (0x0001 << (prio & 0x0f));
-    nOS_readyGroup |= (0x0001 << group);
+    readyPrio[group] |= (0x0001 << (prio & 0x0f));
+    readyGroup |= (0x0001 << group);
 #endif  /* NOS_CONFIG_HIGHEST_THREAD_PRIO */
 }
 void RemoveThreadFromReadyList (nOS_Thread *thread)
@@ -343,16 +343,16 @@ void RemoveThreadFromReadyList (nOS_Thread *thread)
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO < 16)
     nOS_ListRemove(&nOS_readyList[prio], &thread->readyWait);
     if (nOS_readyList[prio].head == NULL) {
-        nOS_readyPrio &=~ (0x0001 << prio);
+        readyPrio &=~ (0x0001 << prio);
     }
 #elif (NOS_CONFIG_HIGHEST_THREAD_PRIO < 256)
     uint16_t    group = (prio >> 4) & 0x000F;
 
     nOS_ListRemove(&nOS_readyList[prio], &thread->readyWait);
     if (nOS_readyList[prio].head == NULL) {
-        nOS_readyPrio[group] &=~ (0x0001 << (prio & 0x0f));
-        if (nOS_readyPrio[group] == 0x0000) {
-            nOS_readyGroup &=~ (0x0001 << group);
+        readyPrio[group] &=~ (0x0001 << (prio & 0x0f));
+        if (readyPrio[group] == 0x0000) {
+            readyGroup &=~ (0x0001 << group);
         }
     }
 #endif  /* NOS_CONFIG_HIGHEST_THREAD_PRIO */
@@ -364,22 +364,22 @@ void AppendThreadToReadyList (nOS_Thread *thread)
 
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO < 8)
     nOS_ListAppend(&nOS_readyList[prio], &thread->readyWait);
-    nOS_readyPrio |= (0x01 << prio);
+    readyPrio |= (0x01 << prio);
 #elif (NOS_CONFIG_HIGHEST_THREAD_PRIO < 16)
     nOS_ListAppend(&nOS_readyList[prio], &thread->readyWait);
-    nOS_readyPrio |= (0x0001 << prio);
+    readyPrio |= (0x0001 << prio);
 #elif (NOS_CONFIG_HIGHEST_THREAD_PRIO < 64)
     uint8_t     group = (prio >> 3) & 0x07;
 
     nOS_ListAppend(&nOS_readyList[prio], &thread->readyWait);
-    nOS_readyPrio[group] |= (0x01 << (prio & 0x07));
-    nOS_readyGroup |= (0x01 << group);
+    readyPrio[group] |= (0x01 << (prio & 0x07));
+    readyGroup |= (0x01 << group);
 #elif (NOS_CONFIG_HIGHEST_THREAD_PRIO < 256)
     uint8_t     group = (prio >> 4) & 0x0F;
 
     nOS_ListAppend(&nOS_readyList[prio], &thread->readyWait);
-    nOS_readyPrio[group] |= (0x0001 << (prio & 0x0f));
-    nOS_readyGroup |= (0x0001 << group);
+    readyPrio[group] |= (0x0001 << (prio & 0x0f));
+    readyGroup |= (0x0001 << group);
 #endif  /* NOS_CONFIG_HIGHEST_THREAD_PRIO */
 }
 void RemoveThreadFromReadyList (nOS_Thread *thread)
@@ -389,21 +389,21 @@ void RemoveThreadFromReadyList (nOS_Thread *thread)
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO < 8)
     nOS_ListRemove(&nOS_readyList[prio], &thread->readyWait);
     if (nOS_readyList[prio].head == NULL) {
-        nOS_readyPrio &=~ (0x01 << prio);
+        readyPrio &=~ (0x01 << prio);
     }
 #elif (NOS_CONFIG_HIGHEST_THREAD_PRIO < 16)
     nOS_ListRemove(&nOS_readyList[prio], &thread->readyWait);
     if (nOS_readyList[prio].head == NULL) {
-        nOS_readyPrio &=~ (0x0001 << prio);
+        readyPrio &=~ (0x0001 << prio);
     }
 #elif (NOS_CONFIG_HIGHEST_THREAD_PRIO < 64)
     uint8_t     group = (prio >> 3) & 0x07;
 
     nOS_ListRemove(&nOS_readyList[prio], &thread->readyWait);
     if (nOS_readyList[prio].head == NULL) {
-        nOS_readyPrio[group] &=~ (0x01 << (prio & 0x07));
-        if (nOS_readyPrio[group] == 0x00) {
-            nOS_readyGroup &=~ (0x01 << group);
+        readyPrio[group] &=~ (0x01 << (prio & 0x07));
+        if (readyPrio[group] == 0x00) {
+            readyGroup &=~ (0x01 << group);
         }
     }
 #elif (NOS_CONFIG_HIGHEST_THREAD_PRIO < 256)
@@ -411,9 +411,9 @@ void RemoveThreadFromReadyList (nOS_Thread *thread)
 
     nOS_ListRemove(&nOS_readyList[prio], &thread->readyWait);
     if (nOS_readyList[prio].head == NULL) {
-        nOS_readyPrio[group] &=~ (0x0001 << (prio & 0x0f));
-        if (nOS_readyPrio[group] == 0x0000) {
-            nOS_readyGroup &=~ (0x0001 << group);
+        readyPrio[group] &=~ (0x0001 << (prio & 0x0f));
+        if (readyPrio[group] == 0x0000) {
+            readyGroup &=~ (0x0001 << group);
         }
     }
 #endif  /* NOS_CONFIG_HIGHEST_THREAD_PRIO */
@@ -423,7 +423,7 @@ void RemoveThreadFromReadyList (nOS_Thread *thread)
 nOS_Error nOS_Init(void)
 {
     /* Block context switching until initialization is completed */
-    nOS_initialized = false;
+    initialized = false;
 
     nOS_isrNestingCounter = 0;
 #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
@@ -444,13 +444,13 @@ nOS_Error nOS_Init(void)
     nOS_runningThread = &nOS_mainHandle;
     nOS_highPrioThread = &nOS_mainHandle;
 
-    nOS_tickCounter = 0;
+    tickCounter = 0;
 
 #if (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
 #if (NOS_CONFIG_SAFE > 0)
-    nOS_EventCreate(&nOS_sleepEvent, NOS_EVENT_SLEEP);
+    nOS_EventCreate(&sleepEvent, NOS_EVENT_SLEEP);
 #else
-    nOS_EventCreate(&nOS_sleepEvent);
+    nOS_EventCreate(&sleepEvent);
 #endif
 #endif
 
@@ -465,7 +465,7 @@ nOS_Error nOS_Init(void)
     nOS_PortInit();
 
     /* Context switching is possible after this point */
-    nOS_initialized = true;
+    initialized = true;
 
     return NOS_OK;
 }
@@ -475,7 +475,7 @@ nOS_Error nOS_Sched(void)
     nOS_Error   err;
 
     /* Switch only if initialization is completed */
-    if (!nOS_initialized) {
+    if (!initialized) {
         err = NOS_E_INIT;
     } else if (nOS_isrNestingCounter > 0) {
         err = NOS_E_ISR;
@@ -571,7 +571,7 @@ nOS_Error nOS_Yield(void)
 void nOS_Tick(void)
 {
     nOS_CriticalEnter();
-    nOS_tickCounter++;
+    tickCounter++;
     nOS_CriticalLeave();
 
     nOS_ThreadTick();
@@ -594,7 +594,7 @@ nOS_TickCounter nOS_TickCount(void)
     nOS_TickCounter   tickcnt;
 
     nOS_CriticalEnter();
-    tickcnt = nOS_tickCounter;
+    tickcnt = tickCounter;
     nOS_CriticalLeave();
 
     return tickcnt;
@@ -648,12 +648,12 @@ nOS_Error nOS_SleepUntil (nOS_TickCounter tickcnt)
         err = NOS_E_IDLE;
     } else {
         nOS_CriticalEnter();
-        if (tickcnt == nOS_tickCounter) {
+        if (tickcnt == tickCounter) {
             err = NOS_OK;
         } else {
             ctx.tickcnt = tickcnt;
             nOS_runningThread->context = &ctx;
-            err = nOS_EventWait(&nOS_sleepEvent, NOS_THREAD_SLEEPING, NOS_WAIT_INFINITE);
+            err = nOS_EventWait(&sleepEvent, NOS_THREAD_SLEEPING, NOS_WAIT_INFINITE);
         }
         nOS_CriticalLeave();
     }
