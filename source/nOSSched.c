@@ -448,7 +448,7 @@ nOS_Error nOS_Init(void)
 
 #if (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
 #if (NOS_CONFIG_SAFE > 0)
-    nOS_EventCreate(&sleepEvent, NOS_EVENT_SLEEP);
+    nOS_EventCreate(&sleepEvent, NOS_EVENT_BASE);
 #else
     nOS_EventCreate(&sleepEvent);
 #endif

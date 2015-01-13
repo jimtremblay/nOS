@@ -55,7 +55,7 @@ void nOS_TimeInit (void)
     timeCounter = 0;
 #if (NOS_CONFIG_TIME_WAIT_ENABLE > 0)
 #if (NOS_CONFIG_SAFE > 0)
-    nOS_EventCreate(&timeEvent, NOS_EVENT_SLEEP);
+    nOS_EventCreate(&timeEvent, NOS_EVENT_BASE);
 #else
     nOS_EventCreate(&timeEvent);
 #endif

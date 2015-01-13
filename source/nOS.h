@@ -513,12 +513,12 @@ struct _nOS_SleepContext
 #define NOS_THREAD_READY            0x80
 
 #define NOS_EVENT_INVALID           0x00
-#define NOS_EVENT_SEM               0x01
-#define NOS_EVENT_MUTEX             0x02
-#define NOS_EVENT_QUEUE             0x03
-#define NOS_EVENT_FLAG              0x04
-#define NOS_EVENT_MEM               0x05
-#define NOS_EVENT_SLEEP             0x06
+#define NOS_EVENT_BASE              0x01
+#define NOS_EVENT_SEM               0x02
+#define NOS_EVENT_MUTEX             0x03
+#define NOS_EVENT_QUEUE             0x04
+#define NOS_EVENT_FLAG              0x05
+#define NOS_EVENT_MEM               0x06
 
 #define NOS_MUTEX_NORMAL            0
 #define NOS_MUTEX_RECURSIVE         1
