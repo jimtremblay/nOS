@@ -536,8 +536,8 @@ struct _nOS_SleepContext
 #define NOS_TIMER_ONE_SHOT          0x00
 #define NOS_TIMER_FREE_RUNNING      0x01
 #define NOS_TIMER_MODE              0x01
-#define NOS_TIMER_RUNNING           0x02
-#define NOS_TIMER_PAUSED            0x04
+#define NOS_TIMER_PAUSED            0x20
+#define NOS_TIMER_RUNNING           0x40
 #define NOS_TIMER_CREATED           0x80
 
 #if defined(NOS_PRIVATE)
