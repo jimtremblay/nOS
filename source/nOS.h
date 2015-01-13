@@ -33,6 +33,14 @@
 extern "C" {
 #endif
 
+#define NOS_QUOTE(s)                #s
+#define NOS_STR(s)                  NOS_QUOTE_(s)
+#define NOS_VERSION                 NOS_STR(NOS_VERSION_MAJOR)"."NOS_STR(NOS_VERSION_MINOR)"."NOS_STR(NOS_VERSION_BUILD)
+
+#define NOS_VERSION_MAJOR           0
+#define NOS_VERSION_MINOR           0
+#define NOS_VERSION_BUILD           1
+
 #if defined(NOS_GLOBALS)
  #define NOS_EXTERN
 #else

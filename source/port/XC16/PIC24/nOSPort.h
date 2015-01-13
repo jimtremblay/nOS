@@ -48,9 +48,6 @@ typedef uint16_t                            nOS_Stack;
     SRbits.IPL = _sr;                                                           \
 }
 
-#define NOS_STRINGIFY(s)                    NOS_STR(s)
-#define NOS_STR(s)                          #s
-
 #if defined(__HAS_EDS__)
 #define PUSH_PAGE_REGISTER                                                      \
     "PUSH   DSRPAG                      \n"                                     \

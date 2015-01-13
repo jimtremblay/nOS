@@ -308,7 +308,6 @@ nOS_Thread* nOS_MutexOwner (nOS_Mutex *mutex)
 #endif
     {
         nOS_CriticalEnter();
-
         owner = mutex->owner;
         nOS_CriticalLeave();
     }
