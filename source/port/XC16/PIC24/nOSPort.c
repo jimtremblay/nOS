@@ -58,6 +58,7 @@ void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_Thr
 
 void __attribute__((naked)) nOS_ContextSwitch(void)
 {
+    /* Enter critical is not needed here, interrupts are already disabled */
     __asm volatile (
         /* Push all working registers */
         "PUSH   SR                              \n"
@@ -72,7 +73,7 @@ void __attribute__((naked)) nOS_ContextSwitch(void)
         "PUSH   RCOUNT                          \n"
         "PUSH   TBLPAG                          \n"
         "PUSH   CORCON                          \n"
-        PUSH_PAGE_REGISTER
+        PUSH_PAGE_ADDRESS
 
         /* Get the location of nOS_runningThread */
         "MOV    #_nOS_runningThread,    W0      \n"
@@ -91,7 +92,7 @@ void __attribute__((naked)) nOS_ContextSwitch(void)
         "MOV    [W2],                   W15     \n"
 
         /* Pop all working registers */
-        POP_PAGE_REGISTER
+        POP_PAGE_ADDRESS
         "POP    CORCON                          \n"
         "POP    TBLPAG                          \n"
         "POP    RCOUNT                          \n"
@@ -109,7 +110,7 @@ void __attribute__((naked)) nOS_ContextSwitch(void)
 
 nOS_Stack *nOS_IsrEnter (nOS_Stack *sp)
 {
-    nOS_CriticalEnter();
+    // Enter critical here is not needed, interrupts are already disabled
     if (nOS_isrNestingCounter == 0) {
         nOS_runningThread->stackPtr = sp;
 #if (NOS_CONFIG_ISR_STACK_SIZE > 0)
@@ -119,14 +120,13 @@ nOS_Stack *nOS_IsrEnter (nOS_Stack *sp)
 #endif
     }
     nOS_isrNestingCounter++;
-    nOS_CriticalLeave();
 
     return sp;
 }
 
 nOS_Stack *nOS_IsrLeave (nOS_Stack *sp)
 {
-    nOS_CriticalEnter();
+    // Enter critical here is not needed, interrupts are already disabled
     nOS_isrNestingCounter--;
     if (nOS_isrNestingCounter == 0) {
 #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
@@ -138,7 +138,6 @@ nOS_Stack *nOS_IsrLeave (nOS_Stack *sp)
             sp = nOS_runningThread->stackPtr;
         }
     }
-    nOS_CriticalLeave();
 
     return sp;
 }

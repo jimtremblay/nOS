@@ -49,16 +49,16 @@ typedef uint16_t                            nOS_Stack;
 }
 
 #if defined(__HAS_EDS__)
-#define PUSH_PAGE_REGISTER                                                      \
+#define PUSH_PAGE_ADDRESS                                                       \
     "PUSH   DSRPAG                      \n"                                     \
     "PUSH   DSWPAG                      \n"
-#define POP_PAGE_REGISTER                                                       \
+#define POP_PAGE_ADDRESS                                                        \
     "POP    DSWPAG                      \n"                                     \
     "POP    DSRPAG                      \n"
 #else
-#define PUSH_PAGE_REGISTER                                                      \
+#define PUSH_PAGE_ADDRESS                                                       \
     "PUSH   PSVPAG                      \n"
-#define POP_PAGE_REGISTER                                                       \
+#define POP_PAGE_ADDRESS                                                        \
     "POP    PSVPAG                      \n"
 #endif
 
@@ -74,36 +74,56 @@ void __attribute__((__interrupt__, auto_psv, naked)) vect(void)                 
 void __attribute__((naked)) vect##_ISR(void)                                    \
 {                                                                               \
     __asm volatile (                                                            \
+        /* Push status register */                                              \
         "PUSH   SR                          \n"                                 \
+        /* Push registers W0-W1 */                                              \
         "PUSH.D W0                          \n"                                 \
+        /* Disable interrupts */                                                \
+        "MOV    #%0,    W0                  \n"                                 \
+        "MOV    W0,     SR                  \n"                                 \
+        /* Push registers W2-W13 */                                             \
         "PUSH.D W2                          \n"                                 \
         "PUSH.D W4                          \n"                                 \
         "PUSH.D W6                          \n"                                 \
         "PUSH.D W8                          \n"                                 \
         "PUSH.D W10                         \n"                                 \
         "PUSH.D W12                         \n"                                 \
+        /* Push frame pointer register */                                       \
         "PUSH   W14                         \n"                                 \
+        /* Push REPEAT loop counter register */                                 \
         "PUSH   RCOUNT                      \n"                                 \
+        /* Push data table page address register */                             \
         "PUSH   TBLPAG                      \n"                                 \
+        /* Push CPU core control register */                                    \
         "PUSH   CORCON                      \n"                                 \
-        PUSH_PAGE_REGISTER                                                      \
+        /* Push page address register */                                        \
+        PUSH_PAGE_ADDRESS                                                       \
+        /* Save stack pointer if first nested interrupt */                      \
         "MOV    W15,                    W0  \n"                                 \
         "CALL   _nOS_IsrEnter               \n"                                 \
         "MOV    W0,                     W15 \n"                                 \
-    );                                                                          \
+        :: "i" (NOS_CONFIG_MAX_UNSAFE_ISR_PRIO << 5));                          \
+    /* Call user ISR */                                                         \
     vect##_ISR_L2();                                                            \
-    if (SRbits.IPL < NOS_CONFIG_MAX_UNSAFE_ISR_PRIO) {                          \
-        SRbits.IPL = NOS_CONFIG_MAX_UNSAFE_ISR_PRIO;                            \
-    }                                                                           \
     __asm volatile (                                                            \
+        /* Ensure interrupts are disabled */                                    \
+        "MOV    #%0,    W0                  \n"                                 \
+        "MOV    W0,     SR                  \n"                                 \
+        /* Restore stack pointer if last nested interrupt */                    \
         "MOV    W15,                    W0  \n"                                 \
         "CALL   _nOS_IsrLeave               \n"                                 \
         "MOV    W0,                     W15 \n"                                 \
-        POP_PAGE_REGISTER                                                       \
+        /* Pop page address register */                                         \
+        POP_PAGE_ADDRESS                                                        \
+        /* Pop CPU core control register */                                     \
         "POP    CORCON                      \n"                                 \
+        /* Pop data table page address register */                              \
         "POP    TBLPAG                      \n"                                 \
+        /* Pop REPEAT loop counter register */                                  \
         "POP    RCOUNT                      \n"                                 \
+        /* Pop frame pointer register */                                        \
         "POP    W14                         \n"                                 \
+        /* Pop registers W0-W13 */                                              \
         "POP.D  W12                         \n"                                 \
         "POP.D  W10                         \n"                                 \
         "POP.D  W8                          \n"                                 \
@@ -111,8 +131,9 @@ void __attribute__((naked)) vect##_ISR(void)                                    
         "POP.D  W4                          \n"                                 \
         "POP.D  W2                          \n"                                 \
         "POP.D  W0                          \n"                                 \
+        /* Pop status register */                                               \
         "POP    SR                          \n"                                 \
-    );                                                                          \
+        :: "i" (NOS_CONFIG_MAX_UNSAFE_ISR_PRIO << 5));                          \
 }                                                                               \
 void __attribute__((naked)) vect##_ISR_L2(void)
 
