@@ -4,7 +4,11 @@
 /* Define to value other than 0 to enable arguments checking in nOS API. */
 #define NOS_CONFIG_SAFE                         1
 
-/* Highest priority a thread can take (up to 255). */
+/*
+ * Highest priority a thread can take (up to 255).
+ * Set to 0 to enable a cooperative scheduling
+ * with all threads at the same priority.
+ */
 #define NOS_CONFIG_HIGHEST_THREAD_PRIO          31
 
 /* Size of ticks counter for sleep/timeout in bits (can be 8, 16, 32 and 64). */
