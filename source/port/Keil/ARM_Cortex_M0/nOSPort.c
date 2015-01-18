@@ -93,7 +93,11 @@ void nOS_IsrLeave (void)
         if (nOS_lockNestingCounter == 0)
 #endif
         {
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
             nOS_highPrioThread = SchedHighPrio();
+#else
+            nOS_highPrioThread = nOS_ListHead(&nOS_readyList);
+#endif
             if (nOS_runningThread != nOS_highPrioThread) {
                 *(volatile uint32_t *)0xe000ed04UL = 0x10000000UL;
             }

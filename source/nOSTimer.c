@@ -73,8 +73,10 @@ void nOS_TimerInit(void)
                      ThreadTimer,
                      NULL,
                      timerStack,
-                     NOS_CONFIG_TIMER_THREAD_STACK_SIZE,
-                     NOS_CONFIG_TIMER_THREAD_PRIO
+                     NOS_CONFIG_TIMER_THREAD_STACK_SIZE
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
+                     ,NOS_CONFIG_TIMER_THREAD_PRIO
+#endif
 #if (NOS_CONFIG_THREAD_SUSPEND_ENABLE > 0)
                      ,NOS_THREAD_READY
 #endif

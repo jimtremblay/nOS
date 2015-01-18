@@ -6,8 +6,8 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-#ifndef PORT_H
-#define PORT_H
+#ifndef NOSPORT_H
+#define NOSPORT_H
 
 #include <stdint.h>
 
@@ -165,4 +165,4 @@ void        nOS_ContextInit     (nOS_Thread *thread, nOS_Stack *stack, size_t ss
 }
 #endif
 
-#endif /* PORT_H */
+#endif /* NOSPORT_H */

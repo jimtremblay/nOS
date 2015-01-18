@@ -43,11 +43,14 @@ extern "C" {
  *               behaviour is undefined and must be called one time
  *               ONLY for each mutex object.
  */
-#if (NOS_CONFIG_MUTEX_RECURSIVE_ENABLE > 0)
-nOS_Error nOS_MutexCreate (nOS_Mutex *mutex, uint8_t prio, uint8_t type)
-#else
-nOS_Error nOS_MutexCreate (nOS_Mutex *mutex, uint8_t prio)
+nOS_Error nOS_MutexCreate (nOS_Mutex *mutex
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
+                           ,uint8_t prio
 #endif
+#if (NOS_CONFIG_MUTEX_RECURSIVE_ENABLE > 0)
+                           ,uint8_t type
+#endif
+                           )
 {
     nOS_Error   err;
 
@@ -74,8 +77,10 @@ nOS_Error nOS_MutexCreate (nOS_Mutex *mutex, uint8_t prio)
         mutex->count = 0;
 #endif
         mutex->owner = NULL;
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
         mutex->prio = prio;
         mutex->backup = 0;
+#endif
         nOS_CriticalLeave();
         err = NOS_OK;
     }
@@ -101,9 +106,13 @@ nOS_Error nOS_MutexDelete (nOS_Mutex *mutex)
         mutex->count = 0;
 #endif
         mutex->owner = NULL;
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
         if (nOS_EventDelete((nOS_Event*)mutex)) {
             nOS_Sched();
         }
+#else
+        nOS_EventDelete((nOS_Event*)mutex);
+#endif
         nOS_CriticalLeave();
         err = NOS_OK;
     }
@@ -146,12 +155,14 @@ nOS_Error nOS_MutexLock (nOS_Mutex *mutex, nOS_TickCounter tout)
             mutex->count++;
 #endif
             mutex->owner = nOS_runningThread;
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
             mutex->backup = nOS_runningThread->prio;
             if (mutex->prio != NOS_MUTEX_PRIO_INHERIT) {
                 if (nOS_runningThread->prio < mutex->prio) {
                     ChangeThreadPrio(nOS_runningThread, mutex->prio);
                 }
             }
+#endif
             err = NOS_OK;
         /* Mutex owner relock it? */
         } else if (mutex->owner == nOS_runningThread) {
@@ -171,6 +182,7 @@ nOS_Error nOS_MutexLock (nOS_Mutex *mutex, nOS_TickCounter tout)
             }
         /* Calling thread can't wait? Try again. */
         } else if (tout == NOS_NO_WAIT) {
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
             /*
              * If current thread can ask to lock mutex,
              * maybe is prio is higher than mutex owner.
@@ -180,6 +192,7 @@ nOS_Error nOS_MutexLock (nOS_Mutex *mutex, nOS_TickCounter tout)
                     ChangeThreadPrio(mutex->owner, nOS_runningThread->prio);
                 }
             }
+#endif
             err = NOS_E_AGAIN;
         }
 #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
@@ -193,6 +206,7 @@ nOS_Error nOS_MutexLock (nOS_Mutex *mutex, nOS_TickCounter tout)
             err = NOS_E_IDLE;
         /* Calling thread must wait on mutex. */
         } else {
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
             /*
              * If current thread can ask to lock mutex,
              * maybe is prio is higher than mutex owner.
@@ -202,6 +216,7 @@ nOS_Error nOS_MutexLock (nOS_Mutex *mutex, nOS_TickCounter tout)
                     ChangeThreadPrio(mutex->owner, nOS_runningThread->prio);
                 }
             }
+#endif
             err = nOS_EventWait((nOS_Event*)mutex, NOS_THREAD_LOCKING_MUTEX, tout);
         }
         nOS_CriticalLeave();
@@ -244,13 +259,16 @@ nOS_Error nOS_MutexUnlock (nOS_Mutex *mutex)
                 if (mutex->count == 0)
 #endif
                 {
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
                     ChangeThreadPrio(mutex->owner, mutex->backup);
+#endif
                     thread = nOS_EventSignal((nOS_Event*)mutex, NOS_OK);
                     if (thread != NULL) {
 #if (NOS_CONFIG_MUTEX_RECURSIVE_ENABLE > 0)
                         mutex->count++;
 #endif
                         mutex->owner = thread;
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
                         mutex->backup = thread->prio;
                         if (mutex->prio != NOS_MUTEX_PRIO_INHERIT) {
                             ChangeThreadPrio(thread, mutex->prio);
@@ -258,6 +276,7 @@ nOS_Error nOS_MutexUnlock (nOS_Mutex *mutex)
                         if ((thread->state == NOS_THREAD_READY) && (thread->prio > nOS_runningThread->prio)) {
                             nOS_Sched();
                         }
+#endif
                     } else {
                         mutex->owner = NULL;
                     }

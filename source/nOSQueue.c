@@ -73,9 +73,13 @@ nOS_Error nOS_QueueDelete (nOS_Queue *queue)
         queue->bcount = 0;
         queue->r = 0;
         queue->w = 0;
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
         if (nOS_EventDelete((nOS_Event*)queue)) {
             nOS_Sched();
         }
+#else
+        nOS_EventDelete((nOS_Event*)queue);
+#endif
         nOS_CriticalLeave();
         err = NOS_OK;
     }
@@ -145,9 +149,11 @@ nOS_Error nOS_QueueWrite (nOS_Queue *queue, void *buffer)
         thread = nOS_EventSignal((nOS_Event*)queue, NOS_OK);
         if (thread != NULL) {
             memcpy(thread->context, buffer, queue->bsize);
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
             if ((thread->state == NOS_THREAD_READY) && (thread->prio > nOS_runningThread->prio)) {
                 nOS_Sched();
             }
+#endif
             err = NOS_OK;
         } else if (queue->bcount < queue->bmax) {
             memcpy(&queue->buffer[(size_t)queue->w * (size_t)queue->bsize], buffer, queue->bsize);

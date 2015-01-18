@@ -211,11 +211,15 @@ extern "C" {
   #define NOS_CONFIG_TIMER_DELETE_ENABLE        1
   #warning "nOSConfig.h: NOS_CONFIG_TIMER_DELETE_ENABLE is not defined (enabled by default)."
  #endif
- #if !defined(NOS_CONFIG_TIMER_THREAD_PRIO)
-  #define NOS_CONFIG_TIMER_THREAD_PRIO          0
-  #warning "nOSConfig.h: NOS_CONFIG_TIMER_THREAD_PRIO is not defined (default to 0)."
- #elif (NOS_CONFIG_TIMER_THREAD_PRIO > NOS_CONFIG_HIGHEST_THREAD_PRIO)
-  #error "nOSConfig.h: NOS_CONFIG_TIMER_THREAD_PRIO is higher than NOS_CONFIG_HIGHEST_THREAD_PRIO."
+ #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
+  #if !defined(NOS_CONFIG_TIMER_THREAD_PRIO)
+   #define NOS_CONFIG_TIMER_THREAD_PRIO          0
+   #warning "nOSConfig.h: NOS_CONFIG_TIMER_THREAD_PRIO is not defined (default to 0)."
+  #elif (NOS_CONFIG_TIMER_THREAD_PRIO > NOS_CONFIG_HIGHEST_THREAD_PRIO)
+   #error "nOSConfig.h: NOS_CONFIG_TIMER_THREAD_PRIO is higher than NOS_CONFIG_HIGHEST_THREAD_PRIO."
+  #endif
+ #else
+  #undef NOS_CONFIG_TIMER_THREAD_PRIO
  #endif
  #if !defined(NOS_CONFIG_TIMER_THREAD_STACK_SIZE)
   #define NOS_CONFIG_TIMER_THREAD_STACK_SIZE    128
@@ -369,7 +373,9 @@ struct _nOS_Node
 struct _nOS_Thread
 {
     nOS_Stack           *stackPtr;
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
     uint8_t             prio;
+#endif
     nOS_Error           error;
     uint8_t             state;
     nOS_TickCounter     timeout;
@@ -401,8 +407,10 @@ struct _nOS_Sem
 struct _nOS_Mutex
 {
     nOS_Event           e;
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
     uint8_t             prio;
     uint8_t             backup;
+#endif
     nOS_Thread          *owner;
 #if (NOS_CONFIG_MUTEX_RECURSIVE_ENABLE > 0)
     uint8_t             type;
@@ -440,7 +448,9 @@ struct _nOS_FlagContext
 
 struct _nOS_FlagResult
 {
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
     bool                sched;
+#endif
     nOS_FlagBits        rflags;
 };
 #endif
@@ -559,19 +569,27 @@ NOS_EXTERN uint8_t      nOS_lockNestingCounter;
 NOS_EXTERN nOS_Thread   *nOS_runningThread;
 NOS_EXTERN nOS_Thread   *nOS_highPrioThread;
 NOS_EXTERN nOS_List     nOS_fullList;
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
 NOS_EXTERN nOS_List     nOS_readyList[NOS_CONFIG_HIGHEST_THREAD_PRIO+1];
+#else
+NOS_EXTERN nOS_List     nOS_readyList;
+#endif
 #endif  /* NOS_PRIVATE */
 
 #if defined(NOS_PRIVATE)
 nOS_Thread*     SchedHighPrio               (void);
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
 void            AppendThreadToReadyList     (nOS_Thread *thread);
 void            RemoveThreadFromReadyList   (nOS_Thread *thread);
+#endif
 #if (NOS_CONFIG_THREAD_SUSPEND_ENABLE > 0)
 void            DeleteThread                (void *payload, void *arg);
 void            SuspendThread               (void *payload, void *arg);
 void            ResumeThread                (void *payload, void *arg);
 #endif
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
 void            ChangeThreadPrio           (nOS_Thread *thread, uint8_t prio);
+#endif
 void            TickThread                  (void *payload, void *arg);
 void            SignalThread                (nOS_Thread *thread, nOS_Error err);
 #endif /* NOS_PRIVATE */
@@ -600,11 +618,16 @@ void            nOS_ListRemove              (nOS_List *list, nOS_Node *node);
 void            nOS_ListRotate              (nOS_List *list);
 void            nOS_ListWalk                (nOS_List *list, nOS_NodeHandler handler, void *arg);
 
-#if (NOS_CONFIG_THREAD_SUSPEND_ENABLE > 0)
-nOS_Error       nOS_ThreadCreate            (nOS_Thread *thread, nOS_ThreadEntry entry, void *arg, nOS_Stack *stack, size_t ssize, uint8_t prio, uint8_t state);
-#else
-nOS_Error       nOS_ThreadCreate            (nOS_Thread *thread, nOS_ThreadEntry entry, void *arg, nOS_Stack *stack, size_t ssize, uint8_t prio);
+
+
+nOS_Error       nOS_ThreadCreate            (nOS_Thread *thread, nOS_ThreadEntry entry, void *arg, nOS_Stack *stack, size_t ssize
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
+                                             ,uint8_t prio
 #endif
+#if (NOS_CONFIG_THREAD_SUSPEND_ENABLE > 0)
+                                             ,uint8_t state
+#endif
+                                             );
 #if (NOS_CONFIG_THREAD_DELETE_ENABLE > 0)
 nOS_Error       nOS_ThreadDelete            (nOS_Thread *thread);
 #endif
@@ -615,8 +638,10 @@ nOS_Error       nOS_ThreadSuspendAll        (void);
 nOS_Error       nOS_ThreadResume            (nOS_Thread *thread);
 nOS_Error       nOS_ThreadResumeAll         (void);
 #endif
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_THREAD_SET_PRIO_ENABLE > 0)
 int16_t         nOS_ThreadGetPriority       (nOS_Thread *thread);
 nOS_Error       nOS_ThreadSetPriority       (nOS_Thread *thread, uint8_t prio);
+#endif
 nOS_Thread*     nOS_ThreadRunning           (void);
 
 #if (NOS_CONFIG_SAFE > 0)
@@ -624,7 +649,12 @@ void            nOS_EventCreate             (nOS_Event *event, uint8_t type);
 #else
 void            nOS_EventCreate             (nOS_Event *event);
 #endif
-bool            nOS_EventDelete             (nOS_Event *event);
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
+bool
+#else
+void
+#endif
+                nOS_EventDelete             (nOS_Event *event);
 nOS_Error       nOS_EventWait               (nOS_Event *event, uint8_t state, nOS_TickCounter tout);
 nOS_Thread*     nOS_EventSignal             (nOS_Event *event, nOS_Error err);
 
@@ -639,11 +669,14 @@ bool            nOS_SemIsAvailable          (nOS_Sem *sem);
 #endif
 
 #if (NOS_CONFIG_MUTEX_ENABLE > 0)
-#if (NOS_CONFIG_MUTEX_RECURSIVE_ENABLE > 0)
-nOS_Error       nOS_MutexCreate             (nOS_Mutex *mutex, uint8_t prio, uint8_t type);
-#else
-nOS_Error       nOS_MutexCreate             (nOS_Mutex *mutex, uint8_t prio);
+nOS_Error       nOS_MutexCreate             (nOS_Mutex *mutex
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
+                                             ,uint8_t prio
 #endif
+#if (NOS_CONFIG_MUTEX_RECURSIVE_ENABLE > 0)
+                                             ,uint8_t type
+#endif
+                                             );
 #if (NOS_CONFIG_MUTEX_DELETE_ENABLE > 0)
 nOS_Error       nOS_MutexDelete             (nOS_Mutex *mutex);
 #endif

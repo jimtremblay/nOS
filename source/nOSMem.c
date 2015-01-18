@@ -153,9 +153,13 @@ nOS_Error nOS_MemDelete (nOS_Mem *mem)
         mem->bcount = 0;
         mem->bmax = 0;
 #endif
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
         if (nOS_EventDelete((nOS_Event*)mem)) {
             nOS_Sched();
         }
+#else
+        nOS_EventDelete((nOS_Event*)mem);
+#endif
         nOS_CriticalLeave();
         err = NOS_OK;
     }
@@ -279,9 +283,11 @@ nOS_Error nOS_MemFree(nOS_Mem *mem, void *block)
         thread = nOS_EventSignal((nOS_Event*)mem, NOS_OK);
         if (thread != NULL) {
             *(void**)thread->context = block;
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
             if ((thread->state == NOS_THREAD_READY) && (thread->prio > nOS_runningThread->prio)) {
                 nOS_Sched();
             }
+#endif
         } else {
             *(void**)block = mem->blist;
             mem->blist = (void**)block;

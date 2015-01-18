@@ -24,7 +24,11 @@ void SuspendThread (void *payload, void *arg)
 
     if (thread != &nOS_mainHandle) {
         if (thread->state == NOS_THREAD_READY) {
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
             RemoveThreadFromReadyList(thread);
+#else
+            nOS_ListRemove(&nOS_readyList, &thread->readyWait);
+#endif
         }
         thread->state |= NOS_THREAD_SUSPENDED;
     }
@@ -34,17 +38,25 @@ void SuspendThread (void *payload, void *arg)
 void ResumeThread (void *payload, void *arg)
 {
     nOS_Thread  *thread = (nOS_Thread*)payload;
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
     bool        *sched =  (bool*)arg;
+#else
+    NOS_UNUSED(arg);
+#endif
 
     if (thread->state & NOS_THREAD_SUSPENDED) {
         thread->state &=~ NOS_THREAD_SUSPENDED;
         if (thread->state == NOS_THREAD_READY) {
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
             AppendThreadToReadyList(thread);
             if (thread->prio > nOS_runningThread->prio) {
                 if (sched != NULL) {
                     *sched = true;
                 }
             }
+#else
+            nOS_ListAppend(&nOS_readyList, &thread->readyWait);
+#endif
         }
     }
 }
@@ -60,7 +72,11 @@ void DeleteThread (void *payload, void *arg)
     NOS_UNUSED(arg);
 
     if (thread->state == NOS_THREAD_READY) {
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
         RemoveThreadFromReadyList(thread);
+#else
+        nOS_ListRemove(&nOS_readyList, &thread->readyWait);
+#endif
     } else if (thread->state & NOS_THREAD_WAITING) {
         nOS_ListRemove(&thread->event->waitList, &thread->readyWait);
     }
@@ -102,10 +118,15 @@ void SignalThread (nOS_Thread *thread, nOS_Error err)
     thread->state &=~ (NOS_THREAD_WAITING | NOS_THREAD_SLEEPING);
     thread->timeout = 0;
     if (thread->state == NOS_THREAD_READY) {
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
         AppendThreadToReadyList(thread);
+#else
+        nOS_ListAppend(&nOS_readyList, &thread->readyWait);
+#endif
     }
 }
 
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
 #if (NOS_CONFIG_THREAD_SET_PRIO_ENABLE > 0) || (NOS_CONFIG_MUTEX_ENABLE > 0)
 /* This is an internal function */
 void ChangeThreadPrio (nOS_Thread *thread, uint8_t prio)
@@ -124,14 +145,20 @@ void ChangeThreadPrio (nOS_Thread *thread, uint8_t prio)
     }
 }
 #endif
-
-#if (NOS_CONFIG_THREAD_SUSPEND_ENABLE > 0)
-nOS_Error nOS_ThreadCreate (nOS_Thread *thread, nOS_ThreadEntry entry, void *arg,
-                            nOS_Stack *stack, size_t ssize, uint8_t prio, uint8_t state)
-#else
-nOS_Error nOS_ThreadCreate (nOS_Thread *thread, nOS_ThreadEntry entry, void *arg,
-                            nOS_Stack *stack, size_t ssize, uint8_t prio)
 #endif
+
+nOS_Error nOS_ThreadCreate (nOS_Thread *thread,
+                            nOS_ThreadEntry entry,
+                            void *arg,
+                            nOS_Stack *stack,
+                            size_t ssize
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
+                            ,uint8_t prio
+#endif
+#if (NOS_CONFIG_THREAD_SUSPEND_ENABLE > 0)
+                            ,uint8_t state
+#endif
+                            )
 {
     nOS_Error   err;
 
@@ -146,18 +173,25 @@ nOS_Error nOS_ThreadCreate (nOS_Thread *thread, nOS_ThreadEntry entry, void *arg
         err = NOS_E_INV_VAL;
     } else if (ssize == 0) {
         err = NOS_E_INV_VAL;
-    } else if (prio > NOS_CONFIG_HIGHEST_THREAD_PRIO) {
+    }
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
+    else if (prio > NOS_CONFIG_HIGHEST_THREAD_PRIO) {
         err = NOS_E_INV_VAL;
-#if (NOS_CONFIG_THREAD_SUSPEND_ENABLE > 0)
-    } else if ((state != NOS_THREAD_READY) && (state != NOS_THREAD_SUSPENDED)) {
-        err = NOS_E_INV_VAL;
+    }
 #endif
-    } else if (thread->state != NOS_THREAD_STOPPED) {
+#if (NOS_CONFIG_THREAD_SUSPEND_ENABLE > 0)
+    else if ((state != NOS_THREAD_READY) && (state != NOS_THREAD_SUSPENDED)) {
+        err = NOS_E_INV_VAL;
+    }
+#endif
+    else if (thread->state != NOS_THREAD_STOPPED) {
         err = NOS_E_INV_VAL;
     } else
 #endif
     {
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
         thread->prio = prio;
+#endif
         thread->state = NOS_THREAD_READY;
 #if (NOS_CONFIG_THREAD_SUSPEND_ENABLE > 0)
         if (state == NOS_THREAD_SUSPENDED) {
@@ -177,10 +211,14 @@ nOS_Error nOS_ThreadCreate (nOS_Thread *thread, nOS_ThreadEntry entry, void *arg
         if (thread->state == NOS_THREAD_READY)
 #endif
         {
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
             AppendThreadToReadyList(thread);
             if (prio > nOS_runningThread->prio) {
                 nOS_Sched();
             }
+#else
+            nOS_ListAppend(&nOS_readyList, &thread->readyWait);
+#endif
         }
         nOS_CriticalLeave();
         err = NOS_OK;
@@ -237,7 +275,11 @@ void nOS_ThreadTick(void)
 {
     nOS_CriticalEnter();
     nOS_ListWalk(&nOS_fullList, TickThread, NULL);
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
     nOS_ListRotate(&nOS_readyList[nOS_runningThread->prio]);
+#else
+    nOS_ListRotate(&nOS_readyList);
+#endif
     nOS_CriticalLeave();
 }
 
@@ -327,9 +369,11 @@ nOS_Error nOS_ThreadResume (nOS_Thread *thread)
     {
         nOS_CriticalEnter();
         ResumeThread(thread, NULL);
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
         if (thread->prio > nOS_runningThread->prio) {
             nOS_Sched();
         }
+#endif
         nOS_CriticalLeave();
         err = NOS_OK;
     }
@@ -339,21 +383,29 @@ nOS_Error nOS_ThreadResume (nOS_Thread *thread)
 
 nOS_Error nOS_ThreadResumeAll (void)
 {
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
     bool sched = false;
+#endif
 
     nOS_CriticalEnter();
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
     nOS_ListWalk(&nOS_fullList, ResumeThread, &sched);
+#else
+    nOS_ListWalk(&nOS_fullList, ResumeThread, NULL);
+#endif
     nOS_CriticalLeave();
 
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
     if (sched) {
         nOS_Sched();
     }
+#endif
 
     return NOS_OK;
 }
 #endif  /* NOS_CONFIG_THREAD_SUSPEND_ENABLE */
 
-#if (NOS_CONFIG_THREAD_SET_PRIO_ENABLE > 0)
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_THREAD_SET_PRIO_ENABLE > 0)
 nOS_Error nOS_ThreadSetPriority (nOS_Thread *thread, uint8_t prio)
 {
     nOS_Error   err;
@@ -403,7 +455,7 @@ int16_t nOS_ThreadGetPriority (nOS_Thread *thread)
 
     return prio;
 }
-#endif  /* NOS_CONFIG_THREAD_SET_PRIO_ENABLE */
+#endif  /* (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && NOS_CONFIG_THREAD_SET_PRIO_ENABLE */
 
 nOS_Thread* nOS_ThreadRunning(void)
 {

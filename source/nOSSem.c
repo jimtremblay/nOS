@@ -61,9 +61,13 @@ nOS_Error nOS_SemDelete (nOS_Sem *sem)
         nOS_CriticalEnter();
         sem->count = 0;
         sem->max = 0;
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
         if (nOS_EventDelete((nOS_Event*)sem)) {
             nOS_Sched();
         }
+#else
+        nOS_EventDelete((nOS_Event*)sem);
+#endif
         nOS_CriticalLeave();
         err = NOS_OK;
     }
@@ -148,9 +152,11 @@ nOS_Error nOS_SemGive (nOS_Sem *sem)
         nOS_CriticalEnter();
         thread = nOS_EventSignal((nOS_Event*)sem, NOS_OK);
         if (thread != NULL) {
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
             if ((thread->state == NOS_THREAD_READY) && (thread->prio > nOS_runningThread->prio)) {
                 nOS_Sched();
             }
+#endif
             err = NOS_OK;
         } else if (sem->count < sem->max) {
             sem->count++;

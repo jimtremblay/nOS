@@ -6,8 +6,8 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-#ifndef PORT_H
-#define PORT_H
+#ifndef NOSPORT_H
+#define NOSPORT_H
 
 #include <stdint.h>
 #include <intrinsics.h>
@@ -156,4 +156,4 @@ nOS_Stack*  nOS_IsrLeave        (nOS_Stack *sp);
 }
 #endif
 
-#endif /* PORT_H */
+#endif /* NOSPORT_H */

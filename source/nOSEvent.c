@@ -25,8 +25,14 @@ void nOS_EventCreate (nOS_Event *event)
     nOS_ListInit(&event->waitList);
 }
 
-bool nOS_EventDelete (nOS_Event *event)
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
+bool
+#else
+void
+#endif
+nOS_EventDelete (nOS_Event *event)
 {
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
     nOS_Thread  *thread;
     bool        sched = false;
 
@@ -38,16 +44,25 @@ bool nOS_EventDelete (nOS_Event *event)
             }
         }
     } while (thread != NULL);
+#else
+    while (nOS_EventSignal(event, NOS_E_DELETED) != NULL);
+#endif
 #if (NOS_CONFIG_SAFE > 0)
     event->type = NOS_EVENT_INVALID;
 #endif
 
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
     return sched;
+#endif
 }
 
 nOS_Error nOS_EventWait (nOS_Event *event, uint8_t state, nOS_TickCounter tout)
 {
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
     RemoveThreadFromReadyList(nOS_runningThread);
+#else
+    nOS_ListRemove(&nOS_readyList, &nOS_runningThread->readyWait);
+#endif
     nOS_runningThread->state |= (state & (NOS_THREAD_WAITING | NOS_THREAD_SLEEPING));
     nOS_runningThread->event = event;
     nOS_runningThread->timeout = (tout == NOS_WAIT_INFINITE) ? 0 : tout;

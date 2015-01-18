@@ -16,35 +16,37 @@
 extern "C" {
 #endif
 
-static bool                 initialized;
+static bool                 running;
 
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
 #if defined(NOS_PORT_SCHED_USE_32_BITS)
-#if NOS_CONFIG_HIGHEST_THREAD_PRIO < 32
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO < 32)
 static uint32_t             readyPrio;
-#elif NOS_CONFIG_HIGHEST_THREAD_PRIO < 256
+#elif (NOS_CONFIG_HIGHEST_THREAD_PRIO < 256)
 static uint32_t             readyGroup;
 static uint32_t             readyPrio[((NOS_CONFIG_HIGHEST_THREAD_PRIO+31)/32)];
 #endif  /* NOS_CONFIG_HIGHEST_THREAD_PRIO */
 #elif defined(NOS_PORT_SCHED_USE_16_BITS)
-#if NOS_CONFIG_HIGHEST_THREAD_PRIO < 16
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO < 16)
 static uint16_t             readyPrio;
-#elif NOS_CONFIG_HIGHEST_THREAD_PRIO < 256
+#elif (NOS_CONFIG_HIGHEST_THREAD_PRIO < 256)
 static uint16_t             readyGroup;
 static uint16_t             readyPrio[((NOS_CONFIG_HIGHEST_THREAD_PRIO+15)/16)];
 #endif  /* NOS_CONFIG_HIGHEST_THREAD_PRIO */
 #else   /* NOS_PORT_SCHED_USE_8_BITS */
-#if NOS_CONFIG_HIGHEST_THREAD_PRIO < 8
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO < 8)
 static uint8_t              readyPrio;
-#elif NOS_CONFIG_HIGHEST_THREAD_PRIO < 16
+#elif (NOS_CONFIG_HIGHEST_THREAD_PRIO < 16)
 static uint16_t             readyPrio;
-#elif NOS_CONFIG_HIGHEST_THREAD_PRIO < 64
+#elif (NOS_CONFIG_HIGHEST_THREAD_PRIO < 64)
 static uint8_t              readyGroup;
 static uint8_t              readyPrio[((NOS_CONFIG_HIGHEST_THREAD_PRIO+7)/8)];
-#elif NOS_CONFIG_HIGHEST_THREAD_PRIO < 256
+#elif (NOS_CONFIG_HIGHEST_THREAD_PRIO < 256)
 static uint16_t             readyGroup;
 static uint16_t             readyPrio[((NOS_CONFIG_HIGHEST_THREAD_PRIO+15)/16)];
 #endif  /* NOS_CONFIG_HIGHEST_THREAD_PRIO */
 #endif  /* NOS_PORT_SCHED_USE_32_BITS */
+#endif  /* NOS_CONFIG_HIGHEST_THREAD_PRIO > 0 */
 
 #if (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
 static nOS_Event            sleepEvent;
@@ -74,6 +76,7 @@ static void SleepTick(void)
 }
 #endif
 
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
 #if defined(NOS_PORT_SCHED_USE_32_BITS)
 #if defined(NOS_PORT_HAVE_CLZ)
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO < 32)
@@ -419,18 +422,21 @@ void RemoveThreadFromReadyList (nOS_Thread *thread)
 #endif  /* NOS_CONFIG_HIGHEST_THREAD_PRIO */
 }
 #endif  /* NOS_PORT_SCHED_USE_32_BITS */
+#endif  /* NOS_CONFIG_HIGHEST_THREAD_PRIO > 0 */
 
 nOS_Error nOS_Init(void)
 {
     /* Block context switching until initialization is completed */
-    initialized = false;
+    running = false;
 
     nOS_isrNestingCounter = 0;
 #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
     nOS_lockNestingCounter = 0;
 #endif
 
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
     nOS_mainHandle.prio = NOS_THREAD_PRIO_IDLE;
+#endif
     nOS_mainHandle.state = NOS_THREAD_READY;
     nOS_mainHandle.error = NOS_OK;
     nOS_mainHandle.timeout = 0;
@@ -440,7 +446,11 @@ nOS_Error nOS_Init(void)
     nOS_mainHandle.readyWait.payload = &nOS_mainHandle;
 
     nOS_ListAppend(&nOS_fullList, &nOS_mainHandle.full);
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
     AppendThreadToReadyList(&nOS_mainHandle);
+#else
+    nOS_ListAppend(&nOS_readyList, &nOS_mainHandle.readyWait);
+#endif
     nOS_runningThread = &nOS_mainHandle;
     nOS_highPrioThread = &nOS_mainHandle;
 
@@ -465,7 +475,7 @@ nOS_Error nOS_Init(void)
     nOS_PortInit();
 
     /* Context switching is possible after this point */
-    initialized = true;
+    running = true;
 
     return NOS_OK;
 }
@@ -475,7 +485,7 @@ nOS_Error nOS_Sched(void)
     nOS_Error   err;
 
     /* Switch only if initialization is completed */
-    if (!initialized) {
+    if (!running) {
         err = NOS_E_INIT;
     } else if (nOS_isrNestingCounter > 0) {
         err = NOS_E_ISR;
@@ -488,8 +498,12 @@ nOS_Error nOS_Sched(void)
 #endif
     else {
         nOS_CriticalEnter();
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
         /* Recheck if current running thread is the highest prio thread */
         nOS_highPrioThread = SchedHighPrio();
+#else
+        nOS_highPrioThread = nOS_ListHead(&nOS_readyList);
+#endif
         if (nOS_runningThread != nOS_highPrioThread) {
             nOS_ContextSwitch();
         }
@@ -559,7 +573,11 @@ nOS_Error nOS_Yield(void)
 #endif
     else {
         nOS_CriticalEnter();
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
         nOS_ListRotate(&nOS_readyList[nOS_runningThread->prio]);
+#else
+        nOS_ListRotate(&nOS_readyList);
+#endif
         nOS_CriticalLeave();
         nOS_Sched();
         err = NOS_OK;
@@ -649,6 +667,7 @@ nOS_Error nOS_SleepUntil (nOS_TickCounter tick)
     } else {
         nOS_CriticalEnter();
         if (tick == tickCounter) {
+            nOS_Yield();
             err = NOS_OK;
         } else {
             ctx.tick = tick;
