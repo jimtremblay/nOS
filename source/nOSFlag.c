@@ -36,7 +36,7 @@ static void TestFlag (void *payload, void *arg)
         if (ctx->opt & NOS_FLAG_CLEAR_ON_EXIT) {
             res->rflags |= r;
         }
-#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
         /* Indicate that we need a preemptive scheduling. */
         if (thread->prio > nOS_runningThread->prio) {
             res->sched = true;
@@ -102,7 +102,7 @@ nOS_Error nOS_FlagDelete (nOS_Flag *flag)
     {
         nOS_CriticalEnter();
         flag->flags = NOS_FLAG_NONE;
-#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
         if (nOS_EventDelete((nOS_Event*)flag)) {
             nOS_Sched();
         }
@@ -248,7 +248,7 @@ nOS_Error nOS_FlagSend (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits mask)
 #endif
     {
         res.rflags = NOS_FLAG_NONE;
-#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
         res.sched = false;
 #endif
         nOS_CriticalEnter();
@@ -257,7 +257,7 @@ nOS_Error nOS_FlagSend (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits mask)
         /* Clear all flags that have awoken the waiting threads. */
         flag->flags &=~ res.rflags;
         nOS_CriticalLeave();
-#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
         /* Schedule only if one of awoken thread has an higher priority. */
         if (res.sched) {
             nOS_Sched();

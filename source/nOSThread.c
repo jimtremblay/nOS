@@ -38,7 +38,7 @@ void SuspendThread (void *payload, void *arg)
 void ResumeThread (void *payload, void *arg)
 {
     nOS_Thread  *thread = (nOS_Thread*)payload;
-#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
     bool        *sched =  (bool*)arg;
 #else
     NOS_UNUSED(arg);
@@ -49,11 +49,13 @@ void ResumeThread (void *payload, void *arg)
         if (thread->state == NOS_THREAD_READY) {
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
             AppendThreadToReadyList(thread);
+#if (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
             if (thread->prio > nOS_runningThread->prio) {
                 if (sched != NULL) {
                     *sched = true;
                 }
             }
+#endif
 #else
             nOS_ListAppend(&nOS_readyList, &thread->readyWait);
 #endif
@@ -213,9 +215,11 @@ nOS_Error nOS_ThreadCreate (nOS_Thread *thread,
         {
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
             AppendThreadToReadyList(thread);
+#if (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
             if (prio > nOS_runningThread->prio) {
                 nOS_Sched();
             }
+#endif
 #else
             nOS_ListAppend(&nOS_readyList, &thread->readyWait);
 #endif
@@ -275,10 +279,12 @@ void nOS_ThreadTick(void)
 {
     nOS_CriticalEnter();
     nOS_ListWalk(&nOS_fullList, TickThread, NULL);
+#if (NOS_CONFIG_SCHED_ROUND_ROBIN_ENABLE > 0)
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
     nOS_ListRotate(&nOS_readyList[nOS_runningThread->prio]);
 #else
     nOS_ListRotate(&nOS_readyList);
+#endif
 #endif
     nOS_CriticalLeave();
 }
@@ -369,7 +375,7 @@ nOS_Error nOS_ThreadResume (nOS_Thread *thread)
     {
         nOS_CriticalEnter();
         ResumeThread(thread, NULL);
-#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
         if (thread->prio > nOS_runningThread->prio) {
             nOS_Sched();
         }
@@ -383,19 +389,19 @@ nOS_Error nOS_ThreadResume (nOS_Thread *thread)
 
 nOS_Error nOS_ThreadResumeAll (void)
 {
-#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
     bool sched = false;
 #endif
 
     nOS_CriticalEnter();
-#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
     nOS_ListWalk(&nOS_fullList, ResumeThread, &sched);
 #else
     nOS_ListWalk(&nOS_fullList, ResumeThread, NULL);
 #endif
     nOS_CriticalLeave();
 
-#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
     if (sched) {
         nOS_Sched();
     }
@@ -424,9 +430,11 @@ nOS_Error nOS_ThreadSetPriority (nOS_Thread *thread, uint8_t prio)
     {
         nOS_CriticalEnter();
         ChangeThreadPrio(thread, prio);
+#if (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
         if (thread->prio > nOS_runningThread->prio) {
             nOS_Sched();
         }
+#endif
         nOS_CriticalLeave();
         err = NOS_OK;
     }

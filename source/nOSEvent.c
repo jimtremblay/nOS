@@ -25,14 +25,13 @@ void nOS_EventCreate (nOS_Event *event)
     nOS_ListInit(&event->waitList);
 }
 
-#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
-bool
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
+bool nOS_EventDelete (nOS_Event *event)
 #else
-void
+void nOS_EventDelete (nOS_Event *event)
 #endif
-nOS_EventDelete (nOS_Event *event)
 {
-#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
     nOS_Thread  *thread;
     bool        sched = false;
 
@@ -51,7 +50,7 @@ nOS_EventDelete (nOS_Event *event)
     event->type = NOS_EVENT_INVALID;
 #endif
 
-#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
     return sched;
 #endif
 }

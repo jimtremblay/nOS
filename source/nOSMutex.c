@@ -106,7 +106,7 @@ nOS_Error nOS_MutexDelete (nOS_Mutex *mutex)
         mutex->count = 0;
 #endif
         mutex->owner = NULL;
-#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
         if (nOS_EventDelete((nOS_Event*)mutex)) {
             nOS_Sched();
         }
@@ -273,9 +273,11 @@ nOS_Error nOS_MutexUnlock (nOS_Mutex *mutex)
                         if (mutex->prio != NOS_MUTEX_PRIO_INHERIT) {
                             ChangeThreadPrio(thread, mutex->prio);
                         }
+#if (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
                         if ((thread->state == NOS_THREAD_READY) && (thread->prio > nOS_runningThread->prio)) {
                             nOS_Sched();
                         }
+#endif
 #endif
                     } else {
                         mutex->owner = NULL;

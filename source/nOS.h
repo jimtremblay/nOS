@@ -73,6 +73,18 @@ extern "C" {
  #error "nOSConfig.h: NOS_CONFIG_TICK_COUNT_WIDTH set to invalid value: can be set to 8, 16, 32 or 64."
 #endif
 
+#if !defined(NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE)
+ #define NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE     1
+ #warning "nOSConfig.h: NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE is not defined (enabled by default)."
+#elif (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0) && (NOS_CONFIG_HIGHEST_THREAD_PRIO == 0)
+ #warning "nOSConfig.h: NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE is not used when NOS_CONFIG_HIGHEST_THREAD_PRIO == 0 (cooperative scheduling)."
+#endif
+
+#if !defined(NOS_CONFIG_SCHED_ROUND_ROBIN_ENABLE)
+ #define NOS_CONFIG_SCHED_ROUND_ROBIN_ENABLE    1
+ #warning "nOSConfig.h: NOS_CONFIG_SCHED_ROUND_ROBIN_ENABLE is not defined (enabled by default)."
+#endif
+
 #if !defined(NOS_CONFIG_SCHED_LOCK_ENABLE)
  #define NOS_CONFIG_SCHED_LOCK_ENABLE           1
  #warning "nOSConfig.h: NOS_CONFIG_SCHED_LOCK_ENABLE is not defined (enabled by default)."
@@ -448,7 +460,7 @@ struct _nOS_FlagContext
 
 struct _nOS_FlagResult
 {
-#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
     bool                sched;
 #endif
     nOS_FlagBits        rflags;
@@ -649,12 +661,11 @@ void            nOS_EventCreate             (nOS_Event *event, uint8_t type);
 #else
 void            nOS_EventCreate             (nOS_Event *event);
 #endif
-#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
-bool
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
+bool            nOS_EventDelete             (nOS_Event *event);
 #else
-void
+void            nOS_EventDelete             (nOS_Event *event);
 #endif
-                nOS_EventDelete             (nOS_Event *event);
 nOS_Error       nOS_EventWait               (nOS_Event *event, uint8_t state, nOS_TickCounter tout);
 nOS_Thread*     nOS_EventSignal             (nOS_Event *event, nOS_Error err);
 
