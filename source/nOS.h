@@ -74,8 +74,13 @@ extern "C" {
 #endif
 
 #if !defined(NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE)
- #define NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE     1
- #warning "nOSConfig.h: NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE is not defined (enabled by default)."
+ #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
+  #define NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE    1
+  #warning "nOSConfig.h: NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE is not defined (enabled by default)."
+ #else
+  #define NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE    0
+  #warning "nOSConfig.h: NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE is not defined (disabled because NOS_CONFIG_HIGHEST_THREAD_PRIO == 0)."
+ #endif
 #elif (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0) && (NOS_CONFIG_HIGHEST_THREAD_PRIO == 0)
  #warning "nOSConfig.h: NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE is not used when NOS_CONFIG_HIGHEST_THREAD_PRIO == 0 (cooperative scheduling)."
 #endif
