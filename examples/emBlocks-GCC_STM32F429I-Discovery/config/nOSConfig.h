@@ -15,9 +15,9 @@
 #define NOS_CONFIG_TICK_COUNT_WIDTH             16
 
 /* Enable or disable preemptive scheduler (set to 0 to enable a cooperative scheduling). */
-#define NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE      0
+#define NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE      1
 /* Enable or disable round-robin scheduler (for threads of the same priority). */
-#define NOS_CONFIG_SCHED_ROUND_ROBIN_ENABLE     0
+#define NOS_CONFIG_SCHED_ROUND_ROBIN_ENABLE     1
 /* Enable or disable lock/unlock scheduler. */
 #define NOS_CONFIG_SCHED_LOCK_ENABLE            1
 

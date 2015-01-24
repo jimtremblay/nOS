@@ -540,8 +540,9 @@ struct _nOS_SleepContext
 #define NOS_THREAD_TAKING_SEM       0x01
 #define NOS_THREAD_LOCKING_MUTEX    0x02
 #define NOS_THREAD_READING_QUEUE    0x03
-#define NOS_THREAD_WAITING_FLAG     0x04
-#define NOS_THREAD_ALLOC_MEM        0x05
+#define NOS_THREAD_WRITING_QUEUE    0x04
+#define NOS_THREAD_WAITING_FLAG     0x05
+#define NOS_THREAD_ALLOC_MEM        0x06
 #define NOS_THREAD_WAITING          0x0F
 #define NOS_THREAD_SLEEPING         0x20
 #define NOS_THREAD_SUSPENDED        0x40
@@ -708,7 +709,7 @@ nOS_Error       nOS_QueueCreate             (nOS_Queue *queue, void *buffer, uin
 nOS_Error       nOS_QueueDelete             (nOS_Queue *queue);
 #endif
 nOS_Error       nOS_QueueRead               (nOS_Queue *queue, void *buffer, nOS_TickCounter tout);
-nOS_Error       nOS_QueueWrite              (nOS_Queue *queue, void *buffer);
+nOS_Error       nOS_QueueWrite              (nOS_Queue *queue, void *buffer, nOS_TickCounter tout);
 bool            nOS_QueueIsEmpty            (nOS_Queue *queue);
 bool            nOS_QueueIsFull             (nOS_Queue *queue);
 #endif
