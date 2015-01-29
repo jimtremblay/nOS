@@ -29,7 +29,7 @@
         </option>
         <option>
           <name>Variant</name>
-          <version>20</version>
+          <version>21</version>
           <state>35</state>
         </option>
         <option>
@@ -60,7 +60,7 @@
         </option>
         <option>
           <name>FPU</name>
-          <version>2</version>
+          <version>3</version>
           <state>0</state>
         </option>
         <option>
@@ -87,7 +87,7 @@
         </option>
         <option>
           <name>OGLastSavedByProductVersion</name>
-          <state>7.20.2.7418</state>
+          <state>7.30.4.8186</state>
         </option>
         <option>
           <name>GeneralEnableMisra</name>
@@ -137,12 +137,12 @@
         </option>
         <option>
           <name>GFPUCoreSlave</name>
-          <version>20</version>
+          <version>21</version>
           <state>35</state>
         </option>
         <option>
           <name>GBECoreSlave</name>
-          <version>20</version>
+          <version>21</version>
           <state>35</state>
         </option>
         <option>
@@ -613,6 +613,7 @@
       <data>
         <extensions></extensions>
         <cmdline></cmdline>
+        <hasPrio>0</hasPrio>
       </data>
     </settings>
     <settings>
@@ -972,7 +973,7 @@
         </option>
         <option>
           <name>Variant</name>
-          <version>20</version>
+          <version>21</version>
           <state>0</state>
         </option>
         <option>
@@ -1003,7 +1004,7 @@
         </option>
         <option>
           <name>FPU</name>
-          <version>2</version>
+          <version>3</version>
           <state>0</state>
         </option>
         <option>
@@ -1080,12 +1081,12 @@
         </option>
         <option>
           <name>GFPUCoreSlave</name>
-          <version>20</version>
+          <version>21</version>
           <state>0</state>
         </option>
         <option>
           <name>GBECoreSlave</name>
-          <version>20</version>
+          <version>21</version>
           <state>0</state>
         </option>
         <option>
@@ -1554,6 +1555,7 @@
       <data>
         <extensions></extensions>
         <cmdline></cmdline>
+        <hasPrio>0</hasPrio>
       </data>
     </settings>
     <settings>
@@ -1889,34 +1891,43 @@
   <group>
     <name>nOS</name>
     <file>
-      <name>$PROJ_DIR$\..\..\source\flag.c</name>
+      <name>$PROJ_DIR$\..\..\source\nOSEvent.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\source\mem.c</name>
+      <name>$PROJ_DIR$\..\..\source\nOSFlag.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\source\mutex.c</name>
+      <name>$PROJ_DIR$\..\..\source\nOSList.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\source\port\IAR\ARM_Cortex_M0\port.c</name>
+      <name>$PROJ_DIR$\..\..\source\nOSMem.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\source\port\IAR\ARM_Cortex_M0\portasm.s</name>
+      <name>$PROJ_DIR$\..\..\source\nOSMutex.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\source\queue.c</name>
+      <name>$PROJ_DIR$\..\..\source\port\IAR\ARM_Cortex_M0\nOSPort.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\source\sched.c</name>
+      <name>$PROJ_DIR$\..\..\source\port\IAR\ARM_Cortex_M0\nOSPortASM.s</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\source\sem.c</name>
+      <name>$PROJ_DIR$\..\..\source\nOSQueue.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\source\thread.c</name>
+      <name>$PROJ_DIR$\..\..\source\nOSSched.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\source\timer.c</name>
+      <name>$PROJ_DIR$\..\..\source\nOSSem.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\source\nOSThread.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\source\nOSTime.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\source\nOSTimer.c</name>
     </file>
   </group>
   <file>
