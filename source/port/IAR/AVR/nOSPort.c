@@ -13,7 +13,7 @@
 extern "C" {
 #endif
 
-void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg)
+void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, size_t cssize, nOS_ThreadEntry entry, void *arg)
 {
     /* Stack grow from high to low address */
     nOS_Stack *tohs = stack + (ssize - 1);
@@ -27,9 +27,9 @@ void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_Thr
 #endif
 
 #if defined(__ATmega2560__) || defined(__ATmega2561__)
-     tos     = tohs - (NOS_CONFIG_CALL_STACK_SIZE * 3);
+     tos     = tohs - (cssize * 3);
 #else
-     tos     = tohs - (NOS_CONFIG_CALL_STACK_SIZE * 2);
+     tos     = tohs - (cssize * 2);
 #endif
 
     /* Simulate a call to thread function */

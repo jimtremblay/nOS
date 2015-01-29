@@ -50,24 +50,24 @@ extern "C" {
 #include "nOSConfig.h"
 
 #if !defined(NOS_CONFIG_DEBUG)
- #define NOS_CONFIG_DEBUG                       0
+ #define NOS_CONFIG_DEBUG                           0
  #warning "nOSConfig.h: NOS_CONFIG_DEBUG is not defined (disabled by default)."
 #endif
 
 #if !defined(NOS_CONFIG_SAFE)
- #define NOS_CONFIG_SAFE                        1
+ #define NOS_CONFIG_SAFE                            1
  #warning "nOSConfig.h: NOS_CONFIG_SAFE is not defined (enabled by default)."
 #endif
 
 #if !defined(NOS_CONFIG_HIGHEST_THREAD_PRIO)
- #define NOS_CONFIG_HIGHEST_THREAD_PRIO         15
+ #define NOS_CONFIG_HIGHEST_THREAD_PRIO             15
  #warning "nOSConfig.h: NOS_CONFIG_HIGHEST_THREAD_PRIO is not defined (default to 15)."
 #elif NOS_CONFIG_HIGHEST_THREAD_PRIO > 255
  #error "nOSConfig.h: NOS_CONFIG_HIGHEST_THREAD_PRIO can't be higher than 255."
 #endif
 
 #if !defined(NOS_CONFIG_TICK_COUNT_WIDTH)
- #define NOS_CONFIG_TICK_COUNT_WIDTH            16
+ #define NOS_CONFIG_TICK_COUNT_WIDTH                16
  #warning "nOSConfig.h: NOS_CONFIG_TICK_COUNT_WIDTH is not defined (default to 16)."
 #elif (NOS_CONFIG_TICK_COUNT_WIDTH != 8) && (NOS_CONFIG_TICK_COUNT_WIDTH != 16) && (NOS_CONFIG_TICK_COUNT_WIDTH != 32) && (NOS_CONFIG_TICK_COUNT_WIDTH != 64)
  #error "nOSConfig.h: NOS_CONFIG_TICK_COUNT_WIDTH set to invalid value: can be set to 8, 16, 32 or 64."
@@ -75,10 +75,10 @@ extern "C" {
 
 #if !defined(NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE)
  #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
-  #define NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE    1
+  #define NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE        1
   #warning "nOSConfig.h: NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE is not defined (enabled by default)."
  #else
-  #define NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE    0
+  #define NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE        0
   #warning "nOSConfig.h: NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE is not defined (disabled because NOS_CONFIG_HIGHEST_THREAD_PRIO == 0)."
  #endif
 #elif (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0) && (NOS_CONFIG_HIGHEST_THREAD_PRIO == 0)
@@ -86,61 +86,61 @@ extern "C" {
 #endif
 
 #if !defined(NOS_CONFIG_SCHED_ROUND_ROBIN_ENABLE)
- #define NOS_CONFIG_SCHED_ROUND_ROBIN_ENABLE    1
+ #define NOS_CONFIG_SCHED_ROUND_ROBIN_ENABLE        1
  #warning "nOSConfig.h: NOS_CONFIG_SCHED_ROUND_ROBIN_ENABLE is not defined (enabled by default)."
 #endif
 
 #if !defined(NOS_CONFIG_SCHED_LOCK_ENABLE)
- #define NOS_CONFIG_SCHED_LOCK_ENABLE           1
+ #define NOS_CONFIG_SCHED_LOCK_ENABLE               1
  #warning "nOSConfig.h: NOS_CONFIG_SCHED_LOCK_ENABLE is not defined (enabled by default)."
 #endif
 
 #if !defined(NOS_CONFIG_SLEEP_ENABLE)
- #define NOS_CONFIG_SLEEP_ENABLE                1
+ #define NOS_CONFIG_SLEEP_ENABLE                    1
  #warning "nOSConfig.h: NOS_CONFIG_SLEEP_ENABLE is not defined (enabled by default)."
 #endif
 
 #if !defined(NOS_CONFIG_SLEEP_UNTIL_ENABLE)
- #define NOS_CONFIG_SLEEP_UNTIL_ENABLE          1
+ #define NOS_CONFIG_SLEEP_UNTIL_ENABLE              1
  #warning "nOSConfig.h: NOS_CONFIG_SLEEP_UNTIL_ENABLE is not defined (enabled by default)."
 #endif
 
 #if !defined(NOS_CONFIG_THREAD_SUSPEND_ENABLE)
- #define NOS_CONFIG_THREAD_SUSPEND_ENABLE       1
+ #define NOS_CONFIG_THREAD_SUSPEND_ENABLE           1
  #warning "nOSConfig.h: NOS_CONFIG_THREAD_SUSPEND_ENABLE is not defined (enabled by default)."
 #endif
 
 #if !defined(NOS_CONFIG_THREAD_DELETE_ENABLE)
- #define NOS_CONFIG_THREAD_DELETE_ENABLE        1
+ #define NOS_CONFIG_THREAD_DELETE_ENABLE            1
  #warning "nOSConfig.h: NOS_CONFIG_THREAD_DELETE_ENABLE is not defined (enabled by default)."
 #endif
 
 #if !defined(NOS_CONFIG_THREAD_SET_PRIO_ENABLE)
- #define NOS_CONFIG_THREAD_SET_PRIO_ENABLE      1
+ #define NOS_CONFIG_THREAD_SET_PRIO_ENABLE          1
  #warning "nOSConfig.h: NOS_CONFIG_THREAD_SET_PRIO_ENABLE is not defined (enabled by default)."
 #endif
 
 #if !defined(NOS_CONFIG_SEM_ENABLE)
- #define NOS_CONFIG_SEM_ENABLE                  1
+ #define NOS_CONFIG_SEM_ENABLE                      1
  #warning "nOSConfig.h: NOS_CONFIG_SEM_ENABLE is not defined (enabled by default)."
 #endif
 #if (NOS_CONFIG_SEM_ENABLE > 0)
  #if !defined(NOS_CONFIG_SEM_DELETE_ENABLE)
-  #define NOS_CONFIG_SEM_DELETE_ENABLE          1
+  #define NOS_CONFIG_SEM_DELETE_ENABLE              1
   #warning "nOSConfig.h: NOS_CONFIG_SEM_DELETE_ENABLE is not defined (enabled by default)."
  #endif
  #if !defined(NOS_CONFIG_SEM_COUNT_WIDTH)
-  #define NOS_CONFIG_SEM_COUNT_WIDTH            16
+  #define NOS_CONFIG_SEM_COUNT_WIDTH                16
   #warning "nOSConfig.h: NOS_CONFIG_SEM_COUNT_WIDTH is not defined (default to 16)."
  #elif (NOS_CONFIG_SEM_COUNT_WIDTH != 8) && (NOS_CONFIG_SEM_COUNT_WIDTH != 16) && (NOS_CONFIG_SEM_COUNT_WIDTH != 32)
   #error "nOSConfig.h: NOS_CONFIG_SEM_COUNT_WIDTH set to invalid value: can be set to 8, 16 or 32."
  #endif
  #if (NOS_CONFIG_SEM_COUNT_WIDTH == 8)
-  #define NOS_SEM_COUNT_MAX                     UINT8_MAX
+  #define NOS_SEM_COUNT_MAX                         UINT8_MAX
  #elif (NOS_CONFIG_SEM_COUNT_WIDTH == 16)
-  #define NOS_SEM_COUNT_MAX                     UINT16_MAX
+  #define NOS_SEM_COUNT_MAX                         UINT16_MAX
  #elif (NOS_CONFIG_SEM_COUNT_WIDTH == 32)
-  #define NOS_SEM_COUNT_MAX                     UINT32_MAX
+  #define NOS_SEM_COUNT_MAX                         UINT32_MAX
  #endif
 #else
  #undef NOS_CONFIG_SEM_DELETE_ENABLE
@@ -148,16 +148,16 @@ extern "C" {
 #endif
 
 #if !defined(NOS_CONFIG_MUTEX_ENABLE)
- #define NOS_CONFIG_MUTEX_ENABLE                1
+ #define NOS_CONFIG_MUTEX_ENABLE                    1
  #warning "nOSConfig.h: NOS_CONFIG_MUTEX_ENABLE is not defined (enabled by default)."
 #endif
 #if (NOS_CONFIG_MUTEX_ENABLE > 0)
  #if !defined(NOS_CONFIG_MUTEX_DELETE_ENABLE)
-  #define NOS_CONFIG_MUTEX_DELETE_ENABLE        1
+  #define NOS_CONFIG_MUTEX_DELETE_ENABLE            1
   #warning "nOSConfig.h: NOS_CONFIG_MUTEX_DELETE_ENABLE is not defined (enabled by default)."
  #endif
  #if !defined(NOS_CONFIG_MUTEX_RECURSIVE_ENABLE)
-  #define NOS_CONFIG_MUTEX_RECURSIVE_ENABLE     1
+  #define NOS_CONFIG_MUTEX_RECURSIVE_ENABLE         1
   #warning "nOSConfig.h: NOS_CONFIG_MUTEX_RECURSIVE_ENABLE is not defined (enabled by default)."
  #endif
 #else
@@ -166,16 +166,16 @@ extern "C" {
 #endif
 
 #if !defined(NOS_CONFIG_FLAG_ENABLE)
- #define NOS_CONFIG_FLAG_ENABLE                 1
+ #define NOS_CONFIG_FLAG_ENABLE                     1
  #warning "nOSConfig.h: NOS_CONFIG_FLAG_ENABLE is not defined (enabled by default)."
 #endif
 #if (NOS_CONFIG_FLAG_ENABLE > 0)
  #if !defined(NOS_CONFIG_FLAG_DELETE_ENABLE)
-  #define NOS_CONFIG_FLAG_DELETE_ENABLE         1
+  #define NOS_CONFIG_FLAG_DELETE_ENABLE             1
   #warning "nOSConfig.h: NOS_CONFIG_FLAG_DELETE_ENABLE is not defined (enabled by default)."
  #endif
  #if !defined(NOS_CONFIG_FLAG_NB_BITS)
-  #define NOS_CONFIG_FLAG_NB_BITS               16
+  #define NOS_CONFIG_FLAG_NB_BITS                   16
   #warning "nOSConfig.h: NOS_CONFIG_FLAG_NB_BITS is not defined (default to 16)."
  #elif (NOS_CONFIG_FLAG_NB_BITS != 8) && (NOS_CONFIG_FLAG_NB_BITS != 16) && (NOS_CONFIG_FLAG_NB_BITS != 32) && (NOS_CONFIG_FLAG_NB_BITS != 64)
   #error "nOSConfig.h: NOS_CONFIG_FLAG_NB_BITS set to invalid value: can be set to 8, 16, 32 or 64."
@@ -186,12 +186,12 @@ extern "C" {
 #endif
 
 #if !defined(NOS_CONFIG_QUEUE_ENABLE)
- #define NOS_CONFIG_QUEUE_ENABLE                1
+ #define NOS_CONFIG_QUEUE_ENABLE                    1
  #warning "nOSConfig.h: NOS_CONFIG_QUEUE_ENABLE is not defined (enabled by default)."
 #endif
 #if (NOS_CONFIG_QUEUE_ENABLE > 0)
  #if !defined(NOS_CONFIG_QUEUE_DELETE_ENABLE)
-  #define NOS_CONFIG_QUEUE_DELETE_ENABLE        1
+  #define NOS_CONFIG_QUEUE_DELETE_ENABLE            1
   #warning "nOSConfig.h: NOS_CONFIG_QUEUE_DELETE_ENABLE is not defined (enabled by default)."
  #endif
 #else
@@ -199,16 +199,16 @@ extern "C" {
 #endif
 
 #if !defined(NOS_CONFIG_MEM_ENABLE)
- #define NOS_CONFIG_MEM_ENABLE                  1
+ #define NOS_CONFIG_MEM_ENABLE                      1
  #warning "nOSConfig.h: NOS_CONFIG_MEM_ENABLE is not defined (enabled by default)."
 #endif
 #if (NOS_CONFIG_MEM_ENABLE > 0)
  #if !defined(NOS_CONFIG_MEM_DELETE_ENABLE)
-  #define NOS_CONFIG_MEM_DELETE_ENABLE          1
+  #define NOS_CONFIG_MEM_DELETE_ENABLE              1
   #warning "nOSConfig.h: NOS_CONFIG_MEM_DELETE_ENABLE is not defined (enabled by default)."
  #endif
  #if !defined(NOS_CONFIG_MEM_SANITY_CHECK_ENABLE)
-  #define NOS_CONFIG_MEM_SANITY_CHECK_ENABLE    1
+  #define NOS_CONFIG_MEM_SANITY_CHECK_ENABLE        1
   #warning "nOSConfig.h: NOS_CONFIG_MEM_SANITY_CHECK_ENABLE is not defined (enabled by default)."
  #endif
 #else
@@ -217,7 +217,7 @@ extern "C" {
 #endif
 
 #if !defined(NOS_CONFIG_TIMER_ENABLE)
- #define NOS_CONFIG_TIMER_ENABLE                1
+ #define NOS_CONFIG_TIMER_ENABLE                    1
  #warning "nOSConfig.h: NOS_CONFIG_TIMER_ENABLE is not defined (enabled by default)."
 #endif
 #if (NOS_CONFIG_TIMER_ENABLE > 0)
@@ -225,12 +225,12 @@ extern "C" {
   #error "nOSConfig.h: NOS_CONFIG_SEM_ENABLE need to be enable when NOS_CONFIG_TIMER_ENABLE is enable."
  #endif
  #if !defined(NOS_CONFIG_TIMER_DELETE_ENABLE)
-  #define NOS_CONFIG_TIMER_DELETE_ENABLE        1
+  #define NOS_CONFIG_TIMER_DELETE_ENABLE            1
   #warning "nOSConfig.h: NOS_CONFIG_TIMER_DELETE_ENABLE is not defined (enabled by default)."
  #endif
  #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
   #if !defined(NOS_CONFIG_TIMER_THREAD_PRIO)
-   #define NOS_CONFIG_TIMER_THREAD_PRIO          0
+   #define NOS_CONFIG_TIMER_THREAD_PRIO             0
    #warning "nOSConfig.h: NOS_CONFIG_TIMER_THREAD_PRIO is not defined (default to 0)."
   #elif (NOS_CONFIG_TIMER_THREAD_PRIO > NOS_CONFIG_HIGHEST_THREAD_PRIO)
    #error "nOSConfig.h: NOS_CONFIG_TIMER_THREAD_PRIO is higher than NOS_CONFIG_HIGHEST_THREAD_PRIO."
@@ -239,11 +239,17 @@ extern "C" {
   #undef NOS_CONFIG_TIMER_THREAD_PRIO
  #endif
  #if !defined(NOS_CONFIG_TIMER_THREAD_STACK_SIZE)
-  #define NOS_CONFIG_TIMER_THREAD_STACK_SIZE    128
+  #define NOS_CONFIG_TIMER_THREAD_STACK_SIZE        128
   #warning "nOSConfig.h: NOS_CONFIG_TIMER_THREAD_STACK_SIZE is not defined (default to 128)."
  #endif
+ #if defined(__ICCAVR__)
+  #if !defined(NOS_CONFIG_TIMER_THREAD_CALL_STACK_SIZE)
+   #define NOS_CONFIG_TIMER_THREAD_CALL_STACK_SIZE  16
+   #warning "nOSConfig.h: NOS_CONFIG_TIMER_THREAD_CALL_STACK_SIZE is not defined (default to 16)."
+  #endif
+ #endif
  #if !defined(NOS_CONFIG_TIMER_COUNT_WIDTH)
-  #define NOS_CONFIG_TIMER_COUNT_WIDTH          16
+  #define NOS_CONFIG_TIMER_COUNT_WIDTH              16
   #warning "nOSConfig.h: NOS_CONFIG_TIMER_COUNT_WIDTH is not defined (default to 16)."
  #elif (NOS_CONFIG_TIMER_COUNT_WIDTH != 8) && (NOS_CONFIG_TIMER_COUNT_WIDTH != 16) && (NOS_CONFIG_TIMER_COUNT_WIDTH != 32)
   #error "nOSConfig.h: NOS_CONFIG_TIMER_COUNT_WIDTH set to invalid value: can be set to 8, 16 or 32."
@@ -252,23 +258,26 @@ extern "C" {
  #undef NOS_CONFIG_TIMER_DELETE_ENABLE
  #undef NOS_CONFIG_TIMER_THREAD_PRIO
  #undef NOS_CONFIG_TIMER_THREAD_STACK_SIZE
+ #if defined(__ICCAVR__)
+  #undef NOS_CONFIG_TIMER_THREAD_CALL_STACK_SIZE
+ #endif
  #undef NOS_CONFIG_TIMER_COUNT_WIDTH
 #endif
 
 #if !defined(NOS_CONFIG_TIME_ENABLE)
- #define NOS_CONFIG_TIME_ENABLE                 0
+ #define NOS_CONFIG_TIME_ENABLE                     0
  #warning "nOSConfig.h: NOS_CONFIG_TIME_ENABLE is not defined (disabled by default)."
 #endif
 #if (NOS_CONFIG_TIME_ENABLE > 0)
  #if !defined(NOS_CONFIG_TIME_WAIT_ENABLE)
-  #define NOS_CONFIG_TIME_WAIT_ENABLE           1
+  #define NOS_CONFIG_TIME_WAIT_ENABLE               1
   #warning "nOSConfig.h: NOS_CONFIG_TIME_WAIT_ENABLE is not defined (enabled by default)."
  #endif
  #if !defined(NOS_CONFIG_TIME_TICKS_PER_SECOND)
   #error "nOSConfig.h: NOS_CONFIG_TIME_TICKS_PER_SECOND is not defined."
  #endif
  #if !defined(NOS_CONFIG_TIME_COUNT_WIDTH)
-  #define NOS_CONFIG_TIME_COUNT_WIDTH           32
+  #define NOS_CONFIG_TIME_COUNT_WIDTH               32
   #warning "nOSConfig.h: NOS_CONFIG_TIME_COUNT_WIDTH is not defined (default to 32)."
  #elif (NOS_CONFIG_TIME_COUNT_WIDTH != 32) && (NOS_CONFIG_TIME_COUNT_WIDTH != 64)
   #error "nOSConfig.h: NOS_CONFIG_TIME_COUNT_WIDTH set to invalid value: can be set to 32 or 64."
@@ -639,6 +648,9 @@ void            nOS_ListWalk                (nOS_List *list, nOS_NodeHandler han
 
 
 nOS_Error       nOS_ThreadCreate            (nOS_Thread *thread, nOS_ThreadEntry entry, void *arg, nOS_Stack *stack, size_t ssize
+#if defined(__ICCAVR__)
+                                             ,size_t cssize
+#endif
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
                                              ,uint8_t prio
 #endif

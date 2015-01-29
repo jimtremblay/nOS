@@ -4,11 +4,9 @@
 /* Define to value other than 0 to enable arguments checking in nOS API. */
 #define NOS_CONFIG_SAFE                         1
 
-/*
- * Highest priority a thread can take (up to 255).
+/* Highest priority a thread can take (up to 255).
  * Set to 0 to enable a cooperative scheduling
- * with all threads at the same priority.
- */
+ * with all threads at the same priority. */
 #define NOS_CONFIG_HIGHEST_THREAD_PRIO          31
 
 /* Size of ticks counter for sleep/timeout in bits (can be 8, 16, 32 and 64). */
@@ -74,6 +72,8 @@
 #define NOS_CONFIG_TIMER_THREAD_PRIO            1
 /* Stack size of timer thread. */
 #define NOS_CONFIG_TIMER_THREAD_STACK_SIZE      128
+/* Call stack size of timer thread (used only on IAR for AVR) */
+#define NOS_CONFIG_TIMER_THREAD_CALL_STACK_SIZE 16
 /* Timer counter width in bits (can be 8, 16 or 32) */
 #define NOS_CONFIG_TIMER_COUNT_WIDTH            16
 
@@ -102,6 +102,3 @@
  * Not used on all platforms.
  */
 #define NOS_CONFIG_MAX_UNSAFE_ISR_PRIO          5
-
-/* Number of call entries which will be reserved on each thread stack (EWAVR only) */
-#define NOS_CONFIG_CALL_STACK_SIZE              16

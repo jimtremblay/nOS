@@ -74,6 +74,9 @@ void nOS_TimerInit(void)
                      NULL,
                      timerStack,
                      NOS_CONFIG_TIMER_THREAD_STACK_SIZE
+#if defined (__ICCAVR__)
+                     ,NOS_CONFIG_TIMER_THREAD_CALL_STACK_SIZE
+#endif
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
                      ,NOS_CONFIG_TIMER_THREAD_PRIO
 #endif

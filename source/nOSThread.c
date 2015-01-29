@@ -154,6 +154,9 @@ nOS_Error nOS_ThreadCreate (nOS_Thread *thread,
                             void *arg,
                             nOS_Stack *stack,
                             size_t ssize
+#if defined(__ICCAVR__)
+                            ,size_t cssize
+#endif
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
                             ,uint8_t prio
 #endif
@@ -206,7 +209,11 @@ nOS_Error nOS_ThreadCreate (nOS_Thread *thread,
         thread->error = NOS_OK;
         thread->full.payload = thread;
         thread->readyWait.payload = thread;
-        nOS_ContextInit(thread, stack, ssize, entry, arg);
+        nOS_ContextInit(thread, stack, ssize
+#if defined(__ICCAVR__)
+                        ,cssize
+#endif
+                        ,entry, arg);
         nOS_CriticalEnter();
         nOS_ListAppend(&nOS_fullList, &thread->full);
 #if (NOS_CONFIG_THREAD_SUSPEND_ENABLE > 0)

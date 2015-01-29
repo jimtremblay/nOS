@@ -72,6 +72,8 @@
 #define NOS_CONFIG_TIMER_THREAD_PRIO            1
 /* Stack size of timer thread. */
 #define NOS_CONFIG_TIMER_THREAD_STACK_SIZE      128
+/* Call stack size of timer thread (used only on IAR for AVR) */
+#define NOS_CONFIG_TIMER_THREAD_CALL_STACK_SIZE 16
 /* Timer counter width in bits (can be 8, 16 or 32) */
 #define NOS_CONFIG_TIMER_COUNT_WIDTH            16
 
@@ -83,6 +85,3 @@
 #define NOS_CONFIG_TIME_TICKS_PER_SECOND        1000
 /* Time ticks counter width in bits (can be 32 or 64). */
 #define NOS_CONFIG_TIME_COUNT_WIDTH             32
-
-/* Number of call entries which will be reserved on each thread stack */
-#define NOS_CONFIG_CALL_STACK_SIZE              16
