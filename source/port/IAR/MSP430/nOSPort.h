@@ -19,17 +19,20 @@ extern "C" {
 #if (__CORE__ == __430X__)
 #if (__DATA_MODEL__ == __DATA_MODEL_SMALL__)
 typedef uint16_t                nOS_Stack;
+#define NOS_PORT_SCHED_USE_16_BITS
+#define NOS_MEM_ALIGNMENT       2
 #else
 typedef uint32_t                nOS_Stack;
+#define NOS_PORT_SCHED_USE_32_BITS
+#define NOS_MEM_ALIGNMENT       4
 #endif
 #else
 typedef uint16_t                nOS_Stack;
+#define NOS_PORT_SCHED_USE_16_BITS
+#define NOS_MEM_ALIGNMENT       2
 #endif
 
 #define NOS_UNUSED(v)           (void)v
-
-#define NOS_PORT_SCHED_USE_16_BITS
-#define NOS_MEM_ALIGNMENT       2
 
 #if (__DATA_MODEL__ == __DATA_MODEL_SMALL__)
 #define     PUSH_X              "PUSH.W"

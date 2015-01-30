@@ -10,9 +10,9 @@
     <debug>1</debug>
     <settings>
       <name>General</name>
-      <archiveVersion>14</archiveVersion>
+      <archiveVersion>16</archiveVersion>
       <data>
-        <version>32</version>
+        <version>33</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>1</debug>
         <option>
@@ -216,6 +216,15 @@
         <option>
           <name>GLockIpe</name>
           <state>0</state>
+        </option>
+        <option>
+          <name>Math variant</name>
+          <version>0</version>
+          <state>0</state>
+        </option>
+        <option>
+          <name>Math description</name>
+          <state></state>
         </option>
       </data>
     </settings>
@@ -704,6 +713,7 @@
       <data>
         <extensions></extensions>
         <cmdline></cmdline>
+        <hasPrio>0</hasPrio>
       </data>
     </settings>
     <settings>
@@ -1090,9 +1100,9 @@
     <debug>0</debug>
     <settings>
       <name>General</name>
-      <archiveVersion>14</archiveVersion>
+      <archiveVersion>16</archiveVersion>
       <data>
-        <version>32</version>
+        <version>33</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>0</debug>
         <option>
@@ -1296,6 +1306,15 @@
         <option>
           <name>GLockIpe</name>
           <state>0</state>
+        </option>
+        <option>
+          <name>Math variant</name>
+          <version>0</version>
+          <state>0</state>
+        </option>
+        <option>
+          <name>Math description</name>
+          <state></state>
         </option>
       </data>
     </settings>
@@ -1780,6 +1799,7 @@
       <data>
         <extensions></extensions>
         <cmdline></cmdline>
+        <hasPrio>0</hasPrio>
       </data>
     </settings>
     <settings>
@@ -2157,31 +2177,40 @@
   <group>
     <name>nOS</name>
     <file>
-      <name>$PROJ_DIR$\..\..\source\flag.c</name>
+      <name>$PROJ_DIR$\..\..\source\nOSEvent.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\source\mem.c</name>
+      <name>$PROJ_DIR$\..\..\source\nOSFlag.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\source\mutex.c</name>
+      <name>$PROJ_DIR$\..\..\source\nOSList.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\source\port\IAR\MSP430\port.c</name>
+      <name>$PROJ_DIR$\..\..\source\nOSMem.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\source\queue.c</name>
+      <name>$PROJ_DIR$\..\..\source\nOSMutex.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\source\sched.c</name>
+      <name>$PROJ_DIR$\..\..\source\port\IAR\MSP430\nOSPort.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\source\sem.c</name>
+      <name>$PROJ_DIR$\..\..\source\nOSQueue.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\source\thread.c</name>
+      <name>$PROJ_DIR$\..\..\source\nOSSched.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\source\timer.c</name>
+      <name>$PROJ_DIR$\..\..\source\nOSSem.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\source\nOSThread.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\source\nOSTime.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\source\nOSTimer.c</name>
     </file>
   </group>
   <file>
