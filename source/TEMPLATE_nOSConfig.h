@@ -86,19 +86,15 @@
 /* Time ticks counter width in bits (can be 32 or 64). */
 #define NOS_CONFIG_TIME_COUNT_WIDTH             32
 
-/*
- * Stack size to use from interrupt routines in number of nOS_Stack entries.
- * Not used on all platforms.
- */
+/* Stack size to use from interrupt routines in number of nOS_Stack entries.
+ * Not used on all platforms. */
 #define NOS_CONFIG_ISR_STACK_SIZE               128
 
-/*
- * Highest priority of interrupt routines that use nOS API which can enable
+/* Highest priority of interrupt routines that use nOS API which can enable
  * zero interrupt latency for high priority ISR. You should not call any nOS
  * API from interrupt handlers with priority higher than this setting. Can't
  * be set to zero.
  * Lower number = Higher priority (except PIC24)
  * Higher number = Higher priority (PIC24 only, max value: 7)
- * Not used on all platforms.
- */
+ * Not used on all platforms. */
 #define NOS_CONFIG_MAX_UNSAFE_ISR_PRIO          5
