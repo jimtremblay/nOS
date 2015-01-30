@@ -435,24 +435,24 @@ nOS_Error nOS_Init(void)
 #endif
 
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
-    nOS_mainHandle.prio = NOS_THREAD_PRIO_IDLE;
+    nOS_idleHandle.prio = NOS_THREAD_PRIO_IDLE;
 #endif
-    nOS_mainHandle.state = NOS_THREAD_READY;
-    nOS_mainHandle.error = NOS_OK;
-    nOS_mainHandle.timeout = 0;
-    nOS_mainHandle.event = NULL;
-    nOS_mainHandle.context = NULL;
-    nOS_mainHandle.full.payload = &nOS_mainHandle;
-    nOS_mainHandle.readyWait.payload = &nOS_mainHandle;
+    nOS_idleHandle.state = NOS_THREAD_READY;
+    nOS_idleHandle.error = NOS_OK;
+    nOS_idleHandle.timeout = 0;
+    nOS_idleHandle.event = NULL;
+    nOS_idleHandle.context = NULL;
+    nOS_idleHandle.main.payload = &nOS_idleHandle;
+    nOS_idleHandle.readyWait.payload = &nOS_idleHandle;
 
-    nOS_ListAppend(&nOS_fullList, &nOS_mainHandle.full);
+    nOS_ListAppend(&nOS_mainList, &nOS_idleHandle.main);
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
-    AppendThreadToReadyList(&nOS_mainHandle);
+    AppendThreadToReadyList(&nOS_idleHandle);
 #else
-    nOS_ListAppend(&nOS_readyList, &nOS_mainHandle.readyWait);
+    nOS_ListAppend(&nOS_readyList, &nOS_idleHandle.readyWait);
 #endif
-    nOS_runningThread = &nOS_mainHandle;
-    nOS_highPrioThread = &nOS_mainHandle;
+    nOS_runningThread = &nOS_idleHandle;
+    nOS_highPrioThread = &nOS_idleHandle;
 
     tickCounter = 0;
 
@@ -632,7 +632,7 @@ nOS_Error nOS_Sleep (nOS_TickCounter ticks)
         err = NOS_E_LOCKED;
     }
 #endif
-    else if (nOS_runningThread == &nOS_mainHandle) {
+    else if (nOS_runningThread == &nOS_idleHandle) {
         err = NOS_E_IDLE;
     } else if (ticks == 0) {
         nOS_Yield();
@@ -662,7 +662,7 @@ nOS_Error nOS_SleepUntil (nOS_TickCounter tick)
         err = NOS_E_LOCKED;
     }
 #endif
-    else if (nOS_runningThread == &nOS_mainHandle) {
+    else if (nOS_runningThread == &nOS_idleHandle) {
         err = NOS_E_IDLE;
     } else {
         nOS_CriticalEnter();

@@ -22,7 +22,7 @@ void SuspendThread (void *payload, void *arg)
     /* Avoid warning */
     NOS_UNUSED(arg);
 
-    if (thread != &nOS_mainHandle) {
+    if (thread != &nOS_idleHandle) {
         if (thread->state == NOS_THREAD_READY) {
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
             RemoveThreadFromReadyList(thread);
@@ -170,7 +170,7 @@ nOS_Error nOS_ThreadCreate (nOS_Thread *thread,
 #if (NOS_CONFIG_SAFE > 0)
     if (thread == NULL) {
         err = NOS_E_NULL;
-    } else if (thread == &nOS_mainHandle) {
+    } else if (thread == &nOS_idleHandle) {
         err = NOS_E_INV_VAL;
     } else if (entry == NULL) {
         err = NOS_E_INV_VAL;
@@ -207,7 +207,7 @@ nOS_Error nOS_ThreadCreate (nOS_Thread *thread,
         thread->event = NULL;
         thread->context = NULL;
         thread->error = NOS_OK;
-        thread->full.payload = thread;
+        thread->main.payload = thread;
         thread->readyWait.payload = thread;
         nOS_ContextInit(thread, stack, ssize
 #if defined(__ICCAVR__)
@@ -215,7 +215,7 @@ nOS_Error nOS_ThreadCreate (nOS_Thread *thread,
 #endif
                         ,entry, arg);
         nOS_CriticalEnter();
-        nOS_ListAppend(&nOS_fullList, &thread->full);
+        nOS_ListAppend(&nOS_mainList, &thread->main);
 #if (NOS_CONFIG_THREAD_SUSPEND_ENABLE > 0)
         if (thread->state == NOS_THREAD_READY)
 #endif
@@ -249,7 +249,7 @@ nOS_Error nOS_ThreadDelete (nOS_Thread *thread)
 
 #if (NOS_CONFIG_SAFE > 0)
     /* Main thread can't be deleted */
-    if (thread == &nOS_mainHandle) {
+    if (thread == &nOS_idleHandle) {
         err = NOS_E_IDLE;
     } else if (thread == nOS_runningThread) {
 #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
@@ -285,7 +285,7 @@ nOS_Error nOS_ThreadDelete (nOS_Thread *thread)
 void nOS_ThreadTick(void)
 {
     nOS_CriticalEnter();
-    nOS_ListWalk(&nOS_fullList, TickThread, NULL);
+    nOS_ListWalk(&nOS_mainList, TickThread, NULL);
 #if (NOS_CONFIG_SCHED_ROUND_ROBIN_ENABLE > 0)
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
     nOS_ListRotate(&nOS_readyList[nOS_runningThread->prio]);
@@ -307,7 +307,7 @@ nOS_Error nOS_ThreadSuspend (nOS_Thread *thread)
 
 #if (NOS_CONFIG_SAFE > 0)
     /* Main thread can't be suspended */
-    if (thread == &nOS_mainHandle) {
+    if (thread == &nOS_idleHandle) {
         err = NOS_E_IDLE;
     } else if (thread == nOS_runningThread) {
 #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
@@ -346,16 +346,16 @@ nOS_Error nOS_ThreadSuspendAll (void)
 #if (NOS_CONFIG_SAFE > 0)
 #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
     /* Can't suspend all threads from other threads when scheduler is locked */
-    if ((nOS_lockNestingCounter > 0) && (nOS_runningThread != &nOS_mainHandle)) {
+    if ((nOS_lockNestingCounter > 0) && (nOS_runningThread != &nOS_idleHandle)) {
         err = NOS_E_LOCKED;
     } else
 #endif
 #endif
     {
         nOS_CriticalEnter();
-        nOS_ListWalk(&nOS_fullList, SuspendThread, NULL);
+        nOS_ListWalk(&nOS_mainList, SuspendThread, NULL);
         nOS_CriticalLeave();
-        if (nOS_runningThread != &nOS_mainHandle) {
+        if (nOS_runningThread != &nOS_idleHandle) {
             nOS_Sched();
         }
         err = NOS_OK;
@@ -373,7 +373,7 @@ nOS_Error nOS_ThreadResume (nOS_Thread *thread)
         err = NOS_E_NULL;
     } else if (thread == nOS_runningThread) {
         err = NOS_E_INV_VAL;
-    } else if (thread == &nOS_mainHandle) {
+    } else if (thread == &nOS_idleHandle) {
         err = NOS_E_INV_VAL;
     } else if (thread->state == NOS_THREAD_STOPPED) {
         err = NOS_E_INV_VAL;
@@ -402,9 +402,9 @@ nOS_Error nOS_ThreadResumeAll (void)
 
     nOS_CriticalEnter();
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
-    nOS_ListWalk(&nOS_fullList, ResumeThread, &sched);
+    nOS_ListWalk(&nOS_mainList, ResumeThread, &sched);
 #else
-    nOS_ListWalk(&nOS_fullList, ResumeThread, NULL);
+    nOS_ListWalk(&nOS_mainList, ResumeThread, NULL);
 #endif
     nOS_CriticalLeave();
 

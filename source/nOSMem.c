@@ -219,7 +219,7 @@ void *nOS_MemAlloc(nOS_Mem *mem, nOS_TickCounter tout)
             block = NULL;
         }
 #endif
-        else if (nOS_runningThread == &nOS_mainHandle) {
+        else if (nOS_runningThread == &nOS_idleHandle) {
             block = NULL;
         } else {
             nOS_runningThread->context = (void*)&block;

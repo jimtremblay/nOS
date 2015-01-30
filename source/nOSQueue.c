@@ -143,7 +143,7 @@ nOS_Error nOS_QueueRead (nOS_Queue *queue, void *buffer, nOS_TickCounter tout)
             err = NOS_E_LOCKED;
         }
 #endif
-        else if (nOS_runningThread == &nOS_mainHandle) {
+        else if (nOS_runningThread == &nOS_idleHandle) {
             err = NOS_E_IDLE;
         } else {
             nOS_runningThread->context = buffer;
@@ -202,7 +202,7 @@ nOS_Error nOS_QueueWrite (nOS_Queue *queue, void *buffer, nOS_TickCounter tout)
             err = NOS_E_LOCKED;
         }
 #endif
-        else if (nOS_runningThread == &nOS_mainHandle) {
+        else if (nOS_runningThread == &nOS_idleHandle) {
             err = NOS_E_IDLE;
         } else {
             nOS_runningThread->context = buffer;

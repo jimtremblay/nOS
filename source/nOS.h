@@ -408,7 +408,7 @@ struct _nOS_Thread
     nOS_Event           *event;
     void                *context;
 
-    nOS_Node            full;
+    nOS_Node            main;
     nOS_Node            readyWait;
 };
 
@@ -586,7 +586,7 @@ struct _nOS_SleepContext
 #define NOS_TIMER_CREATED           0x80
 
 #if defined(NOS_PRIVATE)
-NOS_EXTERN nOS_Thread   nOS_mainHandle;
+NOS_EXTERN nOS_Thread   nOS_idleHandle;
 
 NOS_EXTERN uint8_t      nOS_isrNestingCounter;
 #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
@@ -595,7 +595,7 @@ NOS_EXTERN uint8_t      nOS_lockNestingCounter;
 
 NOS_EXTERN nOS_Thread   *nOS_runningThread;
 NOS_EXTERN nOS_Thread   *nOS_highPrioThread;
-NOS_EXTERN nOS_List     nOS_fullList;
+NOS_EXTERN nOS_List     nOS_mainList;
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
 NOS_EXTERN nOS_List     nOS_readyList[NOS_CONFIG_HIGHEST_THREAD_PRIO+1];
 #else

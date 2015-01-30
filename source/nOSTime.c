@@ -18,15 +18,11 @@ extern "C" {
 #define DAYS_PER_YEAR(y)            (IsLeapYear(y)?366:365)
 #define DAYS_PER_MONTH(m,y)         ((IsLeapYear(y)&&((m)==2))?29:daysPerMonth[(m)-1])
 
-#define MAX_TIME_SLEEP              ((NOS_WAIT_INFINITE-1)/NOS_CONFIG_TIME_TICKS_PER_SECOND)
-#define MAX_TICKS_SLEEP             (MAX_TIME_SLEEP*NOS_CONFIG_TIME_TICKS_PER_SECOND)
-
 static uint16_t         timePrescaler;
 static nOS_Time         timeCounter;
 #if (NOS_CONFIG_TIME_WAIT_ENABLE > 0)
 static nOS_Event        timeEvent;
 #endif
-
 static const uint8_t    daysPerMonth[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
 static inline bool IsLeapYear (uint16_t year)
@@ -155,7 +151,7 @@ nOS_Error nOS_TimeWait (nOS_Time time)
         err = NOS_E_LOCKED;
     }
 #endif
-    else if (nOS_runningThread == &nOS_mainHandle) {
+    else if (nOS_runningThread == &nOS_idleHandle) {
         err = NOS_E_IDLE;
     } else {
         nOS_CriticalEnter();

@@ -192,7 +192,7 @@ nOS_Error nOS_FlagWait (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits *res,
         }
 #endif
         /* Main thread can't wait */
-        else if (nOS_runningThread == &nOS_mainHandle) {
+        else if (nOS_runningThread == &nOS_idleHandle) {
             err = NOS_E_IDLE;
         /* Calling thread must wait on flag. */
         } else {

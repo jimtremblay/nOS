@@ -202,7 +202,7 @@ nOS_Error nOS_MutexLock (nOS_Mutex *mutex, nOS_TickCounter tout)
         }
 #endif
         /* Main thread can't wait */
-        else if (nOS_runningThread == &nOS_mainHandle) {
+        else if (nOS_runningThread == &nOS_idleHandle) {
             err = NOS_E_IDLE;
         /* Calling thread must wait on mutex. */
         } else {

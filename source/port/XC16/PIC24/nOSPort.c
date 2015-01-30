@@ -116,7 +116,7 @@ nOS_Stack *nOS_IsrEnter (nOS_Stack *sp)
 #if (NOS_CONFIG_ISR_STACK_SIZE > 0)
         sp = &isrStack[0];
 #else
-        sp = nOS_mainHandle.stackPtr;
+        sp = nOS_idleHandle.stackPtr;
 #endif
     }
     nOS_isrNestingCounter++;
