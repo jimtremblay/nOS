@@ -139,9 +139,9 @@
     </settings>
     <settings>
       <name>RXEMUE20</name>
-      <archiveVersion>3</archiveVersion>
+      <archiveVersion>4</archiveVersion>
       <data>
-        <version>3</version>
+        <version>4</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>1</debug>
         <option>
@@ -180,13 +180,21 @@
           <name>OCDownloadOnlyChangedBlocks</name>
           <state>0</state>
         </option>
+        <option>
+          <name>E20LogFile</name>
+          <state>$PROJ_DIR$\cspycomm.log</state>
+        </option>
+        <option>
+          <name>E20DoLogfile</name>
+          <state>0</state>
+        </option>
       </data>
     </settings>
     <settings>
       <name>RXJLINK</name>
-      <archiveVersion>3</archiveVersion>
+      <archiveVersion>4</archiveVersion>
       <data>
-        <version>4</version>
+        <version>5</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>1</debug>
         <option>
@@ -236,6 +244,14 @@
         <option>
           <name>OCJlinkUSBSerialNo</name>
           <state></state>
+        </option>
+        <option>
+          <name>JLinkLogFile</name>
+          <state>$PROJ_DIR$\cspycomm.log</state>
+        </option>
+        <option>
+          <name>JLinkDoLogfile</name>
+          <state>0</state>
         </option>
       </data>
     </settings>
@@ -448,9 +464,9 @@
     </settings>
     <settings>
       <name>RXEMUE20</name>
-      <archiveVersion>3</archiveVersion>
+      <archiveVersion>4</archiveVersion>
       <data>
-        <version>3</version>
+        <version>4</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>0</debug>
         <option>
@@ -489,13 +505,21 @@
           <name>OCDownloadOnlyChangedBlocks</name>
           <state>0</state>
         </option>
+        <option>
+          <name>E20LogFile</name>
+          <state>$PROJ_DIR$\cspycomm.log</state>
+        </option>
+        <option>
+          <name>E20DoLogfile</name>
+          <state>0</state>
+        </option>
       </data>
     </settings>
     <settings>
       <name>RXJLINK</name>
-      <archiveVersion>3</archiveVersion>
+      <archiveVersion>4</archiveVersion>
       <data>
-        <version>4</version>
+        <version>5</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>0</debug>
         <option>
@@ -545,6 +569,14 @@
         <option>
           <name>OCJlinkUSBSerialNo</name>
           <state></state>
+        </option>
+        <option>
+          <name>JLinkLogFile</name>
+          <state>$PROJ_DIR$\cspycomm.log</state>
+        </option>
+        <option>
+          <name>JLinkDoLogfile</name>
+          <state>0</state>
         </option>
       </data>
     </settings>

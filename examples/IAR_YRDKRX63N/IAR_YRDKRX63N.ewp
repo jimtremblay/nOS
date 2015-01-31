@@ -1882,34 +1882,43 @@
   <group>
     <name>nOS</name>
     <file>
-      <name>$PROJ_DIR$\..\..\source\flag.c</name>
+      <name>$PROJ_DIR$\..\..\source\nOSEvent.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\source\mem.c</name>
+      <name>$PROJ_DIR$\..\..\source\nOSFlag.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\source\mutex.c</name>
+      <name>$PROJ_DIR$\..\..\source\nOSList.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\source\port\IAR\RX600\port.c</name>
+      <name>$PROJ_DIR$\..\..\source\nOSMem.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\source\port\IAR\RX600\portasm.s</name>
+      <name>$PROJ_DIR$\..\..\source\nOSMutex.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\source\queue.c</name>
+      <name>$PROJ_DIR$\..\..\source\port\IAR\RX600\nOSPort.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\source\sched.c</name>
+      <name>$PROJ_DIR$\..\..\source\port\IAR\RX600\nOSPortASM.s</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\source\sem.c</name>
+      <name>$PROJ_DIR$\..\..\source\nOSQueue.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\source\thread.c</name>
+      <name>$PROJ_DIR$\..\..\source\nOSSched.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\source\timer.c</name>
+      <name>$PROJ_DIR$\..\..\source\nOSSem.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\source\nOSThread.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\source\nOSTime.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\source\nOSTimer.c</name>
     </file>
   </group>
   <file>
