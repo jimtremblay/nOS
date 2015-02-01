@@ -132,8 +132,8 @@ extern "C" {
  #if !defined(NOS_CONFIG_SEM_COUNT_WIDTH)
   #define NOS_CONFIG_SEM_COUNT_WIDTH                16
   #warning "nOSConfig.h: NOS_CONFIG_SEM_COUNT_WIDTH is not defined (default to 16)."
- #elif (NOS_CONFIG_SEM_COUNT_WIDTH != 8) && (NOS_CONFIG_SEM_COUNT_WIDTH != 16) && (NOS_CONFIG_SEM_COUNT_WIDTH != 32)
-  #error "nOSConfig.h: NOS_CONFIG_SEM_COUNT_WIDTH set to invalid value: can be set to 8, 16 or 32."
+ #elif (NOS_CONFIG_SEM_COUNT_WIDTH != 8) && (NOS_CONFIG_SEM_COUNT_WIDTH != 16) && (NOS_CONFIG_SEM_COUNT_WIDTH != 32) && (NOS_CONFIG_SEM_COUNT_WIDTH != 64)
+  #error "nOSConfig.h: NOS_CONFIG_SEM_COUNT_WIDTH set to invalid value: can be set to 8, 16, 32 or 64."
  #endif
  #if (NOS_CONFIG_SEM_COUNT_WIDTH == 8)
   #define NOS_SEM_COUNT_MAX                         UINT8_MAX
@@ -141,6 +141,8 @@ extern "C" {
   #define NOS_SEM_COUNT_MAX                         UINT16_MAX
  #elif (NOS_CONFIG_SEM_COUNT_WIDTH == 32)
   #define NOS_SEM_COUNT_MAX                         UINT32_MAX
+ #elif (NOS_CONFIG_SEM_COUNT_WIDTH == 64)
+  #define NOS_SEM_COUNT_MAX                         UINT64_MAX
  #endif
 #else
  #undef NOS_CONFIG_SEM_DELETE_ENABLE
@@ -251,8 +253,8 @@ extern "C" {
  #if !defined(NOS_CONFIG_TIMER_COUNT_WIDTH)
   #define NOS_CONFIG_TIMER_COUNT_WIDTH              16
   #warning "nOSConfig.h: NOS_CONFIG_TIMER_COUNT_WIDTH is not defined (default to 16)."
- #elif (NOS_CONFIG_TIMER_COUNT_WIDTH != 8) && (NOS_CONFIG_TIMER_COUNT_WIDTH != 16) && (NOS_CONFIG_TIMER_COUNT_WIDTH != 32)
-  #error "nOSConfig.h: NOS_CONFIG_TIMER_COUNT_WIDTH set to invalid value: can be set to 8, 16 or 32."
+ #elif (NOS_CONFIG_TIMER_COUNT_WIDTH != 8) && (NOS_CONFIG_TIMER_COUNT_WIDTH != 16) && (NOS_CONFIG_TIMER_COUNT_WIDTH != 32) && (NOS_CONFIG_TIMER_COUNT_WIDTH != 64)
+  #error "nOSConfig.h: NOS_CONFIG_TIMER_COUNT_WIDTH set to invalid value: can be set to 8, 16, 32 or 64."
  #endif
 #else
  #undef NOS_CONFIG_TIMER_DELETE_ENABLE
@@ -309,8 +311,10 @@ typedef struct _nOS_Sem             nOS_Sem;
 typedef uint8_t                     nOS_SemCounter;
 #elif (NOS_CONFIG_SEM_COUNT_WIDTH == 16)
 typedef uint16_t                    nOS_SemCounter;
-#else /* NOS_CONFIG_SEM_COUNT_WIDTH == 32 */
+#elif (NOS_CONFIG_SEM_COUNT_WIDTH == 32)
 typedef uint32_t                    nOS_SemCounter;
+#elif (NOS_CONFIG_SEM_COUNT_WIDTH == 64)
+typedef uint64_t                    nOS_SemCounter;
 #endif
 #endif
 #if (NOS_CONFIG_MUTEX_ENABLE > 0)
@@ -329,7 +333,7 @@ typedef uint8_t                     nOS_FlagBits;
 typedef uint16_t                    nOS_FlagBits;
 #elif (NOS_CONFIG_FLAG_NB_BITS == 32)
 typedef uint32_t                    nOS_FlagBits;
-#else   /* NOS_CONFIG_FLAG_NB_BITS == 64 */
+#elif (NOS_CONFIG_FLAG_NB_BITS == 64)
 typedef uint64_t                    nOS_FlagBits;
 #endif
 #endif
@@ -342,15 +346,17 @@ typedef struct _nOS_Timer           nOS_Timer;
 typedef uint8_t                     nOS_TimerCounter;
 #elif (NOS_CONFIG_TIMER_COUNT_WIDTH == 16)
 typedef uint16_t                    nOS_TimerCounter;
-#else   /* NOS_CONFIG_TIMER_COUNT_WIDTH == 32 */
+#elif (NOS_CONFIG_TIMER_COUNT_WIDTH == 32)
 typedef uint32_t                    nOS_TimerCounter;
+#elif (NOS_CONFIG_TIMER_COUNT_WIDTH == 64)
+typedef uint64_t                    nOS_TimerCounter;
 #endif
 typedef void(*nOS_TimerCallback)(nOS_Timer*,void*);
 #endif
 #if (NOS_CONFIG_TIME_ENABLE > 0)
 #if (NOS_CONFIG_TIME_COUNT_WIDTH == 32)
 typedef uint32_t                    nOS_Time;
-#else
+#elif (NOS_CONFIG_TIME_COUNT_WIDTH == 64)
 typedef uint64_t                    nOS_Time;
 #endif
 typedef struct _nOS_TimeDate        nOS_TimeDate;

@@ -35,7 +35,7 @@
 #define NOS_CONFIG_SEM_ENABLE                   1
 /* Enable or disable semaphore deletion at run-time. */
 #define NOS_CONFIG_SEM_DELETE_ENABLE            1
-/* Semaphore count width in bits (can be 8, 16 or 32) */
+/* Semaphore count width in bits (can be 8, 16, 32 or 64) */
 #define NOS_CONFIG_SEM_COUNT_WIDTH              16
 
 /* Enable or disable mutex. */
@@ -74,7 +74,7 @@
 #define NOS_CONFIG_TIMER_THREAD_STACK_SIZE      128
 /* Call stack size of timer thread (used only on IAR for AVR) */
 #define NOS_CONFIG_TIMER_THREAD_CALL_STACK_SIZE 16
-/* Timer counter width in bits (can be 8, 16 or 32) */
+/* Timer counter width in bits (can be 8, 16, 32 or 64) */
 #define NOS_CONFIG_TIMER_COUNT_WIDTH            16
 
 /* Enable or disable time management. */
