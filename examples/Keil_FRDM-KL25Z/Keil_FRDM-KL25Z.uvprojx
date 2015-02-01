@@ -14,7 +14,7 @@
         <TargetCommonOption>
           <Device>MKL25Z128xxx4</Device>
           <Vendor>Freescale</Vendor>
-          <PackID>Keil.Kinetis_KLxx_DFP.1.2.0</PackID>
+          <PackID>Keil.Kinetis_KLxx_DFP.1.4.0</PackID>
           <PackURL>http://www.keil.com/pack/</PackURL>
           <Cpu>IROM(0x00000000,0x20000) IRAM(0x20000000,0x3000) IRAM2(0x1FFFF000,0x1000) CPUTYPE("Cortex-M0+") CLOCK(12000000) ELITTLE</Cpu>
           <FlashUtilSpec></FlashUtilSpec>
@@ -145,7 +145,6 @@
             <RestoreToolbox>1</RestoreToolbox>
             <RestoreTracepoints>1</RestoreTracepoints>
             <RestoreSysVw>1</RestoreSysVw>
-            <UsePdscDebugDescription>1</UsePdscDebugDescription>
           </Target>
           <RunDebugAfterBuild>0</RunDebugAfterBuild>
           <TargetSelection>12</TargetSelection>
@@ -360,7 +359,7 @@
             <wLevel>2</wLevel>
             <uThumb>0</uThumb>
             <uSurpInc>0</uSurpInc>
-            <uC99>0</uC99>
+            <uC99>1</uC99>
             <useXO>0</useXO>
             <VariousControls>
               <MiscControls></MiscControls>
@@ -410,49 +409,64 @@
           <GroupName>nOS</GroupName>
           <Files>
             <File>
-              <FileName>flag.c</FileName>
+              <FileName>nOSEvent.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\source\flag.c</FilePath>
+              <FilePath>..\..\source\nOSEvent.c</FilePath>
             </File>
             <File>
-              <FileName>mem.c</FileName>
+              <FileName>nOSFlag.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\source\mem.c</FilePath>
+              <FilePath>..\..\source\nOSFlag.c</FilePath>
             </File>
             <File>
-              <FileName>mutex.c</FileName>
+              <FileName>nOSList.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\source\mutex.c</FilePath>
+              <FilePath>..\..\source\nOSList.c</FilePath>
             </File>
             <File>
-              <FileName>queue.c</FileName>
+              <FileName>nOSMem.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\source\queue.c</FilePath>
+              <FilePath>..\..\source\nOSMem.c</FilePath>
             </File>
             <File>
-              <FileName>sched.c</FileName>
+              <FileName>nOSMutex.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\source\sched.c</FilePath>
+              <FilePath>..\..\source\nOSMutex.c</FilePath>
             </File>
             <File>
-              <FileName>sem.c</FileName>
+              <FileName>nOSQueue.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\source\sem.c</FilePath>
+              <FilePath>..\..\source\nOSQueue.c</FilePath>
             </File>
             <File>
-              <FileName>thread.c</FileName>
+              <FileName>nOSSched.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\source\thread.c</FilePath>
+              <FilePath>..\..\source\nOSSched.c</FilePath>
             </File>
             <File>
-              <FileName>timer.c</FileName>
+              <FileName>nOSSem.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\source\timer.c</FilePath>
+              <FilePath>..\..\source\nOSSem.c</FilePath>
             </File>
             <File>
-              <FileName>port.c</FileName>
+              <FileName>nOSThread.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\source\port\Keil\ARM_Cortex_M0\port.c</FilePath>
+              <FilePath>..\..\source\nOSThread.c</FilePath>
+            </File>
+            <File>
+              <FileName>nOSTime.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\source\nOSTime.c</FilePath>
+            </File>
+            <File>
+              <FileName>nOSTimer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\source\nOSTimer.c</FilePath>
+            </File>
+            <File>
+              <FileName>nOSPort.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\source\port\Keil\ARM_Cortex_M0\nOSPort.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -471,18 +485,6 @@
         </Group>
         <Group>
           <GroupName>::Device</GroupName>
-          <Files>
-            <File>
-              <FileName>startup_MKL25Z4.s</FileName>
-              <FileType>2</FileType>
-              <FilePath>RTE\Device\MKL25Z128xxx4\startup_MKL25Z4.s</FilePath>
-            </File>
-            <File>
-              <FileName>system_MKL25Z4.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>RTE\Device\MKL25Z128xxx4\system_MKL25Z4.c</FilePath>
-            </File>
-          </Files>
         </Group>
       </Groups>
     </Target>
