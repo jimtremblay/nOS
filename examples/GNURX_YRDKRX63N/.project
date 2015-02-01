@@ -26,49 +26,64 @@
 	</natures>
 	<linkedResources>
 		<link>
-			<name>nOS/flag.c</name>
+			<name>nOS/nOSEvent.c</name>
 			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/source/flag.c</locationURI>
+			<locationURI>PARENT-2-PROJECT_LOC/source/nOSEvent.c</locationURI>
 		</link>
 		<link>
-			<name>nOS/mem.c</name>
+			<name>nOS/nOSFlag.c</name>
 			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/source/mem.c</locationURI>
+			<locationURI>PARENT-2-PROJECT_LOC/source/nOSFlag.c</locationURI>
 		</link>
 		<link>
-			<name>nOS/mutex.c</name>
+			<name>nOS/nOSList.c</name>
 			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/source/mutex.c</locationURI>
+			<locationURI>PARENT-2-PROJECT_LOC/source/nOSList.c</locationURI>
 		</link>
 		<link>
-			<name>nOS/port.c</name>
+			<name>nOS/nOSMem.c</name>
 			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/source/port/GCC/RX600/port.c</locationURI>
+			<locationURI>PARENT-2-PROJECT_LOC/source/nOSMem.c</locationURI>
 		</link>
 		<link>
-			<name>nOS/queue.c</name>
+			<name>nOS/nOSMutex.c</name>
 			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/source/queue.c</locationURI>
+			<locationURI>PARENT-2-PROJECT_LOC/source/nOSMutex.c</locationURI>
 		</link>
 		<link>
-			<name>nOS/sched.c</name>
+			<name>nOS/nOSPort.c</name>
 			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/source/sched.c</locationURI>
+			<locationURI>PARENT-2-PROJECT_LOC/source/port/GCC/RX600/nOSPort.c</locationURI>
 		</link>
 		<link>
-			<name>nOS/sem.c</name>
+			<name>nOS/nOSQueue.c</name>
 			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/source/sem.c</locationURI>
+			<locationURI>PARENT-2-PROJECT_LOC/source/nOSQueue.c</locationURI>
 		</link>
 		<link>
-			<name>nOS/thread.c</name>
+			<name>nOS/nOSSched.c</name>
 			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/source/thread.c</locationURI>
+			<locationURI>PARENT-2-PROJECT_LOC/source/nOSSched.c</locationURI>
 		</link>
 		<link>
-			<name>nOS/timer.c</name>
+			<name>nOS/nOSSem.c</name>
 			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/source/timer.c</locationURI>
+			<locationURI>PARENT-2-PROJECT_LOC/source/nOSSem.c</locationURI>
+		</link>
+		<link>
+			<name>nOS/nOSThread.c</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/source/nOSThread.c</locationURI>
+		</link>
+		<link>
+			<name>nOS/nOSTime.c</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/source/nOSTime.c</locationURI>
+		</link>
+		<link>
+			<name>nOS/nOSTimer.c</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/source/nOSTimer.c</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>
