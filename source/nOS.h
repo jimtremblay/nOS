@@ -38,8 +38,8 @@ extern "C" {
 #define NOS_VERSION                 NOS_STR(NOS_VERSION_MAJOR)"."NOS_STR(NOS_VERSION_MINOR)"."NOS_STR(NOS_VERSION_BUILD)
 
 #define NOS_VERSION_MAJOR           0
-#define NOS_VERSION_MINOR           0
-#define NOS_VERSION_BUILD           1
+#define NOS_VERSION_MINOR           1
+#define NOS_VERSION_BUILD           0
 
 #if defined(NOS_GLOBALS)
  #define NOS_EXTERN
