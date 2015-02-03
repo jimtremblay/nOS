@@ -54,7 +54,7 @@ nOS_Error nOS_SemDelete (nOS_Sem *sem)
     if (sem == NULL) {
         err = NOS_E_NULL;
     } else if (sem->e.type != NOS_EVENT_SEM) {
-        err = NOS_E_INV_VAL;
+        err = NOS_E_INV_OBJ;
     } else
 #endif
     {
@@ -95,7 +95,7 @@ nOS_Error nOS_SemTake (nOS_Sem *sem, nOS_TickCounter tout)
     if (sem == NULL) {
         err = NOS_E_NULL;
     } else if (sem->e.type != NOS_EVENT_SEM) {
-        err = NOS_E_INV_VAL;
+        err = NOS_E_INV_OBJ;
     } else
 #endif
     {
@@ -145,7 +145,7 @@ nOS_Error nOS_SemGive (nOS_Sem *sem)
     if (sem == NULL) {
         err = NOS_E_NULL;
     } else if (sem->e.type != NOS_EVENT_SEM) {
-        err = NOS_E_INV_VAL;
+        err = NOS_E_INV_OBJ;
     } else
 #endif
     {

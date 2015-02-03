@@ -384,7 +384,9 @@ typedef enum _nOS_Error
     NOS_E_INIT = -13,
     NOS_E_DELETED = -14,
     NOS_E_INV_OBJ = -15,
-    NOS_E_ELAPSED = -16
+    NOS_E_ELAPSED = -16,
+    NOS_E_NOT_CREATED = -17,
+    NOS_E_INV_STATE = -18
 } nOS_Error;
 
 #include "nOSPort.h"

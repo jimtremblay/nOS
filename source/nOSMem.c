@@ -141,7 +141,7 @@ nOS_Error nOS_MemDelete (nOS_Mem *mem)
     if (mem == NULL) {
         err = NOS_E_NULL;
     } else if (mem->e.type != NOS_EVENT_MEM) {
-        err = NOS_E_INV_VAL;
+        err = NOS_E_INV_OBJ;
     } else
 #endif
     {
@@ -266,7 +266,7 @@ nOS_Error nOS_MemFree(nOS_Mem *mem, void *block)
     if (mem == NULL) {
         err = NOS_E_NULL;
     } else if (mem->e.type != NOS_EVENT_MEM) {
-        err = NOS_E_INV_VAL;
+        err = NOS_E_INV_OBJ;
     } else if (block == NULL) {
         err = NOS_E_NULL;
     } else

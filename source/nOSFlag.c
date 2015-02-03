@@ -96,7 +96,7 @@ nOS_Error nOS_FlagDelete (nOS_Flag *flag)
     if (flag == NULL) {
         err = NOS_E_NULL;
     } else if (flag->e.type != NOS_EVENT_FLAG) {
-        err = NOS_E_INV_VAL;
+        err = NOS_E_INV_OBJ;
     } else
 #endif
     {
@@ -161,7 +161,7 @@ nOS_Error nOS_FlagWait (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits *res,
     if (flag == NULL) {
         err = NOS_E_NULL;
     } else if (flag->e.type != NOS_EVENT_FLAG) {
-        err = NOS_E_INV_VAL;
+        err = NOS_E_INV_OBJ;
     } else
 #endif
     {
@@ -243,7 +243,7 @@ nOS_Error nOS_FlagSend (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits mask)
     if (flag == NULL) {
         err = NOS_E_NULL;
     } else if (flag->e.type != NOS_EVENT_FLAG) {
-        err = NOS_E_INV_VAL;
+        err = NOS_E_INV_OBJ;
     } else
 #endif
     {

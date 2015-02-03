@@ -97,7 +97,7 @@ nOS_Error nOS_MutexDelete (nOS_Mutex *mutex)
     if (mutex == NULL) {
         err = NOS_E_NULL;
     } else if (mutex->e.type != NOS_EVENT_MUTEX) {
-        err = NOS_E_INV_VAL;
+        err = NOS_E_INV_OBJ;
     } else
 #endif
     {
@@ -141,7 +141,7 @@ nOS_Error nOS_MutexLock (nOS_Mutex *mutex, nOS_TickCounter tout)
     if (mutex == NULL) {
         err = NOS_E_NULL;
     } else if (mutex->e.type != NOS_EVENT_MUTEX) {
-        err = NOS_E_INV_VAL;
+        err = NOS_E_INV_OBJ;
     } else
 #endif
     /* Can't lock mutex from ISR */
@@ -244,7 +244,7 @@ nOS_Error nOS_MutexUnlock (nOS_Mutex *mutex)
     if (mutex == NULL) {
         err = NOS_E_NULL;
     } else if (mutex->e.type != NOS_EVENT_MUTEX) {
-        err = NOS_E_INV_VAL;
+        err = NOS_E_INV_OBJ;
     } else
 #endif
     /* Can't unlock mutex from ISR */

@@ -76,7 +76,7 @@ nOS_Error nOS_QueueDelete (nOS_Queue *queue)
     if (queue == NULL) {
         err = NOS_E_NULL;
     } else if (queue->e.type != NOS_EVENT_QUEUE) {
-        err = NOS_E_INV_VAL;
+        err = NOS_E_INV_OBJ;
     } else
 #endif
     {
@@ -111,7 +111,7 @@ nOS_Error nOS_QueueRead (nOS_Queue *queue, void *buffer, nOS_TickCounter tout)
     if (queue == NULL) {
         err = NOS_E_NULL;
     } else if (queue->e.type != NOS_EVENT_QUEUE) {
-        err = NOS_E_INV_VAL;
+        err = NOS_E_INV_OBJ;
     } else if (buffer == NULL) {
         err = NOS_E_NULL;
     } else
@@ -164,7 +164,7 @@ nOS_Error nOS_QueueWrite (nOS_Queue *queue, void *buffer, nOS_TickCounter tout)
     if (queue == NULL) {
         err = NOS_E_NULL;
     } else if (queue->e.type != NOS_EVENT_QUEUE) {
-        err = NOS_E_INV_VAL;
+        err = NOS_E_INV_OBJ;
     } else if (buffer == NULL) {
         err = NOS_E_NULL;
     } else

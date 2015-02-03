@@ -321,6 +321,8 @@ nOS_Error nOS_ThreadSuspend (nOS_Thread *thread)
         }
     } else if (thread->state == NOS_THREAD_STOPPED) {
         err = NOS_E_DELETED;
+    } else if ((thread->state & NOS_THREAD_SUSPENDED) == NOS_THREAD_SUSPENDED) {
+        err = NOS_E_INV_STATE;
     } else
 #endif
     {
@@ -345,7 +347,7 @@ nOS_Error nOS_ThreadSuspendAll (void)
 
 #if (NOS_CONFIG_SAFE > 0)
 #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
-    /* Can't suspend all threads from other threads when scheduler is locked */
+    /* Can't suspend all threads from any thread (except idle) when scheduler is locked */
     if ((nOS_lockNestingCounter > 0) && (nOS_runningThread != &nOS_idleHandle)) {
         err = NOS_E_LOCKED;
     } else
@@ -367,6 +369,9 @@ nOS_Error nOS_ThreadSuspendAll (void)
 nOS_Error nOS_ThreadResume (nOS_Thread *thread)
 {
     nOS_Error   err;
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
+    bool        sched = false;
+#endif
 
 #if (NOS_CONFIG_SAFE > 0)
     if (thread == NULL) {
@@ -374,20 +379,26 @@ nOS_Error nOS_ThreadResume (nOS_Thread *thread)
     } else if (thread == nOS_runningThread) {
         err = NOS_E_INV_VAL;
     } else if (thread == &nOS_idleHandle) {
-        err = NOS_E_INV_VAL;
+        err = NOS_E_IDLE;
     } else if (thread->state == NOS_THREAD_STOPPED) {
-        err = NOS_E_INV_VAL;
+        err = NOS_E_NOT_CREATED;
+    } else if ((thread->state & NOS_THREAD_SUSPENDED) != NOS_THREAD_SUSPENDED) {
+        err = NOS_E_INV_STATE;
     } else
 #endif
     {
         nOS_CriticalEnter();
-        ResumeThread(thread, NULL);
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
-        if (thread->prio > nOS_runningThread->prio) {
+        ResumeThread(thread, &sched);
+#else
+        ResumeThread(thread, NULL);
+#endif
+        nOS_CriticalLeave();
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
+        if (sched) {
             nOS_Sched();
         }
 #endif
-        nOS_CriticalLeave();
         err = NOS_OK;
     }
 
@@ -431,17 +442,19 @@ nOS_Error nOS_ThreadSetPriority (nOS_Thread *thread, uint8_t prio)
     if (prio > NOS_CONFIG_HIGHEST_THREAD_PRIO) {
         err = NOS_E_INV_VAL;
     } else if (thread->state == NOS_THREAD_STOPPED) {
-        err = NOS_E_INV_VAL;
+        err = NOS_E_NOT_CREATED;
     } else
 #endif
     {
         nOS_CriticalEnter();
-        ChangeThreadPrio(thread, prio);
+        if (prio != thread->prio) {
+            ChangeThreadPrio(thread, prio);
 #if (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
-        if (thread->prio > nOS_runningThread->prio) {
-            nOS_Sched();
-        }
+            if (prio > nOS_runningThread->prio) {
+                nOS_Sched();
+            }
 #endif
+        }
         nOS_CriticalLeave();
         err = NOS_OK;
     }
