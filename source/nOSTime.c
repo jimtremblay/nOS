@@ -18,7 +18,9 @@ extern "C" {
 #define DAYS_PER_YEAR(y)            (IsLeapYear(y)?366:365)
 #define DAYS_PER_MONTH(m,y)         ((IsLeapYear(y)&&((m)==2))?29:daysPerMonth[(m)-1])
 
+#if (NOS_CONFIG_TIME_TICKS_PER_SECOND > 1)
 static uint16_t         timePrescaler;
+#endif
 static nOS_Time         timeCounter;
 #if (NOS_CONFIG_TIME_WAIT_ENABLE > 0)
 static nOS_Event        timeEvent;
@@ -33,12 +35,13 @@ static inline bool IsLeapYear (uint16_t year)
 #if (NOS_CONFIG_TIME_WAIT_ENABLE > 0)
 static void TickTime(void *payload, void *arg)
 {
-    nOS_Thread      *thread = (nOS_Thread*)payload;
+    nOS_Thread  *thread = (nOS_Thread*)payload;
+    nOS_Time    time = *(nOS_Time*)thread->context;
 
     /* Avoid warning */
     NOS_UNUSED(arg);
 
-    if (timeCounter == thread->timeout) {
+    if (timeCounter == time) {
         SignalThread(thread, NOS_OK);
     }
 }
@@ -46,7 +49,9 @@ static void TickTime(void *payload, void *arg)
 
 void nOS_TimeInit (void)
 {
+#if (NOS_CONFIG_TIME_TICKS_PER_SECOND > 1)
     timePrescaler = 0;
+#endif
     timeCounter = 0;
 #if (NOS_CONFIG_TIME_WAIT_ENABLE > 0)
 #if (NOS_CONFIG_SAFE > 0)
@@ -60,9 +65,12 @@ void nOS_TimeInit (void)
 void nOS_TimeTick (void)
 {
     nOS_CriticalEnter();
+#if (NOS_CONFIG_TIME_TICKS_PER_SECOND > 1)
     timePrescaler++;
     timePrescaler %= NOS_CONFIG_TIME_TICKS_PER_SECOND;
-    if (timePrescaler == 0) {
+    if (timePrescaler == 0)
+#endif
+    {
         timeCounter++;
 #if (NOS_CONFIG_TIME_WAIT_ENABLE > 0)
         nOS_ListWalk(&timeEvent.waitList, TickTime, NULL);
@@ -86,7 +94,9 @@ nOS_Error nOS_TimeChange (nOS_Time time)
 {
     nOS_CriticalEnter();
     timeCounter = time;
+#if (NOS_CONFIG_TIME_TICKS_PER_SECOND > 1)
     timePrescaler = 0;
+#endif
     nOS_CriticalLeave();
 
     return NOS_OK;
@@ -158,7 +168,8 @@ nOS_Error nOS_TimeWait (nOS_Time time)
         } else if (timeCounter == time) {
             err = NOS_OK;
         } else {
-            err = nOS_EventWait(&timeEvent, NOS_THREAD_SLEEPING, time);
+            nOS_runningThread->context = (void*)&time;
+            err = nOS_EventWait(&timeEvent, NOS_THREAD_WAITING_TIME, NOS_WAIT_INFINITE);
         }
         nOS_CriticalLeave();
     }

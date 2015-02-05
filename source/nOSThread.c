@@ -79,7 +79,7 @@ void DeleteThread (void *payload, void *arg)
 #else
         nOS_ListRemove(&nOS_readyList, &thread->readyWait);
 #endif
-    } else if (thread->state & NOS_THREAD_WAITING) {
+    } else if (thread->state & NOS_THREAD_WAITING_EVENT) {
         nOS_ListRemove(&thread->event->waitList, &thread->readyWait);
     }
     thread->state   = NOS_THREAD_STOPPED;
@@ -98,11 +98,30 @@ void TickThread (void *payload, void *arg)
     /* Avoid warning */
     NOS_UNUSED(arg);
 
-    if (thread->state & NOS_THREAD_WAITING) {
+#if (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
+    if (thread->state & NOS_THREAD_SLEEPING_UNTIL) {
+        if (nOS_tickCounter == thread->timeout) {
+            SignalThread(thread, NOS_OK);
+        }
+    } else
+#endif
+    if (thread->state & (NOS_THREAD_WAITING_EVENT
+#if (NOS_CONFIG_SLEEP_ENABLE > 0)
+                         | NOS_THREAD_SLEEPING
+#endif
+                         )
+    ) {
         if (thread->timeout > 0) {
             thread->timeout--;
             if (thread->timeout == 0) {
-                SignalThread(thread, NOS_E_TIMEOUT);
+#if (NOS_CONFIG_SLEEP_ENABLE > 0)
+                if (thread->state & NOS_THREAD_SLEEPING) {
+                    SignalThread(thread, NOS_OK);
+                } else
+#endif
+                {
+                    SignalThread(thread, NOS_E_TIMEOUT);
+                }
             }
         }
     }
@@ -115,7 +134,14 @@ void SignalThread (nOS_Thread *thread, nOS_Error err)
         nOS_ListRemove(&thread->event->waitList, &thread->readyWait);
     }
     thread->error = err;
-    thread->state &=~ (NOS_THREAD_WAITING | NOS_THREAD_SLEEPING | NOS_THREAD_SLEEPING_UNTIL);
+    thread->state &=~ (NOS_THREAD_WAITING_EVENT
+#if (NOS_CONFIG_SLEEP_ENABLE > 0)
+                       | NOS_THREAD_SLEEPING
+#endif
+#if (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
+                       | NOS_THREAD_SLEEPING_UNTIL
+#endif
+                       );
     thread->timeout = 0;
     if (thread->state == NOS_THREAD_READY) {
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)

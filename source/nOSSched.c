@@ -48,40 +48,6 @@ static uint16_t             readyPrio[((NOS_CONFIG_HIGHEST_THREAD_PRIO+15)/16)];
 #endif  /* NOS_PORT_SCHED_USE_32_BITS */
 #endif  /* NOS_CONFIG_HIGHEST_THREAD_PRIO > 0 */
 
-#if (NOS_CONFIG_SLEEP_ENABLE > 0) || (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
-static nOS_Event            sleepEvent;
-#endif
-
-static nOS_TickCounter      tickCounter;
-
-#if (NOS_CONFIG_SLEEP_ENABLE > 0) || (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
-static void TickSleeper(void *payload, void *arg)
-{
-    nOS_Thread          *thread = (nOS_Thread*)payload;
-
-    /* Avoid warning */
-    NOS_UNUSED(arg);
-
-    if (thread->state & NOS_THREAD_SLEEPING) {
-        thread->timeout--;
-        if (thread->timeout == 0) {
-            SignalThread(thread, NOS_OK);
-        }
-    } else if (thread->state & NOS_THREAD_SLEEPING_UNTIL) {
-        if (tickCounter == thread->timeout) {
-            SignalThread(thread, NOS_OK);
-        }
-    }
-}
-
-static void SleepTick(void)
-{
-    nOS_CriticalEnter();
-    nOS_ListWalk(&sleepEvent.waitList, TickSleeper, NULL);
-    nOS_CriticalLeave();
-}
-#endif
-
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
 #if defined(NOS_PORT_SCHED_USE_32_BITS)
 #if defined(NOS_PORT_HAVE_CLZ)
@@ -435,6 +401,7 @@ nOS_Error nOS_Init(void)
     /* Block context switching until initialization is completed */
     running = false;
 
+    nOS_tickCounter = 0;
     nOS_isrNestingCounter = 0;
 #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
     nOS_lockNestingCounter = 0;
@@ -459,16 +426,6 @@ nOS_Error nOS_Init(void)
 #endif
     nOS_runningThread = &nOS_idleHandle;
     nOS_highPrioThread = &nOS_idleHandle;
-
-    tickCounter = 0;
-
-#if (NOS_CONFIG_SLEEP_ENABLE > 0) || (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
-#if (NOS_CONFIG_SAFE > 0)
-    nOS_EventCreate(&sleepEvent, NOS_EVENT_BASE);
-#else
-    nOS_EventCreate(&sleepEvent);
-#endif
-#endif
 
 #if (NOS_CONFIG_TIMER_ENABLE > 0)
     nOS_TimerInit();
@@ -595,14 +552,10 @@ nOS_Error nOS_Yield(void)
 void nOS_Tick(void)
 {
     nOS_CriticalEnter();
-    tickCounter++;
+    nOS_tickCounter++;
     nOS_CriticalLeave();
 
     nOS_ThreadTick();
-
-#if (NOS_CONFIG_SLEEP_ENABLE > 0) || (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
-    SleepTick();
-#endif
 }
 
 nOS_TickCounter nOS_TickCount(void)
@@ -610,7 +563,7 @@ nOS_TickCounter nOS_TickCount(void)
     nOS_TickCounter   tickcnt;
 
     nOS_CriticalEnter();
-    tickcnt = tickCounter;
+    tickcnt = nOS_tickCounter;
     nOS_CriticalLeave();
 
     return tickcnt;
@@ -637,7 +590,7 @@ nOS_Error nOS_Sleep (nOS_TickCounter ticks)
         err = NOS_OK;
     } else {
         nOS_CriticalEnter();
-        err = nOS_EventWait(&sleepEvent, NOS_THREAD_SLEEPING, ticks);
+        err = nOS_EventWait(NULL, NOS_THREAD_SLEEPING, ticks);
         nOS_CriticalLeave();
     }
 
@@ -663,11 +616,11 @@ nOS_Error nOS_SleepUntil (nOS_TickCounter tick)
         err = NOS_E_IDLE;
     } else {
         nOS_CriticalEnter();
-        if (tick == tickCounter) {
+        if (tick == nOS_tickCounter) {
             nOS_Yield();
             err = NOS_OK;
         } else {
-            err = nOS_EventWait(&sleepEvent, NOS_THREAD_SLEEPING_UNTIL, tick);
+            err = nOS_EventWait(NULL, NOS_THREAD_SLEEPING_UNTIL, tick);
         }
         nOS_CriticalLeave();
     }

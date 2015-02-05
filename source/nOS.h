@@ -545,9 +545,10 @@ struct _nOS_TimeDate
 #define NOS_THREAD_WRITING_QUEUE    0x04
 #define NOS_THREAD_WAITING_FLAG     0x05
 #define NOS_THREAD_ALLOC_MEM        0x06
-#define NOS_THREAD_WAITING          0x0F
-#define NOS_THREAD_SLEEPING         0x10
-#define NOS_THREAD_SLEEPING_UNTIL   0x20
+#define NOS_THREAD_WAITING_EVENT    0x07
+#define NOS_THREAD_SLEEPING         0x08
+#define NOS_THREAD_SLEEPING_UNTIL   0x10
+#define NOS_THREAD_WAITING_TIME     0x20
 #define NOS_THREAD_SUSPENDED        0x40
 #define NOS_THREAD_READY            0x80
 
@@ -580,20 +581,20 @@ struct _nOS_TimeDate
 #define NOS_TIMER_CREATED           0x80
 
 #if defined(NOS_PRIVATE)
-NOS_EXTERN nOS_Thread   nOS_idleHandle;
-
-NOS_EXTERN uint8_t      nOS_isrNestingCounter;
+NOS_EXTERN nOS_Thread       nOS_idleHandle;
+NOS_EXTERN nOS_TickCounter  nOS_tickCounter;
+NOS_EXTERN uint8_t          nOS_isrNestingCounter;
 #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
-NOS_EXTERN uint8_t      nOS_lockNestingCounter;
+NOS_EXTERN uint8_t          nOS_lockNestingCounter;
 #endif
 
-NOS_EXTERN nOS_Thread   *nOS_runningThread;
-NOS_EXTERN nOS_Thread   *nOS_highPrioThread;
-NOS_EXTERN nOS_List     nOS_mainList;
+NOS_EXTERN nOS_Thread       *nOS_runningThread;
+NOS_EXTERN nOS_Thread       *nOS_highPrioThread;
+NOS_EXTERN nOS_List         nOS_mainList;
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
-NOS_EXTERN nOS_List     nOS_readyList[NOS_CONFIG_HIGHEST_THREAD_PRIO+1];
+NOS_EXTERN nOS_List         nOS_readyList[NOS_CONFIG_HIGHEST_THREAD_PRIO+1];
 #else
-NOS_EXTERN nOS_List     nOS_readyList;
+NOS_EXTERN nOS_List         nOS_readyList;
 #endif
 #endif  /* NOS_PRIVATE */
 
