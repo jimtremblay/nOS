@@ -98,12 +98,10 @@ void TickThread (void *payload, void *arg)
     /* Avoid warning */
     NOS_UNUSED(arg);
 
-    if (thread->timeout > 0) {
-        thread->timeout--;
-        if (thread->timeout == 0) {
-            if (thread->state & NOS_THREAD_SLEEPING) {
-                SignalThread(thread, NOS_OK);
-            } else if (thread->state & NOS_THREAD_WAITING) {
+    if (thread->state & NOS_THREAD_WAITING) {
+        if (thread->timeout > 0) {
+            thread->timeout--;
+            if (thread->timeout == 0) {
                 SignalThread(thread, NOS_E_TIMEOUT);
             }
         }
@@ -117,7 +115,7 @@ void SignalThread (nOS_Thread *thread, nOS_Error err)
         nOS_ListRemove(&thread->event->waitList, &thread->readyWait);
     }
     thread->error = err;
-    thread->state &=~ (NOS_THREAD_WAITING | NOS_THREAD_SLEEPING);
+    thread->state &=~ (NOS_THREAD_WAITING | NOS_THREAD_SLEEPING | NOS_THREAD_SLEEPING_UNTIL);
     thread->timeout = 0;
     if (thread->state == NOS_THREAD_READY) {
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)

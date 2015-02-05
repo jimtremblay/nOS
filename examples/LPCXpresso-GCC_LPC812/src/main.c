@@ -21,12 +21,18 @@ const uint32_t ExtRateIn = 0;
 NOS_ISR(SysTick_Handler)
 {
     nOS_Tick();
+#ifdef NOS_CONFIG_TIMER_ENABLE
+    nOS_TimerTick();
+#endif
+#ifdef NOS_CONFIG_TIME_ENABLE
+    nOS_TimeTick();
+#endif
 }
 
 void ThreadA (void *arg)
 {
     NOS_UNUSED(arg);
-    
+
     while (1) {
         nOS_SemTake(&semA, NOS_WAIT_INFINITE);
     }
@@ -35,7 +41,7 @@ void ThreadA (void *arg)
 void ThreadB (void *arg)
 {
     NOS_UNUSED(arg);
-    
+
     while (1) {
         nOS_SemTake(&semB, NOS_WAIT_INFINITE);
         nOS_SemGive(&semA);
@@ -45,7 +51,7 @@ void ThreadB (void *arg)
 void ThreadC (void *arg)
 {
     NOS_UNUSED(arg);
-    
+
     while (1) {
         nOS_SemTake(&semC, NOS_WAIT_INFINITE);
         nOS_SemGive(&semB);
@@ -56,18 +62,18 @@ int main()
 {
     Chip_SystemInit();
     nOS_Init();
-    
+
     SystemCoreClockUpdate();
     SysTick_Config(SystemCoreClock / TICKS_PER_SECOND);
-    
+
     nOS_SemCreate(&semA, 0, 1);
     nOS_SemCreate(&semB, 0, 1);
     nOS_SemCreate(&semC, 0, 1);
-    
+
     nOS_ThreadCreate(&threadA, ThreadA, 0, stackA, THREAD_STACK_SIZE, NOS_CONFIG_HIGHEST_THREAD_PRIO,   NOS_THREAD_READY);
     nOS_ThreadCreate(&threadB, ThreadB, 0, stackB, THREAD_STACK_SIZE, NOS_CONFIG_HIGHEST_THREAD_PRIO-1, NOS_THREAD_READY);
     nOS_ThreadCreate(&threadC, ThreadC, 0, stackC, THREAD_STACK_SIZE, NOS_CONFIG_HIGHEST_THREAD_PRIO-2, NOS_THREAD_READY);
-    
+
     while (1) {
         nOS_SemGive(&semC);
     }

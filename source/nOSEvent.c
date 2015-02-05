@@ -62,7 +62,7 @@ nOS_Error nOS_EventWait (nOS_Event *event, uint8_t state, nOS_TickCounter tout)
 #else
     nOS_ListRemove(&nOS_readyList, &nOS_runningThread->readyWait);
 #endif
-    nOS_runningThread->state |= (state & (NOS_THREAD_WAITING | NOS_THREAD_SLEEPING));
+    nOS_runningThread->state |= (state & (NOS_THREAD_WAITING | NOS_THREAD_SLEEPING | NOS_THREAD_SLEEPING_UNTIL));
     nOS_runningThread->event = event;
     nOS_runningThread->timeout = (tout == NOS_WAIT_INFINITE) ? 0 : tout;
     if (event != NULL) {

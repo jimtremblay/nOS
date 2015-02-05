@@ -34,12 +34,11 @@ static inline bool IsLeapYear (uint16_t year)
 static void TickTime(void *payload, void *arg)
 {
     nOS_Thread      *thread = (nOS_Thread*)payload;
-    nOS_TimeContext *ctx    = (nOS_TimeContext*)thread->context;
 
     /* Avoid warning */
     NOS_UNUSED(arg);
 
-    if (timeCounter == ctx->time) {
+    if (timeCounter == thread->timeout) {
         SignalThread(thread, NOS_OK);
     }
 }
@@ -140,7 +139,6 @@ nOS_TimeDate nOS_TimeConvert (nOS_Time time)
 nOS_Error nOS_TimeWait (nOS_Time time)
 {
     nOS_Error       err;
-    nOS_TimeContext ctx;
 
     if (nOS_isrNestingCounter > 0) {
         err = NOS_E_ISR;
@@ -160,9 +158,7 @@ nOS_Error nOS_TimeWait (nOS_Time time)
         } else if (timeCounter == time) {
             err = NOS_OK;
         } else {
-            ctx.time = time;
-            nOS_runningThread->context = &ctx;
-            err = nOS_EventWait(&timeEvent, NOS_THREAD_SLEEPING, NOS_WAIT_INFINITE);
+            err = nOS_EventWait(&timeEvent, NOS_THREAD_SLEEPING, time);
         }
         nOS_CriticalLeave();
     }

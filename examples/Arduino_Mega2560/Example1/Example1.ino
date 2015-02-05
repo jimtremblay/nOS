@@ -11,6 +11,8 @@ nOS_Stack stackHigh[128];
 NOS_ISR(TIMER2_COMPA_vect)
 {
   nOS_Tick();
+  nOS_TimerTick();
+  nOS_TimeTick();
 }
 
 static void Timer2Init(void)
@@ -33,7 +35,7 @@ void Callback(void *arg)
 {
   unsigned int pin = (unsigned int)arg;
   static unsigned char level = HIGH;
-  
+
   digitalWrite(pin, level);
   if (level == HIGH) {
     level = LOW;
@@ -44,9 +46,9 @@ void Callback(void *arg)
 
 void setup() {
   nOS_Init();
-  
+
   Timer2Init();
-  
+
   pinMode(13, OUTPUT);
   digitalWrite(13, LOW);
 

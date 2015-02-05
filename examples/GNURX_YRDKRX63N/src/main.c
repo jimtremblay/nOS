@@ -38,12 +38,18 @@ extern "C" void __main()
 NOS_ISR(INT_Excep_CMT0_CMI0)
 {
     nOS_Tick();
+#ifdef NOS_CONFIG_TIMER_ENABLE
+    nOS_TimerTick();
+#endif
+#ifdef NOS_CONFIG_TIME_ENABLE
+    nOS_TimeTick();
+#endif
 }
 
 void ThreadA (void *arg)
 {
     NOS_UNUSED(arg);
-    
+
     while (1) {
         nOS_SemTake(&semA, NOS_WAIT_INFINITE);
     }
@@ -52,7 +58,7 @@ void ThreadA (void *arg)
 void ThreadB (void *arg)
 {
     NOS_UNUSED(arg);
-    
+
     while (1) {
         nOS_SemTake(&semB, NOS_WAIT_INFINITE);
         nOS_SemGive(&semA);
@@ -62,43 +68,43 @@ void ThreadB (void *arg)
 void ThreadC (void *arg)
 {
     NOS_UNUSED(arg);
-    
+
     while (1) {
         nOS_SemTake(&semC, NOS_WAIT_INFINITE);
         nOS_SemGive(&semB);
     }
 }
-  
+
 void Timer_Init( void )
 {
 	/* Disable register protection */
-    SYSTEM.PRCR.WORD = 0xA50B;    
-    
+    SYSTEM.PRCR.WORD = 0xA50B;
+
     /* Enable the CMT0 module */
     MSTP_CMT0 = 0;
-    
+
     /* Re-enable register protection */
     SYSTEM.PRCR.BIT.PRKEY = 0xA5u;
-    SYSTEM.PRCR.WORD &= 0xFF00u;    
-    
+    SYSTEM.PRCR.WORD &= 0xFF00u;
+
     /* Set CMT0 clock source as PLCK/512 */
     CMT0.CMCR.BIT.CKS = 0x2;
-     
+
     /* Enable compare match interrupt */
     CMT0.CMCR.BIT.CMIE = 1;
-    
+
     /* Enable CMT0 interrupt request */
     IEN(CMT0, CMI0) = 1;
-    
+
     /* Set interrupt priority to 4 */
     IPR(CMT0, CMI0) = NOS_CONFIG_MAX_UNSAFE_ISR_PRIO;
-    
+
     /* Set compare match to to generate debounce period */
     CMT0.CMCOR = 100;
-    
+
     /* Reset count to zero */
     CMT0.CMCNT = 0x0000;
-        
+
     /* Start timer */
     CMT.CMSTR0.BIT.STR0 = 1;
 }
@@ -106,17 +112,17 @@ void Timer_Init( void )
 int main()
 {
     nOS_Init();
-    
+
     nOS_SemCreate(&semA, 0, 1);
     nOS_SemCreate(&semB, 0, 1);
     nOS_SemCreate(&semC, 0, 1);
-    
+
     nOS_ThreadCreate(&threadA, ThreadA, 0, stackA, THREAD_STACK_SIZE, NOS_CONFIG_HIGHEST_THREAD_PRIO,   NOS_THREAD_READY);
     nOS_ThreadCreate(&threadB, ThreadB, 0, stackB, THREAD_STACK_SIZE, NOS_CONFIG_HIGHEST_THREAD_PRIO-1, NOS_THREAD_READY);
     nOS_ThreadCreate(&threadC, ThreadC, 0, stackC, THREAD_STACK_SIZE, NOS_CONFIG_HIGHEST_THREAD_PRIO-2, NOS_THREAD_READY);
-    
+
     Timer_Init();
-    
+
     while (1) {
         nOS_SemGive(&semC);
     }

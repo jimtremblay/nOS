@@ -362,9 +362,6 @@ typedef uint64_t                    nOS_Time;
 typedef struct _nOS_TimeDate        nOS_TimeDate;
 typedef struct _nOS_TimeContext     nOS_TimeContext;
 #endif
-#if (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
-typedef struct _nOS_SleepContext    nOS_SleepContext;
-#endif
 
 typedef enum _nOS_Error
 {
@@ -526,18 +523,6 @@ struct _nOS_TimeDate
     uint8_t             minute;         /* From 0 to 59 */
     uint8_t             second;         /* From 0 to 59 */
 };
-
-struct _nOS_TimeContext
-{
-    nOS_Time            time;
-};
-#endif
-
-#if (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
-struct _nOS_SleepContext
-{
-    nOS_TickCounter     tick;
-};
 #endif
 
 #define NOS_NO_WAIT                 0
@@ -561,7 +546,8 @@ struct _nOS_SleepContext
 #define NOS_THREAD_WAITING_FLAG     0x05
 #define NOS_THREAD_ALLOC_MEM        0x06
 #define NOS_THREAD_WAITING          0x0F
-#define NOS_THREAD_SLEEPING         0x20
+#define NOS_THREAD_SLEEPING         0x10
+#define NOS_THREAD_SLEEPING_UNTIL   0x20
 #define NOS_THREAD_SUSPENDED        0x40
 #define NOS_THREAD_READY            0x80
 
@@ -633,6 +619,12 @@ nOS_Error       nOS_Init                    (void);
 nOS_Error       nOS_Sched                   (void);
 nOS_Error       nOS_Yield                   (void);
 void            nOS_Tick                    (void);
+#if (NOS_CONFIG_TIMER_ENABLE > 0)
+void            nOS_TimerTick               (void);
+#endif
+#if (NOS_CONFIG_TIME_ENABLE > 0)
+void            nOS_TimeTick                (void);
+#endif
 nOS_TickCounter nOS_TickCount               (void);
 #if (NOS_CONFIG_SLEEP_ENABLE > 0)
 nOS_Error       nOS_Sleep                   (nOS_TickCounter ticks);
@@ -757,7 +749,6 @@ bool            nOS_MemIsAvailable          (nOS_Mem *mem);
 #if (NOS_CONFIG_TIMER_ENABLE > 0)
 #if defined(NOS_PRIVATE)
 void            nOS_TimerInit               (void);
-void            nOS_TimerTick               (void);
 #endif
 nOS_Error       nOS_TimerCreate             (nOS_Timer *timer, nOS_TimerCallback callback, void *arg, nOS_TimerCounter reload, uint8_t opt);
 #if (NOS_CONFIG_TIMER_DELETE_ENABLE > 0)
@@ -777,7 +768,6 @@ bool            nOS_TimerIsRunning          (nOS_Timer *timer);
 #if (NOS_CONFIG_TIME_ENABLE > 0)
 #if defined(NOS_PRIVATE)
 void            nOS_TimeInit                (void);
-void            nOS_TimeTick                (void);
 #endif
 nOS_Time        nOS_TimeNow                 (void);
 nOS_Error       nOS_TimeChange              (nOS_Time time);

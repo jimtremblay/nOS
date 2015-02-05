@@ -26,6 +26,12 @@ nOS_Stack stackC[THREAD_STACK_SIZE];
 NOS_ISR(SysTick_Handler)
 {
     nOS_Tick();
+#ifdef NOS_CONFIG_TIMER_ENABLE
+    nOS_TimerTick();
+#endif
+#ifdef NOS_CONFIG_TIME_ENABLE
+    nOS_TimeTick();
+#endif
 }
 
 void ThreadA (void *arg)

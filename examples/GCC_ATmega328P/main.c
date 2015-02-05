@@ -78,6 +78,12 @@ void ThreadC(void *arg)
 NOS_ISR(TIMER2_OVF_vect)
 {
     nOS_Tick();
+#ifdef NOS_CONFIG_TIMER_ENABLE
+    nOS_TimerTick();
+#endif
+#ifdef NOS_CONFIG_TIME_ENABLE
+    nOS_TimeTick();
+#endif
 }
 
 static void Timer2Init(void)

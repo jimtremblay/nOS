@@ -48,23 +48,29 @@ static uint16_t             readyPrio[((NOS_CONFIG_HIGHEST_THREAD_PRIO+15)/16)];
 #endif  /* NOS_PORT_SCHED_USE_32_BITS */
 #endif  /* NOS_CONFIG_HIGHEST_THREAD_PRIO > 0 */
 
-#if (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
+#if (NOS_CONFIG_SLEEP_ENABLE > 0) || (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
 static nOS_Event            sleepEvent;
 #endif
 
 static nOS_TickCounter      tickCounter;
 
-#if (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
+#if (NOS_CONFIG_SLEEP_ENABLE > 0) || (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
 static void TickSleeper(void *payload, void *arg)
 {
     nOS_Thread          *thread = (nOS_Thread*)payload;
-    nOS_SleepContext    *ctx    = (nOS_SleepContext*)thread->context;
 
     /* Avoid warning */
     NOS_UNUSED(arg);
 
-    if (tickCounter == ctx->tick) {
-        SignalThread(thread, NOS_OK);
+    if (thread->state & NOS_THREAD_SLEEPING) {
+        thread->timeout--;
+        if (thread->timeout == 0) {
+            SignalThread(thread, NOS_OK);
+        }
+    } else if (thread->state & NOS_THREAD_SLEEPING_UNTIL) {
+        if (tickCounter == thread->timeout) {
+            SignalThread(thread, NOS_OK);
+        }
     }
 }
 
@@ -456,7 +462,7 @@ nOS_Error nOS_Init(void)
 
     tickCounter = 0;
 
-#if (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
+#if (NOS_CONFIG_SLEEP_ENABLE > 0) || (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
 #if (NOS_CONFIG_SAFE > 0)
     nOS_EventCreate(&sleepEvent, NOS_EVENT_BASE);
 #else
@@ -594,16 +600,8 @@ void nOS_Tick(void)
 
     nOS_ThreadTick();
 
-#if (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
+#if (NOS_CONFIG_SLEEP_ENABLE > 0) || (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
     SleepTick();
-#endif
-
-#if (NOS_CONFIG_TIMER_ENABLE > 0)
-    nOS_TimerTick();
-#endif
-
-#if (NOS_CONFIG_TIME_ENABLE > 0)
-    nOS_TimeTick();
 #endif
 }
 
@@ -639,7 +637,7 @@ nOS_Error nOS_Sleep (nOS_TickCounter ticks)
         err = NOS_OK;
     } else {
         nOS_CriticalEnter();
-        err = nOS_EventWait(NULL, NOS_THREAD_SLEEPING, ticks);
+        err = nOS_EventWait(&sleepEvent, NOS_THREAD_SLEEPING, ticks);
         nOS_CriticalLeave();
     }
 
@@ -651,7 +649,6 @@ nOS_Error nOS_Sleep (nOS_TickCounter ticks)
 nOS_Error nOS_SleepUntil (nOS_TickCounter tick)
 {
     nOS_Error           err;
-    nOS_SleepContext    ctx;
 
     if (nOS_isrNestingCounter > 0) {
         err = NOS_E_ISR;
@@ -670,9 +667,7 @@ nOS_Error nOS_SleepUntil (nOS_TickCounter tick)
             nOS_Yield();
             err = NOS_OK;
         } else {
-            ctx.tick = tick;
-            nOS_runningThread->context = &ctx;
-            err = nOS_EventWait(&sleepEvent, NOS_THREAD_SLEEPING, NOS_WAIT_INFINITE);
+            err = nOS_EventWait(&sleepEvent, NOS_THREAD_SLEEPING_UNTIL, tick);
         }
         nOS_CriticalLeave();
     }

@@ -84,10 +84,16 @@ NOS_ISR(_T2Interrupt)
     IFS0bits.T2IF = 0;
 
     nOS_Tick();
+#ifdef NOS_CONFIG_TIMER_ENABLE
+    nOS_TimerTick();
+#endif
+#ifdef NOS_CONFIG_TIME_ENABLE
+    nOS_TimeTick();
+#endif
 }
 
 /*
- * 
+ *
  */
 int main(int argc, char** argv)
 {
