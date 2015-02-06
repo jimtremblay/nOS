@@ -10,6 +10,9 @@
 /* Size of ticks counter for sleep/timeout in bits (can be 8, 16, 32 and 64). */
 #define NOS_CONFIG_TICK_COUNT_WIDTH             32
 
+/* Number of ticks per second (not used in scheduler for the moment). */
+#define NOS_CONFIG_TICKS_PER_SECOND             1000
+
 /* Enable or disable preemptive scheduler (set to 0 to enable a cooperative scheduling). */
 #define NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE      1
 /* Enable or disable round-robin scheduler (for threads of the same priority). */
@@ -64,6 +67,9 @@
 
 /* Enable or disable timer thread with callback. */
 #define NOS_CONFIG_TIMER_ENABLE                 1
+/* Let timer thread taking care of timer process or not
+ * (if 0, application is responsible to call nOS_TimerProcess) */
+#define NOS_CONFIG_TIMER_THREAD_ENABLE          1
 /* Enable or disable dynamic timer deletion */
 #define NOS_CONFIG_TIMER_DELETE_ENABLE          1
 /* Priority of timer thread. */

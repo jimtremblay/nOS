@@ -84,10 +84,10 @@ NOS_ISR(_T2Interrupt)
     IFS0bits.T2IF = 0;
 
     nOS_Tick();
-#ifdef NOS_CONFIG_TIMER_ENABLE
+#if (NOS_CONFIG_TIMER_ENABLE > 0)
     nOS_TimerTick();
 #endif
-#ifdef NOS_CONFIG_TIME_ENABLE
+#if (NOS_CONFIG_TIME_ENABLE > 0)
     nOS_TimeTick();
 #endif
 }
@@ -112,6 +112,9 @@ int main(int argc, char** argv)
     nOS_ThreadCreate(&threadC, ThreadC, (void*)100, threadCStack, THREAD_STACK_SIZE, 3, NOS_THREAD_READY);
 
     while (1) {
+#if (NOS_CONFIG_TIMER_ENABLE > 0) && (NOS_CONFIG_TIMER_THREAD_ENABLE == 0)
+        nOS_TimerProcess();
+#endif
         nOS_SemGive(&semC);
         cntr++;
     }

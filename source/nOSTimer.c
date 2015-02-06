@@ -14,24 +14,28 @@ extern "C" {
 #endif
 
 #if (NOS_CONFIG_TIMER_ENABLE > 0)
+#if (NOS_CONFIG_TIMER_THREAD_ENABLE > 0)
 static void ThreadTimer (void *arg);
+#endif
 static void TickTimer (void *payload, void *arg);
 
 static nOS_List     timerList;
 static nOS_Sem      timerSem;
+#if (NOS_CONFIG_TIMER_THREAD_ENABLE > 0)
 static nOS_Thread   timerHandle;
 static nOS_Stack    timerStack[NOS_CONFIG_TIMER_THREAD_STACK_SIZE];
+#endif
 
+#if (NOS_CONFIG_TIMER_THREAD_ENABLE > 0)
 static void ThreadTimer (void *arg)
 {
     NOS_UNUSED(arg);
 
     while (1) {
-        if (nOS_SemTake (&timerSem, NOS_WAIT_INFINITE) == NOS_OK) {
-            nOS_ListWalk(&timerList, TickTimer, NULL);
-        }
+        nOS_TimerProcess();
     }
 }
+#endif
 
 static void TickTimer (void *payload, void *arg)
 {
@@ -69,6 +73,7 @@ void nOS_TimerInit(void)
 {
     nOS_ListInit(&timerList);
     nOS_SemCreate(&timerSem, 0, NOS_SEM_COUNT_MAX);
+#if (NOS_CONFIG_TIMER_THREAD_ENABLE > 0)
     nOS_ThreadCreate(&timerHandle,
                      ThreadTimer,
                      NULL,
@@ -84,12 +89,25 @@ void nOS_TimerInit(void)
                      ,NOS_THREAD_READY
 #endif
                      );
-
+#endif  /* NOS_CONFIG_TIMER_THREAD_ENABLE */
 }
 
-void nOS_TimerTick(void)
+void nOS_TimerTick (void)
 {
     nOS_SemGive(&timerSem);
+}
+
+void nOS_TimerProcess (void)
+{
+    if (nOS_SemTake (&timerSem,
+#if (NOS_CONFIG_TIMER_THREAD_ENABLE > 0)
+        NOS_WAIT_INFINITE
+#else
+        NOS_NO_WAIT
+#endif
+    ) == NOS_OK) {
+        nOS_ListWalk(&timerList, TickTimer, NULL);
+    }
 }
 
 nOS_Error nOS_TimerCreate (nOS_Timer *timer, nOS_TimerCallback callback, void *arg, nOS_TimerCounter reload, uint8_t mode)

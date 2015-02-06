@@ -17,10 +17,10 @@ nOS_Stack stackC[THREAD_STACK_SIZE];
 NOS_ISR(BASICTIMER_VECTOR)
 {
     nOS_Tick();
-#ifdef NOS_CONFIG_TIMER_ENABLE
+#if (NOS_CONFIG_TIMER_ENABLE > 0)
     nOS_TimerTick();
 #endif
-#ifdef NOS_CONFIG_TIME_ENABLE
+#if (NOS_CONFIG_TIME_ENABLE > 0)
     nOS_TimeTick();
 #endif
 }
@@ -78,6 +78,9 @@ int main( void )
     __enable_interrupt();
 
     while (1) {
+#if (NOS_CONFIG_TIMER_ENABLE > 0) && (NOS_CONFIG_TIMER_THREAD_ENABLE == 0)
+        nOS_TimerProcess();
+#endif
         nOS_SemGive(&semC);
     }
 }

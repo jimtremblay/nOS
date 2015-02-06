@@ -250,6 +250,17 @@ extern "C" {
    #warning "nOSConfig.h: NOS_CONFIG_TIMER_THREAD_CALL_STACK_SIZE is not defined (default to 16)."
   #endif
  #endif
+ #if !defined(NOS_CONFIG_TIMER_THREAD_ENABLE)
+  #define NOS_CONFIG_TIMER_THREAD_ENABLE            0
+  #warning "nOSConfig.h: NOS_CONFIG_TIMER_THREAD_ENABLE is not defined (disabled by default)."
+ #endif
+ #if (NOS_CONFIG_TIMER_THREAD_ENABLE == 0)
+  #undef NOS_CONFIG_TIMER_THREAD_PRIO
+  #undef NOS_CONFIG_TIMER_THREAD_STACK_SIZE
+  #if defined(__ICCAVR__)
+   #undef NOS_CONFIG_TIMER_THREAD_CALL_STACK_SIZE
+  #endif
+ #endif
  #if !defined(NOS_CONFIG_TIMER_COUNT_WIDTH)
   #define NOS_CONFIG_TIMER_COUNT_WIDTH              16
   #warning "nOSConfig.h: NOS_CONFIG_TIMER_COUNT_WIDTH is not defined (default to 16)."
@@ -257,6 +268,7 @@ extern "C" {
   #error "nOSConfig.h: NOS_CONFIG_TIMER_COUNT_WIDTH set to invalid value: can be set to 8, 16, 32 or 64."
  #endif
 #else
+ #undef NOS_CONFIG_TIMER_THREAD_ENABLE
  #undef NOS_CONFIG_TIMER_DELETE_ENABLE
  #undef NOS_CONFIG_TIMER_THREAD_PRIO
  #undef NOS_CONFIG_TIMER_THREAD_STACK_SIZE
@@ -620,12 +632,6 @@ nOS_Error       nOS_Init                    (void);
 nOS_Error       nOS_Sched                   (void);
 nOS_Error       nOS_Yield                   (void);
 void            nOS_Tick                    (void);
-#if (NOS_CONFIG_TIMER_ENABLE > 0)
-void            nOS_TimerTick               (void);
-#endif
-#if (NOS_CONFIG_TIME_ENABLE > 0)
-void            nOS_TimeTick                (void);
-#endif
 nOS_TickCounter nOS_TickCount               (void);
 #if (NOS_CONFIG_SLEEP_ENABLE > 0)
 nOS_Error       nOS_Sleep                   (nOS_TickCounter ticks);
@@ -751,6 +757,8 @@ bool            nOS_MemIsAvailable          (nOS_Mem *mem);
 #if defined(NOS_PRIVATE)
 void            nOS_TimerInit               (void);
 #endif
+void            nOS_TimerTick               (void);
+void            nOS_TimerProcess            (void);
 nOS_Error       nOS_TimerCreate             (nOS_Timer *timer, nOS_TimerCallback callback, void *arg, nOS_TimerCounter reload, uint8_t opt);
 #if (NOS_CONFIG_TIMER_DELETE_ENABLE > 0)
 nOS_Error       nOS_TimerDelete             (nOS_Timer *timer);
@@ -770,6 +778,7 @@ bool            nOS_TimerIsRunning          (nOS_Timer *timer);
 #if defined(NOS_PRIVATE)
 void            nOS_TimeInit                (void);
 #endif
+void            nOS_TimeTick                (void);
 nOS_Time        nOS_TimeNow                 (void);
 nOS_Error       nOS_TimeChange              (nOS_Time time);
 nOS_TimeDate    nOS_TimeConvert             (nOS_Time time);

@@ -52,6 +52,9 @@
 
 /* Enable or disable timer thread with callback. */
 #define NOS_CONFIG_TIMER_ENABLE                 1
+/* Let timer thread taking care of timer process or not
+ * (if 0, application is responsible to call nOS_TimerProcess) */
+#define NOS_CONFIG_TIMER_THREAD_ENABLE          1
 /* Enable or disable dynamic timer deletion */
 #define NOS_CONFIG_TIMER_DELETE_ENABLE          1
 /* Priority of timer thread. */
