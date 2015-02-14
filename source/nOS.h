@@ -44,7 +44,7 @@ extern "C" {
 #if defined(NOS_GLOBALS)
  #define NOS_EXTERN
 #else
- #define NOS_EXTERN     extern
+ #define NOS_EXTERN                 extern
 #endif
 
 #include "nOSConfig.h"
@@ -244,12 +244,6 @@ extern "C" {
   #define NOS_CONFIG_TIMER_THREAD_STACK_SIZE        128
   #warning "nOSConfig.h: NOS_CONFIG_TIMER_THREAD_STACK_SIZE is not defined (default to 128)."
  #endif
- #if defined(__ICCAVR__)
-  #if !defined(NOS_CONFIG_TIMER_THREAD_CALL_STACK_SIZE)
-   #define NOS_CONFIG_TIMER_THREAD_CALL_STACK_SIZE  16
-   #warning "nOSConfig.h: NOS_CONFIG_TIMER_THREAD_CALL_STACK_SIZE is not defined (default to 16)."
-  #endif
- #endif
  #if !defined(NOS_CONFIG_TIMER_THREAD_ENABLE)
   #define NOS_CONFIG_TIMER_THREAD_ENABLE            0
   #warning "nOSConfig.h: NOS_CONFIG_TIMER_THREAD_ENABLE is not defined (disabled by default)."
@@ -257,9 +251,6 @@ extern "C" {
  #if (NOS_CONFIG_TIMER_THREAD_ENABLE == 0)
   #undef NOS_CONFIG_TIMER_THREAD_PRIO
   #undef NOS_CONFIG_TIMER_THREAD_STACK_SIZE
-  #if defined(__ICCAVR__)
-   #undef NOS_CONFIG_TIMER_THREAD_CALL_STACK_SIZE
-  #endif
  #endif
  #if !defined(NOS_CONFIG_TIMER_COUNT_WIDTH)
   #define NOS_CONFIG_TIMER_COUNT_WIDTH              16
@@ -272,12 +263,8 @@ extern "C" {
  #undef NOS_CONFIG_TIMER_DELETE_ENABLE
  #undef NOS_CONFIG_TIMER_THREAD_PRIO
  #undef NOS_CONFIG_TIMER_THREAD_STACK_SIZE
- #if defined(__ICCAVR__)
-  #undef NOS_CONFIG_TIMER_THREAD_CALL_STACK_SIZE
- #endif
  #undef NOS_CONFIG_TIMER_COUNT_WIDTH
 #endif
-
 #if !defined(NOS_CONFIG_TIME_ENABLE)
  #define NOS_CONFIG_TIME_ENABLE                     0
  #warning "nOSConfig.h: NOS_CONFIG_TIME_ENABLE is not defined (disabled by default)."
@@ -399,6 +386,27 @@ typedef enum _nOS_Error
 } nOS_Error;
 
 #include "nOSPort.h"
+
+/* Port specific config checkup */
+#if defined(NOS_PORT_SEPARATE_CALL_STACK)
+ #if (NOS_CONFIG_TIMER_ENABLE > 0)
+  #if !defined(NOS_CONFIG_TIMER_THREAD_CALL_STACK_SIZE)
+   #define NOS_CONFIG_TIMER_THREAD_CALL_STACK_SIZE  16
+   #warning "nOSConfig.h: NOS_CONFIG_TIMER_THREAD_CALL_STACK_SIZE is not defined (default to 16)."
+  #endif
+  #if (NOS_CONFIG_TIMER_THREAD_ENABLE == 0)
+   #undef NOS_CONFIG_TIMER_THREAD_CALL_STACK_SIZE
+  #endif
+ #else
+  #undef NOS_CONFIG_TIMER_THREAD_CALL_STACK_SIZE
+ #endif
+#endif
+
+#if defined(NOS_PORT_NO_CONST)
+ #define NOS_CONST  
+#else
+ #define NOS_CONST                  const
+#endif
 
 struct _nOS_List
 {
@@ -655,7 +663,7 @@ void            nOS_ListWalk                (nOS_List *list, nOS_NodeHandler han
 
 
 nOS_Error       nOS_ThreadCreate            (nOS_Thread *thread, nOS_ThreadEntry entry, void *arg, nOS_Stack *stack, size_t ssize
-#if defined(__ICCAVR__)
+#if defined(NOS_PORT_SEPARATE_CALL_STACK)
                                              ,size_t cssize
 #endif
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)

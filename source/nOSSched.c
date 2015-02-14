@@ -73,7 +73,7 @@ nOS_Thread* SchedHighPrio(void)
 }
 #endif  /* NOS_CONFIG_HIGHEST_THREAD_PRIO */
 #else   /* !defined(NOS_PORT_HAVE_CLZ) */
-static const uint8_t tableDeBruijn[32] =
+static NOS_CONST uint8_t tableDeBruijn[32] =
 {
     0, 9, 1, 10, 13, 21, 2, 29, 11, 14, 16, 18, 22, 25, 3, 30,
     8, 12, 20, 28, 15, 17, 24, 7, 19, 27, 23, 6, 26, 5, 4, 31
@@ -120,7 +120,7 @@ nOS_Thread* SchedHighPrio(void)
 #endif  /* NOS_CONFIG_HIGHEST_THREAD_PRIO */
 #endif  /* NOS_PORT_HAVE_CLZ */
 #elif defined(NOS_PORT_SCHED_USE_16_BITS)
-static const uint16_t tableDeBruijn[16] =
+static NOS_CONST uint16_t tableDeBruijn[16] =
 {
     0, 7, 1, 13, 8, 10, 2, 14, 6, 12, 9, 5, 11, 4, 3, 15
 };
@@ -163,7 +163,7 @@ nOS_Thread* SchedHighPrio(void)
 #endif  /* NOS_CONFIG_HIGHEST_THREAD_PRIO */
 #else   /* NOS_PORT_SCHED_USE_8_BITS */
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO < 8)
-static const uint8_t tableDeBruijn[8] =
+static NOS_CONST uint8_t tableDeBruijn[8] =
 {
     0, 5, 1, 6, 4, 3, 2, 7
 };
@@ -181,7 +181,7 @@ nOS_Thread* SchedHighPrio(void)
     return (nOS_Thread*)nOS_readyList[prio].head->payload;
 }
 #elif (NOS_CONFIG_HIGHEST_THREAD_PRIO < 16)
-static const uint16_t tableDeBruijn[16] =
+static NOS_CONST uint16_t tableDeBruijn[16] =
 {
     0, 7, 1, 13, 8, 10, 2, 14, 6, 12, 9, 5, 11, 4, 3, 15
 };
@@ -200,7 +200,7 @@ nOS_Thread* SchedHighPrio(void)
     return (nOS_Thread*)nOS_readyList[prio].head->payload;
 }
 #elif (NOS_CONFIG_HIGHEST_THREAD_PRIO < 64)
-static const uint8_t tableDeBruijn[8] =
+static NOS_CONST uint8_t tableDeBruijn[8] =
 {
     0, 5, 1, 6, 4, 3, 2, 7
 };
@@ -225,7 +225,7 @@ nOS_Thread* SchedHighPrio(void)
     return (nOS_Thread*)nOS_readyList[(group << 3) | prio].head->payload;
 }
 #elif (NOS_CONFIG_HIGHEST_THREAD_PRIO < 256)
-static const uint16_t tableDeBruijn[16] =
+static NOS_CONST uint16_t tableDeBruijn[16] =
 {
     0, 7, 1, 13, 8, 10, 2, 14, 6, 12, 9, 5, 11, 4, 3, 15
 };

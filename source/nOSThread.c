@@ -178,7 +178,7 @@ nOS_Error nOS_ThreadCreate (nOS_Thread *thread,
                             void *arg,
                             nOS_Stack *stack,
                             size_t ssize
-#if defined(__ICCAVR__)
+#if defined(NOS_PORT_SEPARATE_CALL_STACK)
                             ,size_t cssize
 #endif
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
@@ -234,7 +234,7 @@ nOS_Error nOS_ThreadCreate (nOS_Thread *thread,
         thread->main.payload = thread;
         thread->readyWait.payload = thread;
         nOS_ContextInit(thread, stack, ssize
-#if defined(__ICCAVR__)
+#if defined(NOS_PORT_SEPARATE_CALL_STACK)
                         ,cssize
 #endif
                         ,entry, arg);

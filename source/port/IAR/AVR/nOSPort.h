@@ -22,6 +22,8 @@ typedef uint8_t                 nOS_Stack;
 
 #define NOS_MEM_ALIGNMENT       1
 
+#define NOS_PORT_SEPARATE_CALL_STACK
+
 #if defined(__HAS_RAMPZ__)
 #define PUSH_RAMPZ                                                              \
     "in     r0,     0x3B                \n"                                     \
