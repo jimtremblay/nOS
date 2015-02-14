@@ -20,7 +20,7 @@ typedef uint16_t                            nOS_Stack;
 #define NOS_UNUSED(v)                       (void)v
 
 /* Not needed to align memory blocks */
-#define NOS_MEM_ALIGNMENT                   1
+#define NOS_PORT_MEM_ALIGNMENT              1
 
 #define NOS_PORT_SCHED_USE_16_BITS
 #define NOS_PORT_NO_CONST

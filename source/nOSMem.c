@@ -88,13 +88,13 @@ nOS_Error nOS_MemCreate (nOS_Mem *mem, void *buffer, size_t bsize, uint16_t bmax
     } else if (bsize < sizeof(void**)) {
         err = NOS_E_INV_VAL;
     }
-#if (NOS_MEM_ALIGNMENT > 1)
-#if (NOS_MEM_ALIGNMENT >= 4)
-    else if ((uint32_t)buffer % NOS_MEM_ALIGNMENT != 0) {
+#if (NOS_PORT_MEM_ALIGNMENT > 1)
+#if (NOS_PORT_MEM_ALIGNMENT >= 4)
+    else if ((uint32_t)buffer % NOS_PORT_MEM_ALIGNMENT != 0) {
         err = NOS_E_INV_VAL;
     }
 #else
-    else if ((uint16_t)buffer % NOS_MEM_ALIGNMENT != 0) {
+    else if ((uint16_t)buffer % NOS_PORT_MEM_ALIGNMENT != 0) {
         err = NOS_E_INV_VAL;
     }
 #endif

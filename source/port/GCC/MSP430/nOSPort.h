@@ -20,7 +20,7 @@ typedef uint16_t                nOS_Stack;
 
 #define NOS_UNUSED(v)           (void)v
 
-#define NOS_MEM_ALIGNMENT       2
+#define NOS_PORT_MEM_ALIGNMENT  2
 
 #if defined(__MSP430X__)
 #define nOS_ContextSave()                                                       \

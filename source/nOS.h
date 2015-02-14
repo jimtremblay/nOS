@@ -403,7 +403,7 @@ typedef enum _nOS_Error
 #endif
 
 #if defined(NOS_PORT_NO_CONST)
- #define NOS_CONST  
+ #define NOS_CONST
 #else
  #define NOS_CONST                  const
 #endif

@@ -20,7 +20,7 @@ typedef uint8_t                 nOS_Stack;
 
 #define NOS_UNUSED(v)           (void)v
 
-#define NOS_MEM_ALIGNMENT       1
+#define NOS_PORT_MEM_ALIGNMENT  1
 
 #if defined(__AVR_HAVE_RAMPZ__)
 #define PUSH_RAMPZ()                                                \

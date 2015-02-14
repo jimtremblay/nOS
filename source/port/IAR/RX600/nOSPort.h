@@ -20,7 +20,7 @@ typedef uint32_t                            nOS_Stack;
 
 #define NOS_UNUSED(v)                       (void)v
 
-#define NOS_MEM_ALIGNMENT                   4
+#define NOS_PORT_MEM_ALIGNMENT              4
 
 #define NOS_PORT_SCHED_USE_32_BITS
 
