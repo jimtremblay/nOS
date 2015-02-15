@@ -54,17 +54,8 @@ __attribute__( ( always_inline ) ) static inline void SetIPL(uint16_t ipl)
         "SHL.W  #4,         %1      \n"
         "OR.W   %1,         %0      \n"
         "LDC    %0,         FLG     \n"
+        "NOP                        \n"
     :: "r" (flg), "r" (ipl));
-}
-
-__attribute( ( always_inline ) ) static inline void EnableInterrupt(void)
-{
-    __asm volatile("FSET I");
-}
-
-__attribute( ( always_inline ) ) static inline void DisableInterrupt(void)
-{
-    __asm volatile("FCLR I");
 }
 
 #define nOS_CriticalEnter()                                                     \
@@ -73,6 +64,7 @@ __attribute( ( always_inline ) ) static inline void DisableInterrupt(void)
     if (_ipl < NOS_PORT_MAX_UNSAFE_IPL) {                                       \
         __asm volatile (                                                        \
             "LDIPL  %0              \n"                                         \
+            "NOP                    \n"                                         \
         :: "i" (NOS_PORT_MAX_UNSAFE_IPL));                                      \
     }
 
@@ -103,6 +95,7 @@ void func(void)                                                                 
                                                                                 \
         /* Ensure interrupts are disabled */                                    \
         "FCLR   I                           \n"                                 \
+        "NOP                                \n"                                 \
                                                                                 \
         /* Decrement interrupts nested counter */                               \
         /* return true if we need to switch context, otherwise false */         \
@@ -120,6 +113,7 @@ void func(void)                                                                 
                                                                                 \
         /* Switch to thread stack */                                            \
         "FSET   U                           \n"                                 \
+        "NOP                                \n"                                 \
                                                                                 \
         /* Call nOS_PortContextSwitchFromIsr */                                 \
         "INT    #33                         \n"                                 \
