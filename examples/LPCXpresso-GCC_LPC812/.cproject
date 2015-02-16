@@ -38,6 +38,7 @@
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}\..\..\source&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}\..\..\source\port\GCC\ARM_Cortex_M0&quot;"/>
 								</option>
+								<option id="gnu.c.compiler.option.dialect.std.1710323044" superClass="gnu.c.compiler.option.dialect.std" value="gnu.c.compiler.dialect.c99" valueType="enumerated"/>
 								<inputType id="com.crt.advproject.compiler.input.329237848" superClass="com.crt.advproject.compiler.input"/>
 							</tool>
 							<tool id="com.crt.advproject.gas.exe.debug.75667061" name="MCU Assembler" superClass="com.crt.advproject.gas.exe.debug">
@@ -49,7 +50,7 @@
 							</tool>
 							<tool id="com.crt.advproject.link.cpp.exe.debug.1141065243" name="MCU C++ Linker" superClass="com.crt.advproject.link.cpp.exe.debug"/>
 							<tool id="com.crt.advproject.link.exe.debug.329578735" name="MCU Linker" superClass="com.crt.advproject.link.exe.debug">
-								<option id="com.crt.advproject.link.gcc.multicore.master.userobjs.263306598" name="Slave Objects (not visible)" superClass="com.crt.advproject.link.gcc.multicore.master.userobjs" valueType="userObjs"/>
+								<option id="com.crt.advproject.link.gcc.multicore.master.userobjs.263306598" name="Slave Objects (not visible)" superClass="com.crt.advproject.link.gcc.multicore.master.userobjs"/>
 								<option id="com.crt.advproject.link.arch.1766441921" name="Architecture" superClass="com.crt.advproject.link.arch" value="com.crt.advproject.link.target.cm0" valueType="enumerated"/>
 								<option id="com.crt.advproject.link.thumb.1831777005" name="Thumb mode" superClass="com.crt.advproject.link.thumb" value="true" valueType="boolean"/>
 								<option id="com.crt.advproject.link.script.650284320" name="Linker script" superClass="com.crt.advproject.link.script" value="&quot;LPCXpresso-GCC_LPC812_Debug.ld&quot;" valueType="string"/>
@@ -60,7 +61,7 @@
 									<listOptionValue builtIn="false" value="--gc-sections"/>
 								</option>
 								<option id="com.crt.advproject.link.gcc.hdrlib.679659445" name="Library" superClass="com.crt.advproject.link.gcc.hdrlib"/>
-								<option id="com.crt.advproject.link.gcc.multicore.slave.918724476" name="Multicore configuration" superClass="com.crt.advproject.link.gcc.multicore.slave"/>
+								<option id="com.crt.advproject.link.gcc.multicore.slave.918724476" name="Multicore slave" superClass="com.crt.advproject.link.gcc.multicore.slave"/>
 								<inputType id="cdt.managedbuild.tool.gnu.c.linker.input.596828514" superClass="cdt.managedbuild.tool.gnu.c.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
@@ -117,7 +118,7 @@
 							</tool>
 							<tool id="com.crt.advproject.link.cpp.exe.release.579754998" name="MCU C++ Linker" superClass="com.crt.advproject.link.cpp.exe.release"/>
 							<tool id="com.crt.advproject.link.exe.release.2136920654" name="MCU Linker" superClass="com.crt.advproject.link.exe.release">
-								<option id="com.crt.advproject.link.gcc.multicore.master.userobjs.407563910" name="Slave Objects (not visible)" superClass="com.crt.advproject.link.gcc.multicore.master.userobjs" valueType="userObjs"/>
+								<option id="com.crt.advproject.link.gcc.multicore.master.userobjs.407563910" name="Slave Objects (not visible)" superClass="com.crt.advproject.link.gcc.multicore.master.userobjs"/>
 								<option id="com.crt.advproject.link.arch.1060024403" name="Architecture" superClass="com.crt.advproject.link.arch" value="com.crt.advproject.link.target.cm0" valueType="enumerated"/>
 								<option id="com.crt.advproject.link.thumb.1295840752" name="Thumb mode" superClass="com.crt.advproject.link.thumb" value="true" valueType="boolean"/>
 								<option id="com.crt.advproject.link.script.1481267322" name="Linker script" superClass="com.crt.advproject.link.script" value="&quot;LPCXpresso-GCC_LPC812_Release.ld&quot;" valueType="string"/>
@@ -150,7 +151,7 @@
 	<storageModule moduleId="com.crt.config">
 		<projectStorage>&lt;?xml version="1.0" encoding="UTF-8"?&gt;&#13;
 &lt;TargetConfig&gt;&#13;
-&lt;Properties property_0="" property_2="LPC800_16.cfx" property_3="NXP" property_4="LPC812" property_count="5" version="70200"/&gt;&#13;
+&lt;Properties property_0="" property_2="LPC800_16.cfx" property_3="NXP" property_4="LPC812" property_count="5" version="70002"/&gt;&#13;
 &lt;infoList vendor="NXP"&gt;&lt;info chip="LPC812" flash_driver="LPC800_16.cfx" match_id="0x8122" name="LPC812" stub="crt_emu_cm3_gen"&gt;&lt;chip&gt;&lt;name&gt;LPC812&lt;/name&gt;&#13;
 &lt;family&gt;LPC8xx&lt;/family&gt;&#13;
 &lt;vendor&gt;NXP (formerly Philips)&lt;/vendor&gt;&#13;
