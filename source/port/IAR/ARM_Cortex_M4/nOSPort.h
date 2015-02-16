@@ -25,7 +25,9 @@ typedef uint32_t                            nOS_Stack;
 #define NOS_PORT_HAVE_CLZ
 
 /* __NVIC_PRIO_BITS defined from CMSIS if used */
-#ifdef __NVIC_PRIO_BITS
+#ifdef NOS_CONFIG_NVIC_PRIO_BITS
+ #define NOS_NVIC_PRIO_BITS                 NOS_CONFIG_NVIC_PRIO_BITS
+#elif defined(__NVIC_PRIO_BITS)
  #define NOS_NVIC_PRIO_BITS                 __NVIC_PRIO_BITS
 #else
  #define NOS_NVIC_PRIO_BITS                 4

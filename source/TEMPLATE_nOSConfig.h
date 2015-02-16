@@ -96,6 +96,10 @@
  * Not used on all platforms. */
 #define NOS_CONFIG_ISR_STACK_SIZE               128
 
+/* Add possibility to override NVIC_PRIO_BITS if CMSIS is not used and
+ * microcontroller have less or more than default (4 bits). */
+#define NOS_CONFIG_NVIC_PRIO_BITS               4
+
 /* Highest priority of interrupt routines that use nOS API which can enable
  * zero interrupt latency for high priority ISR. You should not call any nOS
  * API from interrupt handlers with priority higher than this setting. Can't
