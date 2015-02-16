@@ -9,7 +9,7 @@
 #define NOS_PRIVATE
 #include "nOS.h"
 
-#if defined(__cplusplus)
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -59,11 +59,13 @@ nOS_Error nOS_MutexCreate (nOS_Mutex *mutex
         err = NOS_E_NULL;
     } else if (mutex->e.type != NOS_EVENT_INVALID) {
         err = NOS_E_INV_OBJ;
-#if (NOS_CONFIG_MUTEX_RECURSIVE_ENABLE > 0)
-    } else if ((type != NOS_MUTEX_NORMAL) && (type != NOS_MUTEX_RECURSIVE)) {
+    }
+ #if (NOS_CONFIG_MUTEX_RECURSIVE_ENABLE > 0)
+    else if ((type != NOS_MUTEX_NORMAL) && (type != NOS_MUTEX_RECURSIVE)) {
         err = NOS_E_INV_VAL;
-#endif
-    } else
+    }
+ #endif
+    else
 #endif
     {
         nOS_CriticalEnter();
@@ -337,6 +339,6 @@ nOS_Thread* nOS_MutexOwner (nOS_Mutex *mutex)
 }
 #endif  /* NOS_CONFIG_MUTEX_ENABLE */
 
-#if defined(__cplusplus)
+#ifdef __cplusplus
 }
 #endif

@@ -9,10 +9,9 @@
 #ifndef NOSPORT_H
 #define NOSPORT_H
 
-#include <stdint.h>
 #include <xc.h>
 
-#if defined(__cplusplus)
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -24,12 +23,12 @@ typedef uint16_t                            nOS_Stack;
 
 #define NOS_PORT_SCHED_USE_16_BITS
 
-#if !defined(NOS_CONFIG_ISR_STACK_SIZE)
+#ifndef NOS_CONFIG_ISR_STACK_SIZE
  #define NOS_CONFIG_ISR_STACK_SIZE          0
  #warning "nOSConfig.h: NOS_CONFIG_ISR_STACK_SIZE is not defined (disabled by default)."
 #endif
 
-#if !defined(NOS_CONFIG_MAX_UNSAFE_ISR_PRIO)
+#ifndef NOS_CONFIG_MAX_UNSAFE_ISR_PRIO
  #define NOS_CONFIG_MAX_UNSAFE_ISR_PRIO     4
  #warning "nOSConfig.h: NOS_CONFIG_MAX_UNSAFE_ISR_PRIO is not defined (default to 4)."
 #elif (NOS_CONFIG_MAX_UNSAFE_ISR_PRIO == 0) || (NOS_CONFIG_MAX_UNSAFE_ISR_PRIO >= 7)
@@ -48,17 +47,17 @@ typedef uint16_t                            nOS_Stack;
     SRbits.IPL = _sr;                                                           \
 }
 
-#if defined(__HAS_EDS__)
-#define PUSH_PAGE_ADDRESS                                                       \
+#ifdef __HAS_EDS__
+ #define PUSH_PAGE_ADDRESS                                                      \
     "PUSH   DSRPAG                      \n"                                     \
     "PUSH   DSWPAG                      \n"
-#define POP_PAGE_ADDRESS                                                        \
+ #define POP_PAGE_ADDRESS                                                       \
     "POP    DSWPAG                      \n"                                     \
     "POP    DSRPAG                      \n"
 #else
-#define PUSH_PAGE_ADDRESS                                                       \
+ #define PUSH_PAGE_ADDRESS                                                      \
     "PUSH   PSVPAG                      \n"
-#define POP_PAGE_ADDRESS                                                        \
+ #define POP_PAGE_ADDRESS                                                       \
     "POP    PSVPAG                      \n"
 #endif
 
@@ -146,7 +145,7 @@ nOS_Stack *nOS_IsrLeave (nOS_Stack *sp);
 void        nOS_ContextInit     (nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg);
 void        nOS_ContextSwitch   (void);
 
-#if defined(__cplusplus)
+#ifdef __cplusplus
 }
 #endif
 

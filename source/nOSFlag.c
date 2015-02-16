@@ -9,7 +9,7 @@
 #define NOS_PRIVATE
 #include "nOS.h"
 
-#if defined(__cplusplus)
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -294,6 +294,6 @@ nOS_FlagBits nOS_FlagTest (nOS_Flag *flag, nOS_FlagBits flags, bool all)
 }
 #endif  /* NOS_CONFIG_FLAG_ENABLE */
 
-#if defined(__cplusplus)
+#ifdef __cplusplus
 }
 #endif

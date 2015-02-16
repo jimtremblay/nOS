@@ -9,7 +9,7 @@
 #define NOS_PRIVATE
 #include "nOS.h"
 
-#if defined(__cplusplus)
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -25,7 +25,7 @@ void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_Thr
     *tos++ = 0;                 /* PC MSB */
     *tos++ = 0;                 /* SR */
     *tos++ = (nOS_Stack)arg;    /* W0 */
-#if defined(NOS_CONFIG_DEBUG)
+#if (NOS_CONFIG_DEBUG > 0)
     *tos++ = 0x1111;            /* W1 */
     *tos++ = 0x2222;            /* W2 */
     *tos++ = 0x3333;            /* W3 */
@@ -46,7 +46,7 @@ void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_Thr
      tos  += 16;                /* W1 to W14, RCOUNT, TBLPAG */
 #endif
     *tos++ = CORCON;            /* CORCON */
-#if defined(__HAS_EDS__)
+#ifdef __HAS_EDS__
     *tos++ = DSRPAG;            /* DSRPAG */
     *tos++ = DSWPAG;            /* DSWPAG */
 #else
@@ -146,6 +146,6 @@ nOS_Stack *nOS_IsrLeave (nOS_Stack *sp)
     return sp;
 }
 
-#if defined(__cplusplus)
+#ifdef __cplusplus
 }
 #endif

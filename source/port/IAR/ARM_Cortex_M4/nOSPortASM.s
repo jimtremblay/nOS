@@ -23,7 +23,7 @@ PendSV_Handler:
     LDR         R3,         =nOS_runningThread
     LDR         R2,         [R3]
 
-#if defined(__ARMVFP__)
+#ifdef __ARMVFP__
     /* Push high VFP registers */
     VSTMDB      R0!,        {S16-S31}
 #endif
@@ -47,7 +47,7 @@ PendSV_Handler:
     /* Pop registers from thread stack */
     LDMIA       R0!,        {R4-R11, LR}
 
-#if defined(__ARMVFP__)
+#ifdef __ARMVFP__
     /* Pop high VFP registers */
     VLDMIA      R0!,        {S16-S31}
 #endif

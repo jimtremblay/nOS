@@ -9,7 +9,7 @@
 #define NOS_PRIVATE
 #include "nOS.h"
 
-#if defined(__cplusplus)
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -79,7 +79,7 @@ void nOS_TimerInit(void)
                      NULL,
                      timerStack,
                      NOS_CONFIG_TIMER_THREAD_STACK_SIZE
-#if defined(NOS_PORT_SEPARATE_CALL_STACK)
+#ifdef NOS_PORT_SEPARATE_CALL_STACK
                      ,NOS_CONFIG_TIMER_THREAD_CALL_STACK_SIZE
 #endif
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
@@ -358,6 +358,6 @@ bool nOS_TimerIsRunning (nOS_Timer *timer)
 }
 #endif  /* NOS_CONFIG_TIMER_ENABLE */
 
-#if defined(__cplusplus)
+#ifdef __cplusplus
 }
 #endif

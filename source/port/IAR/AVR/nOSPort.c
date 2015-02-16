@@ -9,7 +9,7 @@
 #define NOS_PRIVATE
 #include "nOS.h"
 
-#if defined(__cplusplus)
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -51,7 +51,7 @@ void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, size_t 
     *tos-- = 0x80;                                  /* SREG: Interrupts enabled */
     *tos-- = (nOS_Stack)((uint16_t)tohs);           /* R28 */
     *tos-- = (nOS_Stack)((uint16_t)tohs >> 8);      /* R29 */
-#if defined(__HAS_RAMPZ__)
+#ifdef __HAS_RAMPZ__
      tos  -= 1;                                     /* RAMPZ */
 #endif
 #if defined(__ATmega2560__) || defined(__ATmega2561__)
@@ -149,6 +149,6 @@ nOS_Stack *nOS_IsrLeave (nOS_Stack *sp)
     return sp;
 }
 
-#if defined(__cplusplus)
+#ifdef __cplusplus
 }
 #endif

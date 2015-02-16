@@ -9,16 +9,12 @@
 #define NOS_PRIVATE
 #include "nOS.h"
 
-#if defined(__cplusplus)
+#ifdef __cplusplus
 extern "C" {
 #endif
 
-#if defined(NOS_CONFIG_ISR_STACK_SIZE)
- #if (NOS_CONFIG_ISR_STACK_SIZE == 0)
-  #error "nOSConfig.h: NOS_CONFIG_ISR_STACK_SIZE is set to invalid value."
- #else
-  static nOS_Stack isrStack[NOS_CONFIG_ISR_STACK_SIZE];
- #endif
+#ifdef NOS_CONFIG_ISR_STACK_SIZE
+ static nOS_Stack isrStack[NOS_CONFIG_ISR_STACK_SIZE];
 #endif
 
 void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg)
@@ -104,7 +100,7 @@ nOS_Stack* nOS_IsrEnter (nOS_Stack *sp)
     nOS_CriticalEnter();
     if (nOS_isrNestingCounter == 0) {
         nOS_runningThread->stackPtr = sp;
-#if defined(NOS_CONFIG_ISR_STACK_SIZE)
+#ifdef NOS_CONFIG_ISR_STACK_SIZE
         sp = &isrStack[NOS_CONFIG_ISR_STACK_SIZE-1];
 #else
         sp = nOS_idleHandle.stackPtr;
@@ -139,6 +135,6 @@ nOS_Stack* nOS_IsrLeave (nOS_Stack *sp)
     return sp;
 }
 
-#if defined(__cplusplus)
+#ifdef __cplusplus
 }
 #endif

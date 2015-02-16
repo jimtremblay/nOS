@@ -6,32 +6,27 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-#include <avr/io.h>
-#include <avr/interrupt.h>
-
 #define NOS_PRIVATE
 #include "nOS.h"
 
-#if defined(__cplusplus)
+#ifdef __cplusplus
 extern "C" {
 #endif
 
-#if defined(NOS_CONFIG_ISR_STACK_SIZE)
- #if (NOS_CONFIG_ISR_STACK_SIZE == 0)
-  #error "nOSConfig.h: NOS_CONFIG_ISR_STACK_SIZE is set to invalid value."
- #else
-  static nOS_Stack isrStack[NOS_CONFIG_ISR_STACK_SIZE];
- #endif
+#ifdef NOS_CONFIG_ISR_STACK_SIZE
+ static nOS_Stack isrStack[NOS_CONFIG_ISR_STACK_SIZE];
 #endif
 
 void nOS_PortInit(void)
 {
-#if defined(NOS_CONFIG_ISR_STACK_SIZE) && (NOS_CONFIG_DEBUG > 0)
+#ifdef NOS_CONFIG_ISR_STACK_SIZE
+ #if (NOS_CONFIG_DEBUG > 0)
     uint16_t i;
 
     for (i = 0; i < NOS_CONFIG_ISR_STACK_SIZE; i++) {
         isrStack[i] = 0xff;
     }
+ #endif
 #endif
 }
 
@@ -50,7 +45,7 @@ void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_Thr
     /* Simulate a call to thread function */
     *tos-- = (nOS_Stack)((uint16_t)entry);
     *tos-- = (nOS_Stack)((uint16_t)entry >> 8);
-#if defined(__AVR_3_BYTE_PC__)
+#ifdef __AVR_3_BYTE_PC__
     *tos-- = 0x00;                                  /* Always set high part of address to 0 */
 #endif
 
@@ -61,10 +56,10 @@ void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_Thr
      tos  -= 1;                                     /* R0 */
 #endif
     *tos-- = 0x80;                                  /* SREG: Interrupts enabled */
-#if defined(__AVR_HAVE_RAMPZ__)
+#ifdef __AVR_HAVE_RAMPZ__
      tos  -= 1;                                     /* RAMPZ */
 #endif
-#if defined(__AVR_3_BYTE_PC__)
+#ifdef __AVR_3_BYTE_PC__
      tos  -= 1;                                     /* EIND */
 #endif
     *tos-- = 0x00;                                  /* R1 always 0 */
@@ -126,7 +121,7 @@ nOS_Stack *nOS_IsrEnter (nOS_Stack *sp)
     /* Interrupts already disabled when entering in ISR */
     if (nOS_isrNestingCounter == 0) {
         nOS_runningThread->stackPtr = sp;
-#if defined(NOS_CONFIG_ISR_STACK_SIZE)
+#ifdef NOS_CONFIG_ISR_STACK_SIZE
         sp = &isrStack[NOS_CONFIG_ISR_STACK_SIZE-1];
 #else
         sp = nOS_idleHandle.stackPtr;
@@ -159,6 +154,6 @@ nOS_Stack *nOS_IsrLeave (nOS_Stack *sp)
     return sp;
 }
 
-#if defined(__cplusplus)
+#ifdef __cplusplus
 }
 #endif

@@ -9,7 +9,7 @@
 #define NOS_PRIVATE
 #include "nOS.h"
 
-#if defined(__cplusplus)
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -62,7 +62,7 @@ void ResumeThread (void *payload, void *arg)
         }
     }
 }
-#endif  /* NOS_CONFIG_THREAD_SUSPEND_ENABLE */
+#endif
 
 #if (NOS_CONFIG_THREAD_DELETE_ENABLE > 0)
 /* This is an internal function */
@@ -88,7 +88,7 @@ void DeleteThread (void *payload, void *arg)
     thread->timeout = 0;
     thread->error   = NOS_OK;
 }
-#endif  /* NOS_CONFIG_THREAD_DELETE_ENABLE */
+#endif
 
 /* This is an internal function */
 void TickThread (void *payload, void *arg)
@@ -153,7 +153,7 @@ void SignalThread (nOS_Thread *thread, nOS_Error err)
 }
 
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
-#if (NOS_CONFIG_THREAD_SET_PRIO_ENABLE > 0) || (NOS_CONFIG_MUTEX_ENABLE > 0)
+ #if (NOS_CONFIG_THREAD_SET_PRIO_ENABLE > 0) || (NOS_CONFIG_MUTEX_ENABLE > 0)
 /* This is an internal function */
 void ChangeThreadPrio (nOS_Thread *thread, uint8_t prio)
 {
@@ -170,7 +170,7 @@ void ChangeThreadPrio (nOS_Thread *thread, uint8_t prio)
         }
     }
 }
-#endif
+ #endif
 #endif
 
 nOS_Error nOS_ThreadCreate (nOS_Thread *thread,
@@ -178,7 +178,7 @@ nOS_Error nOS_ThreadCreate (nOS_Thread *thread,
                             void *arg,
                             nOS_Stack *stack,
                             size_t ssize
-#if defined(NOS_PORT_SEPARATE_CALL_STACK)
+#ifdef NOS_PORT_SEPARATE_CALL_STACK
                             ,size_t cssize
 #endif
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
@@ -234,7 +234,7 @@ nOS_Error nOS_ThreadCreate (nOS_Thread *thread,
         thread->main.payload = thread;
         thread->readyWait.payload = thread;
         nOS_ContextInit(thread, stack, ssize
-#if defined(NOS_PORT_SEPARATE_CALL_STACK)
+#ifdef NOS_PORT_SEPARATE_CALL_STACK
                         ,cssize
 #endif
                         ,entry, arg);
@@ -311,11 +311,11 @@ void nOS_ThreadTick(void)
     nOS_CriticalEnter();
     nOS_ListWalk(&nOS_mainList, TickThread, NULL);
 #if (NOS_CONFIG_SCHED_ROUND_ROBIN_ENABLE > 0)
-#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
+ #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
     nOS_ListRotate(&nOS_readyList[nOS_runningThread->prio]);
-#else
+ #else
     nOS_ListRotate(&nOS_readyList);
-#endif
+ #endif
 #endif
     nOS_CriticalLeave();
 }
@@ -370,12 +370,12 @@ nOS_Error nOS_ThreadSuspendAll (void)
     nOS_Error   err;
 
 #if (NOS_CONFIG_SAFE > 0)
-#if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
+ #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
     /* Can't suspend all threads from any thread (except idle) when scheduler is locked */
     if ((nOS_lockNestingCounter > 0) && (nOS_runningThread != &nOS_idleHandle)) {
         err = NOS_E_LOCKED;
     } else
-#endif
+ #endif
 #endif
     {
         nOS_CriticalEnter();
@@ -451,7 +451,7 @@ nOS_Error nOS_ThreadResumeAll (void)
 
     return NOS_OK;
 }
-#endif  /* NOS_CONFIG_THREAD_SUSPEND_ENABLE */
+#endif
 
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_THREAD_SET_PRIO_ENABLE > 0)
 nOS_Error nOS_ThreadSetPriority (nOS_Thread *thread, uint8_t prio)
@@ -507,13 +507,13 @@ int16_t nOS_ThreadGetPriority (nOS_Thread *thread)
 
     return prio;
 }
-#endif  /* (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && NOS_CONFIG_THREAD_SET_PRIO_ENABLE */
+#endif
 
 nOS_Thread* nOS_ThreadRunning(void)
 {
     return nOS_runningThread;
 }
 
-#if defined(__cplusplus)
+#ifdef __cplusplus
 }
 #endif

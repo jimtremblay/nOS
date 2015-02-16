@@ -9,7 +9,7 @@
 #define NOS_PRIVATE
 #include "nOS.h"
 
-#if defined(__cplusplus)
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -88,17 +88,17 @@ nOS_Error nOS_MemCreate (nOS_Mem *mem, void *buffer, size_t bsize, uint16_t bmax
     } else if (bsize < sizeof(void**)) {
         err = NOS_E_INV_VAL;
     }
-#if (NOS_PORT_MEM_ALIGNMENT > 1)
-#if (NOS_PORT_MEM_ALIGNMENT >= 4)
+ #if (NOS_PORT_MEM_ALIGNMENT > 1)
+  #if (NOS_PORT_MEM_ALIGNMENT >= 4)
     else if ((uint32_t)buffer % NOS_PORT_MEM_ALIGNMENT != 0) {
         err = NOS_E_INV_VAL;
     }
-#else
+  #else
     else if ((uint16_t)buffer % NOS_PORT_MEM_ALIGNMENT != 0) {
         err = NOS_E_INV_VAL;
     }
-#endif
-#endif
+  #endif
+ #endif
     else if (bmax == 0) {
         err = NOS_E_INV_VAL;
     } else
@@ -323,6 +323,6 @@ bool nOS_MemIsAvailable (nOS_Mem *mem)
 }
 #endif  /* NOS_CONFIG_MEM_ENABLE */
 
-#if defined(__cplusplus)
+#ifdef __cplusplus
 }
 #endif

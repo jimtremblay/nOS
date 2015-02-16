@@ -9,12 +9,11 @@
 #ifndef NOSPORT_H
 #define NOSPORT_H
 
-#if defined(__cplusplus)
+#include <intrinsics.h>
+
+#ifdef __cplusplus
 extern "C" {
 #endif
-
-#include <stdint.h>
-#include <intrinsics.h>
 
 typedef uint8_t                 nOS_Stack;
 
@@ -24,36 +23,36 @@ typedef uint8_t                 nOS_Stack;
 
 #define NOS_PORT_SEPARATE_CALL_STACK
 
-#if defined(__HAS_RAMPZ__)
-#define PUSH_RAMPZ                                                              \
+#ifdef __HAS_RAMPZ__
+ #define PUSH_RAMPZ                                                             \
     "in     r0,     0x3B                \n"                                     \
     "st     -y,     r0                  \n"
 #else
-#define PUSH_RAMPZ
+ #define PUSH_RAMPZ
 #endif
 
 #if defined(__ATmega2560__) || defined(__ATmega2561__)
-#define PUSH_EIND                                                               \
+ #define PUSH_EIND                                                              \
     "in     r0,     0x3C                \n"                                     \
     "st     -y,     r0                  \n"
 #else
-#define PUSH_EIND
+ #define PUSH_EIND
 #endif
 
-#if defined(__HAS_RAMPZ__)
-#define POP_RAMPZ                                                               \
+#ifdef __HAS_RAMPZ__
+ #define POP_RAMPZ                                                              \
     "ld     r0,     y+                  \n"                                     \
     "out    0x3B,   r0                  \n"
 #else
-#define POP_RAMPZ
+ #define POP_RAMPZ
 #endif
 
 #if defined(__ATmega2560__) || defined(__ATmega2561__)
-#define POP_EIND                                                                \
+ #define POP_EIND                                                               \
     "ld     r0,     y+                  \n"                                     \
     "out    0x3C,   r0                  \n"
 #else
-#define POP_EIND
+ #define POP_EIND
 #endif
 
 #define nOS_CriticalEnter()                                                     \
@@ -184,7 +183,7 @@ void        nOS_ContextInit     (nOS_Thread *thread, nOS_Stack *stack, size_t ss
 /* Absolutely need a naked function because function call push the return address on the hardware stack */
 __task void nOS_ContextSwitch   (void);
 
-#if defined(__cplusplus)
+#ifdef __cplusplus
 }
 #endif
 

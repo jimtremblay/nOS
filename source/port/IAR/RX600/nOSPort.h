@@ -9,10 +9,9 @@
 #ifndef NOSPORT_H
 #define NOSPORT_H
 
-#include <stdint.h>
 #include <intrinsics.h>
 
-#if defined(__cplusplus)
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -24,7 +23,7 @@ typedef uint32_t                            nOS_Stack;
 
 #define NOS_PORT_SCHED_USE_32_BITS
 
-#if !defined(NOS_CONFIG_ISR_STACK_SIZE)
+#ifndef NOS_CONFIG_ISR_STACK_SIZE
  #define NOS_CONFIG_ISR_STACK_SIZE          128
  #warning "nOSConfig.h: NOS_CONFIG_ISR_STACK_SIZE is not defined (default to 128)."
 #else
@@ -33,7 +32,7 @@ typedef uint32_t                            nOS_Stack;
  #endif
 #endif
 
-#if !defined(NOS_CONFIG_MAX_UNSAFE_ISR_PRIO)
+#ifndef NOS_CONFIG_MAX_UNSAFE_ISR_PRIO
  #define NOS_CONFIG_MAX_UNSAFE_ISR_PRIO     4
  #warning "nOSConfig.h: NOS_CONFIG_MAX_UNSAFE_ISR_PRIO is not defined (default to 4)."
 #endif
@@ -68,13 +67,13 @@ __interrupt void vect##_ISR(void)                                               
 }                                                                               \
 inline void vect##_ISR_L2(void)
 
-#if defined(NOS_PRIVATE)
+#ifdef NOS_PRIVATE
 void    nOS_PortInit        (void);
 #endif
 
 void    nOS_ContextInit     (nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg);
 
-#if defined(__cplusplus)
+#ifdef __cplusplus
 }
 #endif
 

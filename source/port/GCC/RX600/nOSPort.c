@@ -9,7 +9,7 @@
 #define NOS_PRIVATE
 #include "nOS.h"
 
-#if defined(__cplusplus)
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -166,6 +166,6 @@ void INT_Excep_ICU_SWINT(void)
     );
 }
 
-#if defined(__cplusplus)
+#ifdef __cplusplus
 }
 #endif

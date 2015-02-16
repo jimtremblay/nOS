@@ -9,9 +9,7 @@
 #ifndef NOSPORT_H
 #define NOSPORT_H
 
-#include <stdint.h>
-
-#if defined(__cplusplus)
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -23,12 +21,11 @@ typedef uint32_t                            nOS_Stack;
 
 #define NOS_PORT_SCHED_USE_32_BITS
 
-#if !defined(NOS_CONFIG_MAX_UNSAFE_ISR_PRIO)
- #define NOS_CONFIG_MAX_UNSAFE_ISR_PRIO     4
- #warning "nOSConfig.h: NOS_CONFIG_MAX_UNSAFE_ISR_PRIO is not defined (default to 4)."
+#ifndef NOS_CONFIG_MAX_UNSAFE_ISR_PRIO
+ #error "nOSConfig.h: NOS_CONFIG_MAX_UNSAFE_ISR_PRIO is not defined."
+#else
+ #define NOS_PORT_MAX_UNSAFE_IPL            NOS_CONFIG_MAX_UNSAFE_ISR_PRIO
 #endif
-
-#define NOS_PORT_MAX_UNSAFE_IPL             NOS_CONFIG_MAX_UNSAFE_ISR_PRIO
 
 __attribute__( ( always_inline ) ) static inline uint32_t GetIPL(void)
 {
@@ -91,13 +88,13 @@ void vect(void)                                                                 
 }                                                                               \
 __attribute__ ( ( always_inline ) ) inline void vect##_ISR(void)
 
-#if defined(NOS_PRIVATE)
+#ifdef NOS_PRIVATE
 void    nOS_PortInit        (void);
 #endif
 
 void    nOS_ContextInit     (nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg);
 
-#if defined(__cplusplus)
+#ifdef __cplusplus
 }
 #endif
 

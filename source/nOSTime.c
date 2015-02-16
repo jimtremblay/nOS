@@ -9,28 +9,24 @@
 #define NOS_PRIVATE
 #include "nOS.h"
 
-#if defined(__cplusplus)
+#ifdef __cplusplus
 extern "C" {
 #endif
 
 #if (NOS_CONFIG_TIME_ENABLE > 0)
 
-#define DAYS_PER_YEAR(y)    (IsLeapYear(y)?366:365)
-#define DAYS_PER_MONTH(m,y) ((IsLeapYear(y)&&((m)==2))?29:daysPerMonth[(m)-1])
+#define IS_LEAP_YEAR(y)			(((((y) % 4) == 0) && (((y) % 100) != 0)) || (((y) % 400) == 0))
+#define DAYS_PER_YEAR(y)    (IS_LEAP_YEAR(y)?366:365)
+#define DAYS_PER_MONTH(m,y) ((IS_LEAP_YEAR(y)&&((m)==2))?29:daysPerMonth[(m)-1])
 
 #if (NOS_CONFIG_TIME_TICKS_PER_SECOND > 1)
-static uint16_t             timePrescaler;
+ static uint16_t            timePrescaler;
 #endif
 static nOS_Time             timeCounter;
 #if (NOS_CONFIG_TIME_WAIT_ENABLE > 0)
-static nOS_Event            timeEvent;
+ static nOS_Event           timeEvent;
 #endif
 static NOS_CONST uint8_t    daysPerMonth[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-
-static inline bool IsLeapYear (uint16_t year)
-{
-    return ((((year % 4) == 0) && ((year % 100) != 0)) || ((year % 400) == 0));
-}
 
 #if (NOS_CONFIG_TIME_WAIT_ENABLE > 0)
 static void TickTime(void *payload, void *arg)
@@ -54,11 +50,11 @@ void nOS_TimeInit (void)
 #endif
     timeCounter = 0;
 #if (NOS_CONFIG_TIME_WAIT_ENABLE > 0)
-#if (NOS_CONFIG_SAFE > 0)
+ #if (NOS_CONFIG_SAFE > 0)
     nOS_EventCreate(&timeEvent, NOS_EVENT_BASE);
-#else
+ #else
     nOS_EventCreate(&timeEvent);
-#endif
+ #endif
 #endif
 }
 
@@ -256,6 +252,6 @@ nOS_Error nOS_TimeDateWait (nOS_TimeDate *timedate)
 #endif
 #endif  /* NOS_CONFIG_TIME_ENABLE */
 
-#if defined(__cplusplus)
+#ifdef __cplusplus
 }
 #endif

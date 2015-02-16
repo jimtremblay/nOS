@@ -9,10 +9,9 @@
 #ifndef NOSPORT_H
 #define NOSPORT_H
 
-#include <stdint.h>
 #include <msp430.h>
 
-#if defined(__cplusplus)
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -22,8 +21,14 @@ typedef uint16_t                nOS_Stack;
 
 #define NOS_PORT_MEM_ALIGNMENT  2
 
-#if defined(__MSP430X__)
-#define nOS_ContextSave()                                                       \
+#ifdef NOS_CONFIG_ISR_STACK_SIZE
+ #if (NOS_CONFIG_ISR_STACK_SIZE == 0)
+  #error "nOSConfig.h: NOS_CONFIG_ISR_STACK_SIZE is set to invalid value: must be higher than 0."
+ #endif
+#endif
+
+#ifdef __MSP430X__
+ #define nOS_ContextSave()                                                      \
     asm volatile (                                                              \
         "push.w     sr                          \n"                             \
         "                                       \n"                             \
@@ -35,7 +40,7 @@ typedef uint16_t                nOS_Stack;
         "mov.w      sp,                 0(r12)  \n"                             \
     )
 
-#define nOS_ContextRestore()                                                    \
+ #define nOS_ContextRestore()                                                   \
     asm volatile (                                                              \
         /* Restore stack pointer from high prio thread structure */             \
         "mov.w      &nOS_runningThread, r12     \n"                             \
@@ -47,7 +52,7 @@ typedef uint16_t                nOS_Stack;
         "pop.w      sr                          \n"                             \
     )
 #else
-#define nOS_ContextSave()                                                       \
+ #define nOS_ContextSave()                                                      \
     asm volatile (                                                              \
         "push.w     sr                          \n"                             \
         "                                       \n"                             \
@@ -70,7 +75,7 @@ typedef uint16_t                nOS_Stack;
         "mov.w      sp,                 0(r12)  \n"                             \
     )
 
-#define nOS_ContextRestore()                                                    \
+ #define nOS_ContextRestore()                                                   \
     asm volatile (                                                              \
         /* Restore stack pointer from high prio thread structure */             \
         "mov.w      &nOS_runningThread, r12     \n"                             \
@@ -146,7 +151,7 @@ nOS_Stack*  nOS_IsrLeave        (nOS_Stack *sp);
 void        nOS_ContextInit     (nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg);
 void        nOS_ContextSwitch   (void) __attribute__ ((naked));
 
-#if defined(__cplusplus)
+#ifdef __cplusplus
 }
 #endif
 

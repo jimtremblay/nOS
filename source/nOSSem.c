@@ -9,7 +9,7 @@
 #define NOS_PRIVATE
 #include "nOS.h"
 
-#if defined(__cplusplus)
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -191,6 +191,6 @@ bool nOS_SemIsAvailable (nOS_Sem *sem)
 }
 #endif  /* NOS_CONFIG_SEM_ENABLE */
 
-#if defined(__cplusplus)
+#ifdef __cplusplus
 }
 #endif

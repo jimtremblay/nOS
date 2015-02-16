@@ -9,7 +9,7 @@
 #define NOS_PRIVATE
 #include "nOS.h"
 
-#if defined(__cplusplus)
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -86,6 +86,6 @@ void nOS_ListWalk (nOS_List *list, nOS_NodeHandler handler, void *arg)
     }
 }
 
-#if defined(__cplusplus)
+#ifdef __cplusplus
 }
 #endif

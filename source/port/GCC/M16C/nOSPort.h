@@ -9,9 +9,7 @@
 #ifndef NOSPORT_H
 #define NOSPORT_H
 
-#include <stdint.h>
-
-#if defined(__cplusplus)
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -25,12 +23,13 @@ typedef uint16_t                            nOS_Stack;
 #define NOS_PORT_SCHED_USE_16_BITS
 #define NOS_PORT_NO_CONST
 
-#if !defined(NOS_CONFIG_MAX_UNSAFE_ISR_PRIO)
- #define NOS_CONFIG_MAX_UNSAFE_ISR_PRIO     3
- #warning "nOSConfig.h: NOS_CONFIG_MAX_UNSAFE_ISR_PRIO is not defined (default to 3)."
+#ifndef NOS_CONFIG_MAX_UNSAFE_ISR_PRIO
+ #error "nOSConfig.h: NOS_CONFIG_MAX_UNSAFE_ISR_PRIO is not defined: must be set between 1 and 7 inclusively."
+#elif (NOS_CONFIG_MAX_UNSAFE_ISR_PRIO < 1) || (NOS_CONFIG_MAX_UNSAFE_ISR_PRIO > 7)
+ #error "nOSConfig.h: NOS_CONFIG_MAX_UNSAFE_ISR_PRIO is set to invalid value: must be set between 1 and 7 inclusively."
+#else
+ #define NOS_PORT_MAX_UNSAFE_IPL            NOS_CONFIG_MAX_UNSAFE_ISR_PRIO
 #endif
-
-#define NOS_PORT_MAX_UNSAFE_IPL             NOS_CONFIG_MAX_UNSAFE_ISR_PRIO
 
 __attribute__( ( always_inline ) ) static inline uint16_t GetIPL(void)
 {
@@ -130,9 +129,13 @@ void func##_L2(void)
 /* Unused function */
 #define nOS_PortInit()
 
-void    nOS_ContextInit     (nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg);
+void    nOS_ContextInit                 (nOS_Thread *thread, nOS_Stack *stack, size_t ssize,
+                                         nOS_ThreadEntry entry, void *arg);
 
-#if defined(__cplusplus)
+void    nOS_PortContextSwitch           (void) __attribute__ ((interrupt));
+void    nOS_PortContextSwitchFromIsr    (void) __attribute__ ((interrupt));
+
+#ifdef __cplusplus
 }
 #endif
 

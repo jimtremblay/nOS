@@ -9,7 +9,7 @@
 #define NOS_PRIVATE
 #include "nOS.h"
 
-#if defined(__cplusplus)
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -103,6 +103,6 @@ void nOS_IsrLeave (void)
     nOS_CriticalLeave();
 }
 
-#if defined(__cplusplus)
+#ifdef __cplusplus
 }
 #endif

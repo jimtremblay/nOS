@@ -1,0 +1,141 @@
+;/*********************************************************************
+;*
+;* Device     : M16C/60,30,20,10
+;*
+;* File Name  : ncrt0.a30
+;*
+;* Abstract   : Startup Program for M16C/60,30,20,10.
+;*
+;* History    : 1.20  (2009-01-27)
+;*
+;* Copyright (C) 2009 (2010) Renesas Electronics Corporation.
+;* and Renesas Solutions Corporation. All rights reserved.
+;*
+;*********************************************************************/
+
+;---------------------------------------------------------------------
+; include files
+;---------------------------------------------------------------------
+		.list		OFF
+		.include	nc_define.inc
+		.include	sect30.inc
+		.list		ON
+
+;---------------------------------------------------------------------
+; BankSelect definition for 4M mode
+;---------------------------------------------------------------------
+;		.glb		__BankSelect
+;__BankSelect	.equ	0BH
+
+;=====================================================================
+; Interrupt section start
+;---------------------------------------------------------------------
+		.insf		start,S,0
+		.glb		start
+		.section	interrupt
+start:
+;---------------------------------------------------------------------
+; after reset,this program will start
+;---------------------------------------------------------------------
+		ldc			#istack_top,isp			;set istack pointer
+		mov.b		#02h,0ah
+		mov.b		#00h,04h				;set processer mode 
+		mov.b		#00h,0ah
+.if __STACKSIZE__ != 0
+		ldc			#0080h,flg
+		ldc			#stack_top,sp			;set stack pointer 
+.else
+		ldc			#0000h,flg
+.endif
+		ldc			#data_SE_top,sb			;set sb register 
+		ldintb		#__VECTOR_ADR__
+
+;=====================================================================
+; NEAR area initialize.
+;---------------------------------------------------------------------
+; bss zero clear
+;---------------------------------------------------------------------
+		N_BZERO		bss_SE_top,bss_SE
+		N_BZERO		bss_SO_top,bss_SO
+		N_BZERO		bss_NE_top,bss_NE
+		N_BZERO		bss_NO_top,bss_NO
+
+;---------------------------------------------------------------------
+; initialize data section
+;---------------------------------------------------------------------
+		N_BCOPY		data_SEI_top,data_SE_top,data_SE
+		N_BCOPY		data_SOI_top,data_SO_top,data_SO
+		N_BCOPY		data_NEI_top,data_NE_top,data_NE
+		N_BCOPY		data_NOI_top,data_NO_top,data_NO
+
+;=====================================================================
+; FAR area initialize.
+;---------------------------------------------------------------------
+; bss zero clear
+;---------------------------------------------------------------------
+.if __FAR_RAM_FLG__ != 0
+		BZERO		bss_FE_top,bss_FE
+		BZERO		bss_FO_top,bss_FO
+.endif
+
+;---------------------------------------------------------------------
+; initialize data section
+;---------------------------------------------------------------------
+.if __FAR_RAM_FLG__ != 0
+		BCOPY		data_FEI_top,data_FE_top,data_FE
+		BCOPY		data_FOI_top,data_FO_top,data_FO
+.if __STACKSIZE__ != 0
+		ldc			#stack_top,sp
+.else
+		ldc			#istack_top,isp
+.endif
+		.stk		-40
+.endif
+
+;=====================================================================
+; heap area initialize
+;---------------------------------------------------------------------
+.if __HEAPSIZE__ != 0
+		.glb		__mnext
+		.glb		__msize
+		mov.w		#(heap_top&0FFFFH),__mnext
+		mov.w		#(heap_top>>16),__mnext+2
+		mov.w		#(__HEAPSIZE__&0FFFFH),__msize
+		mov.w		#(__HEAPSIZE__>>16),__msize+2
+.endif
+
+;=====================================================================
+; Initialize standard I/O
+;---------------------------------------------------------------------
+.if __STANDARD_IO__ == 1
+		.glb		__init
+		.call		__init,G
+		jsr.a		__init
+.endif
+
+;=====================================================================
+; Call main() function
+;---------------------------------------------------------------------
+		ldc			#0h,fb				; for debuger
+
+		.glb		_main
+		jsr.a		_main
+
+;=====================================================================
+; exit() function
+;---------------------------------------------------------------------
+		.glb		_exit
+		.glb		$exit
+_exit:									; End program
+$exit:
+		jmp			_exit
+		.einsf
+;=====================================================================
+; dummy interrupt function
+;---------------------------------------------------------------------
+		.glb		dummy_int
+dummy_int:
+		reit
+
+		.end
+

@@ -1,0 +1,21 @@
+-------- PROJECT GENERATOR --------
+PROJECT NAME :	HEW_NC30_RSKM16C29
+PROJECT DIRECTORY :	C:\Users\Jim\Projets\nOS\examples\HEW_NC30_RSKM16C29\HEW_NC30_RSKM16C29
+CPU SERIES :	M16C/Tiny
+CPU GROUP :	29
+TOOLCHAIN NAME :	Renesas M16C Standard Toolchain
+TOOLCHAIN VERSION :	5.45.01
+GENERATION FILES :
+    C:\Users\Jim\Projets\nOS\examples\HEW_NC30_RSKM16C29\HEW_NC30_RSKM16C29\HEW_NC30_RSKM16C29.c
+        main program file.
+    C:\Users\Jim\Projets\nOS\examples\HEW_NC30_RSKM16C29\HEW_NC30_RSKM16C29\nc_define.inc
+        interrupt program.
+START UP FILES :
+    C:\Users\Jim\Projets\nOS\examples\HEW_NC30_RSKM16C29\HEW_NC30_RSKM16C29\sect30.inc
+    C:\Users\Jim\Projets\nOS\examples\HEW_NC30_RSKM16C29\HEW_NC30_RSKM16C29\sfr29.inc
+    C:\Users\Jim\Projets\nOS\examples\HEW_NC30_RSKM16C29\HEW_NC30_RSKM16C29\sfr29.h
+    C:\Users\Jim\Projets\nOS\examples\HEW_NC30_RSKM16C29\HEW_NC30_RSKM16C29\ncrt0.a30
+
+SELECT TARGET :
+    M16C E8a SYSTEM
+DATE & TIME : 2015-02-15 14:21:57

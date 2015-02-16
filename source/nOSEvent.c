@@ -9,7 +9,7 @@
 #define NOS_PRIVATE
 #include "nOS.h"
 
-#if defined(__cplusplus)
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -94,6 +94,6 @@ nOS_Thread* nOS_EventSignal (nOS_Event *event, nOS_Error err)
     return thread;
 }
 
-#if defined(__cplusplus)
+#ifdef __cplusplus
 }
 #endif

@@ -9,10 +9,10 @@
 #ifndef NOSPORT_H
 #define NOSPORT_H
 
-#include <stdint.h>
+#include <avr/io.h>
 #include <avr/interrupt.h>
 
-#if defined(__cplusplus)
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -22,48 +22,54 @@ typedef uint8_t                 nOS_Stack;
 
 #define NOS_PORT_MEM_ALIGNMENT  1
 
-#if defined(__AVR_HAVE_RAMPZ__)
-#define PUSH_RAMPZ()                                                \
+#ifdef NOS_CONFIG_ISR_STACK_SIZE
+ #if (NOS_CONFIG_ISR_STACK_SIZE == 0)
+  #error "nOSConfig.h: NOS_CONFIG_ISR_STACK_SIZE is set to invalid value: must be higher than 0."
+ #endif
+#endif
+
+#ifdef __AVR_HAVE_RAMPZ__
+ #define PUSH_RAMPZ()                                               \
     asm volatile (                                                  \
         "in   r0, %[RAMPZ_ADDR]             \n"                     \
         "push r0                            \n"                     \
         :: [RAMPZ_ADDR] "I" (_SFR_IO_ADDR(RAMPZ))                   \
     )
 #else
-#define PUSH_RAMPZ()
+ #define PUSH_RAMPZ()
 #endif
 
-#if defined(__AVR_3_BYTE_PC__)
-#define PUSH_EIND()                                                 \
+#ifdef __AVR_3_BYTE_PC__
+ #define PUSH_EIND()                                                \
     asm volatile (                                                  \
         "in   r0, %[EIND_ADDR]              \n"                     \
         "push r0                            \n"                     \
         :: [EIND_ADDR] "I" (_SFR_IO_ADDR(EIND))                     \
     )
 #else
-#define PUSH_EIND()
+ #define PUSH_EIND()
 #endif
 
-#if defined(__AVR_HAVE_RAMPZ__)
-#define POP_RAMPZ()                                                 \
+#ifdef __AVR_HAVE_RAMPZ__
+ #define POP_RAMPZ()                                                \
     asm volatile (                                                  \
         "pop  r0                            \n"                     \
         "out  %[RAMPZ_ADDR], r0             \n"                     \
         :: [RAMPZ_ADDR] "I" (_SFR_IO_ADDR(RAMPZ))                   \
     )
 #else
-#define POP_RAMPZ()
+ #define POP_RAMPZ()
 #endif
 
-#if defined(__AVR_3_BYTE_PC__)
-#define POP_EIND()                                                  \
+#ifdef __AVR_3_BYTE_PC__
+ #define POP_EIND()                                                 \
     asm volatile (                                                  \
         "pop  r0                            \n"                     \
         "out  %[EIND_ADDR], r0              \n"                     \
         :: [EIND_ADDR] "I" (_SFR_IO_ADDR(EIND))                     \
     )
 #else
-#define POP_EIND()
+ #define POP_EIND()
 #endif
 
 #define nOS_CriticalEnter()                                         \
@@ -198,7 +204,7 @@ void    nOS_ContextInit     (nOS_Thread *thread, nOS_Stack *stack, size_t ssize,
 /* Absolutely need a naked function because function call push the return address on the stack */
 void    nOS_ContextSwitch   (void) __attribute__ ( ( naked ) );
 
-#if defined(__cplusplus)
+#ifdef __cplusplus
 }
 #endif
 

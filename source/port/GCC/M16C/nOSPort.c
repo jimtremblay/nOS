@@ -9,21 +9,25 @@
 #define NOS_PRIVATE
 #include "nOS.h"
 
-#if defined(__cplusplus)
+#ifdef __cplusplus
 extern "C" {
 #endif
-
-void nOS_PortContextSwitch(void) __attribute__ ((interrupt));
-void nOS_PortContextSwitchFromIsr(void) __attribute__ ((interrupt));
 
 void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg)
 {
     nOS_Stack *tos = (nOS_Stack*)((uint16_t)(stack + ssize) & 0xFFFE);
+#if (NOS_CONFIG_DEBUG > 0)
+    uint16_t i;
+
+    for (i = 0; i < ssize; i++) {
+        stack[i] = 0xFFFF;
+    }
+#endif
 
     /* FLG = 0x0C0 = interrupts enabled, USP stack pointer */
     *(--tos) = 0x00C0;
     *(--tos) = (nOS_Stack)entry;
-    
+
 #if (NOS_CONFIG_DEBUG > 0)
     *(--tos) = 0xFFFF;         /* FB */
     *(--tos) = 0xCCCC;         /* SB */
@@ -54,7 +58,7 @@ void nOS_IsrEnter (void)
 bool nOS_IsrLeave (void)
 {
     bool    swctx = false;
-    
+
     nOS_CriticalEnter();
     nOS_isrNestingCounter--;
     if (nOS_isrNestingCounter == 0) {
@@ -73,7 +77,7 @@ bool nOS_IsrLeave (void)
         }
     }
     nOS_CriticalLeave();
-    
+
     return swctx;
 }
 
@@ -104,12 +108,12 @@ void nOS_PortContextSwitchFromIsr(void)
     __asm volatile (
         /* Push all registers on thread stack */
     	"PUSHM  R0,R1,R2,R3,A0,A1,SB,FB                     \n"
-        
+
         /* Move PC and FLG from ISTACK to USTACK */
         "STC    ISP,                    A0                  \n"
         "MOV.W  0[A0],                  16[SP]              \n"
         "MOV.W  2[A0],                  18[SP]              \n"
-        
+
         /* Adjust ISTACK (remove PC and FLG) */
         "ADD.W  #4,                     A0                  \n"
         "LDC    A0,                     ISP                 \n"
@@ -130,6 +134,6 @@ void nOS_PortContextSwitchFromIsr(void)
     );
 }
 
-#if defined(__cplusplus)
+#ifdef __cplusplus
 }
 #endif

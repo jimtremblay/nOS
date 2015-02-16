@@ -9,12 +9,13 @@
 #ifndef NOSPORT_H
 #define NOSPORT_H
 
-#include <stdint.h>
 #include <intrinsics.h>
 
-#if defined(__cplusplus)
+#ifdef __cplusplus
 extern "C" {
 #endif
+
+#define NOS_UNUSED(v)           (void)v
 
 #if (__CORE__ == __430X__)
 #if (__DATA_MODEL__ == __DATA_MODEL_SMALL__)
@@ -32,7 +33,11 @@ typedef uint16_t                nOS_Stack;
 #define NOS_PORT_MEM_ALIGNMENT  2
 #endif
 
-#define NOS_UNUSED(v)           (void)v
+#ifdef NOS_CONFIG_ISR_STACK_SIZE
+ #if (NOS_CONFIG_ISR_STACK_SIZE == 0)
+  #error "nOSConfig.h: NOS_CONFIG_ISR_STACK_SIZE is set to invalid value: must be higher than 0."
+ #endif
+#endif
 
 #if (__DATA_MODEL__ == __DATA_MODEL_SMALL__)
 #define     PUSH_X              "PUSH.W"
@@ -155,7 +160,7 @@ __task void nOS_ContextSwitch   (void);
 nOS_Stack*  nOS_IsrEnter        (nOS_Stack *sp);
 nOS_Stack*  nOS_IsrLeave        (nOS_Stack *sp);
 
-#if defined(__cplusplus)
+#ifdef __cplusplus
 }
 #endif
 

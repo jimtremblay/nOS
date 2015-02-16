@@ -9,7 +9,7 @@
 #define NOS_PRIVATE
 #include "nOS.h"
 
-#if defined(__cplusplus)
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -29,7 +29,7 @@ void nOS_PortInit(void)
     __set_PSP(__get_MSP());
     /* Set MSP to local ISR stack */
     __set_MSP((uint32_t)&isrStack[NOS_CONFIG_ISR_STACK_SIZE] & 0xfffffff8UL);
-#if defined(__ARMVFP__)
+#ifdef __ARMVFP__
     /* Set current stack to PSP, privileged mode and save FPU state */
     __set_CONTROL(__get_CONTROL() | 0x00000006UL);
 #else
@@ -51,10 +51,10 @@ void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_Thr
     }
 #endif
 
-#if defined(__VFP_FP__) && !defined(__SOFTFP__)
+#if __ARMVFP__
         tos -= 1;
     *(--tos) = 0x00000000UL;    /* FPSCR */
-#if (NOS_CONFIG_DEBUG > 0)
+ #if (NOS_CONFIG_DEBUG > 0)
     *(--tos) = 0x15151515UL;    /* S15 */
     *(--tos) = 0x14141414UL;    /* S14 */
     *(--tos) = 0x13131313UL;    /* S13 */
@@ -71,9 +71,9 @@ void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_Thr
     *(--tos) = 0x02020202UL;    /* S2 */
     *(--tos) = 0x01010101UL;    /* S1 */
     *(--tos) = 0x00000000UL;    /* S0 */
-#else
+ #else
         tos -= 16;              /* S15 to S0 */
-#endif
+ #endif
 #endif
     *(--tos) = 0x01000000UL;    /* xPSR */
     *(--tos) = (nOS_Stack)entry;/* PC */
@@ -87,8 +87,8 @@ void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_Thr
         tos -= 4;               /* R12, R3, R2 and R1 */
 #endif
     *(--tos) = (nOS_Stack)arg;  /* R0 */
-#if defined(__VFP_FP__) && !defined(__SOFTFP__)
-#if (NOS_CONFIG_DEBUG > 0)
+#if __ARMVFP__
+ #if (NOS_CONFIG_DEBUG > 0)
     *(--tos) = 0x31313131UL;    /* S31 */
     *(--tos) = 0x30303030UL;    /* S30 */
     *(--tos) = 0x29292929UL;    /* S29 */
@@ -105,11 +105,11 @@ void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_Thr
     *(--tos) = 0x18181818UL;    /* S18 */
     *(--tos) = 0x17171717UL;    /* S17 */
     *(--tos) = 0x16161616UL;    /* S16 */
-#else
+ #else
         tos -= 16;              /* S31 to S16 */
+ #endif
 #endif
-#endif
-#if defined(__VFP_FP__) && !defined(__SOFTFP__)
+#if __ARMVFP__
     *(--tos) = 0xffffffedUL;    /* EXC_RETURN (Thread mode, use FP state from PSP, Thread use PSP */
 #else
     *(--tos) = 0xfffffffdUL;    /* EXC_RETURN (Thread mode, don't use FP state, Thread use PSP */
@@ -159,6 +159,6 @@ void nOS_IsrLeave (void)
     nOS_CriticalLeave();
 }
 
-#if defined(__cplusplus)
+#ifdef __cplusplus
 }
 #endif
