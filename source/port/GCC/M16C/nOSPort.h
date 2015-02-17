@@ -116,6 +116,7 @@ void func(void)                                                                 
                                                                                 \
         /* Call nOS_PortContextSwitchFromIsr */                                 \
         "INT    #33                         \n"                                 \
+        "NOP                                \n"                                 \
                                                                                 \
         /* NO, We DON'T need to switch context */                               \
                                                                                 \

@@ -7,52 +7,50 @@
 ;
 
     .SECTION    program,CODE,ALIGN
-    
+
     .GLB        _nOS_PortGetIPL
     .GLB        $nOS_PortSetIPL
     .GLB        _nOS_PortContextSwitch
     .GLB        _nOS_PortContextSwitchFromIsr
-    
+
     .GLB        _nOS_runningThread
     .GLB        _nOS_highPrioThread
 
 _nOS_PortGetIPL:
     ; Copy FLG register into working register
     STC     FLG,    R0
-    
+
+    ; Move 4 high-order bits to 4 low-order bits
+    MOVHL   R0H,    R0L
+
     ; Keep only IPL bits from FLG register
-    AND.W   #7000H, R0
-    
-    ; Right shift 12 bits to keep only IPL
-    SHL.W   #-8,    R0
-    SHL.W   #-4,    R0
-    
+    AND.B   #7, R0L
+
     ; Return from subroutine
     RTS
     NOP
-    
+
 $nOS_PortSetIPL:
+    ; Transfer working register
+    MOV.B   R1L,    R0L
+
     ; Copy FLG register into working register
-    STC     FLG,    R0
-    
-    ; Clear IPL bits from FLG register and keep other flags
-    AND.W   #8FFFH, R0
-    
-    ; Left shift first argument by 12 bits
-    SHL.W   #8,     R1
-    SHL.W   #4,     R1
-    
-    ; Add first argument to copy of FLG register
-    OR.W    R1,     R0
-    
+    STC     FLG,    R1
+
+    ; Clear IPL bits from FLG register
+    MOV.B   #0,     R1H
+
+    ; Move 4 low-order bits to 4 high-order bits
+    MOVLH   R0L,    R1H
+
     ; Copy working register into FLG register
-    LDC     R0,     FLG
+    LDC     R1,     FLG
     NOP
-    
+
     ; Return from subroutine
     RTS
     NOP
-    
+
 _nOS_PortContextSwitch:
     ; Push all registers on thread stack
     PUSHM   R0,R1,R2,R3,A0,A1,SB,FB
@@ -70,11 +68,11 @@ _nOS_PortContextSwitch:
 
     ; Pop all registers from thread stack
     POPM    R0,R1,R2,R3,A0,A1,SB,FB
-        
+
     ; Return from interrupt
     REIT
     NOP
-    
+
 _nOS_PortContextSwitchFromIsr:
     ; Push all registers on thread stack
     PUSHM   R0,R1,R2,R3,A0,A1,SB,FB
@@ -101,9 +99,9 @@ _nOS_PortContextSwitchFromIsr:
 
     ; Pop all registers from thread stack
     POPM    R0,R1,R2,R3,A0,A1,SB,FB
-    
+
     ; Return from interrupt
     REIT
     NOP
-    
+
     .END

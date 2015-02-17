@@ -30,12 +30,12 @@ typedef uint16_t                            nOS_Stack;
  #define NOS_PORT_MAX_UNSAFE_IPL            NOS_CONFIG_MAX_UNSAFE_ISR_PRIO
 #endif
 
-uint16_t    nOS_PortGetIPL  (void);
-void        nOS_PortSetIPL  (uint16_t ipl);
+uint8_t     nOS_PortGetIPL  (void);
+void        nOS_PortSetIPL  (uint8_t ipl);
 
 #define nOS_CriticalEnter()                                                     \
 {                                                                               \
-    uint16_t _ipl = nOS_PortGetIPL();                                           \
+    uint8_t _ipl = nOS_PortGetIPL();                                            \
     if (_ipl < NOS_PORT_MAX_UNSAFE_IPL) {                                       \
         asm("LDIPL  #"NOS_STR(NOS_PORT_MAX_UNSAFE_IPL)" \n"                     \
             "NOP                                        \n"                     \
