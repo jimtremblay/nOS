@@ -264,7 +264,7 @@ nOS_Error nOS_MutexUnlock (nOS_Mutex *mutex)
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
                     ChangeThreadPrio(mutex->owner, mutex->backup);
 #endif
-                    thread = nOS_EventSignal((nOS_Event*)mutex, NOS_OK);
+                    thread = nOS_EventSend((nOS_Event*)mutex, NOS_OK);
                     if (thread != NULL) {
 #if (NOS_CONFIG_MUTEX_RECURSIVE_ENABLE > 0)
                         mutex->count++;

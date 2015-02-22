@@ -744,7 +744,7 @@ nOS_Thread*     nOS_ThreadRunning           (void);
  void           nOS_EventDelete             (nOS_Event *event);
 #endif
 nOS_Error       nOS_EventWait               (nOS_Event *event, uint8_t state, nOS_TickCounter tout);
-nOS_Thread*     nOS_EventSignal             (nOS_Event *event, nOS_Error err);
+nOS_Thread*     nOS_EventSend               (nOS_Event *event, nOS_Error err);
 
 #if (NOS_CONFIG_SEM_ENABLE > 0)
  nOS_Error      nOS_SemCreate               (nOS_Sem *sem, nOS_SemCounter cntr, nOS_SemCounter max);

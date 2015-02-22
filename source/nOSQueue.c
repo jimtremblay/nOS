@@ -120,7 +120,7 @@ nOS_Error nOS_QueueRead (nOS_Queue *queue, void *buffer, nOS_TickCounter tout)
         if (queue->bcount > 0) {
             Read(queue, buffer);
             /* Check if thread waiting to write in queue */
-            thread = nOS_EventSignal((nOS_Event*)queue, NOS_OK);
+            thread = nOS_EventSend((nOS_Event*)queue, NOS_OK);
             if (thread != NULL) {
                 /* Write thread's buffer in queue */
                 Write(queue, thread->context);
@@ -172,7 +172,7 @@ nOS_Error nOS_QueueWrite (nOS_Queue *queue, void *buffer, nOS_TickCounter tout)
         /* If count equal 0, there are chances some threads can wait to read from queue */
         if (queue->bcount == 0) {
             /* Check if thread waiting to read from queue */
-            thread = nOS_EventSignal((nOS_Event*)queue, NOS_OK);
+            thread = nOS_EventSend((nOS_Event*)queue, NOS_OK);
             if (thread != NULL) {
                 /* Direct copy between thread's buffers */
                 memcpy(thread->context, buffer, queue->bsize);
