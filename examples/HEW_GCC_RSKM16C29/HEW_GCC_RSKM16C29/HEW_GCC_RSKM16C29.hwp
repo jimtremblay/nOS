@@ -157,28 +157,28 @@
 [OPTIONS_Debug_GNU Assembler]
 "Assembly source file" "008eee2ec6840d10" 4 
 [OPTIONS_Debug_GNU Compiler]
-"C source file" "08b4538bd6840d10" 2 
-"C++ source file" "08b4538bd6840d10" 2 
-"C:\Users\Jim\Projets\nOS\examples\HEW_GCC_RSKM16C29\HEW_GCC_RSKM16C29\fix_inthandler.c" "08b4538bd6840d10" 2 
-"C:\Users\Jim\Projets\nOS\examples\HEW_GCC_RSKM16C29\HEW_GCC_RSKM16C29\fixed_vects.asm" "08b4538bd6840d10" 3 
-"C:\Users\Jim\Projets\nOS\examples\HEW_GCC_RSKM16C29\HEW_GCC_RSKM16C29\hwinit.c" "08b4538bd6840d10" 2 
-"C:\Users\Jim\Projets\nOS\examples\HEW_GCC_RSKM16C29\HEW_GCC_RSKM16C29\main.c" "0a081eedd6840d10" 2 
-"C:\Users\Jim\Projets\nOS\examples\HEW_GCC_RSKM16C29\HEW_GCC_RSKM16C29\start.asm" "08b4538bd6840d10" 3 
-"C:\Users\Jim\Projets\nOS\examples\HEW_GCC_RSKM16C29\HEW_GCC_RSKM16C29\var_inthandler.c" "08b4538bd6840d10" 2 
-"C:\Users\Jim\Projets\nOS\examples\HEW_GCC_RSKM16C29\HEW_GCC_RSKM16C29\var_vects.asm" "08b4538bd6840d10" 3 
-"C:\Users\Jim\Projets\nOS\source\nOSEvent.c" "08b4538bd6840d10" 2 
-"C:\Users\Jim\Projets\nOS\source\nOSFlag.c" "08b4538bd6840d10" 2 
-"C:\Users\Jim\Projets\nOS\source\nOSList.c" "08b4538bd6840d10" 2 
-"C:\Users\Jim\Projets\nOS\source\nOSMem.c" "08b4538bd6840d10" 2 
-"C:\Users\Jim\Projets\nOS\source\nOSMutex.c" "08b4538bd6840d10" 2 
-"C:\Users\Jim\Projets\nOS\source\nOSQueue.c" "08b4538bd6840d10" 2 
-"C:\Users\Jim\Projets\nOS\source\nOSSched.c" "08b4538bd6840d10" 2 
-"C:\Users\Jim\Projets\nOS\source\nOSSem.c" "08b4538bd6840d10" 2 
-"C:\Users\Jim\Projets\nOS\source\nOSThread.c" "08b4538bd6840d10" 2 
-"C:\Users\Jim\Projets\nOS\source\nOSTime.c" "08b4538bd6840d10" 2 
-"C:\Users\Jim\Projets\nOS\source\nOSTimer.c" "08b4538bd6840d10" 2 
-"C:\Users\Jim\Projets\nOS\source\port\GCC\M16C\nOSPort.c" "08b4538bd6840d10" 2 
-"Preprocess Assembly file" "08b4538bd6840d10" 3 
+"C source file" "0b9a01acf0e40d10" 2 
+"C++ source file" "0b9a01acf0e40d10" 2 
+"C:\Users\Jim\Projets\nOS\examples\HEW_GCC_RSKM16C29\HEW_GCC_RSKM16C29\fix_inthandler.c" "0b9a01acf0e40d10" 2 
+"C:\Users\Jim\Projets\nOS\examples\HEW_GCC_RSKM16C29\HEW_GCC_RSKM16C29\fixed_vects.asm" "0b9a01acf0e40d10" 3 
+"C:\Users\Jim\Projets\nOS\examples\HEW_GCC_RSKM16C29\HEW_GCC_RSKM16C29\hwinit.c" "0b9a01acf0e40d10" 2 
+"C:\Users\Jim\Projets\nOS\examples\HEW_GCC_RSKM16C29\HEW_GCC_RSKM16C29\main.c" "0b9a01acf0e40d10" 2 
+"C:\Users\Jim\Projets\nOS\examples\HEW_GCC_RSKM16C29\HEW_GCC_RSKM16C29\start.asm" "0b9a01acf0e40d10" 3 
+"C:\Users\Jim\Projets\nOS\examples\HEW_GCC_RSKM16C29\HEW_GCC_RSKM16C29\var_inthandler.c" "0b9a01acf0e40d10" 2 
+"C:\Users\Jim\Projets\nOS\examples\HEW_GCC_RSKM16C29\HEW_GCC_RSKM16C29\var_vects.asm" "0b9a01acf0e40d10" 3 
+"C:\Users\Jim\Projets\nOS\source\nOSEvent.c" "0b9a01acf0e40d10" 2 
+"C:\Users\Jim\Projets\nOS\source\nOSFlag.c" "0b9a01acf0e40d10" 2 
+"C:\Users\Jim\Projets\nOS\source\nOSList.c" "0b9a01acf0e40d10" 2 
+"C:\Users\Jim\Projets\nOS\source\nOSMem.c" "0b9a01acf0e40d10" 2 
+"C:\Users\Jim\Projets\nOS\source\nOSMutex.c" "0b9a01acf0e40d10" 2 
+"C:\Users\Jim\Projets\nOS\source\nOSQueue.c" "0b9a01acf0e40d10" 2 
+"C:\Users\Jim\Projets\nOS\source\nOSSched.c" "0b9a01acf0e40d10" 2 
+"C:\Users\Jim\Projets\nOS\source\nOSSem.c" "0b9a01acf0e40d10" 2 
+"C:\Users\Jim\Projets\nOS\source\nOSThread.c" "0b9a01acf0e40d10" 2 
+"C:\Users\Jim\Projets\nOS\source\nOSTime.c" "0b9a01acf0e40d10" 2 
+"C:\Users\Jim\Projets\nOS\source\nOSTimer.c" "0b9a01acf0e40d10" 2 
+"C:\Users\Jim\Projets\nOS\source\port\GCC\M16C\nOSPort.c" "0b9a01acf0e40d10" 2 
+"Preprocess Assembly file" "0b9a01acf0e40d10" 3 
 [OPTIONS_Debug_GNU Library Generator]
 "Single Shot" "008eee2ec6840d10" 1 
 [OPTIONS_Debug_GNU Linker]
@@ -186,9 +186,9 @@
 [OPTIONS_Debug]
 "" 0 
 "[V|VERSION|2] [S|ENDIAN|LITTLE] [S|OUTPUTPATH|^"$(CONFIGDIR)\lib$(PROJECTNAME).a^"] [B|OPTIMIZE|1] [I|OPTTYPE|2] [S|MODE|BUILD/CHANGED] [S|CPUTYPE|M16C/Tiny] [B|DOPROJBUILT|1] [B|DOOPTLIB|0] [B|STDIO|1] [B|STDLIB|1] [B|STRING|1] " 1 
-"[V|VERSION|2] [S|INCDIR|^"$(TCINSTALL)\m32c-elf\m32c-elf\include^"|^"$(TCINSTALL)\m32c-elf\lib\gcc\m32c-elf\4.5-GNUM16CM32C_v11.01\include^"|^"$(PROJDIR)\.^"|^"$(PROJDIR)\..\..\..\source^"|^"$(PROJDIR)\..\..\..\source\port\GCC\M16C^"] [S|DEFINES|DEBUG] [S|OUTPUT|OBJECT] [S|OBJPATH|^"$(CONFIGDIR)\$(FILELEAF).o^"] [B|DEBUG|1] [S|DEBUGFT|Native] [I|DEBUGLV|2] [S|ALIGN4|ALL] [B|OPTIMIZE|0] [I|OPTLV|2] [S|APPTXT|^"-Wa,-gdwarf2^"] [S|CPUTYPE|M16C/Tiny] [S|ENDIAN|LITTLE] [S|PROJECTTYPE|CAPPPROJECT] [B|DOOPTLIB|0]
+"[V|VERSION|2] [S|INCDIR|^"$(TCINSTALL)\m32c-elf\m32c-elf\include^"|^"$(TCINSTALL)\m32c-elf\lib\gcc\m32c-elf\4.5-GNUM16CM32C_v11.01\include^"|^"$(PROJDIR)\.^"|^"$(PROJDIR)\..\..\..\include^"|^"$(PROJDIR)\..\..\..\include\port\GCC\M16C^"] [S|DEFINES|DEBUG] [S|OUTPUT|OBJECT] [S|OBJPATH|^"$(CONFIGDIR)\$(FILELEAF).o^"] [B|DEBUG|1] [S|DEBUGFT|Native] [I|DEBUGLV|2] [S|ALIGN4|ALL] [B|OPTIMIZE|0] [I|OPTLV|2] [S|APPTXT|^"-Wa,-gdwarf2^"] [S|CPUTYPE|M16C/Tiny] [S|ENDIAN|LITTLE] [S|PROJECTTYPE|CAPPPROJECT] [B|DOOPTLIB|0]
 " 3 
-"[V|VERSION|2] [S|INCDIR|^"$(TCINSTALL)\m32c-elf\m32c-elf\include^"|^"$(TCINSTALL)\m32c-elf\lib\gcc\m32c-elf\4.5-GNUM16CM32C_v11.01\include^"|^"$(PROJDIR)\.^"|^"$(PROJDIR)\..\..\..\source^"|^"$(PROJDIR)\..\..\..\source\port\GCC\M16C^"] [S|DEFINES|DEBUG] [S|OUTPUT|OBJECT] [S|OBJPATH|^"$(CONFIGDIR)\$(FILELEAF).o^"] [B|DEBUG|1] [S|DEBUGFT|Native] [I|DEBUGLV|2] [S|ALIGN4|ALL] [B|OPTIMIZE|0] [I|OPTLV|2] [S|CPUTYPE|M16C/Tiny] [S|ENDIAN|LITTLE] [S|PROJECTTYPE|CAPPPROJECT] [B|DOOPTLIB|0]
+"[V|VERSION|2] [S|INCDIR|^"$(TCINSTALL)\m32c-elf\m32c-elf\include^"|^"$(TCINSTALL)\m32c-elf\lib\gcc\m32c-elf\4.5-GNUM16CM32C_v11.01\include^"|^"$(PROJDIR)\.^"|^"$(PROJDIR)\..\..\..\include^"|^"$(PROJDIR)\..\..\..\include\port\GCC\M16C^"] [S|DEFINES|DEBUG] [S|OUTPUT|OBJECT] [S|OBJPATH|^"$(CONFIGDIR)\$(FILELEAF).o^"] [B|DEBUG|1] [S|DEBUGFT|Native] [I|DEBUGLV|2] [S|ALIGN4|ALL] [B|OPTIMIZE|0] [I|OPTLV|2] [S|CPUTYPE|M16C/Tiny] [S|ENDIAN|LITTLE] [S|PROJECTTYPE|CAPPPROJECT] [B|DOOPTLIB|0]
 " 2 
 "[V|VERSION|2] [S|OBJPATH|^"$(CONFIGDIR)\$(FILELEAF).o^"] [S|ENDIAN|LITTLE] [I|DEBUGLV|2] [B|LINCHLS|1] [B|LINCASS|1] [B|LINCSYM|1] [S|LFILE|^"$(CONFIGDIR)\$(FILELEAF).^"] [S|PROJECTTYPE|CAPPPROJECT] [S|CPUTYPE|M16C/Tiny] [S|INCDIR|^"$(PROJDIR)^"] " 4 
 "[V|VERSION|2] [S|PROJECTTYPE|CAPPPROJECT] [S|ENDIAN|LITTLE] [S|OUTFORM|BOTH] [B|MFILEGEN|1] [S|PLMFILE|^"$(CONFIGDIR)\$(PROJECTNAME).map^"] [S|APPTXT|^"-e _start^"] [S|OUTFILE|^"$(CONFIGDIR)\$(PROJECTNAME).x^"] [B|RSARCH|1] [B|SUBCOMMAND|0] [S|CPUTYPE|M16C/Tiny] [B|DOOPTLIB|0] [B|DOPROJBUILT|1] [B|FIXUPLIBS|1] [S|INCDIR|^"$(TCINSTALL)\m32c-elf\lib\gcc\m32c-elf\4.5-GNUM16CM32C_v11.01\m16c^"|^"$(CONFIGDIR)^"] [S|ARCHIVE|libHEW_GCC_RSKM16C29.a*libgcc.a] [S|GROUPDET|.data|0|2|_mdata|1|0x00000400|0|0|1|_data|<<FEND>>|0|.data|All-files|<<FEND>>|0|.data.*|All-files|<<FEND>>|0|.ndata|All-files|<<FEND>>|0|.ndata.*|All-files|<<FEND>>|0|.plt|All-files|<<FEND>>|1|_edata|<<FEND>>|<<CEND>>|<<GEND>>|.bss|0|0||0||0|0|1|_bss|<<FEND>>|0|.bss|All-files|<<FEND>>|0|.bss.*|All-files|<<FEND>>|0|COMMON|All-files|<<FEND>>|0|.nbss|All-files|<<FEND>>|1|_ebss|<<FEND>>|1|_end|<<FEND>>|<<CEND>>|<<GEND>>|.ustack|0|0||1|0x00000D00|0|0|1|_ustack|<<FEND>>|<<CEND>>|<<GEND>>|.istack|0|0||1|0x00000F00|0|0|1|_istack|<<FEND>>|<<CEND>>|<<GEND>>|.nrodata|0|0||1|0x0000F000|0|0|1|_nrodata|<<FEND>>|0|.nrodata|All-files|<<FEND>>|0|.nrodata.*|All-files|<<FEND>>|1|_enrodata|<<FEND>>|<<CEND>>|<<GEND>>|.fdata|0|2|_mdata+SIZEOF(.data)|1|0x00028000|0|0|1|_fdata|<<FEND>>|0|.fdata|All-files|<<FEND>>|0|.fdata.*|All-files|<<FEND>>|1|_efdata|<<FEND>>|<<CEND>>|<<GEND>>|.fbss|0|0||0||0|1|_fbss|<<FEND>>|0|.fbss|All-files|<<FEND>>|0|.fbss.*|All-files|<<FEND>>|1|_efbss|<<FEND>>|<<CEND>>|<<GEND>>|.text|0|0||1|0x000E0000|0|0|0|.text|All-files|<<FEND>>|0|.text.*|All-files|<<FEND>>|1|etext|<<FEND>>|<<CEND>>|<<GEND>>|.rodata|0|0||0||0|0|1|_rodata|<<FEND>>|0|.rodata|All-files|<<FEND>>|0|.rodata.*|All-files|<<FEND>>|0|.frodata|All-files|<<FEND>>|1|_erodata|<<FEND>>|<<CEND>>|<<GEND>>|.init|0|0||0||0|0|0|.init|All-files|<<FEND>>|<<CEND>>|<<GEND>>|.fini|0|0||0||0|0|0|.fini|All-files|<<FEND>>|<<CEND>>|<<GEND>>|.got|0|0||0||0|0|0|.got|All-files|<<FEND>>|0|.got.plt|All-files|<<FEND>>|<<CEND>>|<<GEND>>|.eh_frame_hdr|0|0||0||0|0|0|.eh_frame_hdr|All-files|<<FEND>>|<<CEND>>|<<GEND>>|.eh_frame|0|0||0||0|0|0|.eh_frame|All-files|<<FEND>>|<<CEND>>|<<GEND>>|.jcr|0|0||0||0|0|0|.jcr|All-files|<<FEND>>|<<CEND>>|<<GEND>>|.tors|0|0||0||0|0|1|__CTOR_LIST__|<<FEND>>|1|___ctors|<<FEND>>|0|.ctors|All-files|<<FEND>>|1|___ctors_end|<<FEND>>|1|__CTOR_END__|<<FEND>>|1|__DTOR_LIST__|<<FEND>>|1|___dtors|<<FEND>>|0|.dtors|All-files|<<FEND>>|1|___dtors_end|<<FEND>>|1|__DTOR_END__|<<FEND>>|1|_mdata|<<FEND>>|<<CEND>>|<<GEND>>|.var_vects|0|0||1|0x000FFD00|0|1|0|.var_vects|All-files|<<FEND>>|<<CEND>>|<<GEND>>|.vects|0|0||1|0x000FFFDC|0|1|0|.vects|All-files|<<FEND>>|<<CEND>>|<<GEND>>|] " 5 

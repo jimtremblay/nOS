@@ -86,91 +86,91 @@ ${OBJECTDIR}/_ext/870914629/nOSEvent.o: ../../source/nOSEvent.c  nbproject/Makef
 	@${MKDIR} ${OBJECTDIR}/_ext/870914629 
 	@${RM} ${OBJECTDIR}/_ext/870914629/nOSEvent.o.d 
 	@${RM} ${OBJECTDIR}/_ext/870914629/nOSEvent.o 
-	${MP_CC} $(MP_EXTRA_CC_PRE)  ../../source/nOSEvent.c  -o ${OBJECTDIR}/_ext/870914629/nOSEvent.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/_ext/870914629/nOSEvent.o.d"      -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1    -omf=elf -O0 -I"." -I"../../source" -I"../../source/port/XC16/PIC24" -msmart-io=1 -Wall -msfr-warn=off
+	${MP_CC} $(MP_EXTRA_CC_PRE)  ../../source/nOSEvent.c  -o ${OBJECTDIR}/_ext/870914629/nOSEvent.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/_ext/870914629/nOSEvent.o.d"      -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1    -omf=elf -O0 -I"." -I"../../include" -I"../../include/port/XC16/PIC24" -msmart-io=1 -Wall -msfr-warn=off
 	@${FIXDEPS} "${OBJECTDIR}/_ext/870914629/nOSEvent.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
 ${OBJECTDIR}/_ext/870914629/nOSFlag.o: ../../source/nOSFlag.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/870914629 
 	@${RM} ${OBJECTDIR}/_ext/870914629/nOSFlag.o.d 
 	@${RM} ${OBJECTDIR}/_ext/870914629/nOSFlag.o 
-	${MP_CC} $(MP_EXTRA_CC_PRE)  ../../source/nOSFlag.c  -o ${OBJECTDIR}/_ext/870914629/nOSFlag.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/_ext/870914629/nOSFlag.o.d"      -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1    -omf=elf -O0 -I"." -I"../../source" -I"../../source/port/XC16/PIC24" -msmart-io=1 -Wall -msfr-warn=off
+	${MP_CC} $(MP_EXTRA_CC_PRE)  ../../source/nOSFlag.c  -o ${OBJECTDIR}/_ext/870914629/nOSFlag.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/_ext/870914629/nOSFlag.o.d"      -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1    -omf=elf -O0 -I"." -I"../../include" -I"../../include/port/XC16/PIC24" -msmart-io=1 -Wall -msfr-warn=off
 	@${FIXDEPS} "${OBJECTDIR}/_ext/870914629/nOSFlag.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
 ${OBJECTDIR}/_ext/870914629/nOSList.o: ../../source/nOSList.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/870914629 
 	@${RM} ${OBJECTDIR}/_ext/870914629/nOSList.o.d 
 	@${RM} ${OBJECTDIR}/_ext/870914629/nOSList.o 
-	${MP_CC} $(MP_EXTRA_CC_PRE)  ../../source/nOSList.c  -o ${OBJECTDIR}/_ext/870914629/nOSList.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/_ext/870914629/nOSList.o.d"      -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1    -omf=elf -O0 -I"." -I"../../source" -I"../../source/port/XC16/PIC24" -msmart-io=1 -Wall -msfr-warn=off
+	${MP_CC} $(MP_EXTRA_CC_PRE)  ../../source/nOSList.c  -o ${OBJECTDIR}/_ext/870914629/nOSList.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/_ext/870914629/nOSList.o.d"      -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1    -omf=elf -O0 -I"." -I"../../include" -I"../../include/port/XC16/PIC24" -msmart-io=1 -Wall -msfr-warn=off
 	@${FIXDEPS} "${OBJECTDIR}/_ext/870914629/nOSList.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
 ${OBJECTDIR}/_ext/870914629/nOSMem.o: ../../source/nOSMem.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/870914629 
 	@${RM} ${OBJECTDIR}/_ext/870914629/nOSMem.o.d 
 	@${RM} ${OBJECTDIR}/_ext/870914629/nOSMem.o 
-	${MP_CC} $(MP_EXTRA_CC_PRE)  ../../source/nOSMem.c  -o ${OBJECTDIR}/_ext/870914629/nOSMem.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/_ext/870914629/nOSMem.o.d"      -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1    -omf=elf -O0 -I"." -I"../../source" -I"../../source/port/XC16/PIC24" -msmart-io=1 -Wall -msfr-warn=off
+	${MP_CC} $(MP_EXTRA_CC_PRE)  ../../source/nOSMem.c  -o ${OBJECTDIR}/_ext/870914629/nOSMem.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/_ext/870914629/nOSMem.o.d"      -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1    -omf=elf -O0 -I"." -I"../../include" -I"../../include/port/XC16/PIC24" -msmart-io=1 -Wall -msfr-warn=off
 	@${FIXDEPS} "${OBJECTDIR}/_ext/870914629/nOSMem.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
 ${OBJECTDIR}/_ext/870914629/nOSMutex.o: ../../source/nOSMutex.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/870914629 
 	@${RM} ${OBJECTDIR}/_ext/870914629/nOSMutex.o.d 
 	@${RM} ${OBJECTDIR}/_ext/870914629/nOSMutex.o 
-	${MP_CC} $(MP_EXTRA_CC_PRE)  ../../source/nOSMutex.c  -o ${OBJECTDIR}/_ext/870914629/nOSMutex.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/_ext/870914629/nOSMutex.o.d"      -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1    -omf=elf -O0 -I"." -I"../../source" -I"../../source/port/XC16/PIC24" -msmart-io=1 -Wall -msfr-warn=off
+	${MP_CC} $(MP_EXTRA_CC_PRE)  ../../source/nOSMutex.c  -o ${OBJECTDIR}/_ext/870914629/nOSMutex.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/_ext/870914629/nOSMutex.o.d"      -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1    -omf=elf -O0 -I"." -I"../../include" -I"../../include/port/XC16/PIC24" -msmart-io=1 -Wall -msfr-warn=off
 	@${FIXDEPS} "${OBJECTDIR}/_ext/870914629/nOSMutex.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
 ${OBJECTDIR}/_ext/870914629/nOSQueue.o: ../../source/nOSQueue.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/870914629 
 	@${RM} ${OBJECTDIR}/_ext/870914629/nOSQueue.o.d 
 	@${RM} ${OBJECTDIR}/_ext/870914629/nOSQueue.o 
-	${MP_CC} $(MP_EXTRA_CC_PRE)  ../../source/nOSQueue.c  -o ${OBJECTDIR}/_ext/870914629/nOSQueue.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/_ext/870914629/nOSQueue.o.d"      -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1    -omf=elf -O0 -I"." -I"../../source" -I"../../source/port/XC16/PIC24" -msmart-io=1 -Wall -msfr-warn=off
+	${MP_CC} $(MP_EXTRA_CC_PRE)  ../../source/nOSQueue.c  -o ${OBJECTDIR}/_ext/870914629/nOSQueue.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/_ext/870914629/nOSQueue.o.d"      -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1    -omf=elf -O0 -I"." -I"../../include" -I"../../include/port/XC16/PIC24" -msmart-io=1 -Wall -msfr-warn=off
 	@${FIXDEPS} "${OBJECTDIR}/_ext/870914629/nOSQueue.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
 ${OBJECTDIR}/_ext/870914629/nOSSched.o: ../../source/nOSSched.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/870914629 
 	@${RM} ${OBJECTDIR}/_ext/870914629/nOSSched.o.d 
 	@${RM} ${OBJECTDIR}/_ext/870914629/nOSSched.o 
-	${MP_CC} $(MP_EXTRA_CC_PRE)  ../../source/nOSSched.c  -o ${OBJECTDIR}/_ext/870914629/nOSSched.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/_ext/870914629/nOSSched.o.d"      -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1    -omf=elf -O0 -I"." -I"../../source" -I"../../source/port/XC16/PIC24" -msmart-io=1 -Wall -msfr-warn=off
+	${MP_CC} $(MP_EXTRA_CC_PRE)  ../../source/nOSSched.c  -o ${OBJECTDIR}/_ext/870914629/nOSSched.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/_ext/870914629/nOSSched.o.d"      -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1    -omf=elf -O0 -I"." -I"../../include" -I"../../include/port/XC16/PIC24" -msmart-io=1 -Wall -msfr-warn=off
 	@${FIXDEPS} "${OBJECTDIR}/_ext/870914629/nOSSched.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
 ${OBJECTDIR}/_ext/870914629/nOSSem.o: ../../source/nOSSem.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/870914629 
 	@${RM} ${OBJECTDIR}/_ext/870914629/nOSSem.o.d 
 	@${RM} ${OBJECTDIR}/_ext/870914629/nOSSem.o 
-	${MP_CC} $(MP_EXTRA_CC_PRE)  ../../source/nOSSem.c  -o ${OBJECTDIR}/_ext/870914629/nOSSem.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/_ext/870914629/nOSSem.o.d"      -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1    -omf=elf -O0 -I"." -I"../../source" -I"../../source/port/XC16/PIC24" -msmart-io=1 -Wall -msfr-warn=off
+	${MP_CC} $(MP_EXTRA_CC_PRE)  ../../source/nOSSem.c  -o ${OBJECTDIR}/_ext/870914629/nOSSem.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/_ext/870914629/nOSSem.o.d"      -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1    -omf=elf -O0 -I"." -I"../../include" -I"../../include/port/XC16/PIC24" -msmart-io=1 -Wall -msfr-warn=off
 	@${FIXDEPS} "${OBJECTDIR}/_ext/870914629/nOSSem.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
 ${OBJECTDIR}/_ext/870914629/nOSThread.o: ../../source/nOSThread.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/870914629 
 	@${RM} ${OBJECTDIR}/_ext/870914629/nOSThread.o.d 
 	@${RM} ${OBJECTDIR}/_ext/870914629/nOSThread.o 
-	${MP_CC} $(MP_EXTRA_CC_PRE)  ../../source/nOSThread.c  -o ${OBJECTDIR}/_ext/870914629/nOSThread.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/_ext/870914629/nOSThread.o.d"      -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1    -omf=elf -O0 -I"." -I"../../source" -I"../../source/port/XC16/PIC24" -msmart-io=1 -Wall -msfr-warn=off
+	${MP_CC} $(MP_EXTRA_CC_PRE)  ../../source/nOSThread.c  -o ${OBJECTDIR}/_ext/870914629/nOSThread.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/_ext/870914629/nOSThread.o.d"      -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1    -omf=elf -O0 -I"." -I"../../include" -I"../../include/port/XC16/PIC24" -msmart-io=1 -Wall -msfr-warn=off
 	@${FIXDEPS} "${OBJECTDIR}/_ext/870914629/nOSThread.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
 ${OBJECTDIR}/_ext/870914629/nOSTime.o: ../../source/nOSTime.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/870914629 
 	@${RM} ${OBJECTDIR}/_ext/870914629/nOSTime.o.d 
 	@${RM} ${OBJECTDIR}/_ext/870914629/nOSTime.o 
-	${MP_CC} $(MP_EXTRA_CC_PRE)  ../../source/nOSTime.c  -o ${OBJECTDIR}/_ext/870914629/nOSTime.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/_ext/870914629/nOSTime.o.d"      -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1    -omf=elf -O0 -I"." -I"../../source" -I"../../source/port/XC16/PIC24" -msmart-io=1 -Wall -msfr-warn=off
+	${MP_CC} $(MP_EXTRA_CC_PRE)  ../../source/nOSTime.c  -o ${OBJECTDIR}/_ext/870914629/nOSTime.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/_ext/870914629/nOSTime.o.d"      -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1    -omf=elf -O0 -I"." -I"../../include" -I"../../include/port/XC16/PIC24" -msmart-io=1 -Wall -msfr-warn=off
 	@${FIXDEPS} "${OBJECTDIR}/_ext/870914629/nOSTime.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
 ${OBJECTDIR}/_ext/870914629/nOSTimer.o: ../../source/nOSTimer.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/870914629 
 	@${RM} ${OBJECTDIR}/_ext/870914629/nOSTimer.o.d 
 	@${RM} ${OBJECTDIR}/_ext/870914629/nOSTimer.o 
-	${MP_CC} $(MP_EXTRA_CC_PRE)  ../../source/nOSTimer.c  -o ${OBJECTDIR}/_ext/870914629/nOSTimer.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/_ext/870914629/nOSTimer.o.d"      -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1    -omf=elf -O0 -I"." -I"../../source" -I"../../source/port/XC16/PIC24" -msmart-io=1 -Wall -msfr-warn=off
+	${MP_CC} $(MP_EXTRA_CC_PRE)  ../../source/nOSTimer.c  -o ${OBJECTDIR}/_ext/870914629/nOSTimer.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/_ext/870914629/nOSTimer.o.d"      -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1    -omf=elf -O0 -I"." -I"../../include" -I"../../include/port/XC16/PIC24" -msmart-io=1 -Wall -msfr-warn=off
 	@${FIXDEPS} "${OBJECTDIR}/_ext/870914629/nOSTimer.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
 ${OBJECTDIR}/_ext/1743343961/nOSPort.o: ../../source/port/XC16/PIC24/nOSPort.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1743343961 
 	@${RM} ${OBJECTDIR}/_ext/1743343961/nOSPort.o.d 
 	@${RM} ${OBJECTDIR}/_ext/1743343961/nOSPort.o 
-	${MP_CC} $(MP_EXTRA_CC_PRE)  ../../source/port/XC16/PIC24/nOSPort.c  -o ${OBJECTDIR}/_ext/1743343961/nOSPort.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/_ext/1743343961/nOSPort.o.d"      -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1    -omf=elf -O0 -I"." -I"../../source" -I"../../source/port/XC16/PIC24" -msmart-io=1 -Wall -msfr-warn=off
+	${MP_CC} $(MP_EXTRA_CC_PRE)  ../../source/port/XC16/PIC24/nOSPort.c  -o ${OBJECTDIR}/_ext/1743343961/nOSPort.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/_ext/1743343961/nOSPort.o.d"      -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1    -omf=elf -O0 -I"." -I"../../include" -I"../../include/port/XC16/PIC24" -msmart-io=1 -Wall -msfr-warn=off
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1743343961/nOSPort.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
 ${OBJECTDIR}/main.o: main.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR} 
 	@${RM} ${OBJECTDIR}/main.o.d 
 	@${RM} ${OBJECTDIR}/main.o 
-	${MP_CC} $(MP_EXTRA_CC_PRE)  main.c  -o ${OBJECTDIR}/main.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/main.o.d"      -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1    -omf=elf -O0 -I"." -I"../../source" -I"../../source/port/XC16/PIC24" -msmart-io=1 -Wall -msfr-warn=off
+	${MP_CC} $(MP_EXTRA_CC_PRE)  main.c  -o ${OBJECTDIR}/main.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/main.o.d"      -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1    -omf=elf -O0 -I"." -I"../../include" -I"../../include/port/XC16/PIC24" -msmart-io=1 -Wall -msfr-warn=off
 	@${FIXDEPS} "${OBJECTDIR}/main.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
 else
@@ -178,91 +178,91 @@ ${OBJECTDIR}/_ext/870914629/nOSEvent.o: ../../source/nOSEvent.c  nbproject/Makef
 	@${MKDIR} ${OBJECTDIR}/_ext/870914629 
 	@${RM} ${OBJECTDIR}/_ext/870914629/nOSEvent.o.d 
 	@${RM} ${OBJECTDIR}/_ext/870914629/nOSEvent.o 
-	${MP_CC} $(MP_EXTRA_CC_PRE)  ../../source/nOSEvent.c  -o ${OBJECTDIR}/_ext/870914629/nOSEvent.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/_ext/870914629/nOSEvent.o.d"        -g -omf=elf -O0 -I"." -I"../../source" -I"../../source/port/XC16/PIC24" -msmart-io=1 -Wall -msfr-warn=off
+	${MP_CC} $(MP_EXTRA_CC_PRE)  ../../source/nOSEvent.c  -o ${OBJECTDIR}/_ext/870914629/nOSEvent.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/_ext/870914629/nOSEvent.o.d"        -g -omf=elf -O0 -I"." -I"../../include" -I"../../include/port/XC16/PIC24" -msmart-io=1 -Wall -msfr-warn=off
 	@${FIXDEPS} "${OBJECTDIR}/_ext/870914629/nOSEvent.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
 ${OBJECTDIR}/_ext/870914629/nOSFlag.o: ../../source/nOSFlag.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/870914629 
 	@${RM} ${OBJECTDIR}/_ext/870914629/nOSFlag.o.d 
 	@${RM} ${OBJECTDIR}/_ext/870914629/nOSFlag.o 
-	${MP_CC} $(MP_EXTRA_CC_PRE)  ../../source/nOSFlag.c  -o ${OBJECTDIR}/_ext/870914629/nOSFlag.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/_ext/870914629/nOSFlag.o.d"        -g -omf=elf -O0 -I"." -I"../../source" -I"../../source/port/XC16/PIC24" -msmart-io=1 -Wall -msfr-warn=off
+	${MP_CC} $(MP_EXTRA_CC_PRE)  ../../source/nOSFlag.c  -o ${OBJECTDIR}/_ext/870914629/nOSFlag.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/_ext/870914629/nOSFlag.o.d"        -g -omf=elf -O0 -I"." -I"../../include" -I"../../include/port/XC16/PIC24" -msmart-io=1 -Wall -msfr-warn=off
 	@${FIXDEPS} "${OBJECTDIR}/_ext/870914629/nOSFlag.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
 ${OBJECTDIR}/_ext/870914629/nOSList.o: ../../source/nOSList.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/870914629 
 	@${RM} ${OBJECTDIR}/_ext/870914629/nOSList.o.d 
 	@${RM} ${OBJECTDIR}/_ext/870914629/nOSList.o 
-	${MP_CC} $(MP_EXTRA_CC_PRE)  ../../source/nOSList.c  -o ${OBJECTDIR}/_ext/870914629/nOSList.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/_ext/870914629/nOSList.o.d"        -g -omf=elf -O0 -I"." -I"../../source" -I"../../source/port/XC16/PIC24" -msmart-io=1 -Wall -msfr-warn=off
+	${MP_CC} $(MP_EXTRA_CC_PRE)  ../../source/nOSList.c  -o ${OBJECTDIR}/_ext/870914629/nOSList.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/_ext/870914629/nOSList.o.d"        -g -omf=elf -O0 -I"." -I"../../include" -I"../../include/port/XC16/PIC24" -msmart-io=1 -Wall -msfr-warn=off
 	@${FIXDEPS} "${OBJECTDIR}/_ext/870914629/nOSList.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
 ${OBJECTDIR}/_ext/870914629/nOSMem.o: ../../source/nOSMem.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/870914629 
 	@${RM} ${OBJECTDIR}/_ext/870914629/nOSMem.o.d 
 	@${RM} ${OBJECTDIR}/_ext/870914629/nOSMem.o 
-	${MP_CC} $(MP_EXTRA_CC_PRE)  ../../source/nOSMem.c  -o ${OBJECTDIR}/_ext/870914629/nOSMem.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/_ext/870914629/nOSMem.o.d"        -g -omf=elf -O0 -I"." -I"../../source" -I"../../source/port/XC16/PIC24" -msmart-io=1 -Wall -msfr-warn=off
+	${MP_CC} $(MP_EXTRA_CC_PRE)  ../../source/nOSMem.c  -o ${OBJECTDIR}/_ext/870914629/nOSMem.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/_ext/870914629/nOSMem.o.d"        -g -omf=elf -O0 -I"." -I"../../include" -I"../../include/port/XC16/PIC24" -msmart-io=1 -Wall -msfr-warn=off
 	@${FIXDEPS} "${OBJECTDIR}/_ext/870914629/nOSMem.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
 ${OBJECTDIR}/_ext/870914629/nOSMutex.o: ../../source/nOSMutex.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/870914629 
 	@${RM} ${OBJECTDIR}/_ext/870914629/nOSMutex.o.d 
 	@${RM} ${OBJECTDIR}/_ext/870914629/nOSMutex.o 
-	${MP_CC} $(MP_EXTRA_CC_PRE)  ../../source/nOSMutex.c  -o ${OBJECTDIR}/_ext/870914629/nOSMutex.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/_ext/870914629/nOSMutex.o.d"        -g -omf=elf -O0 -I"." -I"../../source" -I"../../source/port/XC16/PIC24" -msmart-io=1 -Wall -msfr-warn=off
+	${MP_CC} $(MP_EXTRA_CC_PRE)  ../../source/nOSMutex.c  -o ${OBJECTDIR}/_ext/870914629/nOSMutex.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/_ext/870914629/nOSMutex.o.d"        -g -omf=elf -O0 -I"." -I"../../include" -I"../../include/port/XC16/PIC24" -msmart-io=1 -Wall -msfr-warn=off
 	@${FIXDEPS} "${OBJECTDIR}/_ext/870914629/nOSMutex.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
 ${OBJECTDIR}/_ext/870914629/nOSQueue.o: ../../source/nOSQueue.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/870914629 
 	@${RM} ${OBJECTDIR}/_ext/870914629/nOSQueue.o.d 
 	@${RM} ${OBJECTDIR}/_ext/870914629/nOSQueue.o 
-	${MP_CC} $(MP_EXTRA_CC_PRE)  ../../source/nOSQueue.c  -o ${OBJECTDIR}/_ext/870914629/nOSQueue.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/_ext/870914629/nOSQueue.o.d"        -g -omf=elf -O0 -I"." -I"../../source" -I"../../source/port/XC16/PIC24" -msmart-io=1 -Wall -msfr-warn=off
+	${MP_CC} $(MP_EXTRA_CC_PRE)  ../../source/nOSQueue.c  -o ${OBJECTDIR}/_ext/870914629/nOSQueue.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/_ext/870914629/nOSQueue.o.d"        -g -omf=elf -O0 -I"." -I"../../include" -I"../../include/port/XC16/PIC24" -msmart-io=1 -Wall -msfr-warn=off
 	@${FIXDEPS} "${OBJECTDIR}/_ext/870914629/nOSQueue.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
 ${OBJECTDIR}/_ext/870914629/nOSSched.o: ../../source/nOSSched.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/870914629 
 	@${RM} ${OBJECTDIR}/_ext/870914629/nOSSched.o.d 
 	@${RM} ${OBJECTDIR}/_ext/870914629/nOSSched.o 
-	${MP_CC} $(MP_EXTRA_CC_PRE)  ../../source/nOSSched.c  -o ${OBJECTDIR}/_ext/870914629/nOSSched.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/_ext/870914629/nOSSched.o.d"        -g -omf=elf -O0 -I"." -I"../../source" -I"../../source/port/XC16/PIC24" -msmart-io=1 -Wall -msfr-warn=off
+	${MP_CC} $(MP_EXTRA_CC_PRE)  ../../source/nOSSched.c  -o ${OBJECTDIR}/_ext/870914629/nOSSched.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/_ext/870914629/nOSSched.o.d"        -g -omf=elf -O0 -I"." -I"../../include" -I"../../include/port/XC16/PIC24" -msmart-io=1 -Wall -msfr-warn=off
 	@${FIXDEPS} "${OBJECTDIR}/_ext/870914629/nOSSched.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
 ${OBJECTDIR}/_ext/870914629/nOSSem.o: ../../source/nOSSem.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/870914629 
 	@${RM} ${OBJECTDIR}/_ext/870914629/nOSSem.o.d 
 	@${RM} ${OBJECTDIR}/_ext/870914629/nOSSem.o 
-	${MP_CC} $(MP_EXTRA_CC_PRE)  ../../source/nOSSem.c  -o ${OBJECTDIR}/_ext/870914629/nOSSem.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/_ext/870914629/nOSSem.o.d"        -g -omf=elf -O0 -I"." -I"../../source" -I"../../source/port/XC16/PIC24" -msmart-io=1 -Wall -msfr-warn=off
+	${MP_CC} $(MP_EXTRA_CC_PRE)  ../../source/nOSSem.c  -o ${OBJECTDIR}/_ext/870914629/nOSSem.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/_ext/870914629/nOSSem.o.d"        -g -omf=elf -O0 -I"." -I"../../include" -I"../../include/port/XC16/PIC24" -msmart-io=1 -Wall -msfr-warn=off
 	@${FIXDEPS} "${OBJECTDIR}/_ext/870914629/nOSSem.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
 ${OBJECTDIR}/_ext/870914629/nOSThread.o: ../../source/nOSThread.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/870914629 
 	@${RM} ${OBJECTDIR}/_ext/870914629/nOSThread.o.d 
 	@${RM} ${OBJECTDIR}/_ext/870914629/nOSThread.o 
-	${MP_CC} $(MP_EXTRA_CC_PRE)  ../../source/nOSThread.c  -o ${OBJECTDIR}/_ext/870914629/nOSThread.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/_ext/870914629/nOSThread.o.d"        -g -omf=elf -O0 -I"." -I"../../source" -I"../../source/port/XC16/PIC24" -msmart-io=1 -Wall -msfr-warn=off
+	${MP_CC} $(MP_EXTRA_CC_PRE)  ../../source/nOSThread.c  -o ${OBJECTDIR}/_ext/870914629/nOSThread.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/_ext/870914629/nOSThread.o.d"        -g -omf=elf -O0 -I"." -I"../../include" -I"../../include/port/XC16/PIC24" -msmart-io=1 -Wall -msfr-warn=off
 	@${FIXDEPS} "${OBJECTDIR}/_ext/870914629/nOSThread.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
 ${OBJECTDIR}/_ext/870914629/nOSTime.o: ../../source/nOSTime.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/870914629 
 	@${RM} ${OBJECTDIR}/_ext/870914629/nOSTime.o.d 
 	@${RM} ${OBJECTDIR}/_ext/870914629/nOSTime.o 
-	${MP_CC} $(MP_EXTRA_CC_PRE)  ../../source/nOSTime.c  -o ${OBJECTDIR}/_ext/870914629/nOSTime.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/_ext/870914629/nOSTime.o.d"        -g -omf=elf -O0 -I"." -I"../../source" -I"../../source/port/XC16/PIC24" -msmart-io=1 -Wall -msfr-warn=off
+	${MP_CC} $(MP_EXTRA_CC_PRE)  ../../source/nOSTime.c  -o ${OBJECTDIR}/_ext/870914629/nOSTime.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/_ext/870914629/nOSTime.o.d"        -g -omf=elf -O0 -I"." -I"../../include" -I"../../include/port/XC16/PIC24" -msmart-io=1 -Wall -msfr-warn=off
 	@${FIXDEPS} "${OBJECTDIR}/_ext/870914629/nOSTime.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
 ${OBJECTDIR}/_ext/870914629/nOSTimer.o: ../../source/nOSTimer.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/870914629 
 	@${RM} ${OBJECTDIR}/_ext/870914629/nOSTimer.o.d 
 	@${RM} ${OBJECTDIR}/_ext/870914629/nOSTimer.o 
-	${MP_CC} $(MP_EXTRA_CC_PRE)  ../../source/nOSTimer.c  -o ${OBJECTDIR}/_ext/870914629/nOSTimer.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/_ext/870914629/nOSTimer.o.d"        -g -omf=elf -O0 -I"." -I"../../source" -I"../../source/port/XC16/PIC24" -msmart-io=1 -Wall -msfr-warn=off
+	${MP_CC} $(MP_EXTRA_CC_PRE)  ../../source/nOSTimer.c  -o ${OBJECTDIR}/_ext/870914629/nOSTimer.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/_ext/870914629/nOSTimer.o.d"        -g -omf=elf -O0 -I"." -I"../../include" -I"../../include/port/XC16/PIC24" -msmart-io=1 -Wall -msfr-warn=off
 	@${FIXDEPS} "${OBJECTDIR}/_ext/870914629/nOSTimer.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
 ${OBJECTDIR}/_ext/1743343961/nOSPort.o: ../../source/port/XC16/PIC24/nOSPort.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1743343961 
 	@${RM} ${OBJECTDIR}/_ext/1743343961/nOSPort.o.d 
 	@${RM} ${OBJECTDIR}/_ext/1743343961/nOSPort.o 
-	${MP_CC} $(MP_EXTRA_CC_PRE)  ../../source/port/XC16/PIC24/nOSPort.c  -o ${OBJECTDIR}/_ext/1743343961/nOSPort.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/_ext/1743343961/nOSPort.o.d"        -g -omf=elf -O0 -I"." -I"../../source" -I"../../source/port/XC16/PIC24" -msmart-io=1 -Wall -msfr-warn=off
+	${MP_CC} $(MP_EXTRA_CC_PRE)  ../../source/port/XC16/PIC24/nOSPort.c  -o ${OBJECTDIR}/_ext/1743343961/nOSPort.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/_ext/1743343961/nOSPort.o.d"        -g -omf=elf -O0 -I"." -I"../../include" -I"../../include/port/XC16/PIC24" -msmart-io=1 -Wall -msfr-warn=off
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1743343961/nOSPort.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
 ${OBJECTDIR}/main.o: main.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR} 
 	@${RM} ${OBJECTDIR}/main.o.d 
 	@${RM} ${OBJECTDIR}/main.o 
-	${MP_CC} $(MP_EXTRA_CC_PRE)  main.c  -o ${OBJECTDIR}/main.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/main.o.d"        -g -omf=elf -O0 -I"." -I"../../source" -I"../../source/port/XC16/PIC24" -msmart-io=1 -Wall -msfr-warn=off
+	${MP_CC} $(MP_EXTRA_CC_PRE)  main.c  -o ${OBJECTDIR}/main.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/main.o.d"        -g -omf=elf -O0 -I"." -I"../../include" -I"../../include/port/XC16/PIC24" -msmart-io=1 -Wall -msfr-warn=off
 	@${FIXDEPS} "${OBJECTDIR}/main.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
 endif

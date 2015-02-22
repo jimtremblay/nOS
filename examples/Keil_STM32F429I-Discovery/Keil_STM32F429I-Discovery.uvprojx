@@ -365,7 +365,7 @@
               <MiscControls></MiscControls>
               <Define></Define>
               <Undefine></Undefine>
-              <IncludePath>.\;..\..\source;..\..\source\port\Keil\ARM_Cortex_M4</IncludePath>
+              <IncludePath>.\;..\..\include;..\..\include\port\Keil\ARM_Cortex_M4</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>

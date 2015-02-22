@@ -217,7 +217,8 @@
 		</Unit>
 		<Unit filename="stm32f429zi_flash.ld" />
 		<Unit filename="stm32f429zi_sram.ld" />
-		<Unit filename="..\..\source\nOS.h" />
+		<Unit filename="..\..\include\nOS.h" />
+		<Unit filename="..\..\include\port\GCC\ARM_Cortex_M4\nOSPort.h" />
 		<Unit filename="..\..\source\nOSEvent.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -254,7 +255,6 @@
 		<Unit filename="..\..\source\port\GCC\ARM_Cortex_M4\nOSPort.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="..\..\source\port\GCC\ARM_Cortex_M4\nOSPort.h" />
 		<Extensions>
 			<code_completion />
 			<debugger>

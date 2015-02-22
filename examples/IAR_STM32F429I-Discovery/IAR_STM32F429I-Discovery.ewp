@@ -302,8 +302,8 @@
         <option>
           <name>CCIncludePath2</name>
           <state>$PROJ_DIR$\</state>
-          <state>$PROJ_DIR$\..\..\source</state>
-          <state>$PROJ_DIR$\..\..\source\port\IAR\ARM_Cortex_M4</state>
+          <state>$PROJ_DIR$\..\..\include</state>
+          <state>$PROJ_DIR$\..\..\include\port\IAR\ARM_Cortex_M4</state>
           <state>$PROJ_DIR$\CMSIS\Device\ST\STM32F4xx\Include</state>
           <state>$PROJ_DIR$\CMSIS\Include</state>
         </option>

@@ -62,7 +62,7 @@
         </option>
         <option>
           <name>RTLibraryPath</name>
-          <state>$TOOLKIT_DIR$\lib\dlib\dl430xssfn.r43</state>
+          <state>$TOOLKIT_DIR$\lib\dlib\dl430xllfn.r43</state>
         </option>
         <option>
           <name>Input variant</name>
@@ -224,7 +224,7 @@
         </option>
         <option>
           <name>Math description</name>
-          <state></state>
+          <state>Default variants of cos, sin, tan, log, log10, pow, and exp.</state>
         </option>
       </data>
     </settings>
@@ -391,8 +391,8 @@
         <option>
           <name>newCCIncludePaths</name>
           <state>$PROJ_DIR$</state>
-          <state>$PROJ_DIR$\..\..\source</state>
-          <state>$PROJ_DIR$\..\..\source\port\IAR\MSP430</state>
+          <state>$PROJ_DIR$\..\..\include</state>
+          <state>$PROJ_DIR$\..\..\include\port\IAR\MSP430</state>
         </option>
         <option>
           <name>CCStdIncCheck</name>

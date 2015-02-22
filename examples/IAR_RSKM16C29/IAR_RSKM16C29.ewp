@@ -332,8 +332,8 @@
         <option>
           <name>newCCIncludePaths</name>
           <state>$PROJ_DIR$</state>
-          <state>$PROJ_DIR$\..\..\source</state>
-          <state>$PROJ_DIR$\..\..\source\port\IAR\M16C</state>
+          <state>$PROJ_DIR$\..\..\include</state>
+          <state>$PROJ_DIR$\..\..\include\port\IAR\M16C</state>
         </option>
         <option>
           <name>CCStdIncCheck</name>

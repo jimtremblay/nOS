@@ -165,16 +165,8 @@
 [WINDOW_POSITION_STATE_DATA_VD3]
 [WINDOW_POSITION_STATE_DATA_VD4]
 [WINDOW_Z_ORDER]
-"C:\Users\Jim\Projets\nOS\source\nOSSched.c" 
-"C:\Users\Jim\Projets\nOS\examples\HEW_GCC_RSKM16C29\HEW_GCC_RSKM16C29\main.c" 
-"C:\Users\Jim\Projets\nOS\source\nOSSem.c" 
-"C:\Users\Jim\Projets\nOS\source\nOSEvent.c" 
-"C:\Users\Jim\Projets\nOS\source\port\GCC\M16C\nOSPort.h" 
+"C:\Users\Jim\Projets\nOS\source\nOSMem.c" 
 "C:\Users\Jim\Projets\nOS\source\port\GCC\M16C\nOSPort.c" 
-"C:\Users\Jim\Projets\nOS\source\nOSList.c" 
-"C:\Users\Jim\Projets\nOS\examples\HEW_GCC_RSKM16C29\HEW_GCC_RSKM16C29\var_vects.asm" 
-"C:\Users\Jim\Projets\nOS\examples\HEW_GCC_RSKM16C29\HEW_GCC_RSKM16C29\start.asm" 
-"C:\Users\Jim\Projets\nOS\examples\HEW_GCC_RSKM16C29\HEW_GCC_RSKM16C29\hwinit.c" 
 [TARGET_NAME]
 "M16C E8a SYSTEM" "" 0 
 [STATUSBAR_STATEINFO_VD1]

@@ -11,7 +11,6 @@
                    projectFiles="true">
     </logicalFolder>
     <logicalFolder name="f1" displayName="nOS" projectFiles="true">
-      <itemPath>../../source/nOS.h</itemPath>
       <itemPath>../../source/nOSEvent.c</itemPath>
       <itemPath>../../source/nOSFlag.c</itemPath>
       <itemPath>../../source/nOSList.c</itemPath>
@@ -24,7 +23,6 @@
       <itemPath>../../source/nOSTime.c</itemPath>
       <itemPath>../../source/nOSTimer.c</itemPath>
       <itemPath>../../source/port/XC16/PIC24/nOSPort.c</itemPath>
-      <itemPath>../../source/port/XC16/PIC24/nOSPort.h</itemPath>
     </logicalFolder>
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
@@ -90,7 +88,7 @@
         <property key="enable-symbols" value="true"/>
         <property key="enable-unroll-loops" value="false"/>
         <property key="extra-include-directories"
-                  value=".;..\..\source;..\..\source\port\XC16\PIC24"/>
+                  value=".;..\..\include;..\..\include\port\XC16\PIC24"/>
         <property key="isolate-each-function" value="false"/>
         <property key="keep-inline" value="false"/>
         <property key="oXC16gcc-align-arr" value="false"/>

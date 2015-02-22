@@ -198,7 +198,8 @@
 		</Unit>
 		<Unit filename="stm32l152rc_flash.ld" />
 		<Unit filename="stm32l152rc_sram.ld" />
-		<Unit filename="..\..\source\nOS.h" />
+		<Unit filename="..\..\include\nOS.h" />
+		<Unit filename="..\..\include\port\GCC\ARM_Cortex_M3\nOSPort.h" />
 		<Unit filename="..\..\source\nOSEvent.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -235,7 +236,6 @@
 		<Unit filename="..\..\source\port\GCC\ARM_Cortex_M3\nOSPort.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="..\..\source\port\GCC\ARM_Cortex_M3\nOSPort.h" />
 		<Extensions>
 			<code_completion />
 			<debugger>

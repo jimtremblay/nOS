@@ -3,7 +3,7 @@ PROJ_NAME=GCC_STM32F429I-Discovery
 
 # Put your source files here (or *.c, etc)
 SRCS=src/main.c src/system_stm32f4xx.c src/startup_stm32f429x.S SPL/src/*.c ../../source/*.c ../../source/port/GCC/ARM_Cortex_M4/*.c
-INCS=-Iinc -Icmsis -Iconfig -ISPL/inc -I../../source -I../../source/port/GCC/ARM_Cortex_M4
+INCS=-Iinc -Icmsis -Iconfig -ISPL/inc -I../../include -I../../include/port/GCC/ARM_Cortex_M4
 
 # Normally you shouldn't need to change anything below this line!
 #######################################################################################

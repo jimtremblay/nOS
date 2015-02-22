@@ -312,8 +312,8 @@
         <option>
           <name>CCIncludePath2</name>
           <state>$PROJ_DIR$</state>
-          <state>$PROJ_DIR$\..\..\source</state>
-          <state>$PROJ_DIR$\..\..\source\port\IAR\RX600</state>
+          <state>$PROJ_DIR$\..\..\include</state>
+          <state>$PROJ_DIR$\..\..\include\port\IAR\RX600</state>
         </option>
         <option>
           <name>CCStdIncCheck</name>

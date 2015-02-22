@@ -144,7 +144,7 @@
         </option>
         <option>
           <name>RTLibraryPath</name>
-          <state>$TOOLKIT_DIR$\LIB\DLIB\dlAVR-5s-ec_mul-n.r90</state>
+          <state>$TOOLKIT_DIR$\LIB\DLIB\dlAVR-3s-ec_mul-sf-n.r90</state>
         </option>
         <option>
           <name>Input variant</name>
@@ -402,8 +402,8 @@
         <option>
           <name>newCCIncludePaths</name>
           <state>$PROJ_DIR$</state>
-          <state>$PROJ_DIR$\..\..\source</state>
-          <state>$PROJ_DIR$\..\..\source\port\IAR\AVR</state>
+          <state>$PROJ_DIR$\..\..\include</state>
+          <state>$PROJ_DIR$\..\..\include\port\IAR\AVR</state>
         </option>
         <option>
           <name>CCStdIncCheck</name>

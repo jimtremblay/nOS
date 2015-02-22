@@ -141,20 +141,20 @@
 "C:\Users\Jim\Projets\nOS\examples\HEW_NC30_RSKM16C29\HEW_NC30_RSKM16C29\ncrt0.a30" "0e7d4adaa2940d10" 2 
 "C:\Users\Jim\Projets\nOS\source\port\NC30\M16C\nOSPortASM.a30" "09b180dea2940d10" 2 
 [OPTIONS_Debug_Renesas M16C C Compiler]
-"C source file" "0edcbdf2b2940d10" 1 
-"C:\Users\Jim\Projets\nOS\examples\HEW_NC30_RSKM16C29\HEW_NC30_RSKM16C29\main.c" "0edcbdf2b2940d10" 1 
-"C:\Users\Jim\Projets\nOS\source\nOSEvent.c" "0edcbdf2b2940d10" 1 
-"C:\Users\Jim\Projets\nOS\source\nOSFlag.c" "0edcbdf2b2940d10" 1 
-"C:\Users\Jim\Projets\nOS\source\nOSList.c" "0edcbdf2b2940d10" 1 
-"C:\Users\Jim\Projets\nOS\source\nOSMem.c" "0edcbdf2b2940d10" 1 
-"C:\Users\Jim\Projets\nOS\source\nOSMutex.c" "0edcbdf2b2940d10" 1 
-"C:\Users\Jim\Projets\nOS\source\nOSQueue.c" "0edcbdf2b2940d10" 1 
-"C:\Users\Jim\Projets\nOS\source\nOSSched.c" "0edcbdf2b2940d10" 1 
-"C:\Users\Jim\Projets\nOS\source\nOSSem.c" "0edcbdf2b2940d10" 1 
-"C:\Users\Jim\Projets\nOS\source\nOSThread.c" "0edcbdf2b2940d10" 1 
-"C:\Users\Jim\Projets\nOS\source\nOSTime.c" "0edcbdf2b2940d10" 1 
-"C:\Users\Jim\Projets\nOS\source\nOSTimer.c" "0edcbdf2b2940d10" 1 
-"C:\Users\Jim\Projets\nOS\source\port\NC30\M16C\nOSPort.c" "0edcbdf2b2940d10" 1 
+"C source file" "031774a1f0e40d10" 1 
+"C:\Users\Jim\Projets\nOS\examples\HEW_NC30_RSKM16C29\HEW_NC30_RSKM16C29\main.c" "031774a1f0e40d10" 1 
+"C:\Users\Jim\Projets\nOS\source\nOSEvent.c" "031774a1f0e40d10" 1 
+"C:\Users\Jim\Projets\nOS\source\nOSFlag.c" "031774a1f0e40d10" 1 
+"C:\Users\Jim\Projets\nOS\source\nOSList.c" "031774a1f0e40d10" 1 
+"C:\Users\Jim\Projets\nOS\source\nOSMem.c" "031774a1f0e40d10" 1 
+"C:\Users\Jim\Projets\nOS\source\nOSMutex.c" "031774a1f0e40d10" 1 
+"C:\Users\Jim\Projets\nOS\source\nOSQueue.c" "031774a1f0e40d10" 1 
+"C:\Users\Jim\Projets\nOS\source\nOSSched.c" "031774a1f0e40d10" 1 
+"C:\Users\Jim\Projets\nOS\source\nOSSem.c" "031774a1f0e40d10" 1 
+"C:\Users\Jim\Projets\nOS\source\nOSThread.c" "031774a1f0e40d10" 1 
+"C:\Users\Jim\Projets\nOS\source\nOSTime.c" "031774a1f0e40d10" 1 
+"C:\Users\Jim\Projets\nOS\source\nOSTimer.c" "031774a1f0e40d10" 1 
+"C:\Users\Jim\Projets\nOS\source\port\NC30\M16C\nOSPort.c" "031774a1f0e40d10" 1 
 [OPTIONS_Debug_Renesas M16C Configurator]
 "Single Shot" "09b180dea2940d10" 6 
 [OPTIONS_Debug_Renesas M16C ConfiguratorR8C]
@@ -169,7 +169,7 @@
 "" 0 
 "[V|VERSION|1] [B|COMMAND|1] [S|SPEC|UITRON4] " 6 
 "[V|VERSION|1] [B|DATALENGTH|1] [S|OUTPUT|^"$(CONFIGDIR)\$(PROJECTNAME).mot^"] " 4 
-"[V|VERSION|1] [S|INCLUDE|^"$(PROJDIR)\.^"|^"$(PROJDIR)\..\..\..\source^"|^"$(PROJDIR)\..\..\..\source\port\NC30\M16C^"] [S|OUTPUT|OBJECTCODE] [B|INSPECTOR|1] [S|OUTPUTPATH|^"$(CONFIGDIR)\$(FILELEAF).r30^"]
+"[V|VERSION|1] [S|INCLUDE|^"$(PROJDIR)\.^"|^"$(PROJDIR)\..\..\..\include^"|^"$(PROJDIR)\..\..\..\include\port\NC30\M16C^"] [S|OUTPUT|OBJECTCODE] [B|INSPECTOR|1] [S|OUTPUTPATH|^"$(CONFIGDIR)\$(FILELEAF).r30^"]
 " 1 
 "[V|VERSION|1] [S|LIST|LM] [B|INSPECTOR|1] [S|OUTPUTPATH|^"$(CONFIGDIR)\$(FILELEAF).r30^"] " 2 
 "[V|VERSION|1] [S|MODE|CREATE|] [S|OUTPUT|^"$(CONFIGDIR)\$(PROJECTNAME).lib^"] " 5 
