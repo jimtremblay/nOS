@@ -48,16 +48,17 @@ static void TickTimer (void *payload, void *arg)
     if ((timer->state & (NOS_TIMER_RUNNING | NOS_TIMER_PAUSED)) == NOS_TIMER_RUNNING) {
         if (timer->count > 0) {
             timer->count--;
-            if (timer->count == 0) {
-                if ((timer->state & NOS_TIMER_MODE) == NOS_TIMER_FREE_RUNNING) {
-                    timer->count = timer->reload;
-                /* One-shot timer */
-                } else {
-                    timer->state &=~ NOS_TIMER_RUNNING;
-                }
-                /* Call callback function outside of critical section */
-                call = true;
+        }
+
+        if (timer->count == 0) {
+            if ((timer->state & NOS_TIMER_MODE) == NOS_TIMER_FREE_RUNNING) {
+                timer->count = timer->reload;
+            /* One-shot timer */
+            } else {
+                timer->state &=~ NOS_TIMER_RUNNING;
             }
+            /* Call callback function outside of critical section */
+            call = true;
         }
     }
     nOS_CriticalLeave();
