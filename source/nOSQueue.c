@@ -37,8 +37,6 @@ nOS_Error nOS_QueueCreate (nOS_Queue *queue, void *buffer, uint16_t bsize, uint1
         err = NOS_E_NULL;
     } else if (queue->e.type != NOS_EVENT_INVALID) {
         err = NOS_E_INV_OBJ;
-    } else if (buffer == NULL) {
-        err = NOS_E_NULL;
     } else if (bsize == 0) {
         err = NOS_E_INV_VAL;
     } else if (bmax == 0) {
@@ -181,11 +179,15 @@ nOS_Error nOS_QueueWrite (nOS_Queue *queue, void *buffer, nOS_TickCounter tout)
                     nOS_Sched();
                 }
 #endif
-            } else {
+                err = NOS_OK;
+            } else if (queue->buffer != NULL) {
                 /* No thread waiting to read from queue, store it */
                 Write(queue, buffer);
+                err = NOS_OK;
+            } else {
+                /* No thread waiting to consume message, inform producer */
+                err = NOS_E_NO_CONSUMER;
             }
-            err = NOS_OK;
         /* No chance a thread waiting to read from queue if count is higher than 0 */
         } else if (queue->bcount < queue->bmax) {
             Write(queue, buffer);
@@ -225,7 +227,11 @@ bool nOS_QueueIsEmpty (nOS_Queue *queue)
 #endif
     {
         nOS_CriticalEnter();
-        empty = (queue->bcount == 0);
+        if (queue->buffer != NULL) {
+            empty = (queue->bcount == 0);
+        } else {
+            empty = true;
+        }
         nOS_CriticalLeave();
     }
 
@@ -245,7 +251,11 @@ bool nOS_QueueIsFull (nOS_Queue *queue)
 #endif
     {
         nOS_CriticalEnter();
-        full = (queue->bcount == queue->bmax);
+        if (queue->buffer != NULL) {
+            full = (queue->bcount == queue->bmax);
+        } else {
+            full = false;
+        }
         nOS_CriticalLeave();
     }
 
