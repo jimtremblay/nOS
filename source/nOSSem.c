@@ -23,8 +23,6 @@ nOS_Error nOS_SemCreate (nOS_Sem *sem, nOS_SemCounter count, nOS_SemCounter max)
         err = NOS_E_NULL;
     } else if (sem->e.type != NOS_EVENT_INVALID) {
         err = NOS_E_INV_OBJ;
-    } else if (max == 0) {
-        err = NOS_E_INV_VAL;
     } else if (count > max) {
         err = NOS_E_INV_VAL;
     } else
@@ -161,8 +159,11 @@ nOS_Error nOS_SemGive (nOS_Sem *sem)
         } else if (sem->count < sem->max) {
             sem->count++;
             err = NOS_OK;
-        } else {
+        } else if (sem->max > 0) {
             err = NOS_E_OVERFLOW;
+        } else {
+            /* No thread waiting to consume sem, inform producer */
+            err = NOS_E_CONSUMER;
         }
         nOS_CriticalLeave();
     }
