@@ -39,7 +39,9 @@ nOS_Error nOS_QueueCreate (nOS_Queue *queue, void *buffer, uint16_t bsize, uint1
         err = NOS_E_INV_OBJ;
     } else if (bsize == 0) {
         err = NOS_E_INV_VAL;
-    } else if (bmax == 0) {
+    } else if ((buffer != NULL) && (bmax == 0)) {
+        err = NOS_E_INV_VAL;
+    } else if ((buffer == NULL) && (bmax > 0)) {
         err = NOS_E_INV_VAL;
     } else
 #endif
