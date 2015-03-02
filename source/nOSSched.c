@@ -394,6 +394,39 @@ static bool                 running;
  #endif
 #endif
 
+/* Always called from critical section */
+nOS_Error Sched(void)
+{
+    nOS_Error   err;
+
+    /* Switch only if initialization is completed */
+    if (!running) {
+        err = NOS_E_INIT;
+    } else if (nOS_isrNestingCounter > 0) {
+        err = NOS_E_ISR;
+    }
+#if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
+    /* switch only from thread without scheduler locked */
+    else if (nOS_lockNestingCounter > 0) {
+        err = NOS_E_LOCKED;
+    }
+#endif
+    else {
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
+        /* Recheck if current running thread is the highest prio thread */
+        nOS_highPrioThread = SchedHighPrio();
+#else
+        nOS_highPrioThread = nOS_ListHead(&nOS_readyList);
+#endif
+        if (nOS_runningThread != nOS_highPrioThread) {
+            nOS_ContextSwitch();
+        }
+        err = NOS_OK;
+    }
+
+    return err;
+}
+
 nOS_Error nOS_Init(void)
 {
     /* Block context switching until initialization is completed */
@@ -441,40 +474,6 @@ nOS_Error nOS_Init(void)
     return NOS_OK;
 }
 
-nOS_Error nOS_Sched(void)
-{
-    nOS_Error   err;
-
-    /* Switch only if initialization is completed */
-    if (!running) {
-        err = NOS_E_INIT;
-    } else if (nOS_isrNestingCounter > 0) {
-        err = NOS_E_ISR;
-    }
-#if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
-    /* switch only from thread without scheduler locked */
-    else if (nOS_lockNestingCounter > 0) {
-        err = NOS_E_LOCKED;
-    }
-#endif
-    else {
-        nOS_CriticalEnter();
-#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
-        /* Recheck if current running thread is the highest prio thread */
-        nOS_highPrioThread = SchedHighPrio();
-#else
-        nOS_highPrioThread = nOS_ListHead(&nOS_readyList);
-#endif
-        if (nOS_runningThread != nOS_highPrioThread) {
-            nOS_ContextSwitch();
-        }
-        nOS_CriticalLeave();
-        err = NOS_OK;
-    }
-
-    return err;
-}
-
 #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
 nOS_Error nOS_SchedLock(void)
 {
@@ -507,7 +506,7 @@ nOS_Error nOS_SchedUnlock(void)
         if (nOS_lockNestingCounter > 0) {
             nOS_lockNestingCounter--;
             if (nOS_lockNestingCounter == 0) {
-                nOS_Sched();
+                Sched();
             }
             err = NOS_OK;
         } else {
@@ -539,8 +538,8 @@ nOS_Error nOS_Yield(void)
 #else
         nOS_ListRotate(&nOS_readyList);
 #endif
+        Sched();
         nOS_CriticalLeave();
-        nOS_Sched();
         err = NOS_OK;
     }
 

@@ -248,7 +248,7 @@ nOS_Error nOS_ThreadCreate (nOS_Thread *thread,
             AppendThreadToReadyList(thread);
 #if (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
             if (prio > nOS_runningThread->prio) {
-                nOS_Sched();
+                Sched();
             }
 #endif
 #else
@@ -296,10 +296,11 @@ nOS_Error nOS_ThreadDelete (nOS_Thread *thread)
     if (err == NOS_OK) {
         nOS_CriticalEnter();
         DeleteThread(thread, NULL);
-        nOS_CriticalLeave();
         if (thread == nOS_runningThread) {
-            nOS_Sched();
+            /* Will never return */
+            Sched();
         }
+        nOS_CriticalLeave();
     }
 
     return err;
@@ -356,10 +357,10 @@ nOS_Error nOS_ThreadSuspend (nOS_Thread *thread)
     if (err == NOS_OK) {
         nOS_CriticalEnter();
         SuspendThread(thread, NULL);
-        nOS_CriticalLeave();
         if (thread == nOS_runningThread) {
-            nOS_Sched();
+            Sched();
         }
+        nOS_CriticalLeave();
     }
 
     return err;
@@ -380,10 +381,10 @@ nOS_Error nOS_ThreadSuspendAll (void)
     {
         nOS_CriticalEnter();
         nOS_ListWalk(&nOS_mainList, SuspendThread, NULL);
-        nOS_CriticalLeave();
         if (nOS_runningThread != &nOS_idleHandle) {
-            nOS_Sched();
+            Sched();
         }
+        nOS_CriticalLeave();
         err = NOS_OK;
     }
 
@@ -417,12 +418,12 @@ nOS_Error nOS_ThreadResume (nOS_Thread *thread)
 #else
         ResumeThread(thread, NULL);
 #endif
-        nOS_CriticalLeave();
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
         if (sched) {
-            nOS_Sched();
+            Sched();
         }
 #endif
+        nOS_CriticalLeave();
         err = NOS_OK;
     }
 
@@ -441,13 +442,12 @@ nOS_Error nOS_ThreadResumeAll (void)
 #else
     nOS_ListWalk(&nOS_mainList, ResumeThread, NULL);
 #endif
-    nOS_CriticalLeave();
-
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
     if (sched) {
-        nOS_Sched();
+        Sched();
     }
 #endif
+    nOS_CriticalLeave();
 
     return NOS_OK;
 }
@@ -475,7 +475,7 @@ nOS_Error nOS_ThreadSetPriority (nOS_Thread *thread, uint8_t prio)
             ChangeThreadPrio(thread, prio);
 #if (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
             if (prio > nOS_runningThread->prio) {
-                nOS_Sched();
+                Sched();
             }
 #endif
         }

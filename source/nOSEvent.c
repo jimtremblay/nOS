@@ -13,6 +13,7 @@
 extern "C" {
 #endif
 
+/* Always called from critical section */
 #if (NOS_CONFIG_SAFE > 0)
 void nOS_EventCreate (nOS_Event *event, uint8_t type)
 #else
@@ -25,6 +26,7 @@ void nOS_EventCreate (nOS_Event *event)
     nOS_ListInit(&event->waitList);
 }
 
+/* Always called from critical section */
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
 bool nOS_EventDelete (nOS_Event *event)
 #else
@@ -55,6 +57,7 @@ void nOS_EventDelete (nOS_Event *event)
 #endif
 }
 
+/* Always called from critical section */
 nOS_Error nOS_EventWait (nOS_Event *event, uint8_t state, nOS_TickCounter tout)
 {
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
@@ -77,11 +80,12 @@ nOS_Error nOS_EventWait (nOS_Event *event, uint8_t state, nOS_TickCounter tout)
         nOS_ListAppend(&event->waitList, &nOS_runningThread->readyWait);
     }
 
-    nOS_Sched();
+    Sched();
 
     return nOS_runningThread->error;
 }
 
+/* Always called from critical section */
 nOS_Thread* nOS_EventSend (nOS_Event *event, nOS_Error err)
 {
     nOS_Thread  *thread;

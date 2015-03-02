@@ -664,6 +664,7 @@ struct _nOS_TimeDate
 #endif
 
 #ifdef NOS_PRIVATE
+ nOS_Error      Sched                       (void);
  nOS_Thread*    SchedHighPrio               (void);
  #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
   void          AppendThreadToReadyList     (nOS_Thread *thread);
@@ -682,7 +683,6 @@ struct _nOS_TimeDate
 #endif
 
 nOS_Error       nOS_Init                    (void);
-nOS_Error       nOS_Sched                   (void);
 nOS_Error       nOS_Yield                   (void);
 void            nOS_Tick                    (void);
 nOS_TickCounter nOS_TickCount               (void);

@@ -87,7 +87,7 @@ nOS_Error nOS_QueueDelete (nOS_Queue *queue)
         queue->w = 0;
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
         if (nOS_EventDelete((nOS_Event*)queue)) {
-            nOS_Sched();
+            Sched();
         }
 #else
         nOS_EventDelete((nOS_Event*)queue);
@@ -126,7 +126,7 @@ nOS_Error nOS_QueueRead (nOS_Queue *queue, void *buffer, nOS_TickCounter tout)
                 Write(queue, thread->context);
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
                 if ((thread->state == NOS_THREAD_READY) && (thread->prio > nOS_runningThread->prio)) {
-                    nOS_Sched();
+                    Sched();
                 }
 #endif
             }
@@ -178,7 +178,7 @@ nOS_Error nOS_QueueWrite (nOS_Queue *queue, void *buffer, nOS_TickCounter tout)
                 memcpy(thread->context, buffer, queue->bsize);
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
                 if ((thread->state == NOS_THREAD_READY) && (thread->prio > nOS_runningThread->prio)) {
-                    nOS_Sched();
+                    Sched();
                 }
 #endif
                 err = NOS_OK;

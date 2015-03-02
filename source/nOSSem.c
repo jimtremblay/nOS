@@ -61,7 +61,7 @@ nOS_Error nOS_SemDelete (nOS_Sem *sem)
         sem->max = 0;
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
         if (nOS_EventDelete((nOS_Event*)sem)) {
-            nOS_Sched();
+            Sched();
         }
 #else
         nOS_EventDelete((nOS_Event*)sem);
@@ -152,7 +152,7 @@ nOS_Error nOS_SemGive (nOS_Sem *sem)
         if (thread != NULL) {
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
             if ((thread->state == NOS_THREAD_READY) && (thread->prio > nOS_runningThread->prio)) {
-                nOS_Sched();
+                Sched();
             }
 #endif
             err = NOS_OK;

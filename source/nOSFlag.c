@@ -104,7 +104,7 @@ nOS_Error nOS_FlagDelete (nOS_Flag *flag)
         flag->flags = NOS_FLAG_NONE;
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
         if (nOS_EventDelete((nOS_Event*)flag)) {
-            nOS_Sched();
+            Sched();
         }
 #else
         nOS_EventDelete((nOS_Event*)flag);
@@ -256,13 +256,13 @@ nOS_Error nOS_FlagSend (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits mask)
         nOS_ListWalk(&flag->e.waitList, TestFlag, &res);
         /* Clear all flags that have awoken the waiting threads. */
         flag->flags &=~ res.rflags;
-        nOS_CriticalLeave();
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
         /* Schedule only if one of awoken thread has an higher priority. */
         if (res.sched) {
-            nOS_Sched();
+            Sched();
         }
 #endif
+        nOS_CriticalLeave();
         err = NOS_OK;
     }
 

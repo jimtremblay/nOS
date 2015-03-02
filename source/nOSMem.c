@@ -155,7 +155,7 @@ nOS_Error nOS_MemDelete (nOS_Mem *mem)
 #endif
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
         if (nOS_EventDelete((nOS_Event*)mem)) {
-            nOS_Sched();
+            Sched();
         }
 #else
         nOS_EventDelete((nOS_Event*)mem);
@@ -285,7 +285,7 @@ nOS_Error nOS_MemFree(nOS_Mem *mem, void *block)
             *(void**)thread->context = block;
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
             if ((thread->state == NOS_THREAD_READY) && (thread->prio > nOS_runningThread->prio)) {
-                nOS_Sched();
+                Sched();
             }
 #endif
         } else {
