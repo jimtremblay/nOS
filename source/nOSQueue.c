@@ -188,7 +188,7 @@ nOS_Error nOS_QueueWrite (nOS_Queue *queue, void *buffer, nOS_TickCounter tout)
                 err = NOS_OK;
             } else {
                 /* No thread waiting to consume message, inform producer */
-                err = NOS_E_NO_CONSUMER;
+                err = NOS_E_CONSUMER;
             }
         /* No chance a thread waiting to read from queue if count is higher than 0 */
         } else if (queue->bcount < queue->bmax) {

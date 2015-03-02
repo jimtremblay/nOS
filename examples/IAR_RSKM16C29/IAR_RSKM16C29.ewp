@@ -333,7 +333,7 @@
           <name>newCCIncludePaths</name>
           <state>$PROJ_DIR$</state>
           <state>$PROJ_DIR$\..\..\include</state>
-          <state>$PROJ_DIR$\..\..\include\port\IAR\M16C</state>
+          <state>$PROJ_DIR$\..\..\include\port\IAR\M16C_R8C</state>
         </option>
         <option>
           <name>CCStdIncCheck</name>
@@ -1801,7 +1801,7 @@
       <name>$PROJ_DIR$\..\..\source\nOSMutex.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\source\port\IAR\M16C\nOSPort.c</name>
+      <name>$PROJ_DIR$\..\..\source\port\IAR\M16C_R8C\nOSPort.c</name>
     </file>
     <file>
       <name>$PROJ_DIR$\..\..\source\nOSQueue.c</name>
