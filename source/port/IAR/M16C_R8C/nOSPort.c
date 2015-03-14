@@ -13,11 +13,11 @@
 extern "C" {
 #endif
 
-void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg)
+void nOS_InitContext(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg)
 {
     nOS_Stack *tos = (nOS_Stack*)((uint16_t)(stack + ssize) & 0xFFFE);
 #if (NOS_CONFIG_DEBUG > 0)
-    uint16_t i;
+    size_t i;
 
     for (i = 0; i < ssize; i++) {
         stack[i] = 0xFFFF;
@@ -48,68 +48,64 @@ void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_Thr
     thread->stackPtr = tos;
 }
 
-void nOS_IsrEnter (void)
+void nOS_EnterIsr (void)
 {
-    nOS_CriticalEnter();
+    nOS_EnterCritical();
     nOS_isrNestingCounter++;
-    nOS_CriticalLeave();
+    nOS_LeaveCritical();
 }
 
-bool nOS_IsrLeave (void)
+bool nOS_LeaveIsr (void)
 {
     bool    swctx = false;
 
-    nOS_CriticalEnter();
+    nOS_EnterCritical();
     nOS_isrNestingCounter--;
     if (nOS_isrNestingCounter == 0) {
 #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
         if (nOS_lockNestingCounter == 0)
 #endif
         {
-#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
-            nOS_highPrioThread = SchedHighPrio();
-#else
-            nOS_highPrioThread = nOS_ListHead(&nOS_readyList);
-#endif
+            nOS_highPrioThread = nOS_FindHighPrioThread();
             if (nOS_runningThread != nOS_highPrioThread) {
                 swctx = true;
             }
         }
     }
-    nOS_CriticalLeave();
+    nOS_LeaveCritical();
 
     return swctx;
 }
 
 #pragma vector = 0x20
-__interrupt void nOS_PortContextSwitch(void)
+__interrupt void nOS_SwitchContextHandler(void)
 {
     __asm (
         /* Push all registers on thread stack */
-    	"PUSHM  R0,R1,R2,R3,A0,A1,SB,FB                     \n"
+        "PUSHM  R0,R1,R2,R3,A0,A1,SB,FB                     \n"
 
         /* Save SP to nOS_Thread object of current running thread */
-	    "MOV.W  nOS_runningThread,      A0                  \n"
-	    "STC    SP,                     [A0]                \n"
+        "MOV.W  nOS_runningThread,      A0                  \n"
+        "STC    SP,                     [A0]                \n"
 
         /* Copy nOS_highPrioThread to nOS_runningThread */
-	    "MOV.W	nOS_highPrioThread,     nOS_runningThread   \n"
+        "MOV.W  nOS_highPrioThread,     nOS_runningThread   \n"
 
         /* Restore SP from nOS_Thread object of high prio thread */
-	    "MOV.W	nOS_highPrioThread,     A0                  \n"
-	    "LDC	[A0],                   SP                  \n"
+        "MOV.W  nOS_highPrioThread,     A0                  \n"
+        "LDC    [A0],                   SP                  \n"
 
         /* Pop all registers from thread stack */
-	    "POPM   R0,R1,R2,R3,A0,A1,SB,FB                     \n"
+        "POPM   R0,R1,R2,R3,A0,A1,SB,FB                     \n"
     );
 }
 
 #pragma vector = 0x21
-__interrupt void nOS_PortContextSwitchFromIsr(void)
+__interrupt void nOS_SwitchContextFromIsrHandler(void)
 {
     __asm (
         /* Push all registers on thread stack */
-    	"PUSHM  R0,R1,R2,R3,A0,A1,SB,FB                     \n"
+        "PUSHM  R0,R1,R2,R3,A0,A1,SB,FB                     \n"
 
         /* Move PC and FLG from ISTACK to USTACK */
         "STC    ISP,                    A0                  \n"
@@ -121,18 +117,18 @@ __interrupt void nOS_PortContextSwitchFromIsr(void)
         "LDC    A0,                     ISP                 \n"
 
         /* Save SP to nOS_Thread object of current running thread */
-	    "MOV.W  nOS_runningThread,      A0                  \n"
-	    "STC    SP,                     [A0]                \n"
+        "MOV.W  nOS_runningThread,      A0                  \n"
+        "STC    SP,                     [A0]                \n"
 
         /* Copy nOS_highPrioThread to nOS_runningThread */
-	    "MOV.W	nOS_highPrioThread,     nOS_runningThread  \n"
+        "MOV.W  nOS_highPrioThread,     nOS_runningThread  \n"
 
         /* Restore SP from nOS_Thread object of high prio thread */
-	    "MOV.W	nOS_highPrioThread,     A0                  \n"
-	    "LDC	[A0],                   SP                  \n"
+        "MOV.W  nOS_highPrioThread,     A0                  \n"
+        "LDC    [A0],                   SP                  \n"
 
         /* Pop all registers from thread stack */
-	    "POPM   R0,R1,R2,R3,A0,A1,SB,FB                     \n"
+        "POPM   R0,R1,R2,R3,A0,A1,SB,FB                     \n"
     );
 }
 

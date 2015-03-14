@@ -15,53 +15,53 @@ extern "C" {
 
 #if (NOS_CONFIG_TIMER_ENABLE > 0)
 #if (NOS_CONFIG_TIMER_THREAD_ENABLE > 0)
-static void ThreadTimer (void *arg);
+ static void    _ThreadTimer    (void *arg);
 #endif
-static void TickTimer (void *payload, void *arg);
+static void     _TickTimer      (void *payload, void *arg);
 
-static nOS_List     timerList;
-static nOS_Sem      timerSem;
+static nOS_List     _timerList;
+static nOS_Sem      _timerSem;
 #if (NOS_CONFIG_TIMER_THREAD_ENABLE > 0)
-static nOS_Thread   timerHandle;
-static nOS_Stack    timerStack[NOS_CONFIG_TIMER_THREAD_STACK_SIZE];
+ static nOS_Thread  _timerHandle;
+ static nOS_Stack   _timerStack[NOS_CONFIG_TIMER_THREAD_STACK_SIZE];
 #endif
 
 #if (NOS_CONFIG_TIMER_THREAD_ENABLE > 0)
-static void ThreadTimer (void *arg)
+static void _ThreadTimer (void *arg)
 {
     NOS_UNUSED(arg);
 
-    while (1) {
+    while (true) {
         nOS_TimerProcess();
     }
 }
 #endif
 
-static void TickTimer (void *payload, void *arg)
+static void _TickTimer (void *payload, void *arg)
 {
     nOS_Timer   *timer = (nOS_Timer *)payload;
     bool        call = false;
 
     NOS_UNUSED(arg);
 
-    nOS_CriticalEnter();
+    nOS_EnterCritical();
     if ((timer->state & (NOS_TIMER_RUNNING | NOS_TIMER_PAUSED)) == NOS_TIMER_RUNNING) {
         if (timer->count > 0) {
             timer->count--;
         }
 
         if (timer->count == 0) {
-            if ((timer->state & NOS_TIMER_MODE) == NOS_TIMER_FREE_RUNNING) {
+            if (((nOS_TimerMode)timer->state & NOS_TIMER_MODE) == NOS_TIMER_FREE_RUNNING) {
                 timer->count = timer->reload;
             /* One-shot timer */
             } else {
-                timer->state &=~ NOS_TIMER_RUNNING;
+                timer->state = (nOS_TimerState)(timer->state &~ NOS_TIMER_RUNNING);
             }
             /* Call callback function outside of critical section */
             call = true;
         }
     }
-    nOS_CriticalLeave();
+    nOS_LeaveCritical();
 
     if (call) {
         if (timer->callback != NULL) {
@@ -72,15 +72,15 @@ static void TickTimer (void *payload, void *arg)
 
 void nOS_TimerInit(void)
 {
-    nOS_ListInit(&timerList);
-    nOS_SemCreate(&timerSem, 0, NOS_SEM_COUNT_MAX);
+    nOS_InitList(&_timerList);
+    nOS_SemCreate(&_timerSem, 0, NOS_SEM_COUNT_MAX);
 #if (NOS_CONFIG_TIMER_THREAD_ENABLE > 0)
-    nOS_ThreadCreate(&timerHandle,
-                     ThreadTimer,
+    nOS_ThreadCreate(&_timerHandle,
+                     _ThreadTimer,
                      NULL,
-                     timerStack,
+                     _timerStack,
                      NOS_CONFIG_TIMER_THREAD_STACK_SIZE
-#ifdef NOS_PORT_SEPARATE_CALL_STACK
+#ifdef NOS_USE_SEPARATE_CALL_STACK
                      ,NOS_CONFIG_TIMER_THREAD_CALL_STACK_SIZE
 #endif
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
@@ -89,29 +89,32 @@ void nOS_TimerInit(void)
 #if (NOS_CONFIG_THREAD_SUSPEND_ENABLE > 0)
                      ,NOS_THREAD_READY
 #endif
+#if (NOS_CONFIG_THREAD_NAME_ENABLE > 0)
+                     ,"nOS_Timer"
+#endif
                      );
 #endif  /* NOS_CONFIG_TIMER_THREAD_ENABLE */
 }
 
 void nOS_TimerTick (void)
 {
-    nOS_SemGive(&timerSem);
+    nOS_SemGive(&_timerSem);
 }
 
 void nOS_TimerProcess (void)
 {
-    if (nOS_SemTake (&timerSem,
+    if (nOS_SemTake (&_timerSem,
 #if (NOS_CONFIG_TIMER_THREAD_ENABLE > 0)
-        NOS_WAIT_INFINITE
+                     NOS_WAIT_INFINITE
 #else
-        NOS_NO_WAIT
+                     NOS_NO_WAIT
 #endif
-    ) == NOS_OK) {
-        nOS_ListWalk(&timerList, TickTimer, NULL);
+                     ) == NOS_OK) {
+        nOS_WalkInList(&_timerList, _TickTimer, NULL);
     }
 }
 
-nOS_Error nOS_TimerCreate (nOS_Timer *timer, nOS_TimerCallback callback, void *arg, nOS_TimerCounter reload, uint8_t mode)
+nOS_Error nOS_TimerCreate (nOS_Timer *timer, nOS_TimerCallback callback, void *arg, nOS_TimerCounter reload, nOS_TimerMode mode)
 {
     nOS_Error   err;
 
@@ -127,13 +130,13 @@ nOS_Error nOS_TimerCreate (nOS_Timer *timer, nOS_TimerCallback callback, void *a
     {
         timer->count = 0;
         timer->reload = reload;
-        timer->state = NOS_TIMER_CREATED | (mode & NOS_TIMER_MODE);
+        timer->state = (nOS_TimerState)(NOS_TIMER_CREATED | (nOS_TimerState)(mode & NOS_TIMER_MODE));
         timer->callback = callback;
         timer->arg = arg;
         timer->node.payload = (void *)timer;
-        nOS_CriticalEnter();
-        nOS_ListAppend(&timerList, &timer->node);
-        nOS_CriticalLeave();
+        nOS_EnterCritical();
+        nOS_AppendToList(&_timerList, &timer->node);
+        nOS_LeaveCritical();
         err = NOS_OK;
     }
 
@@ -153,10 +156,10 @@ nOS_Error nOS_TimerDelete (nOS_Timer *timer)
     } else
 #endif
     {
-        nOS_CriticalEnter();
+        nOS_EnterCritical();
         timer->state = NOS_TIMER_DELETED;
-        nOS_ListRemove(&timerList, &timer->node);
-        nOS_CriticalLeave();
+        nOS_RemoveFromList(&_timerList, &timer->node);
+        nOS_LeaveCritical();
         err = NOS_OK;
     }
 
@@ -176,10 +179,10 @@ nOS_Error nOS_TimerStart (nOS_Timer *timer)
     } else
 #endif
     {
-        nOS_CriticalEnter();
-        timer->count  = timer->reload;
-        timer->state |= NOS_TIMER_RUNNING;
-        nOS_CriticalLeave();
+        nOS_EnterCritical();
+        timer->count = timer->reload;
+        timer->state = (nOS_TimerState)(timer->state | NOS_TIMER_RUNNING);
+        nOS_LeaveCritical();
         err = NOS_OK;
     }
 
@@ -198,9 +201,9 @@ nOS_Error nOS_TimerStop (nOS_Timer *timer)
     } else
 #endif
     {
-        nOS_CriticalEnter();
-        timer->state &=~ NOS_TIMER_RUNNING;
-        nOS_CriticalLeave();
+        nOS_EnterCritical();
+        timer->state = (nOS_TimerState)(timer->state &~ NOS_TIMER_RUNNING);
+        nOS_LeaveCritical();
         err = NOS_OK;
     }
 
@@ -219,11 +222,11 @@ nOS_Error nOS_TimerRestart (nOS_Timer *timer, nOS_TimerCounter reload)
     } else
 #endif
     {
-        nOS_CriticalEnter();
+        nOS_EnterCritical();
         timer->reload = reload;
         timer->count  = reload;
-        timer->state |= NOS_TIMER_RUNNING;
-        nOS_CriticalLeave();
+        timer->state  = (nOS_TimerState)(timer->state | NOS_TIMER_RUNNING);
+        nOS_LeaveCritical();
         err = NOS_OK;
     }
 
@@ -242,9 +245,9 @@ nOS_Error nOS_TimerPause (nOS_Timer *timer)
     } else
 #endif
     {
-        nOS_CriticalEnter();
-        timer->state |= NOS_TIMER_PAUSED;
-        nOS_CriticalLeave();
+        nOS_EnterCritical();
+        timer->state = (nOS_TimerState)(timer->state | NOS_TIMER_PAUSED);
+        nOS_LeaveCritical();
         err = NOS_OK;
     }
 
@@ -263,16 +266,16 @@ nOS_Error nOS_TimerResume (nOS_Timer *timer)
     } else
 #endif
     {
-        nOS_CriticalEnter();
-        timer->state &=~ NOS_TIMER_PAUSED;
-        nOS_CriticalLeave();
+        nOS_EnterCritical();
+        timer->state = (nOS_TimerState)(timer->state &~ NOS_TIMER_PAUSED);
+        nOS_LeaveCritical();
         err = NOS_OK;
     }
 
     return err;
 }
 
-nOS_Error nOS_TimerChangeReload (nOS_Timer *timer, nOS_TimerCounter reload)
+nOS_Error nOS_TimerSetReload (nOS_Timer *timer, nOS_TimerCounter reload)
 {
     nOS_Error   err;
 
@@ -284,16 +287,16 @@ nOS_Error nOS_TimerChangeReload (nOS_Timer *timer, nOS_TimerCounter reload)
     } else
 #endif
     {
-        nOS_CriticalEnter();
+        nOS_EnterCritical();
         timer->reload = reload;
-        nOS_CriticalLeave();
+        nOS_LeaveCritical();
         err = NOS_OK;
     }
 
     return err;
 }
 
-nOS_Error nOS_TimerChangeCallback (nOS_Timer *timer, nOS_TimerCallback callback, void *arg)
+nOS_Error nOS_TimerSetCallback (nOS_Timer *timer, nOS_TimerCallback callback, void *arg)
 {
     nOS_Error   err;
 
@@ -305,17 +308,17 @@ nOS_Error nOS_TimerChangeCallback (nOS_Timer *timer, nOS_TimerCallback callback,
     } else
 #endif
     {
-        nOS_CriticalEnter();
+        nOS_EnterCritical();
         timer->callback = callback;
         timer->arg = arg;
-        nOS_CriticalLeave();
+        nOS_LeaveCritical();
         err = NOS_OK;
     }
 
     return err;
 }
 
-nOS_Error nOS_TimerChangeMode (nOS_Timer *timer, uint8_t mode)
+nOS_Error nOS_TimerSetMode (nOS_Timer *timer, nOS_TimerMode mode)
 {
     nOS_Error   err;
 
@@ -329,9 +332,9 @@ nOS_Error nOS_TimerChangeMode (nOS_Timer *timer, uint8_t mode)
     } else
 #endif
     {
-        nOS_CriticalEnter();
-        timer->state = (timer->state &~ NOS_TIMER_MODE) | mode;
-        nOS_CriticalLeave();
+        nOS_EnterCritical();
+        timer->state = (nOS_TimerState)(((nOS_TimerMode)timer->state &~ NOS_TIMER_MODE) | mode);
+        nOS_LeaveCritical();
         err = NOS_OK;
     }
 
@@ -350,9 +353,9 @@ bool nOS_TimerIsRunning (nOS_Timer *timer)
     } else
 #endif
     {
-        nOS_CriticalEnter();
+        nOS_EnterCritical();
         running = (timer->state & NOS_TIMER_RUNNING) == NOS_TIMER_RUNNING;
-        nOS_CriticalLeave();
+        nOS_LeaveCritical();
     }
 
     return running;

@@ -13,41 +13,50 @@
 extern "C" {
 #endif
 
-static nOS_Stack isrStack[NOS_CONFIG_ISR_STACK_SIZE];
+#ifdef NOS_CONFIG_ISR_STACK_SIZE
+ static nOS_Stack _isrStack[NOS_CONFIG_ISR_STACK_SIZE];
+#endif
 
-void nOS_PortInit(void)
+void nOS_InitSpecific(void)
 {
-#if (NOS_CONFIG_DEBUG > 0)
+#ifdef NOS_CONFIG_ISR_STACK_SIZE
+ #if (NOS_CONFIG_DEBUG > 0)
     uint32_t i;
 
     for (i = 0; i < NOS_CONFIG_ISR_STACK_SIZE; i++) {
-        isrStack[i] = 0xffffffffUL;
+        _isrStack[i] = 0xFFFFFFFFUL;
     }
-#endif
+ #endif
 
     /* Copy MSP to PSP */
     __set_PSP(__get_MSP());
     /* Set MSP to local ISR stack */
-    __set_MSP((uint32_t)&isrStack[NOS_CONFIG_ISR_STACK_SIZE] & 0xfffffff8UL);
-#ifdef __ARMVFP__
+    __set_MSP((uint32_t)&_isrStack[NOS_CONFIG_ISR_STACK_SIZE] & 0xFFFFFFF8UL);
+ #ifdef __ARMVFP__
     /* Set current stack to PSP, privileged mode and save FPU state */
     __set_CONTROL(__get_CONTROL() | 0x00000006UL);
-#else
+ #else
     /* Set current stack to PSP and privileged mode */
     __set_CONTROL(__get_CONTROL() | 0x00000002UL);
+ #endif
+#else
+ #ifdef __ARMVFP__
+    /* Save FPU state */
+    __set_CONTROL(__get_CONTROL() | 0x00000004UL);
+ #endif
 #endif
     /* Set PendSV exception to lowest priority */
-    *(volatile uint32_t *)0xe000ed20UL |= 0x00ff0000UL;
+    *(volatile uint32_t *)0xE000ED20UL |= 0x00FF0000UL;
 }
 
-void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg)
+void nOS_InitContext(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg)
 {
-    nOS_Stack *tos = (nOS_Stack*)((uint32_t)(stack + ssize) & 0xfffffff8UL);
+    nOS_Stack *tos = (nOS_Stack*)((uint32_t)(stack + ssize) & 0xFFFFFFF8UL);
 #if (NOS_CONFIG_DEBUG > 0)
     uint32_t i;
 
     for (i = 0; i < ssize; i++) {
-        stack[i] = 0xffffffffUL;
+        stack[i] = 0xFFFFFFFFUL;
     }
 #endif
 
@@ -110,9 +119,9 @@ void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_Thr
  #endif
 #endif
 #if __ARMVFP__
-    *(--tos) = 0xffffffedUL;    /* EXC_RETURN (Thread mode, use FP state from PSP, Thread use PSP */
+    *(--tos) = 0xFFFFFFEDUL;    /* EXC_RETURN (Thread mode, use FP state from PSP, Thread use PSP */
 #else
-    *(--tos) = 0xfffffffdUL;    /* EXC_RETURN (Thread mode, don't use FP state, Thread use PSP */
+    *(--tos) = 0xFFFFFFFDUL;    /* EXC_RETURN (Thread mode, don't use FP state, Thread use PSP */
 #endif
 #if (NOS_CONFIG_DEBUG > 0)
     *(--tos) = 0x11111111UL;    /* R11 */
@@ -130,33 +139,29 @@ void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_Thr
     thread->stackPtr = tos;
 }
 
-void nOS_IsrEnter (void)
+void nOS_EnterIsr (void)
 {
-    nOS_CriticalEnter();
+    nOS_EnterCritical();
     nOS_isrNestingCounter++;
-    nOS_CriticalLeave();
+    nOS_LeaveCritical();
 }
 
-void nOS_IsrLeave (void)
+void nOS_LeaveIsr (void)
 {
-    nOS_CriticalEnter();
+    nOS_EnterCritical();
     nOS_isrNestingCounter--;
     if (nOS_isrNestingCounter == 0) {
 #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
         if (nOS_lockNestingCounter == 0)
 #endif
         {
-#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
-            nOS_highPrioThread = SchedHighPrio();
-#else
-            nOS_highPrioThread = nOS_ListHead(&nOS_readyList);
-#endif
+            nOS_highPrioThread = nOS_FindHighPrioThread();
             if (nOS_runningThread != nOS_highPrioThread) {
-                *(volatile uint32_t *)0xe000ed04UL = 0x10000000UL;
+                *(volatile uint32_t *)0xE000ED04UL = 0x10000000UL;
             }
         }
     }
-    nOS_CriticalLeave();
+    nOS_LeaveCritical();
 }
 
 #ifdef __cplusplus

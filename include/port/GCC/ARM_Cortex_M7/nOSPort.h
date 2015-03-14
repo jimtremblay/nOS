@@ -17,10 +17,17 @@ typedef uint32_t                            nOS_Stack;
 
 #define NOS_UNUSED(v)                       (void)v
 
-#define NOS_PORT_MEM_ALIGNMENT              4
+#define NOS_MEM_ALIGNMENT                   4
+#define NOS_MEM_POINTER_WIDTH               4
 
-#define NOS_PORT_SCHED_USE_32_BITS
-#define NOS_PORT_HAVE_CLZ
+#define NOS_32_BITS_SCHEDULER
+#define NOS_USE_CLZ
+
+#ifdef NOS_CONFIG_ISR_STACK_SIZE
+ #if (NOS_CONFIG_ISR_STACK_SIZE == 0)
+  #error "nOSConfig.h: NOS_CONFIG_ISR_STACK_SIZE is set to invalid value: must be higher than 0."
+ #endif
+#endif
 
 /* __NVIC_PRIO_BITS defined from CMSIS if used */
 #ifdef NOS_CONFIG_NVIC_PRIO_BITS
@@ -31,92 +38,78 @@ typedef uint32_t                            nOS_Stack;
  #define NOS_NVIC_PRIO_BITS                 4
 #endif
 
-#ifndef NOS_CONFIG_ISR_STACK_SIZE
- #error "nOSConfig.h: NOS_CONFIG_ISR_STACK_SIZE is not defined: must be higher than 0."
-#elif (NOS_CONFIG_ISR_STACK_SIZE == 0)
- #error "nOSConfig.h: NOS_CONFIG_ISR_STACK_SIZE is set to invalid value: must be higher than 0."
-#endif
-
 #ifndef NOS_CONFIG_MAX_UNSAFE_ISR_PRIO
  #error "nOSConfig.h: NOS_CONFIG_MAX_UNSAFE_ISR_PRIO is not defined."
 #endif
 
-#define NOS_PORT_MAX_UNSAFE_BASEPRI         (NOS_CONFIG_MAX_UNSAFE_ISR_PRIO << (8 - NOS_NVIC_PRIO_BITS))
+#define NOS_MAX_UNSAFE_BASEPRI              (NOS_CONFIG_MAX_UNSAFE_ISR_PRIO << (8 - NOS_NVIC_PRIO_BITS))
 
-__attribute__( ( always_inline ) ) static inline uint32_t GetMSP (void)
+__attribute__( ( always_inline ) ) static inline uint32_t _GetMSP (void)
 {
-    uint32_t r;
-
-    __asm volatile ("MRS %[result], MSP" : [result] "=r" (r));
-
+    register uint32_t r;
+    __asm volatile ("MRS %0, MSP" : "=r" (r));
     return r;
 }
 
-__attribute__( ( always_inline ) ) static inline void SetMSP (uint32_t r)
+__attribute__( ( always_inline ) ) static inline void _SetMSP (uint32_t r)
 {
-    __asm volatile ("MSR MSP, %[input]" :: [input] "r" (r));
+    __asm volatile ("MSR MSP, %" :: "r" (r));
 }
 
-__attribute__( ( always_inline ) ) static inline uint32_t GetPSP (void)
+__attribute__( ( always_inline ) ) static inline uint32_t _GetPSP (void)
 {
-    uint32_t r;
-
-    __asm volatile ("MRS %[result], PSP" : [result] "=r" (r));
-
+    register uint32_t r;
+    __asm volatile ("MRS %0, PSP" : "=r" (r));
     return r;
 }
 
-__attribute__( ( always_inline ) ) static inline void SetPSP (uint32_t r)
+__attribute__( ( always_inline ) ) static inline void _SetPSP (uint32_t r)
 {
-    __asm volatile ("MSR PSP, %[input]" :: [input] "r" (r));
+    __asm volatile ("MSR PSP, %0" :: "r" (r));
 }
 
-__attribute__( ( always_inline ) ) static inline uint32_t GetCONTROL (void)
+__attribute__( ( always_inline ) ) static inline uint32_t _GetCONTROL (void)
 {
-    uint32_t r;
-
-    __asm volatile ("MRS %[result], CONTROL" : [result] "=r" (r));
-
+    register uint32_t r;
+    __asm volatile ("MRS %0, CONTROL" : "=r" (r));
     return r;
 }
 
-__attribute__( ( always_inline ) ) static inline void SetCONTROL (uint32_t r)
+__attribute__( ( always_inline ) ) static inline void _SetCONTROL (uint32_t r)
 {
-    __asm volatile ("MSR CONTROL, %[input]" :: [input] "r" (r));
+    __asm volatile ("MSR CONTROL, %0" :: "r" (r));
 }
 
-__attribute__( ( always_inline ) ) static inline uint32_t GetBASEPRI (void)
+__attribute__( ( always_inline ) ) static inline uint32_t _GetBASEPRI (void)
 {
-    uint32_t r;
-
-    __asm volatile ("MRS %[result], BASEPRI" : [result] "=r" (r));
-
+    register uint32_t r;
+    __asm volatile ("MRS %0, BASEPRI" : "=r" (r));
     return r;
 }
 
-__attribute__( ( always_inline ) ) static inline void SetBASEPRI (uint32_t r)
+__attribute__( ( always_inline ) ) static inline void _SetBASEPRI (uint32_t r)
 {
-    __asm volatile ("MSR BASEPRI, %[input]" :: [input] "r" (r));
+    __asm volatile ("MSR BASEPRI, %0" :: "r" (r));
 }
 
-__attribute__( ( always_inline ) ) static inline void DSB (void)
+__attribute__( ( always_inline ) ) static inline void _DSB (void)
 {
     __asm volatile ("DSB");
 }
 
-__attribute__( ( always_inline ) ) static inline void ISB (void)
+__attribute__( ( always_inline ) ) static inline void _ISB (void)
 {
     __asm volatile ("ISB");
 }
 
-__attribute__( ( always_inline ) ) static inline void NOP (void)
+__attribute__( ( always_inline ) ) static inline void _NOP (void)
 {
     __asm volatile ("NOP");
 }
 
-__attribute__( ( always_inline ) ) static inline uint32_t nOS_PortCLZ(uint32_t n)
+__attribute__( ( always_inline ) ) static inline uint32_t _CLZ(uint32_t n)
 {
-    uint32_t    r;
+    register uint32_t    r;
     __asm volatile (
         "CLZ    %[result], %[input]"
         : [result] "=r" (r)
@@ -125,51 +118,50 @@ __attribute__( ( always_inline ) ) static inline uint32_t nOS_PortCLZ(uint32_t n
     return r;
 }
 
-#define nOS_CriticalEnter()                                                     \
+#define nOS_EnterCritical()                                                     \
 {                                                                               \
-    uint32_t    _basepri = GetBASEPRI();                                        \
-    SetBASEPRI(NOS_PORT_MAX_UNSAFE_BASEPRI);                                    \
-    DSB();                                                                      \
-    ISB()
+    uint32_t _basepri = _GetBASEPRI();                                          \
+    _SetBASEPRI(NOS_MAX_UNSAFE_BASEPRI);                                        \
+    _DSB();                                                                     \
+    _ISB()
 
-#define nOS_CriticalLeave()                                                     \
-    SetBASEPRI(_basepri);                                                       \
-    DSB();                                                                      \
-    ISB();                                                                      \
+#define nOS_LeaveCritical()                                                     \
+    _SetBASEPRI(_basepri);                                                      \
+    _DSB();                                                                     \
+    _ISB();                                                                     \
 }
 
 /*
  * Request a context switch and enable interrupts to allow PendSV interrupt.
  */
-#define nOS_ContextSwitch()                                                     \
-    *(volatile uint32_t *)0xe000ed04UL = 0x10000000UL;                          \
-    SetBASEPRI(0);                                                              \
-    DSB();                                                                      \
-    ISB();                                                                      \
-    NOP();                                                                      \
-    SetBASEPRI(NOS_PORT_MAX_UNSAFE_BASEPRI);                                    \
-    DSB();                                                                      \
-    ISB()
+#define nOS_SwitchContext()                                                     \
+    *(volatile uint32_t *)0xE000ED04UL = 0x10000000UL;                          \
+    _SetBASEPRI(0);                                                             \
+    _DSB();                                                                     \
+    _ISB();                                                                     \
+    _NOP();                                                                     \
+    _SetBASEPRI(NOS_MAX_UNSAFE_BASEPRI);                                        \
+    _DSB();                                                                     \
+    _ISB()
 
 
-void    nOS_IsrEnter    (void);
-void    nOS_IsrLeave    (void);
+void    nOS_EnterIsr    (void);
+void    nOS_LeaveIsr    (void);
 
 #define NOS_ISR(func)                                                           \
 void func##_ISR(void) __attribute__ ( ( always_inline ) );                      \
 void func(void)                                                                 \
 {                                                                               \
-    nOS_IsrEnter();                                                             \
+    nOS_EnterIsr();                                                             \
     func##_ISR();                                                               \
-    nOS_IsrLeave();                                                             \
+    nOS_LeaveIsr();                                                             \
 }                                                                               \
 inline void func##_ISR(void)
 
 #ifdef NOS_PRIVATE
-void        nOS_PortInit        (void);
+ void       nOS_InitSpecific        (void);
+ void       nOS_InitContext         (nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg);
 #endif
-
-void        nOS_ContextInit     (nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg);
 
 #ifdef __cplusplus
 }

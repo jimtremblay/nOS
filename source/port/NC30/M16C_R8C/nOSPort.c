@@ -13,11 +13,11 @@
 extern "C" {
 #endif
 
-void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg)
+void nOS_InitContext(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg)
 {
     nOS_Stack *tos = (nOS_Stack*)((uint16_t)(stack + ssize) & 0xFFFE);
 #if (NOS_CONFIG_DEBUG > 0)
-    uint16_t i;
+    size_t i;
 
     for (i = 0; i < ssize; i++) {
         stack[i] = 0xFFFF;
@@ -48,35 +48,31 @@ void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_Thr
     thread->stackPtr = tos;
 }
 
-void nOS_IsrEnter (void)
+void nOS_EnterIsr (void)
 {
-    nOS_CriticalEnter();
+    nOS_EnterCritical();
     nOS_isrNestingCounter++;
-    nOS_CriticalLeave();
+    nOS_LeaveCritical();
 }
 
-bool nOS_IsrLeave (void)
+bool nOS_LeaveIsr (void)
 {
     bool    swctx = false;
 
-    nOS_CriticalEnter();
+    nOS_EnterCritical();
     nOS_isrNestingCounter--;
     if (nOS_isrNestingCounter == 0) {
 #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
         if (nOS_lockNestingCounter == 0)
 #endif
         {
-#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
-            nOS_highPrioThread = SchedHighPrio();
-#else
-            nOS_highPrioThread = nOS_ListHead(&nOS_readyList);
-#endif
+            nOS_highPrioThread = nOS_FindHighPrioThread();
             if (nOS_runningThread != nOS_highPrioThread) {
                 swctx = true;
             }
         }
     }
-    nOS_CriticalLeave();
+    nOS_LeaveCritical();
 
     return swctx;
 }

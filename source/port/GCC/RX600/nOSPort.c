@@ -15,7 +15,7 @@ extern "C" {
 
 void INT_Excep_ICU_SWINT(void) __attribute__((naked));
 
-void nOS_PortInit(void)
+void nOS_InitSpecific(void)
 {
     /* Enable software interrupt */
     *(uint8_t*)0x00087203UL |= (uint8_t)0x08;
@@ -25,16 +25,15 @@ void nOS_PortInit(void)
     *(uint8_t*)0x00087303UL = (uint8_t)1;
 }
 
-void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg)
+void nOS_InitContext(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg)
 {
     nOS_Stack *tos = (stack + (ssize - 1));
-
-    /* Just to know if the thread has overflow his stack */
 #if (NOS_CONFIG_DEBUG > 0)
-    *stack++ = 0x01234567UL;
-    *stack   = 0x89abcdefUL;
-    *tos--   = 0x76543210UL;
-    *tos--   = 0xfedcba98UL;
+    size_t i;
+
+    for (i = 0; i < ssize; i++) {
+        stack[i] = 0xFFFFFFFFUL;
+    }
 #endif
 
     *tos-- = 0x00030000UL;      /* Interrupts enabled, User stack selected, Supervisor mode */
@@ -61,7 +60,7 @@ void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_Thr
     *tos-- = 0x00000100UL;      /* Floating-point status word (default) */
 #if (NOS_CONFIG_DEBUG > 0)
     *tos-- = 0x01234567UL;      /* Accumulator high */
-    *tos   = 0x89abcdefUL;      /* Accumulator low */
+    *tos   = 0x89ABCDEFUL;      /* Accumulator low */
 #else
      tos  -= 1;
 #endif
@@ -69,34 +68,30 @@ void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_Thr
     thread->stackPtr = tos;
 }
 
-void nOS_IsrEnter (void)
+void nOS_EnterIsr (void)
 {
-    nOS_CriticalEnter();
+    nOS_EnterCritical();
     nOS_isrNestingCounter++;
-    nOS_CriticalLeave();
+    nOS_LeaveCritical();
 }
 
-void nOS_IsrLeave (void)
+void nOS_LeaveIsr (void)
 {
-    nOS_CriticalEnter();
+    nOS_EnterCritical();
     nOS_isrNestingCounter--;
     if (nOS_isrNestingCounter == 0) {
 #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
         if (nOS_lockNestingCounter == 0)
 #endif
         {
-#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
-            nOS_highPrioThread = SchedHighPrio();
-#else
-            nOS_highPrioThread = nOS_ListHead(&nOS_readyList);
-#endif
+            nOS_highPrioThread = nOS_FindHighPrioThread();
             if (nOS_runningThread != nOS_highPrioThread) {
                 /* Request a software interrupt when going out of ISR */
                 *(uint8_t*)0x000872E0UL = (uint8_t)1;
             }
         }
     }
-    nOS_CriticalLeave();
+    nOS_LeaveCritical();
 }
 
 void INT_Excep_ICU_SWINT(void)

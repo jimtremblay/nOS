@@ -15,13 +15,13 @@
 extern "C" {
 #endif
 
-typedef uint8_t                 nOS_Stack;
+typedef uint8_t                         nOS_Stack;
 
-#define NOS_UNUSED(v)           (void)v
+#define NOS_UNUSED(v)                   (void)v
 
-#define NOS_PORT_MEM_ALIGNMENT  1
+#define NOS_MEM_ALIGNMENT               1
 
-#define NOS_PORT_SEPARATE_CALL_STACK
+#define NOS_USE_SEPARATE_CALL_STACK
 
 #ifdef __HAS_RAMPZ__
  #define PUSH_RAMPZ                                                             \
@@ -55,17 +55,17 @@ typedef uint8_t                 nOS_Stack;
  #define POP_EIND
 #endif
 
-#define nOS_CriticalEnter()                                                     \
+#define nOS_EnterCritical()                                                     \
 {                                                                               \
     volatile unsigned char _sr;                                                 \
     _sr = __save_interrupt();                                                   \
     __disable_interrupt()
 
-#define nOS_CriticalLeave()                                                     \
+#define nOS_LeaveCritical()                                                     \
     __restore_interrupt(_sr);                                                   \
 }
 
-#define nOS_ContextPush()                                                       \
+#define PUSH_CONTEXT()                                                          \
     __asm (                                                                     \
         "st     -y,     r0                  \n" /* R0 */                        \
         "in     r0,     0x3F                \n"                                 \
@@ -108,7 +108,7 @@ typedef uint8_t                 nOS_Stack;
         "st     -y,     r31                 \n" /* R31 */                       \
     )
 
-#define nOS_ContextPop()                                                        \
+#define POP_CONTEXT()                                                           \
     __asm (                                                                     \
         "ld     r31,    y+                  \n" /* R31 */                       \
         "ld     r30,    y+                  \n" /* R30 */                       \
@@ -150,8 +150,8 @@ typedef uint8_t                 nOS_Stack;
         "ld     r0,     y+                  \n" /* R0 */                        \
     )
 
-void            nOS_IsrEnter        (nOS_Stack *sp);
-nOS_Stack*      nOS_IsrLeave        (nOS_Stack *sp);
+void            nOS_EnterIsr        (nOS_Stack *sp);
+nOS_Stack*      nOS_LeaveIsr        (nOS_Stack *sp);
 
 __no_init volatile uint16_t RSP @ 0x1C;
 
@@ -166,22 +166,24 @@ __raw __interrupt void vect##_ISR(void)                                         
 }                                                                               \
 __task void vect##_ISR_L2(void)                                                 \
 {                                                                               \
-    nOS_ContextPush();                                                          \
-    nOS_IsrEnter((nOS_Stack*)RSP);                                              \
+    PUSH_CONTEXT();                                                             \
+    nOS_EnterIsr((nOS_Stack*)RSP);                                              \
     vect##_ISR_L3();                                                            \
     __disable_interrupt();                                                      \
-    RSP = (uint16_t)nOS_IsrLeave((nOS_Stack*)RSP);                              \
-    nOS_ContextPop();                                                           \
+    RSP = (uint16_t)nOS_LeaveIsr((nOS_Stack*)RSP);                              \
+    POP_CONTEXT();                                                              \
     /* ret */                                                                   \
 }                                                                               \
 __task void vect##_ISR_L3(void)
 
 /* Unused function for this port */
-#define nOS_PortInit()
+#define     nOS_InitSpecific()
 
-void        nOS_ContextInit     (nOS_Thread *thread, nOS_Stack *stack, size_t ssize, size_t cssize, nOS_ThreadEntry entry, void *arg);
-/* Absolutely need a naked function because function call push the return address on the hardware stack */
-__task void nOS_ContextSwitch   (void);
+#ifdef NOS_PRIVATE
+ void           nOS_InitContext     (nOS_Thread *thread, nOS_Stack *stack, size_t ssize, size_t cssize, nOS_ThreadEntry entry, void *arg);
+ /* Absolutely need a naked function because function call push the return address on the hardware stack */
+ __task void    nOS_SwitchContext   (void);
+#endif
 
 #ifdef __cplusplus
 }

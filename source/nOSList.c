@@ -13,13 +13,13 @@
 extern "C" {
 #endif
 
-void nOS_ListInit (nOS_List *list)
+void nOS_InitList (nOS_List *list)
 {
     list->head = NULL;
     list->tail = NULL;
 }
 
-void* nOS_ListHead (nOS_List *list)
+void* nOS_GetHeadOfList (nOS_List *list)
 {
     if (list->head != NULL) {
         return list->head->payload;
@@ -28,7 +28,7 @@ void* nOS_ListHead (nOS_List *list)
     }
 }
 
-void nOS_ListAppend (nOS_List *list, nOS_Node *node)
+void nOS_AppendToList (nOS_List *list, nOS_Node *node)
 {
     node->prev = list->tail;
     node->next = NULL;
@@ -41,7 +41,7 @@ void nOS_ListAppend (nOS_List *list, nOS_Node *node)
     }
 }
 
-void nOS_ListRemove (nOS_List *list, nOS_Node *node)
+void nOS_RemoveFromList (nOS_List *list, nOS_Node *node)
 {
     if (list->head == node) {
         list->head = node->next;
@@ -59,22 +59,24 @@ void nOS_ListRemove (nOS_List *list, nOS_Node *node)
     node->next = NULL;
 }
 
-void nOS_ListRotate (nOS_List *list)
+void nOS_RotateList (nOS_List *list)
 {
-    if (list->head->next != NULL) {
-        list->head->prev = list->tail;
-        list->tail->next = list->head;
-        list->head = list->head->next;
-        list->tail = list->tail->next;
-        list->head->prev = NULL;
-        list->tail->next = NULL;
+    if (list->head != NULL) {
+        if (list->head->next != NULL) {
+            list->head->prev = list->tail;
+            list->tail->next = list->head;
+            list->head = list->head->next;
+            list->tail = list->tail->next;
+            list->head->prev = NULL;
+            list->tail->next = NULL;
+        }
     }
 }
 
 /* Return 0 to continue to walk into list
  * Return non-zero values to return from walk with last iterator payload
  */
-void nOS_ListWalk (nOS_List *list, nOS_NodeHandler handler, void *arg)
+void nOS_WalkInList (nOS_List *list, nOS_NodeHandler handler, void *arg)
 {
     nOS_Node    *it = list->head;
     nOS_Node    *next;

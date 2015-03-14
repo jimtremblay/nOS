@@ -48,7 +48,7 @@ nOS_Error nOS_MutexCreate (nOS_Mutex *mutex
                            ,uint8_t prio
 #endif
 #if (NOS_CONFIG_MUTEX_RECURSIVE_ENABLE > 0)
-                           ,uint8_t type
+                           ,nOS_MutexType type
 #endif
                            )
 {
@@ -68,11 +68,11 @@ nOS_Error nOS_MutexCreate (nOS_Mutex *mutex
     else
 #endif
     {
-        nOS_CriticalEnter();
+        nOS_EnterCritical();
 #if (NOS_CONFIG_SAFE > 0)
-        nOS_EventCreate((nOS_Event*)mutex, NOS_EVENT_MUTEX);
+        nOS_CreateEvent((nOS_Event*)mutex, NOS_EVENT_MUTEX);
 #else
-        nOS_EventCreate((nOS_Event*)mutex);
+        nOS_CreateEvent((nOS_Event*)mutex);
 #endif
 #if (NOS_CONFIG_MUTEX_RECURSIVE_ENABLE > 0)
         mutex->type = type;
@@ -83,7 +83,7 @@ nOS_Error nOS_MutexCreate (nOS_Mutex *mutex
         mutex->prio = prio;
         mutex->backup = 0;
 #endif
-        nOS_CriticalLeave();
+        nOS_LeaveCritical();
         err = NOS_OK;
     }
 
@@ -103,19 +103,19 @@ nOS_Error nOS_MutexDelete (nOS_Mutex *mutex)
     } else
 #endif
     {
-        nOS_CriticalEnter();
+        nOS_EnterCritical();
 #if (NOS_CONFIG_MUTEX_RECURSIVE_ENABLE > 0)
         mutex->count = 0;
 #endif
         mutex->owner = NULL;
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
-        if (nOS_EventDelete((nOS_Event*)mutex)) {
-            Sched();
+        if (nOS_DeleteEvent((nOS_Event*)mutex)) {
+            nOS_Schedule();
         }
 #else
-        nOS_EventDelete((nOS_Event*)mutex);
+        nOS_DeleteEvent((nOS_Event*)mutex);
 #endif
-        nOS_CriticalLeave();
+        nOS_LeaveCritical();
         err = NOS_OK;
     }
 
@@ -150,7 +150,7 @@ nOS_Error nOS_MutexLock (nOS_Mutex *mutex, nOS_TickCounter tout)
     if (nOS_isrNestingCounter > 0) {
         err = NOS_E_ISR;
     } else {
-        nOS_CriticalEnter();
+        nOS_EnterCritical();
         /* Mutex available? Reserve it for calling thread */
         if (mutex->owner == NULL) {
 #if (NOS_CONFIG_MUTEX_RECURSIVE_ENABLE > 0)
@@ -161,7 +161,7 @@ nOS_Error nOS_MutexLock (nOS_Mutex *mutex, nOS_TickCounter tout)
             mutex->backup = nOS_runningThread->prio;
             if (mutex->prio != NOS_MUTEX_PRIO_INHERIT) {
                 if (nOS_runningThread->prio < mutex->prio) {
-                    ChangeThreadPrio(nOS_runningThread, mutex->prio);
+                    nOS_SetThreadPrio(nOS_runningThread, mutex->prio);
                 }
             }
 #endif
@@ -191,7 +191,7 @@ nOS_Error nOS_MutexLock (nOS_Mutex *mutex, nOS_TickCounter tout)
              */
             if (mutex->prio == NOS_MUTEX_PRIO_INHERIT) {
                 if (mutex->owner->prio < nOS_runningThread->prio) {
-                    ChangeThreadPrio(mutex->owner, nOS_runningThread->prio);
+                    nOS_SetThreadPrio(mutex->owner, nOS_runningThread->prio);
                 }
             }
 #endif
@@ -215,13 +215,13 @@ nOS_Error nOS_MutexLock (nOS_Mutex *mutex, nOS_TickCounter tout)
              */
             if (mutex->prio == NOS_MUTEX_PRIO_INHERIT) {
                 if (mutex->owner->prio < nOS_runningThread->prio) {
-                    ChangeThreadPrio(mutex->owner, nOS_runningThread->prio);
+                    nOS_SetThreadPrio(mutex->owner, nOS_runningThread->prio);
                 }
             }
 #endif
-            err = nOS_EventWait((nOS_Event*)mutex, NOS_THREAD_LOCKING_MUTEX, tout);
+            err = nOS_WaitForEvent((nOS_Event*)mutex, NOS_THREAD_LOCKING_MUTEX, tout);
         }
-        nOS_CriticalLeave();
+        nOS_LeaveCritical();
     }
 
     return err;
@@ -253,7 +253,7 @@ nOS_Error nOS_MutexUnlock (nOS_Mutex *mutex)
     if (nOS_isrNestingCounter > 0) {
         err = NOS_E_ISR;
     } else {
-        nOS_CriticalEnter();
+        nOS_EnterCritical();
         if (mutex->owner != NULL) {
             if (mutex->owner == nOS_runningThread) {
 #if (NOS_CONFIG_MUTEX_RECURSIVE_ENABLE > 0)
@@ -262,9 +262,9 @@ nOS_Error nOS_MutexUnlock (nOS_Mutex *mutex)
 #endif
                 {
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
-                    ChangeThreadPrio(mutex->owner, mutex->backup);
+                    nOS_SetThreadPrio(mutex->owner, mutex->backup);
 #endif
-                    thread = nOS_EventSend((nOS_Event*)mutex, NOS_OK);
+                    thread = nOS_SignalEvent((nOS_Event*)mutex, NOS_OK);
                     if (thread != NULL) {
 #if (NOS_CONFIG_MUTEX_RECURSIVE_ENABLE > 0)
                         mutex->count++;
@@ -273,11 +273,11 @@ nOS_Error nOS_MutexUnlock (nOS_Mutex *mutex)
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
                         mutex->backup = thread->prio;
                         if (mutex->prio != NOS_MUTEX_PRIO_INHERIT) {
-                            ChangeThreadPrio(thread, mutex->prio);
+                            nOS_SetThreadPrio(thread, mutex->prio);
                         }
 #if (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
                         if ((thread->state == NOS_THREAD_READY) && (thread->prio > nOS_runningThread->prio)) {
-                            Sched();
+                            nOS_Schedule();
                         }
 #endif
 #endif
@@ -292,7 +292,7 @@ nOS_Error nOS_MutexUnlock (nOS_Mutex *mutex)
         } else {
             err = NOS_E_UNDERFLOW;
         }
-        nOS_CriticalLeave();
+        nOS_LeaveCritical();
     }
 
     return err;
@@ -310,15 +310,15 @@ bool nOS_MutexIsLocked (nOS_Mutex *mutex)
     } else
 #endif
     {
-        nOS_CriticalEnter();
+        nOS_EnterCritical();
         locked = (mutex->owner != NULL);
-        nOS_CriticalLeave();
+        nOS_LeaveCritical();
     }
 
     return locked;
 }
 
-nOS_Thread* nOS_MutexOwner (nOS_Mutex *mutex)
+nOS_Thread* nOS_MutexGetOwner (nOS_Mutex *mutex)
 {
     nOS_Thread *owner;
 
@@ -330,9 +330,9 @@ nOS_Thread* nOS_MutexOwner (nOS_Mutex *mutex)
     } else
 #endif
     {
-        nOS_CriticalEnter();
+        nOS_EnterCritical();
         owner = mutex->owner;
-        nOS_CriticalLeave();
+        nOS_LeaveCritical();
     }
 
     return owner;

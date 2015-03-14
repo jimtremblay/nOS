@@ -13,21 +13,22 @@
 extern "C" {
 #endif
 
-typedef uint32_t                            nOS_Stack;
+typedef uint32_t                        nOS_Stack;
 
-#define NOS_UNUSED(v)                       (void)v
+#define NOS_UNUSED(v)                   (void)v
 
-#define NOS_PORT_MEM_ALIGNMENT              4
+#define NOS_MEM_ALIGNMENT               4
+#define NOS_MEM_POINTER_WIDTH           4
 
-#define NOS_PORT_SCHED_USE_32_BITS
+#define NOS_32_BITS_SCHEDULER
 
 #ifndef NOS_CONFIG_MAX_UNSAFE_ISR_PRIO
  #error "nOSConfig.h: NOS_CONFIG_MAX_UNSAFE_ISR_PRIO is not defined."
 #else
- #define NOS_PORT_MAX_UNSAFE_IPL            NOS_CONFIG_MAX_UNSAFE_ISR_PRIO
+ #define NOS_MAX_UNSAFE_IPL             NOS_CONFIG_MAX_UNSAFE_ISR_PRIO
 #endif
 
-__attribute__( ( always_inline ) ) static inline uint32_t GetIPL(void)
+__attribute__( ( always_inline ) ) static inline uint32_t _GetIPL(void)
 {
     uint32_t ipl;
     __asm volatile(
@@ -37,7 +38,7 @@ __attribute__( ( always_inline ) ) static inline uint32_t GetIPL(void)
     return ipl;
 }
 
-__attribute__( ( always_inline ) ) static inline void SetIPL(uint32_t ipl)
+__attribute__( ( always_inline ) ) static inline void _SetIPL(uint32_t ipl)
 {
     uint32_t psw;
     __asm volatile(
@@ -49,50 +50,49 @@ __attribute__( ( always_inline ) ) static inline void SetIPL(uint32_t ipl)
     : "=r" (psw), "=r" (ipl) );
 }
 
-__attribute( ( always_inline ) ) static inline void EnableInterrupt(void)
+__attribute( ( always_inline ) ) static inline void _EI(void)
 {
     __asm volatile("SETPSW I");
 }
 
-__attribute( ( always_inline ) ) static inline void DisableInterrupt(void)
+__attribute( ( always_inline ) ) static inline void _DI(void)
 {
     __asm volatile("CLRPSW I");
 }
 
-#define nOS_CriticalEnter()                                                     \
+#define nOS_EnterCritical()                                                     \
 {                                                                               \
-    uint32_t _ipl = GetIPL();                                                   \
-    if (_ipl < NOS_PORT_MAX_UNSAFE_IPL) {                                       \
-        __asm volatile ("MVTIPL %0" :: "i" (NOS_PORT_MAX_UNSAFE_IPL) );         \
+    uint32_t _ipl = _GetIPL();                                                  \
+    if (_ipl < NOS_MAX_UNSAFE_IPL) {                                            \
+        __asm volatile ("MVTIPL %0" :: "i" (NOS_MAX_UNSAFE_IPL) );              \
     }
 
 
-#define nOS_CriticalLeave()                                                     \
-    SetIPL(_ipl);                                                               \
+#define nOS_LeaveCritical()                                                     \
+    _SetIPL(_ipl);                                                              \
 }
 
-#define nOS_ContextSwitch()                                     __asm("INT  #27")
+#define nOS_SwitchContext()                                     __asm("INT  #27")
 
-void    nOS_IsrEnter    (void);
-void    nOS_IsrLeave    (void);
+void    nOS_EnterIsr    (void);
+void    nOS_LeaveIsr    (void);
 
 #define NOS_ISR(vect)                                                           \
 void vect(void) __attribute__ ( ( interrupt ) );                                \
 void vect##_ISR(void);                                                          \
 void vect(void)                                                                 \
 {                                                                               \
-    nOS_IsrEnter();                                                             \
+    nOS_EnterIsr();                                                             \
     vect##_ISR();                                                               \
-    DisableInterrupt();                                                         \
-    nOS_IsrLeave();                                                             \
+    _DI();                                                                      \
+    nOS_LeaveIsr();                                                             \
 }                                                                               \
 __attribute__ ( ( always_inline ) ) inline void vect##_ISR(void)
 
 #ifdef NOS_PRIVATE
-void    nOS_PortInit        (void);
+ void   nOS_InitSpecific    (void);
+ void   nOS_InitContext     (nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg);
 #endif
-
-void    nOS_ContextInit     (nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg);
 
 #ifdef __cplusplus
 }

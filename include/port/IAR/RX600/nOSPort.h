@@ -19,59 +19,55 @@ typedef uint32_t                            nOS_Stack;
 
 #define NOS_UNUSED(v)                       (void)v
 
-#define NOS_PORT_MEM_ALIGNMENT              4
+#define NOS_MEM_ALIGNMENT                   4
+#define NOS_MEM_POINTER_WIDTH               4
 
-#define NOS_PORT_SCHED_USE_32_BITS
+#define NOS_32_BITS_SCHEDULER
 
 #ifndef NOS_CONFIG_ISR_STACK_SIZE
- #define NOS_CONFIG_ISR_STACK_SIZE          128
- #warning "nOSConfig.h: NOS_CONFIG_ISR_STACK_SIZE is not defined (default to 128)."
-#else
- #if NOS_CONFIG_ISR_STACK_SIZE == 0
-  #error "nOSConfig.h: NOS_CONFIG_ISR_STACK_SIZE is set to invalid value."
- #endif
+ #error "nOSConfig.h: NOS_CONFIG_ISR_STACK_SIZE is not defined: must be higher than 0."
+#elif (NOS_CONFIG_ISR_STACK_SIZE == 0)
+ #error "nOSConfig.h: NOS_CONFIG_ISR_STACK_SIZE is set to invalid value: must be higher than 0."
 #endif
 
 #ifndef NOS_CONFIG_MAX_UNSAFE_ISR_PRIO
- #define NOS_CONFIG_MAX_UNSAFE_ISR_PRIO     4
- #warning "nOSConfig.h: NOS_CONFIG_MAX_UNSAFE_ISR_PRIO is not defined (default to 4)."
+ #error "nOSConfig.h: NOS_CONFIG_MAX_UNSAFE_ISR_PRIO is not defined."
+#else
+ #define NOS_MAX_UNSAFE_IPL                 NOS_CONFIG_MAX_UNSAFE_ISR_PRIO
 #endif
 
-#define NOS_PORT_MAX_UNSAFE_IPL             NOS_CONFIG_MAX_UNSAFE_ISR_PRIO
-
-#define nOS_CriticalEnter()                                                     \
+#define nOS_EnterCritical()                                                     \
 {                                                                               \
     __ilevel_t _ipl = __get_interrupt_level();                                  \
-    if (_ipl < NOS_PORT_MAX_UNSAFE_IPL) {                                       \
-        __set_interrupt_level(NOS_PORT_MAX_UNSAFE_IPL);                         \
+    if (_ipl < NOS_MAX_UNSAFE_IPL) {                                            \
+        __set_interrupt_level(NOS_MAX_UNSAFE_IPL);                              \
     }
 
-#define nOS_CriticalLeave()                                                     \
+#define nOS_LeaveCritical()                                                     \
     __set_interrupt_level(_ipl);                                                \
 }
 
-#define nOS_ContextSwitch()                                     __asm("INT  #27")
+#define nOS_SwitchContext()                                     __asm("INT  #27")
 
-void    nOS_IsrEnter    (void);
-void    nOS_IsrLeave    (void);
+void    nOS_EnterIsr    (void);
+void    nOS_LeaveIsr    (void);
 
 #define NOS_ISR(vect)                                                           \
 void vect##_ISR_L2(void);                                                       \
 _Pragma(_STRINGIFY(vector=vect))                                                \
 __interrupt void vect##_ISR(void)                                               \
 {                                                                               \
-    nOS_IsrEnter();                                                             \
+    nOS_EnterIsr();                                                             \
     vect##_ISR_L2();                                                            \
     __disable_interrupt();                                                      \
-    nOS_IsrLeave();                                                             \
+    nOS_LeaveIsr();                                                             \
 }                                                                               \
 inline void vect##_ISR_L2(void)
 
 #ifdef NOS_PRIVATE
-void    nOS_PortInit        (void);
+ void   nOS_InitSpecific    (void);
+ void   nOS_InitContext     (nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg);
 #endif
-
-void    nOS_ContextInit     (nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg);
 
 #ifdef __cplusplus
 }

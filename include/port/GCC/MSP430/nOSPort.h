@@ -15,11 +15,12 @@
 extern "C" {
 #endif
 
-typedef uint16_t                nOS_Stack;
+typedef uint16_t                    nOS_Stack;
 
-#define NOS_UNUSED(v)           (void)v
+#define NOS_UNUSED(v)               (void)v
 
-#define NOS_PORT_MEM_ALIGNMENT  2
+#define NOS_MEM_ALIGNMENT           2
+#define NOS_MEM_POINTER_WIDTH       2
 
 #ifdef NOS_CONFIG_ISR_STACK_SIZE
  #if (NOS_CONFIG_ISR_STACK_SIZE == 0)
@@ -28,7 +29,7 @@ typedef uint16_t                nOS_Stack;
 #endif
 
 #ifdef __MSP430X__
- #define nOS_ContextSave()                                                      \
+ #define SAVE_CONTEXT()                                                         \
     asm volatile (                                                              \
         "push.w     sr                          \n"                             \
         "                                       \n"                             \
@@ -40,7 +41,7 @@ typedef uint16_t                nOS_Stack;
         "mov.w      sp,                 0(r12)  \n"                             \
     )
 
- #define nOS_ContextRestore()                                                   \
+ #define RESTORE_CONTEXT()                                                      \
     asm volatile (                                                              \
         /* Restore stack pointer from high prio thread structure */             \
         "mov.w      &nOS_runningThread, r12     \n"                             \
@@ -52,7 +53,7 @@ typedef uint16_t                nOS_Stack;
         "pop.w      sr                          \n"                             \
     )
 #else
- #define nOS_ContextSave()                                                      \
+ #define SAVE_CONTEXT()                                                         \
     asm volatile (                                                              \
         "push.w     sr                          \n"                             \
         "                                       \n"                             \
@@ -75,7 +76,7 @@ typedef uint16_t                nOS_Stack;
         "mov.w      sp,                 0(r12)  \n"                             \
     )
 
- #define nOS_ContextRestore()                                                   \
+ #define RESTORE_CONTEXT()                                                      \
     asm volatile (                                                              \
         /* Restore stack pointer from high prio thread structure */             \
         "mov.w      &nOS_runningThread, r12     \n"                             \
@@ -100,7 +101,7 @@ typedef uint16_t                nOS_Stack;
 #endif
 
 
-#define nOS_CriticalEnter()                                                     \
+#define nOS_EnterCritical()                                                     \
 {                                                                               \
     volatile uint16_t _sr;                                                      \
     _sr = __get_interrupt_state();                                              \
@@ -108,10 +109,13 @@ typedef uint16_t                nOS_Stack;
     __no_operation()
 
 
-#define nOS_CriticalLeave()                                                     \
+#define nOS_LeaveCritical()                                                     \
     __set_interrupt_state(_sr);                                                 \
     __no_operation();                                                           \
 }
+
+nOS_Stack*  nOS_EnterIsr        (nOS_Stack *sp);
+nOS_Stack*  nOS_LeaveIsr        (nOS_Stack *sp);
 
 #define NOS_ISR(vect)                                                           \
 void vect##_ISR_L2(void) __attribute__ ((naked));                               \
@@ -123,10 +127,10 @@ void __attribute__ ((__interrupt__(vect), naked)) vect##_ISR(void)              
 }                                                                               \
 void vect##_ISR_L2(void)                                                        \
 {                                                                               \
-    nOS_ContextSave();                                                          \
+    SAVE_CONTEXT();                                                             \
     asm volatile (                                                              \
         "mov.w      sp,                 r12     \n"                             \
-        "call       #nOS_IsrEnter               \n"                             \
+        "call       #nOS_EnterIsr               \n"                             \
         "mov.w      r12,                sp      \n"                             \
     );                                                                          \
     vect##_ISR_L3();                                                            \
@@ -134,22 +138,21 @@ void vect##_ISR_L2(void)                                                        
     __no_operation();                                                           \
     asm volatile (                                                              \
         "mov.w      sp,                 r12     \n"                             \
-        "call       #nOS_IsrLeave               \n"                             \
+        "call       #nOS_LeaveIsr               \n"                             \
         "mov.w      r12,                sp      \n"                             \
     );                                                                          \
-    nOS_ContextRestore();                                                       \
+    RESTORE_CONTEXT();                                                          \
     asm volatile ("ret");                                                       \
 }                                                                               \
 inline void vect##_ISR_L3(void)
 
 /* Unused function for this port */
-#define nOS_PortInit()
+#define     nOS_InitSpecific()
 
-nOS_Stack*  nOS_IsrEnter        (nOS_Stack *sp);
-nOS_Stack*  nOS_IsrLeave        (nOS_Stack *sp);
-
-void        nOS_ContextInit     (nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg);
-void        nOS_ContextSwitch   (void) __attribute__ ((naked));
+#ifdef NOS_PRIVATE
+ void       nOS_InitContext     (nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg);
+ void       nOS_SwitchContext   (void) __attribute__ ((naked));
+#endif
 
 #ifdef __cplusplus
 }

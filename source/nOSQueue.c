@@ -14,14 +14,14 @@ extern "C" {
 #endif
 
 #if (NOS_CONFIG_QUEUE_ENABLE > 0)
-static void Write (nOS_Queue *queue, void *buffer)
+static void _Write (nOS_Queue *queue, void *buffer)
 {
     memcpy(&queue->buffer[(size_t)queue->w * (size_t)queue->bsize], buffer, queue->bsize);
     queue->w = (queue->w + 1) % queue->bmax;
     queue->bcount++;
 }
 
-static void Read (nOS_Queue *queue, void *buffer)
+static void _Read (nOS_Queue *queue, void *buffer)
 {
     memcpy(buffer, &queue->buffer[(size_t)queue->r * (size_t)queue->bsize], queue->bsize);
     queue->r = (queue->r + 1) % queue->bmax;
@@ -46,11 +46,11 @@ nOS_Error nOS_QueueCreate (nOS_Queue *queue, void *buffer, uint16_t bsize, uint1
     } else
 #endif
     {
-        nOS_CriticalEnter();
+        nOS_EnterCritical();
 #if (NOS_CONFIG_SAFE > 0)
-        nOS_EventCreate((nOS_Event*)queue, NOS_EVENT_QUEUE);
+        nOS_CreateEvent((nOS_Event*)queue, NOS_EVENT_QUEUE);
 #else
-        nOS_EventCreate((nOS_Event*)queue);
+        nOS_CreateEvent((nOS_Event*)queue);
 #endif
         queue->buffer = (uint8_t*)buffer;
         queue->bsize = bsize;
@@ -58,7 +58,7 @@ nOS_Error nOS_QueueCreate (nOS_Queue *queue, void *buffer, uint16_t bsize, uint1
         queue->bcount = 0;
         queue->r = 0;
         queue->w = 0;
-        nOS_CriticalLeave();
+        nOS_LeaveCritical();
         err = NOS_OK;
     }
 
@@ -78,7 +78,7 @@ nOS_Error nOS_QueueDelete (nOS_Queue *queue)
     } else
 #endif
     {
-        nOS_CriticalEnter();
+        nOS_EnterCritical();
         queue->buffer = NULL;
         queue->bsize = 0;
         queue->bmax = 0;
@@ -86,13 +86,13 @@ nOS_Error nOS_QueueDelete (nOS_Queue *queue)
         queue->r = 0;
         queue->w = 0;
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
-        if (nOS_EventDelete((nOS_Event*)queue)) {
-            Sched();
+        if (nOS_DeleteEvent((nOS_Event*)queue)) {
+            nOS_Schedule();
         }
 #else
-        nOS_EventDelete((nOS_Event*)queue);
+        nOS_DeleteEvent((nOS_Event*)queue);
 #endif
-        nOS_CriticalLeave();
+        nOS_LeaveCritical();
         err = NOS_OK;
     }
 
@@ -115,18 +115,18 @@ nOS_Error nOS_QueueRead (nOS_Queue *queue, void *buffer, nOS_TickCounter tout)
     } else
 #endif
     {
-        nOS_CriticalEnter();
+        nOS_EnterCritical();
         /* No chance a thread waiting to read from queue if count is higher than 0 */
         if (queue->bcount > 0) {
-            Read(queue, buffer);
+            _Read(queue, buffer);
             /* Check if thread waiting to write in queue */
-            thread = nOS_EventSend((nOS_Event*)queue, NOS_OK);
+            thread = nOS_SignalEvent((nOS_Event*)queue, NOS_OK);
             if (thread != NULL) {
                 /* Write thread's buffer in queue */
-                Write(queue, thread->context);
+                _Write(queue, thread->ext);
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
                 if ((thread->state == NOS_THREAD_READY) && (thread->prio > nOS_runningThread->prio)) {
-                    Sched();
+                    nOS_Schedule();
                 }
 #endif
             }
@@ -144,10 +144,10 @@ nOS_Error nOS_QueueRead (nOS_Queue *queue, void *buffer, nOS_TickCounter tout)
         else if (nOS_runningThread == &nOS_idleHandle) {
             err = NOS_E_IDLE;
         } else {
-            nOS_runningThread->context = buffer;
-            err = nOS_EventWait((nOS_Event*)queue, NOS_THREAD_READING_QUEUE, tout);
+            nOS_runningThread->ext = buffer;
+            err = nOS_WaitForEvent((nOS_Event*)queue, NOS_THREAD_READING_QUEUE, tout);
         }
-        nOS_CriticalLeave();
+        nOS_LeaveCritical();
     }
 
     return err;
@@ -168,23 +168,23 @@ nOS_Error nOS_QueueWrite (nOS_Queue *queue, void *buffer, nOS_TickCounter tout)
     } else
 #endif
     {
-        nOS_CriticalEnter();
+        nOS_EnterCritical();
         /* If count equal 0, there are chances some threads can wait to read from queue */
         if (queue->bcount == 0) {
             /* Check if thread waiting to read from queue */
-            thread = nOS_EventSend((nOS_Event*)queue, NOS_OK);
+            thread = nOS_SignalEvent((nOS_Event*)queue, NOS_OK);
             if (thread != NULL) {
                 /* Direct copy between thread's buffers */
-                memcpy(thread->context, buffer, queue->bsize);
+                memcpy(thread->ext, buffer, queue->bsize);
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
                 if ((thread->state == NOS_THREAD_READY) && (thread->prio > nOS_runningThread->prio)) {
-                    Sched();
+                    nOS_Schedule();
                 }
 #endif
                 err = NOS_OK;
             } else if (queue->buffer != NULL) {
                 /* No thread waiting to read from queue, store it */
-                Write(queue, buffer);
+                _Write(queue, buffer);
                 err = NOS_OK;
             } else {
                 /* No thread waiting to consume message, inform producer */
@@ -192,7 +192,7 @@ nOS_Error nOS_QueueWrite (nOS_Queue *queue, void *buffer, nOS_TickCounter tout)
             }
         /* No chance a thread waiting to read from queue if count is higher than 0 */
         } else if (queue->bcount < queue->bmax) {
-            Write(queue, buffer);
+            _Write(queue, buffer);
             err = NOS_OK;
         } else if (tout == NOS_NO_WAIT) {
             err = NOS_E_FULL;
@@ -207,10 +207,10 @@ nOS_Error nOS_QueueWrite (nOS_Queue *queue, void *buffer, nOS_TickCounter tout)
         else if (nOS_runningThread == &nOS_idleHandle) {
             err = NOS_E_IDLE;
         } else {
-            nOS_runningThread->context = buffer;
-            err = nOS_EventWait((nOS_Event*)queue, NOS_THREAD_WRITING_QUEUE, tout);
+            nOS_runningThread->ext = buffer;
+            err = nOS_WaitForEvent((nOS_Event*)queue, NOS_THREAD_WRITING_QUEUE, tout);
         }
-        nOS_CriticalLeave();
+        nOS_LeaveCritical();
     }
 
     return err;
@@ -228,13 +228,13 @@ bool nOS_QueueIsEmpty (nOS_Queue *queue)
     } else
 #endif
     {
-        nOS_CriticalEnter();
+        nOS_EnterCritical();
         if (queue->buffer != NULL) {
             empty = (queue->bcount == 0);
         } else {
             empty = true;
         }
-        nOS_CriticalLeave();
+        nOS_LeaveCritical();
     }
 
     return empty;
@@ -252,13 +252,13 @@ bool nOS_QueueIsFull (nOS_Queue *queue)
     } else
 #endif
     {
-        nOS_CriticalEnter();
+        nOS_EnterCritical();
         if (queue->buffer != NULL) {
             full = (queue->bcount == queue->bmax);
         } else {
             full = false;
         }
-        nOS_CriticalLeave();
+        nOS_LeaveCritical();
     }
 
     return full;

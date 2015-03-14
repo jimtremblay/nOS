@@ -13,33 +13,33 @@
 extern "C" {
 #endif
 
-void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, size_t cssize, nOS_ThreadEntry entry, void *arg)
+void nOS_InitContext(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, size_t cssize, nOS_ThreadEntry entry, void *arg)
 {
     /* Stack grow from high to low address */
-    nOS_Stack *tohs = stack + (ssize - 1);
+    nOS_Stack *tocs = stack + (ssize - 1);
     nOS_Stack *tos;
-
 #if (NOS_CONFIG_DEBUG > 0)
-    *stack++ = 0x12;
-    *stack   = 0x34;
-    *tohs--  = 0xFE;
-    *tohs--  = 0xDC;
+    size_t i;
+
+    for (i = 0; i < ssize; i++) {
+        stack[i] = 0xFF;
+    }
 #endif
 
 #if defined(__ATmega2560__) || defined(__ATmega2561__)
-     tos     = tohs - (cssize * 3);
+     tos     = tocs - (cssize * 3);
 #else
-     tos     = tohs - (cssize * 2);
+     tos     = tocs - (cssize * 2);
 #endif
 
     /* Simulate a call to thread function */
 #if defined(__ATmega2560__) || defined(__ATmega2561__)
-    *tohs--  = (nOS_Stack)((uint32_t)entry);
-    *tohs--  = (nOS_Stack)((uint32_t)entry >> 8);
-    *tohs--  = (nOS_Stack)((uint32_t)entry >> 16);
+    *tocs--  = (nOS_Stack)((uint32_t)entry);
+    *tocs--  = (nOS_Stack)((uint32_t)entry >> 8);
+    *tocs--  = (nOS_Stack)((uint32_t)entry >> 16);
 #else
-    *tohs--  = (nOS_Stack)((uint16_t)entry);
-    *tohs--  = (nOS_Stack)((uint16_t)entry >> 8);
+    *tocs--  = (nOS_Stack)((uint16_t)entry);
+    *tocs--  = (nOS_Stack)((uint16_t)entry >> 8);
 #endif
 
     /* Simulate a call of nOS_PushContext */
@@ -49,8 +49,8 @@ void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, size_t 
      tos  -= 1;                                     /* R0 */
 #endif
     *tos-- = 0x80;                                  /* SREG: Interrupts enabled */
-    *tos-- = (nOS_Stack)((uint16_t)tohs);           /* R28 */
-    *tos-- = (nOS_Stack)((uint16_t)tohs >> 8);      /* R29 */
+    *tos-- = (nOS_Stack)((uint16_t)tocs);           /* R28 */
+    *tos-- = (nOS_Stack)((uint16_t)tocs >> 8);      /* R29 */
 #ifdef __HAS_RAMPZ__
      tos  -= 1;                                     /* RAMPZ */
 #endif
@@ -99,9 +99,9 @@ void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, size_t 
 }
 
 /* Absolutely need a naked function because function call push the return address on the stack */
-__task void nOS_ContextSwitch(void)
+__task void nOS_SwitchContext(void)
 {
-    nOS_ContextPush();
+    PUSH_CONTEXT();
     __asm (
         "lds    r26,    nOS_runningThread           \n"
         "lds    r27,    nOS_runningThread + 1       \n"
@@ -115,10 +115,10 @@ __task void nOS_ContextSwitch(void)
         "ld     r28,    x+                          \n"
         "ld     r29,    x+                          \n"
     );
-    nOS_ContextPop();
+    POP_CONTEXT();
 }
 
-void nOS_IsrEnter (nOS_Stack *sp)
+void nOS_EnterIsr (nOS_Stack *sp)
 {
     /* Interrupts already disabled when entering in ISR */
     if (nOS_isrNestingCounter == 0) {
@@ -127,7 +127,7 @@ void nOS_IsrEnter (nOS_Stack *sp)
     nOS_isrNestingCounter++;
 }
 
-nOS_Stack *nOS_IsrLeave (nOS_Stack *sp)
+nOS_Stack *nOS_LeaveIsr (nOS_Stack *sp)
 {
     /* Interrupts already disabled before leaving ISR */
     nOS_isrNestingCounter--;
@@ -136,11 +136,7 @@ nOS_Stack *nOS_IsrLeave (nOS_Stack *sp)
         if (nOS_lockNestingCounter == 0)
 #endif
         {
-#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
-            nOS_highPrioThread = SchedHighPrio();
-#else
-            nOS_highPrioThread = nOS_ListHead(&nOS_readyList);
-#endif
+            nOS_highPrioThread = nOS_FindHighPrioThread();
             nOS_runningThread = nOS_highPrioThread;
         }
         sp = nOS_runningThread->stackPtr;

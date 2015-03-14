@@ -17,40 +17,40 @@ typedef uint16_t                            nOS_Stack;
 
 #define NOS_UNUSED(v)                       (void)v
 
-/* Not needed to align memory blocks */
-#define NOS_PORT_MEM_ALIGNMENT              1
+#define NOS_MEM_ALIGNMENT                   2
+#define NOS_MEM_POINTER_WIDTH               2
 
-#define NOS_PORT_SCHED_USE_16_BITS
+#define NOS_16_BITS_SCHEDULER
 
 #ifndef NOS_CONFIG_MAX_UNSAFE_ISR_PRIO
  #error "nOSConfig.h: NOS_CONFIG_MAX_UNSAFE_ISR_PRIO is not defined: must be set between 1 and 7 inclusively."
 #elif (NOS_CONFIG_MAX_UNSAFE_ISR_PRIO < 1) || (NOS_CONFIG_MAX_UNSAFE_ISR_PRIO > 7)
  #error "nOSConfig.h: NOS_CONFIG_MAX_UNSAFE_ISR_PRIO is set to invalid value: must be set between 1 and 7 inclusively."
 #else
- #define NOS_PORT_MAX_UNSAFE_IPL            NOS_CONFIG_MAX_UNSAFE_ISR_PRIO
+ #define NOS_MAX_UNSAFE_IPL            NOS_CONFIG_MAX_UNSAFE_ISR_PRIO
 #endif
 
-uint8_t     nOS_PortGetIPL  (void);
-void        nOS_PortSetIPL  (uint8_t ipl);
+uint8_t     _GetIPL     (void);
+void        _SetIPL     (uint8_t ipl);
 
-#define nOS_CriticalEnter()                                                     \
+#define nOS_EnterCritical()                                                     \
 {                                                                               \
-    uint8_t _ipl = nOS_PortGetIPL();                                            \
-    if (_ipl < NOS_PORT_MAX_UNSAFE_IPL) {                                       \
-        asm("LDIPL  #"NOS_STR(NOS_PORT_MAX_UNSAFE_IPL)" \n"                     \
+    uint8_t _ipl = _GetIPL();                                                   \
+    if (_ipl < NOS_MAX_UNSAFE_IPL) {                                            \
+        asm("LDIPL  #"NOS_STR(NOS_MAX_UNSAFE_IPL)" \n"                          \
             "NOP                                        \n"                     \
         );                                                                      \
     }
 
 
-#define nOS_CriticalLeave()                                                     \
-    nOS_PortSetIPL(_ipl);                                                       \
+#define nOS_LeaveCritical()                                                     \
+    _SetIPL(_ipl);                                                              \
 }
 
-#define nOS_ContextSwitch()                                         asm ("INT #32")
+#define nOS_SwitchContext()                                         asm ("INT #32")
 
-void    nOS_IsrEnter    (void);
-bool    nOS_IsrLeave    (void);
+void    nOS_EnterIsr    (void);
+bool    nOS_LeaveIsr    (void);
 
 #define NOS_ISR(func)                                                           \
 void func(void);                                                                \
@@ -62,7 +62,7 @@ void func(void)                                                                 
         "PUSHM  R0,R1,R2,R3,A0,A1,SB,FB     \n"                                 \
                                                                                 \
         /* Increment interrupts nested counter */                               \
-        "JSR.A  _nOS_IsrEnter               \n"                                 \
+        "JSR.A  _nOS_EnterIsr               \n"                                 \
                                                                                 \
         /* Call user ISR function */                                            \
         "JSR.A  _"#func"_L2                 \n"                                 \
@@ -73,7 +73,7 @@ void func(void)                                                                 
                                                                                 \
         /* Decrement interrupts nested counter */                               \
         /* return true if we need to switch context, otherwise false */         \
-        "JSR.A  _nOS_IsrLeave               \n"                                 \
+        "JSR.A  _nOS_LeaveIsr               \n"                                 \
                                                                                 \
         /* Do we need to switch context from ISR ? */                           \
         "CMP.B  #0, R0L                     \n"                                 \
@@ -82,14 +82,14 @@ void func(void)                                                                 
         /* YES, we need to switch context */                                    \
                                                                                 \
         /* Pop all thread registers */                                          \
-        /* nOS_PortContextSwitchFromIsr will push it all on USTACK */           \
+        /* nOS_SwitchContextFromIsr will push it all on USTACK */               \
         "POPM   R0,R1,R2,R3,A0,A1,SB,FB     \n"                                 \
                                                                                 \
         /* Switch to thread stack */                                            \
         "FSET   U                           \n"                                 \
         "NOP                                \n"                                 \
                                                                                 \
-        /* Call nOS_PortContextSwitchFromIsr */                                 \
+        /* Call nOS_SwitchContextFromIsr */                                     \
         "INT    #33                         \n"                                 \
         "NOP                                \n"                                 \
                                                                                 \
@@ -107,13 +107,14 @@ void func(void)                                                                 
 void func##_L2(void)
 
 /* Unused function */
-#define nOS_PortInit()
+#define nOS_InitSpecific()
 
-void    nOS_ContextInit                 (nOS_Thread *thread, nOS_Stack *stack, size_t ssize,
-                                         nOS_ThreadEntry entry, void *arg);
+#ifdef NOS_PRIVATE
+ void   nOS_InitContext                 (nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg);
+#endif
 
-void    nOS_PortContextSwitch           (void);
-void    nOS_PortContextSwitchFromIsr    (void);
+void    nOS_SwitchContextHandler        (void);
+void    nOS_SwitchContextFromIsrHandler (void);
 
 #ifdef __cplusplus
 }

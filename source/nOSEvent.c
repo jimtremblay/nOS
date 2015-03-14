@@ -15,22 +15,22 @@ extern "C" {
 
 /* Always called from critical section */
 #if (NOS_CONFIG_SAFE > 0)
-void nOS_EventCreate (nOS_Event *event, uint8_t type)
+void nOS_CreateEvent (nOS_Event *event, nOS_EventType type)
 #else
-void nOS_EventCreate (nOS_Event *event)
+void nOS_CreateEvent (nOS_Event *event)
 #endif
 {
 #if (NOS_CONFIG_SAFE > 0)
     event->type = type;
 #endif
-    nOS_ListInit(&event->waitList);
+    nOS_InitList(&event->waitList);
 }
 
 /* Always called from critical section */
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
-bool nOS_EventDelete (nOS_Event *event)
+bool nOS_DeleteEvent (nOS_Event *event)
 #else
-void nOS_EventDelete (nOS_Event *event)
+void nOS_DeleteEvent (nOS_Event *event)
 #endif
 {
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
@@ -38,7 +38,7 @@ void nOS_EventDelete (nOS_Event *event)
     bool        sched = false;
 
     do {
-        thread = nOS_EventSend(event, NOS_E_DELETED);
+        thread = nOS_SignalEvent(event, NOS_E_DELETED);
         if (thread != NULL) {
             if ((thread->state == NOS_THREAD_READY) && (thread->prio > nOS_runningThread->prio)) {
                 sched = true;
@@ -46,7 +46,7 @@ void nOS_EventDelete (nOS_Event *event)
         }
     } while (thread != NULL);
 #else
-    while (nOS_EventSend(event, NOS_E_DELETED) != NULL);
+    while (nOS_SignalEvent(event, NOS_E_DELETED) != NULL);
 #endif
 #if (NOS_CONFIG_SAFE > 0)
     event->type = NOS_EVENT_INVALID;
@@ -58,41 +58,29 @@ void nOS_EventDelete (nOS_Event *event)
 }
 
 /* Always called from critical section */
-nOS_Error nOS_EventWait (nOS_Event *event, uint8_t state, nOS_TickCounter tout)
+nOS_Error nOS_WaitForEvent (nOS_Event *event, nOS_ThreadState state, nOS_TickCounter tout)
 {
-#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
-    RemoveThreadFromReadyList(nOS_runningThread);
-#else
-    nOS_ListRemove(&nOS_readyList, &nOS_runningThread->readyWait);
-#endif
-    nOS_runningThread->state |= (state & (NOS_THREAD_WAITING_EVENT
-#if (NOS_CONFIG_SLEEP_ENABLE > 0)
-                                          | NOS_THREAD_SLEEPING
-#endif
-#if (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
-                                          | NOS_THREAD_SLEEPING_UNTIL
-#endif
-                                          )
-                                 );
+    nOS_RemoveThreadFromReadyList(nOS_runningThread);
+    nOS_runningThread->state = (nOS_ThreadState)(nOS_runningThread->state | (state & NOS_THREAD_STATE_WAIT_MASK));
     nOS_runningThread->event = event;
     nOS_runningThread->timeout = (tout == NOS_WAIT_INFINITE) ? 0 : tout;
     if (event != NULL) {
-        nOS_ListAppend(&event->waitList, &nOS_runningThread->readyWait);
+        nOS_AppendToList(&event->waitList, &nOS_runningThread->readyWait);
     }
 
-    Sched();
+    nOS_Schedule();
 
     return nOS_runningThread->error;
 }
 
 /* Always called from critical section */
-nOS_Thread* nOS_EventSend (nOS_Event *event, nOS_Error err)
+nOS_Thread* nOS_SignalEvent (nOS_Event *event, nOS_Error err)
 {
     nOS_Thread  *thread;
 
-    thread = (nOS_Thread*)nOS_ListHead(&event->waitList);
+    thread = (nOS_Thread*)nOS_GetHeadOfList(&event->waitList);
     if (thread != NULL) {
-        SignalThread(thread, err);
+        nOS_SignalThread(thread, err);
     }
 
     return thread;

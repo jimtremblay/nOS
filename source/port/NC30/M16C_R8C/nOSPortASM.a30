@@ -8,15 +8,15 @@
 
     .SECTION    program,CODE,ALIGN
 
-    .GLB        _nOS_PortGetIPL
-    .GLB        $nOS_PortSetIPL
-    .GLB        _nOS_PortContextSwitch
-    .GLB        _nOS_PortContextSwitchFromIsr
+    .GLB        __GetIPL
+    .GLB        $_SetIPL
+    .GLB        _nOS_SwitchContextHandler
+    .GLB        _nOS_SwitchContextFromIsrHandler
 
     .GLB        _nOS_runningThread
     .GLB        _nOS_highPrioThread
 
-_nOS_PortGetIPL:
+__GetIPL:
     ; Copy FLG register into working register
     STC     FLG,    R0
 
@@ -30,7 +30,7 @@ _nOS_PortGetIPL:
     RTS
     NOP
 
-$nOS_PortSetIPL:
+$_SetIPL:
     ; Transfer working register
     MOV.B   R1L,    R0L
 
@@ -51,7 +51,7 @@ $nOS_PortSetIPL:
     RTS
     NOP
 
-_nOS_PortContextSwitch:
+_nOS_SwitchContextHandler:
     ; Push all registers on thread stack
     PUSHM   R0,R1,R2,R3,A0,A1,SB,FB
 
@@ -60,7 +60,7 @@ _nOS_PortContextSwitch:
     STC     SP,                     [A0]
 
     ; Copy nOS_highPrioThread to nOS_runningThread
-	MOV.W   _nOS_highPrioThread,    _nOS_runningThread
+    MOV.W   _nOS_highPrioThread,    _nOS_runningThread
 
     ; Restore SP from nOS_Thread object of high prio thread
     MOV.W   _nOS_highPrioThread,    A0
@@ -73,7 +73,7 @@ _nOS_PortContextSwitch:
     REIT
     NOP
 
-_nOS_PortContextSwitchFromIsr:
+_nOS_SwitchContextFromIsrHandler:
     ; Push all registers on thread stack
     PUSHM   R0,R1,R2,R3,A0,A1,SB,FB
 

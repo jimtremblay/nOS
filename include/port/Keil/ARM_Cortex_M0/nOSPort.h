@@ -17,64 +17,64 @@ typedef uint32_t                            nOS_Stack;
 
 #define NOS_UNUSED(v)                       (void)v
 
-#define NOS_PORT_MEM_ALIGNMENT              4
+#define NOS_MEM_ALIGNMENT                   4
+#define NOS_MEM_POINTER_WIDTH               4
 
-#define NOS_PORT_SCHED_USE_32_BITS
+#define NOS_32_BITS_SCHEDULER
 
-#ifndef NOS_CONFIG_ISR_STACK_SIZE
- #error "nOSConfig.h: NOS_CONFIG_ISR_STACK_SIZE is not defined: must be higher than 0."
-#elif (NOS_CONFIG_ISR_STACK_SIZE == 0)
- #error "nOSConfig.h: NOS_CONFIG_ISR_STACK_SIZE is set to invalid value: must be higher than 0."
+#ifdef NOS_CONFIG_ISR_STACK_SIZE
+ #if (NOS_CONFIG_ISR_STACK_SIZE == 0)
+  #error "nOSConfig.h: NOS_CONFIG_ISR_STACK_SIZE is set to invalid value: must be higher than 0."
+ #endif
 #endif
 
-#define nOS_CriticalEnter()                                                     \
+#define nOS_EnterCritical()                                                     \
 {                                                                               \
     uint32_t    _backup;                                                        \
     register uint32_t volatile _primask __asm("primask");                       \
     _backup = _primask;                                                         \
     __disable_irq();                                                            \
-    __dsb(0xf);                                                                 \
-    __isb(0xf);                                                                 \
+    __dsb(0xF);                                                                 \
+    __isb(0xF)
 
 
-#define nOS_CriticalLeave()                                                     \
+#define nOS_LeaveCritical()                                                     \
     _primask = _backup;                                                         \
-    __dsb(0xf);                                                                 \
-    __isb(0xf);                                                                 \
+    __dsb(0xF);                                                                 \
+    __isb(0xF);                                                                 \
 }
 
 /*
  * Request a context switch and enable interrupts to allow PendSV interrupt.
  */
-#define nOS_ContextSwitch()                                                     \
-    *(volatile uint32_t *)0xe000ed04UL = 0x10000000UL;                          \
+#define nOS_SwitchContext()                                                     \
+    *(volatile uint32_t *)0xE000ED04UL = 0x10000000UL;                          \
     __enable_irq();                                                             \
-    __dsb(0xf);                                                                 \
-    __isb(0xf);                                                                 \
+    __dsb(0xF);                                                                 \
+    __isb(0xF);                                                                 \
     __nop();                                                                    \
     __disable_irq();                                                            \
-    __dsb(0xf);                                                                 \
-    __isb(0xf)
+    __dsb(0xF);                                                                 \
+    __isb(0xF)
 
 
-void    nOS_IsrEnter    (void);
-void    nOS_IsrLeave    (void);
+void    nOS_EnterIsr    (void);
+void    nOS_LeaveIsr    (void);
 
 #define NOS_ISR(func)                                                           \
 void func##_ISR(void);                                                          \
 void func(void)                                                                 \
 {                                                                               \
-    nOS_IsrEnter();                                                             \
+    nOS_EnterIsr();                                                             \
     func##_ISR();                                                               \
-    nOS_IsrLeave();                                                             \
+    nOS_LeaveIsr();                                                             \
 }                                                                               \
 void func##_ISR(void)
 
 #ifdef NOS_PRIVATE
-void        nOS_PortInit        (void);
+ void       nOS_InitSpecific    (void);
+ void       nOS_InitContext     (nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg);
 #endif
-
-void        nOS_ContextInit     (nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg);
 
 #ifdef __cplusplus
 }

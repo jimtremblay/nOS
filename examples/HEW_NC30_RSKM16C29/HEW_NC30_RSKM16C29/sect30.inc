@@ -123,7 +123,7 @@ data_SOI_top:
 
 		.section	data_NEI,ROMDATA,ALIGN
 data_NEI_top:
- 
+
 		.section	data_NOI,ROMDATA
 data_NOI_top:
 
@@ -188,10 +188,10 @@ data_FOI_top:
 		.lword	dummy_int		; vector 29  (for user) int0
 		.lword	dummy_int		; vector 30  (for user) int1
 		.lword	dummy_int		; vector 31  (for user) int2
-        .glb _nOS_PortContextSwitch
-		.lword	_nOS_PortContextSwitch		; vector 32  (for user or MR30)
-        .glb _nOS_PortContextSwitchFromIsr
-		.lword	_nOS_PortContextSwitchFromIsr		; vector 33  (for user or MR30)
+		.glb _nOS_SwitchContextHandler
+		.lword	_nOS_SwitchContextHandler		; vector 32  (for user or MR30)
+		.glb _nOS_SwitchContextFromIsrHandler
+		.lword	_nOS_SwitchContextFromIsrHandler		; vector 33  (for user or MR30)
 		.lword	dummy_int		; vector 34  (for user or MR30)
 		.lword	dummy_int		; vector 35  (for user or MR30)
 		.lword	dummy_int		; vector 36  (for user or MR30)

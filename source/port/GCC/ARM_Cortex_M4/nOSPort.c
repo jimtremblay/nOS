@@ -15,41 +15,50 @@ extern "C" {
 
 void PendSV_Handler(void) __attribute__( ( naked ) );
 
-static nOS_Stack isrStack[NOS_CONFIG_ISR_STACK_SIZE];
+#ifdef NOS_CONFIG_ISR_STACK_SIZE
+ static nOS_Stack _isrStack[NOS_CONFIG_ISR_STACK_SIZE];
+#endif
 
-void nOS_PortInit(void)
+void nOS_InitSpecific(void)
 {
-#if (NOS_CONFIG_DEBUG > 0)
-    uint32_t i;
+#ifdef NOS_CONFIG_ISR_STACK_SIZE
+ #if (NOS_CONFIG_DEBUG > 0)
+    size_t i;
 
     for (i = 0; i < NOS_CONFIG_ISR_STACK_SIZE; i++) {
-        isrStack[i] = 0xffffffffUL;
+        _isrStack[i] = 0xFFFFFFFFUL;
     }
-#endif
+ #endif
 
     /* Copy MSP to PSP */
-    SetPSP(GetMSP());
+    _SetPSP(_GetMSP());
     /* Set MSP to local ISR stack */
-    SetMSP((uint32_t)&isrStack[NOS_CONFIG_ISR_STACK_SIZE] & 0xfffffff8UL);
-#if defined(__VFP_FP__) && !defined(__SOFTFP__)
-    /* Set current stack to PSP, privileged mode and save FPU state */
-    SetCONTROL(GetCONTROL() | 0x00000006UL);
-#else
+    _SetMSP((uint32_t)&_isrStack[NOS_CONFIG_ISR_STACK_SIZE] & 0xFFFFFFF8UL);
+ #if defined(__VFP_FP__) && !defined(__SOFTFP__)
+    /* Set current stack to PSP, privileged mode and FPU active */
+    _SetCONTROL(_GetCONTROL() | 0x00000006UL);
+ #else
     /* Set current stack to PSP and privileged mode */
-    SetCONTROL(GetCONTROL() | 0x00000002UL);
+    _SetCONTROL(_GetCONTROL() | 0x00000002UL);
+ #endif
+#else
+ #if defined(__VFP_FP__) && !defined(__SOFTFP__)
+    /* FPU active */
+    _SetCONTROL(_GetCONTROL() | 0x00000004UL);
+ #endif
 #endif
     /* Set PendSV exception to lowest priority */
-    *(volatile uint32_t *)0xe000ed20UL |= 0x00ff0000UL;
+    *(volatile uint32_t *)0xE000ED20UL |= 0x00FF0000UL;
 }
 
-void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg)
+void nOS_InitContext(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg)
 {
-    nOS_Stack *tos = (nOS_Stack*)((uint32_t)(stack + ssize) & 0xfffffff8UL);
+    nOS_Stack *tos = (nOS_Stack*)((uint32_t)(stack + ssize) & 0xFFFFFFF8UL);
 #if (NOS_CONFIG_DEBUG > 0)
-    uint32_t i;
+    size_t i;
 
     for (i = 0; i < ssize; i++) {
-        stack[i] = 0xffffffffUL;
+        stack[i] = 0xFFFFFFFFUL;
     }
 #endif
 
@@ -112,9 +121,9 @@ void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_Thr
  #endif
 #endif
 #if defined(__VFP_FP__) && !defined(__SOFTFP__)
-    *(--tos) = 0xffffffedUL;    /* EXC_RETURN (Thread mode, use FP state from PSP, Thread use PSP */
+    *(--tos) = 0xFFFFFFEDUL;    /* EXC_RETURN (Thread mode, use FP state from PSP, Thread use PSP */
 #else
-    *(--tos) = 0xfffffffdUL;    /* EXC_RETURN (Thread mode, don't use FP state, Thread use PSP */
+    *(--tos) = 0xFFFFFFFDUL;    /* EXC_RETURN (Thread mode, don't use FP state, Thread use PSP */
 #endif
 #if (NOS_CONFIG_DEBUG > 0)
     *(--tos) = 0x11111111UL;    /* R11 */
@@ -132,70 +141,78 @@ void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_Thr
     thread->stackPtr = tos;
 }
 
-void nOS_IsrEnter (void)
+void nOS_EnterIsr (void)
 {
-    nOS_CriticalEnter();
+    nOS_EnterCritical();
     nOS_isrNestingCounter++;
-    nOS_CriticalLeave();
+    nOS_LeaveCritical();
 }
 
-void nOS_IsrLeave (void)
+void nOS_LeaveIsr (void)
 {
-    nOS_CriticalEnter();
+    nOS_EnterCritical();
     nOS_isrNestingCounter--;
     if (nOS_isrNestingCounter == 0) {
 #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
         if (nOS_lockNestingCounter == 0)
 #endif
         {
-#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
-            nOS_highPrioThread = SchedHighPrio();
-#else
-            nOS_highPrioThread = nOS_ListHead(&nOS_readyList);
-#endif
+            nOS_highPrioThread = nOS_FindHighPrioThread();
             if (nOS_runningThread != nOS_highPrioThread) {
-                *(volatile uint32_t *)0xe000ed04UL = 0x10000000UL;
+                *(volatile uint32_t *)0xE000ED04UL = 0x10000000UL;
             }
         }
     }
-    nOS_CriticalLeave();
+    nOS_LeaveCritical();
 }
 
 void PendSV_Handler(void)
 {
     __asm volatile (
-        "MRS        R0,         PSP                 \n" /* Save PSP before doing anything, PendSV_Handler already running on MSP */
+        /* Save PSP before doing anything, PendSV_Handler already running on MSP */
+        "MRS        R0,         PSP                 \n"
         "ISB                                        \n"
-        "                                           \n"
-        "LDR        R3,         runningThread       \n" /* Get the location of nOS_runningThread */
+
+        /* Get the location of nOS_runningThread */
+        "LDR        R3,         runningThread       \n"
         "LDR        R2,         [R3]                \n"
-        "                                           \n"
+
 #if defined(__VFP_FP__) && !defined(__SOFTFP__)
-        "VSTMDB     R0!,        {S16-S31}           \n" /* Push high VFP registers */
+        /* Push high VFP registers */
+        "VSTMDB     R0!,        {S16-S31}           \n"
 #endif
-        "                                           \n"
-        "STMDB      R0!,        {R4-R11, LR}        \n" /* Push remaining registers on thread stack */
-        "                                           \n"
-        "STR        R0,         [R2]                \n" /* Save PSP to nOS_Thread object of current running thread */
-        "                                           \n"
-        "LDR        R1,         highPrioThread      \n" /* Get the location of nOS_highPrioThread */
+
+        /* Push remaining registers on thread stack */
+        "STMDB      R0!,        {R4-R11, LR}        \n"
+
+        /* Save PSP to nOS_Thread object of current running thread */
+        "STR        R0,         [R2]                \n"
+
+        /* Get the location of nOS_highPrioThread */
+        "LDR        R1,         highPrioThread      \n"
         "LDR        R2,         [R1]                \n"
-        "                                           \n"
-        "STR        R2,         [R3]                \n" /* Copy nOS_highPrioThread to nOS_runningThread */
-        "                                           \n"
-        "LDR        R0,         [R2]                \n" /* Restore PSP from nOS_Thread object of high prio thread */
-        "                                           \n"
-        "LDMIA      R0!,        {R4-R11, LR}        \n" /* Pop registers from thread stack */
-        "                                           \n"
+
+        /* Copy nOS_highPrioThread to nOS_runningThread */
+        "STR        R2,         [R3]                \n"
+
+        /* Restore PSP from nOS_Thread object of high prio thread */
+        "LDR        R0,         [R2]                \n"
+
+        /* Pop registers from thread stack */
+        "LDMIA      R0!,        {R4-R11, LR}        \n"
+
 #if defined(__VFP_FP__) && !defined(__SOFTFP__)
-        "VLDMIA     R0!,        {S16-S31}           \n" /* Pop high VFP registers */
+        /* Pop high VFP registers */
+        "VLDMIA     R0!,        {S16-S31}           \n"
 #endif
-        "                                           \n"
-        "MSR        PSP,        R0                  \n" /* Restore PSP to high prio thread stack */
+
+        /* Restore PSP to high prio thread stack */
+        "MSR        PSP,        R0                  \n"
         "ISB                                        \n"
-        "                                           \n"
-        "BX         LR                              \n" /* Return */
-        "                                           \n"
+
+        /* Return */
+        "BX         LR                              \n"
+
         ".align 2                                   \n"
         "runningThread: .word nOS_runningThread     \n"
         "highPrioThread: .word nOS_highPrioThread   \n"

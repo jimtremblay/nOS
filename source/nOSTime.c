@@ -15,30 +15,30 @@ extern "C" {
 
 #if (NOS_CONFIG_TIME_ENABLE > 0)
 
-#define IS_LEAP_YEAR(y)			(((((y) % 4) == 0) && (((y) % 100) != 0)) || (((y) % 400) == 0))
+#define IS_LEAP_YEAR(y)     (((((y) % 4) == 0) && (((y) % 100) != 0)) || (((y) % 400) == 0))
 #define DAYS_PER_YEAR(y)    (IS_LEAP_YEAR(y)?366:365)
-#define DAYS_PER_MONTH(m,y) ((IS_LEAP_YEAR(y)&&((m)==2))?29:daysPerMonth[(m)-1])
+#define DAYS_PER_MONTH(m,y) ((IS_LEAP_YEAR(y)&&((m)==2))?29:_daysPerMonth[(m)-1])
 
 #if (NOS_CONFIG_TIME_TICKS_PER_SECOND > 1)
- static uint16_t            timePrescaler;
+ static uint16_t            _timePrescaler;
 #endif
-static nOS_Time             timeCounter;
+static nOS_Time             _timeCounter;
 #if (NOS_CONFIG_TIME_WAIT_ENABLE > 0)
- static nOS_Event           timeEvent;
+ static nOS_Event           _timeEvent;
 #endif
-static NOS_CONST uint8_t    daysPerMonth[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+static NOS_CONST uint8_t    _daysPerMonth[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
 #if (NOS_CONFIG_TIME_WAIT_ENABLE > 0)
-static void TickTime(void *payload, void *arg)
+static void _TickTime(void *payload, void *arg)
 {
     nOS_Thread  *thread = (nOS_Thread*)payload;
-    nOS_Time    time = *(nOS_Time*)thread->context;
+    nOS_Time    time = *(nOS_Time*)thread->ext;
 
     /* Avoid warning */
     NOS_UNUSED(arg);
 
-    if (timeCounter == time) {
-        SignalThread(thread, NOS_OK);
+    if (_timeCounter == time) {
+        nOS_SignalThread(thread, NOS_OK);
     }
 }
 #endif
@@ -46,54 +46,54 @@ static void TickTime(void *payload, void *arg)
 void nOS_TimeInit (void)
 {
 #if (NOS_CONFIG_TIME_TICKS_PER_SECOND > 1)
-    timePrescaler = 0;
+    _timePrescaler = 0;
 #endif
-    timeCounter = 0;
+    _timeCounter = 0;
 #if (NOS_CONFIG_TIME_WAIT_ENABLE > 0)
  #if (NOS_CONFIG_SAFE > 0)
-    nOS_EventCreate(&timeEvent, NOS_EVENT_BASE);
+    nOS_CreateEvent(&_timeEvent, NOS_EVENT_BASE);
  #else
-    nOS_EventCreate(&timeEvent);
+    nOS_CreateEvent(&_timeEvent);
  #endif
 #endif
 }
 
 void nOS_TimeTick (void)
 {
-    nOS_CriticalEnter();
+    nOS_EnterCritical();
 #if (NOS_CONFIG_TIME_TICKS_PER_SECOND > 1)
-    timePrescaler++;
-    timePrescaler %= NOS_CONFIG_TIME_TICKS_PER_SECOND;
-    if (timePrescaler == 0)
+    _timePrescaler++;
+    _timePrescaler %= NOS_CONFIG_TIME_TICKS_PER_SECOND;
+    if (_timePrescaler == 0)
 #endif
     {
-        timeCounter++;
+        _timeCounter++;
 #if (NOS_CONFIG_TIME_WAIT_ENABLE > 0)
-        nOS_ListWalk(&timeEvent.waitList, TickTime, NULL);
+        nOS_WalkInList(&_timeEvent.waitList, _TickTime, NULL);
 #endif
     }
-    nOS_CriticalLeave();
+    nOS_LeaveCritical();
 }
 
-nOS_Time nOS_TimeNow (void)
+nOS_Time nOS_TimeGet (void)
 {
     nOS_Time    time;
 
-    nOS_CriticalEnter();
-    time = timeCounter;
-    nOS_CriticalLeave();
+    nOS_EnterCritical();
+    time = _timeCounter;
+    nOS_LeaveCritical();
 
     return time;
 }
 
-nOS_Error nOS_TimeChange (nOS_Time time)
+nOS_Error nOS_TimeSet (nOS_Time time)
 {
-    nOS_CriticalEnter();
-    timeCounter = time;
+    nOS_EnterCritical();
+    _timeCounter = time;
 #if (NOS_CONFIG_TIME_TICKS_PER_SECOND > 1)
-    timePrescaler = 0;
+    _timePrescaler = 0;
 #endif
-    nOS_CriticalLeave();
+    nOS_LeaveCritical();
 
     return NOS_OK;
 }
@@ -103,7 +103,7 @@ nOS_TimeDate nOS_TimeConvert (nOS_Time time)
     nOS_TimeDate    timedate;
     uint16_t        days;
 
-    /* First extract HH:MM:SS from timeCounter */
+    /* First extract HH:MM:SS from _timeCounter */
     timedate.second = time % 60;
     time /= 60;
     timedate.minute = time % 60;
@@ -136,7 +136,7 @@ nOS_TimeDate nOS_TimeConvert (nOS_Time time)
     }
 
     /* Last, we have in which day of month we are */
-    timedate.day = time + 1;
+    timedate.day = (uint8_t)(time + 1);
 
     return timedate;
 }
@@ -158,28 +158,28 @@ nOS_Error nOS_TimeWait (nOS_Time time)
     else if (nOS_runningThread == &nOS_idleHandle) {
         err = NOS_E_IDLE;
     } else {
-        nOS_CriticalEnter();
-        if (timeCounter < time) {
+        nOS_EnterCritical();
+        if (_timeCounter < time) {
             err = NOS_E_ELAPSED;
-        } else if (timeCounter == time) {
+        } else if (_timeCounter == time) {
             err = NOS_OK;
         } else {
-            nOS_runningThread->context = (void*)&time;
-            err = nOS_EventWait(&timeEvent, NOS_THREAD_WAITING_TIME, NOS_WAIT_INFINITE);
+            nOS_runningThread->ext = (void*)&time;
+            err = nOS_WaitForEvent(&_timeEvent, NOS_THREAD_WAITING_TIME, NOS_WAIT_INFINITE);
         }
-        nOS_CriticalLeave();
+        nOS_LeaveCritical();
     }
 
     return err;
 }
 #endif
 
-nOS_TimeDate nOS_TimeDateNow (void)
+nOS_TimeDate nOS_TimeDateGet (void)
 {
-    return nOS_TimeConvert(nOS_TimeNow());
+    return nOS_TimeConvert(nOS_TimeGet());
 }
 
-nOS_Error nOS_TimeDateChange (nOS_TimeDate *timedate)
+nOS_Error nOS_TimeDateSet (nOS_TimeDate *timedate)
 {
     nOS_Error   err;
 
@@ -189,7 +189,7 @@ nOS_Error nOS_TimeDateChange (nOS_TimeDate *timedate)
     } else
 #endif
     {
-        err = nOS_TimeChange(nOS_TimeDateConvert(timedate));
+        err = nOS_TimeSet(nOS_TimeDateConvert(timedate));
     }
 
     return err;

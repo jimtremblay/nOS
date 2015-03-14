@@ -14,12 +14,19 @@ extern "C" {
 #endif
 
 #if (NOS_CONFIG_ISR_STACK_SIZE > 0)
-static nOS_Stack isrStack[NOS_CONFIG_ISR_STACK_SIZE];
+ static nOS_Stack _isrStack[NOS_CONFIG_ISR_STACK_SIZE];
 #endif
 
-void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg)
+void nOS_InitContext(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg)
 {
     nOS_Stack *tos = (nOS_Stack*)((uint16_t)stack & 0xFFFE);
+#if (NOS_CONFIG_DEBUG > 0)
+    size_t i;
+
+    for (i = 0; i < ssize; i++) {
+        stack[i] = 0xFFFF;
+    }
+#endif
 
     *tos++ = (nOS_Stack)entry;  /* PC LSB */
     *tos++ = 0;                 /* PC MSB */
@@ -56,7 +63,7 @@ void nOS_ContextInit(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_Thr
     thread->stackPtr = tos;
 }
 
-void __attribute__((naked)) nOS_ContextSwitch(void)
+void __attribute__((naked)) nOS_SwitchContext(void)
 {
     /* Enter critical is not needed here, interrupts are already disabled */
     __asm volatile (
@@ -108,13 +115,13 @@ void __attribute__((naked)) nOS_ContextSwitch(void)
     );
 }
 
-nOS_Stack *nOS_IsrEnter (nOS_Stack *sp)
+nOS_Stack *nOS_EnterIsr (nOS_Stack *sp)
 {
     // Enter critical here is not needed, interrupts are already disabled
     if (nOS_isrNestingCounter == 0) {
         nOS_runningThread->stackPtr = sp;
 #if (NOS_CONFIG_ISR_STACK_SIZE > 0)
-        sp = &isrStack[0];
+        sp = &_isrStack[0];
 #else
         sp = nOS_idleHandle.stackPtr;
 #endif
@@ -124,7 +131,7 @@ nOS_Stack *nOS_IsrEnter (nOS_Stack *sp)
     return sp;
 }
 
-nOS_Stack *nOS_IsrLeave (nOS_Stack *sp)
+nOS_Stack *nOS_LeaveIsr (nOS_Stack *sp)
 {
     // Enter critical here is not needed, interrupts are already disabled
     nOS_isrNestingCounter--;
@@ -133,11 +140,7 @@ nOS_Stack *nOS_IsrLeave (nOS_Stack *sp)
         if (nOS_lockNestingCounter == 0)
 #endif
         {
-#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
-            nOS_highPrioThread = SchedHighPrio();
-#else
-            nOS_highPrioThread = nOS_ListHead(&nOS_readyList);
-#endif
+            nOS_highPrioThread = nOS_FindHighPrioThread();
             nOS_runningThread = nOS_highPrioThread;
             sp = nOS_runningThread->stackPtr;
         }

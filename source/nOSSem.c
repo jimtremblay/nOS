@@ -28,15 +28,15 @@ nOS_Error nOS_SemCreate (nOS_Sem *sem, nOS_SemCounter count, nOS_SemCounter max)
     } else
 #endif
     {
-        nOS_CriticalEnter();
+        nOS_EnterCritical();
 #if (NOS_CONFIG_SAFE > 0)
-        nOS_EventCreate((nOS_Event*)sem, NOS_EVENT_SEM);
+        nOS_CreateEvent((nOS_Event*)sem, NOS_EVENT_SEM);
 #else
-        nOS_EventCreate((nOS_Event*)sem);
+        nOS_CreateEvent((nOS_Event*)sem);
 #endif
         sem->count = count;
         sem->max = max;
-        nOS_CriticalLeave();
+        nOS_LeaveCritical();
         err = NOS_OK;
     }
 
@@ -56,17 +56,17 @@ nOS_Error nOS_SemDelete (nOS_Sem *sem)
     } else
 #endif
     {
-        nOS_CriticalEnter();
+        nOS_EnterCritical();
         sem->count = 0;
         sem->max = 0;
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
-        if (nOS_EventDelete((nOS_Event*)sem)) {
-            Sched();
+        if (nOS_DeleteEvent((nOS_Event*)sem)) {
+            nOS_Schedule();
         }
 #else
-        nOS_EventDelete((nOS_Event*)sem);
+        nOS_DeleteEvent((nOS_Event*)sem);
 #endif
-        nOS_CriticalLeave();
+        nOS_LeaveCritical();
         err = NOS_OK;
     }
 
@@ -97,7 +97,7 @@ nOS_Error nOS_SemTake (nOS_Sem *sem, nOS_TickCounter tout)
     } else
 #endif
     {
-        nOS_CriticalEnter();
+        nOS_EnterCritical();
         /* Sem available? Take it */
         if (sem->count > 0) {
             sem->count--;
@@ -120,9 +120,9 @@ nOS_Error nOS_SemTake (nOS_Sem *sem, nOS_TickCounter tout)
             err = NOS_E_IDLE;
         /* Calling thread must wait on sem. */
         } else {
-            err = nOS_EventWait((nOS_Event*)sem, NOS_THREAD_TAKING_SEM, tout);
+            err = nOS_WaitForEvent((nOS_Event*)sem, NOS_THREAD_TAKING_SEM, tout);
         }
-        nOS_CriticalLeave();
+        nOS_LeaveCritical();
     }
 
     return err;
@@ -147,12 +147,12 @@ nOS_Error nOS_SemGive (nOS_Sem *sem)
     } else
 #endif
     {
-        nOS_CriticalEnter();
-        thread = nOS_EventSend((nOS_Event*)sem, NOS_OK);
+        nOS_EnterCritical();
+        thread = nOS_SignalEvent((nOS_Event*)sem, NOS_OK);
         if (thread != NULL) {
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
             if ((thread->state == NOS_THREAD_READY) && (thread->prio > nOS_runningThread->prio)) {
-                Sched();
+                nOS_Schedule();
             }
 #endif
             err = NOS_OK;
@@ -165,7 +165,7 @@ nOS_Error nOS_SemGive (nOS_Sem *sem)
             /* No thread waiting to consume sem, inform producer */
             err = NOS_E_CONSUMER;
         }
-        nOS_CriticalLeave();
+        nOS_LeaveCritical();
     }
 
     return err;
@@ -183,9 +183,9 @@ bool nOS_SemIsAvailable (nOS_Sem *sem)
     } else
 #endif
     {
-        nOS_CriticalEnter();
+        nOS_EnterCritical();
         avail = (sem->count > 0);
-        nOS_CriticalLeave();
+        nOS_LeaveCritical();
     }
 
     return avail;
