@@ -82,9 +82,8 @@ void nOS_TimerInit(void)
                      NULL
 #ifndef NOS_SIMULATED_STACK
                      ,_timerStack
-#else
-                     ,NOS_CONFIG_TIMER_THREAD_STACK_SIZE
 #endif
+                     ,NOS_CONFIG_TIMER_THREAD_STACK_SIZE
 #ifdef NOS_USE_SEPARATE_CALL_STACK
                      ,NOS_CONFIG_TIMER_THREAD_CALL_STACK_SIZE
 #endif
