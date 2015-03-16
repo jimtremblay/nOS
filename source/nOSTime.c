@@ -155,7 +155,7 @@ nOS_Error nOS_TimeWait (nOS_Time time)
         err = NOS_E_LOCKED;
     }
 #endif
-#ifndef NOS_EMULATOR
+#if (NOS_CONFIG_SLEEP_WAIT_FROM_MAIN == 0)
     else if (nOS_runningThread == &nOS_idleHandle) {
         err = NOS_E_IDLE;
     }

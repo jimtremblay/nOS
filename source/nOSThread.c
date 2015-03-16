@@ -216,7 +216,7 @@ nOS_Error nOS_ThreadCreate (nOS_Thread *thread,
         {
             nOS_AppendThreadToReadyList(thread);
 #if (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
- #ifdef NOS_EMULATOR
+ #if (NOS_CONFIG_SLEEP_WAIT_FROM_MAIN > 0)
             if (nOS_runningThread == NULL) {
                 nOS_Schedule();
             } else
@@ -297,7 +297,7 @@ nOS_Error nOS_ThreadSuspend (nOS_Thread *thread)
     }
 
 #if (NOS_CONFIG_SAFE > 0)
- #ifndef NOS_EMULATOR
+ #if (NOS_CONFIG_SLEEP_WAIT_FROM_MAIN == 0)
     /* Main thread can't be suspended */
     if (thread == &nOS_idleHandle) {
         err = NOS_E_IDLE;
@@ -339,14 +339,18 @@ nOS_Error nOS_ThreadSuspendAll (void)
 {
     nOS_Error   err;
 
-#ifndef NOS_EMULATOR
- #if (NOS_CONFIG_SAFE > 0)
-  #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
+#if (NOS_CONFIG_SAFE > 0)
+ #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
+  #if (NOS_CONFIG_SLEEP_WAIT_FROM_MAIN > 0)
+    /* Can't suspend all threads when scheduler is locked */
+    if (nOS_lockNestingCounter > 0)
+  #else
     /* Can't suspend all threads from any thread (except idle) when scheduler is locked */
-    if ((nOS_lockNestingCounter > 0) && (nOS_runningThread != &nOS_idleHandle)) {
+    if ((nOS_lockNestingCounter > 0) && (nOS_runningThread != &nOS_idleHandle))
+  #endif
+    {
         err = NOS_E_LOCKED;
     } else
-  #endif
  #endif
 #endif
     {
@@ -375,7 +379,7 @@ nOS_Error nOS_ThreadResume (nOS_Thread *thread)
     } else if (thread == nOS_runningThread) {
         err = NOS_E_INV_VAL;
     }
-#ifndef NOS_EMULATOR
+#if (NOS_CONFIG_SLEEP_WAIT_FROM_MAIN == 0)
     else if (thread == &nOS_idleHandle) {
         err = NOS_E_IDLE;
     }
@@ -449,7 +453,7 @@ nOS_Error nOS_ThreadSetPriority (nOS_Thread *thread, uint8_t prio)
         if (prio != thread->prio) {
             nOS_SetThreadPrio(thread, prio);
 #if (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
- #ifdef NOS_EMULATOR
+ #if (NOS_CONFIG_SLEEP_WAIT_FROM_MAIN > 0)
             if (nOS_runningThread == NULL) {
                 nOS_Schedule();
             } else
@@ -492,27 +496,27 @@ int16_t nOS_ThreadGetPriority (nOS_Thread *thread)
 #if (NOS_CONFIG_THREAD_NAME_ENABLE > 0)
 const char* nOS_ThreadGetName (nOS_Thread *thread)
 {
-	const char *name = NULL;
+    const char *name = NULL;
 
-	if (thread == NULL) {
+    if (thread == NULL) {
         thread = nOS_runningThread;
     }
 
 #if (NOS_CONFIG_SAFE > 0)
     if (thread->state != NOS_THREAD_STOPPED)
 #endif
-	{
-		nOS_EnterCritical();
-		name = thread->name;
-		nOS_LeaveCritical();
-	}
+    {
+        nOS_EnterCritical();
+        name = thread->name;
+        nOS_LeaveCritical();
+    }
 
-	return name;
+    return name;
 }
 
 void nOS_ThreadSetName (nOS_Thread *thread, const char *name)
 {
-	if (thread == NULL) {
+    if (thread == NULL) {
         thread = nOS_runningThread;
     }
 
@@ -520,11 +524,11 @@ void nOS_ThreadSetName (nOS_Thread *thread, const char *name)
     if ((thread->state != NOS_THREAD_STOPPED) &&
         (name != NULL))
 #endif
-	{
-		nOS_EnterCritical();
-		thread->name = name;
-		nOS_LeaveCritical();
-	}
+    {
+        nOS_EnterCritical();
+        thread->name = name;
+        nOS_LeaveCritical();
+    }
 }
 #endif
 

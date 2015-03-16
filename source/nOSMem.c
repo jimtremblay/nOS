@@ -219,7 +219,7 @@ void *nOS_MemAlloc(nOS_Mem *mem, nOS_TickCounter tout)
             block = NULL;
         }
 #endif
-#ifndef NOS_EMULATOR
+#if (NOS_CONFIG_SLEEP_WAIT_FROM_MAIN == 0)
         else if (nOS_runningThread == &nOS_idleHandle) {
             block = NULL;
         }
@@ -287,7 +287,7 @@ nOS_Error nOS_MemFree(nOS_Mem *mem, void *block)
         if (thread != NULL) {
             *(void**)thread->ext = block;
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
- #ifndef NOS_EMULATOR
+ #if (NOS_CONFIG_SLEEP_WAIT_FROM_MAIN > 0)
             if (nOS_runningThread == NULL) {
                 nOS_Schedule();
             } else

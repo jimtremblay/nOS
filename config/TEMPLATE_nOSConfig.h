@@ -110,3 +110,7 @@
  * Higher number = Higher priority (PIC24 only, max value: 7)
  * Not used on all platforms. */
 #define NOS_CONFIG_MAX_UNSAFE_ISR_PRIO          5
+
+/* Enable or disable sleep/wait from main thread: only available
+ * on emulator (WIN32) */
+#define NOS_CONFIG_SLEEP_WAIT_FROM_MAIN         0

@@ -91,3 +91,7 @@
 #define NOS_CONFIG_TIME_TICKS_PER_SECOND        1000
 /* Time ticks counter width in bits (can be 32 or 64). */
 #define NOS_CONFIG_TIME_COUNT_WIDTH             32
+
+/* Enable or disable sleep/wait from main thread: only available
+ * on emulator (WIN32) */
+#define NOS_CONFIG_SLEEP_WAIT_FROM_MAIN         1

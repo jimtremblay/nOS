@@ -37,7 +37,7 @@ static void _TestFlag (void *payload, void *arg)
             res->rflags |= r;
         }
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
- #ifdef NOS_EMULATOR
+ #if (NOS_CONFIG_SLEEP_WAIT_FROM_MAIN > 0)
         if (nOS_runningThread == NULL) {
             res->sched = true;
         } else
@@ -196,7 +196,7 @@ nOS_Error nOS_FlagWait (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits *res,
             err = NOS_E_LOCKED;
         }
 #endif
-#ifndef NOS_EMULATOR
+#if (NOS_CONFIG_SLEEP_WAIT_FROM_MAIN == 0)
         /* Main thread can't wait */
         else if (nOS_runningThread == &nOS_idleHandle) {
             err = NOS_E_IDLE;
