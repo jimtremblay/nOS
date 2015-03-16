@@ -15,14 +15,25 @@
 extern "C" {
 #endif
 
-typedef uint32_t                            nOS_Stack;
-
 #define NOS_UNUSED(v)                       (void)v
 
 #define NOS_MEM_ALIGNMENT                   8
 #define NOS_MEM_POINTER_WIDTH               4
 
 #define NOS_32_BITS_SCHEDULER
+
+#define NOS_SIMULATED_STACK
+
+typedef struct nOS_Stack
+{
+    HANDLE          handle;
+    DWORD           id;
+    uint32_t        crit;
+    nOS_ThreadEntry entry;
+    void            *arg;
+    bool            sync;
+    HANDLE          hsync;
+} nOS_Stack;
 
 #ifndef NOS_CONFIG_TICKS_PER_SECOND
  #error "nOSConfig.h: NOS_CONFIG_TICKS_PER_SECOND is not defined: must be set between 1 and 100 inclusively."
@@ -36,7 +47,7 @@ int     nOS_Print            (const char *format, ...);
 
 #ifdef NOS_PRIVATE
  void   nOS_InitSpecific            (void);
- void   nOS_InitContext             (nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg);
+ void   nOS_InitContext             (nOS_Thread *thread, size_t ssize, nOS_ThreadEntry entry, void *arg);
  void   nOS_SwitchContext           (void);
 #endif
 

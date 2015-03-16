@@ -130,9 +130,11 @@ void nOS_SetThreadPrio (nOS_Thread *thread, uint8_t prio)
 
 nOS_Error nOS_ThreadCreate (nOS_Thread *thread,
                             nOS_ThreadEntry entry,
-                            void *arg,
-                            nOS_Stack *stack,
-                            size_t ssize
+                            void *arg
+#ifndef NOS_SIMULATED_STACK
+                            ,nOS_Stack *stack
+#endif
+                            ,size_t ssize
 #ifdef NOS_USE_SEPARATE_CALL_STACK
                             ,size_t cssize
 #endif
@@ -156,11 +158,14 @@ nOS_Error nOS_ThreadCreate (nOS_Thread *thread,
         err = NOS_E_INV_VAL;
     } else if (entry == NULL) {
         err = NOS_E_INV_VAL;
-    } else if (stack == NULL) {
+    }
+#ifndef NOS_SIMULATED_STACK
+    else if (stack == NULL) {
         err = NOS_E_INV_VAL;
     } else if (ssize == 0) {
         err = NOS_E_INV_VAL;
     }
+#endif
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
     else if (prio > NOS_CONFIG_HIGHEST_THREAD_PRIO) {
         err = NOS_E_INV_VAL;
@@ -194,7 +199,11 @@ nOS_Error nOS_ThreadCreate (nOS_Thread *thread,
         thread->error = NOS_OK;
         thread->node.payload = thread;
         thread->readyWait.payload = thread;
-        nOS_InitContext(thread, stack, ssize
+        nOS_InitContext(thread
+#ifndef NOS_SIMULATED_STACK
+                        ,stack
+#endif
+                        ,ssize
 #ifdef NOS_USE_SEPARATE_CALL_STACK
                         ,cssize
 #endif

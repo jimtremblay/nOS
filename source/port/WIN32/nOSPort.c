@@ -15,32 +15,20 @@
 extern "C" {
 #endif
 
-typedef struct
-{
-    HANDLE          handle;
-    DWORD           id;
-    uint32_t        crit;
-    nOS_ThreadEntry entry;
-    void            *arg;
-    bool            sync;
-    HANDLE          hsync;
-} Context;
-
 static DWORD WINAPI _Entry (LPVOID lpParameter);
 static DWORD WINAPI _Scheduler (LPVOID lpParameter);
 static DWORD WINAPI _SysTick (LPVOID lpParameter);
 
 static HANDLE           _hCritical;
 static uint32_t         _criticalNestingCounter;
-static Context          _idleContext;
 static HANDLE           _hSchedRequest;
 
 static DWORD WINAPI _Entry (LPVOID lpParameter)
 {
-    Context *ctx = (Context*)lpParameter;
+    nOS_Thread *thread = (nOS_Thread*)lpParameter;
 
     /* Enter thread main loop */
-    ctx->entry(ctx->arg);
+    thread->stackPtr->entry(thread->stackPtr->arg);
 
     return 0;
 }
@@ -61,14 +49,14 @@ static DWORD WINAPI _Scheduler (LPVOID lpParameter)
          * suspend running thread and resume high prio thread */
         nOS_highPrioThread = nOS_FindHighPrioThread();
         if (nOS_runningThread != nOS_highPrioThread) {
-            SuspendThread(((Context*)nOS_runningThread->stackPtr)->handle);
+            SuspendThread(nOS_runningThread->stackPtr->handle);
             nOS_runningThread = nOS_highPrioThread;
-            ResumeThread(((Context*)nOS_highPrioThread->stackPtr)->handle);
+            ResumeThread(nOS_highPrioThread->stackPtr->handle);
 
             /* Release sync object only if resumed thread is waiting in context switch */
-            if (((Context*)nOS_highPrioThread->stackPtr)->sync) {
-                ((Context*)nOS_highPrioThread->stackPtr)->sync = false;
-                ReleaseSemaphore(((Context*)nOS_highPrioThread->stackPtr)->hsync, 1, NULL);
+            if (nOS_highPrioThread->stackPtr->sync) {
+                nOS_highPrioThread->stackPtr->sync = false;
+                ReleaseSemaphore(nOS_highPrioThread->stackPtr->hsync, 1, NULL);
             }
         }
 
@@ -124,87 +112,87 @@ void nOS_InitSpecific(void)
 {
     _criticalNestingCounter = 0;
     /* Create a mutex for critical section */
-    _hCritical = CreateMutex(NULL,                  /* Default security descriptor */
-                             false,                 /* Initial state is unlocked */
-                             NULL);                 /* No name */
+    _hCritical = CreateMutex(NULL,                      /* Default security descriptor */
+                             false,                     /* Initial state is unlocked */
+                             NULL);                     /* No name */
 
-    _idleContext.entry = NULL;
-    _idleContext.arg = NULL;
-    _idleContext.crit = 0;
-    _idleContext.sync = false;
-    _idleContext.hsync = CreateSemaphore(NULL,      /* Default security descriptor */
-                                         0,         /* Initial count = 0 */
-                                         1,         /* Maximum count = 1 */
-                                         NULL);     /* No name */
+    nOS_idleHandle.stack.entry = NULL;
+    nOS_idleHandle.stack.arg = NULL;
+    nOS_idleHandle.stack.crit = 0;
+    nOS_idleHandle.stack.sync = false;
+    nOS_idleHandle.stack.hsync = CreateSemaphore(NULL,  /* Default security descriptor */
+                                                 0,     /* Initial count = 0 */
+                                                 1,     /* Maximum count = 1 */
+                                                 NULL); /* No name */
     /* Convert pseudo handle of GetCurrentThread to real handle to be used by Scheduler */
     DuplicateHandle(GetCurrentProcess(),
                     GetCurrentThread(),
                     GetCurrentProcess(),
-                    &_idleContext.handle,
+                    &nOS_idleHandle.stack.handle,
                     0,
                     FALSE,
                     DUPLICATE_SAME_ACCESS);
-    _idleContext.id = GetCurrentThreadId();
-    nOS_idleHandle.stackPtr = (nOS_Stack*)&_idleContext;
+    nOS_idleHandle.stack.id = GetCurrentThreadId();
+    nOS_idleHandle.stackPtr = &nOS_idleHandle.stack;
 
     /* Create an event for context switching request */
-    _hSchedRequest = CreateEvent(NULL,              /* Default security descriptor */
-                                 TRUE,              /* Manual reset */
-                                 FALSE,             /* Initial state is non-signaled */
-                                 NULL);             /* No name */
+    _hSchedRequest = CreateEvent(NULL,                  /* Default security descriptor */
+                                 TRUE,                  /* Manual reset */
+                                 FALSE,                 /* Initial state is non-signaled */
+                                 NULL);                 /* No name */
 
-    CreateThread(NULL,                              /* Default security descriptor */
-                 0,                                 /* Default stack size */
-                 _Scheduler,                        /* Start address of the thread */
-                 NULL,                              /* No argument */
-                 0,                                 /* Thread run immediately after creation */
-                 NULL);                             /* Don't get thread identifier */
-    CreateThread(NULL,                              /* Default security descriptor */
-                 0,                                 /* Default stack size */
-                 _SysTick,                          /* Start address of the thread */
-                 NULL,                              /* No argument */
-                 0,                                 /* Thread run immediately after creation */
-                 NULL);                             /* Don't get thread identifier */
+    CreateThread(NULL,                                  /* Default security descriptor */
+                 0,                                     /* Default stack size */
+                 _Scheduler,                            /* Start address of the thread */
+                 NULL,                                  /* No argument */
+                 0,                                     /* Thread run immediately after creation */
+                 NULL);                                 /* Don't get thread identifier */
+    CreateThread(NULL,                                  /* Default security descriptor */
+                 0,                                     /* Default stack size */
+                 _SysTick,                              /* Start address of the thread */
+                 NULL,                                  /* No argument */
+                 0,                                     /* Thread run immediately after creation */
+                 NULL);                                 /* Don't get thread identifier */
 }
 
-void nOS_InitContext(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg)
+void nOS_InitContext(nOS_Thread *thread, size_t ssize, nOS_ThreadEntry entry, void *arg)
 {
-    Context *ctx = (Context *)stack;
+    nOS_Stack *stack = &thread->stack;
 
-    ctx->entry = entry;
-    ctx->arg = arg;
-    ctx->crit = 0;
-    ctx->sync = false;
+    stack->entry = entry;
+    stack->arg = arg;
+    stack->crit = 0;
+    stack->sync = false;
     /* Create a semaphore for context switching synchronization */
-    ctx->hsync = CreateSemaphore(NULL,              /* Default security descriptor */
-                                 0,                 /* Initial count = 0 */
-                                 1,                 /* Maximum count = 1 */
-                                 NULL);             /* No name */
-    ctx->handle = CreateThread(NULL,                /* Default security descriptor */
-                               0,                   /* Default stack size */
-                               _Entry,              /* Start address of the thread */
-                               ctx,                 /* Thread context as argument */
-                               CREATE_SUSPENDED,    /* Thread created in suspended state */
-                               &ctx->id);           /* Store thread identifier in thread context */
-    thread->stackPtr = (nOS_Stack*)ctx;
+    stack->hsync = CreateSemaphore(NULL,                /* Default security descriptor */
+                                   0,                   /* Initial count = 0 */
+                                   1,                   /* Maximum count = 1 */
+                                   NULL);               /* No name */
+    stack->handle = CreateThread(NULL,                  /* Default security descriptor */
+                                 ssize,                 /* Stack size */
+                                 _Entry,                /* Start address of the thread */
+                                 (LPVOID)thread,        /* Thread object as argument */
+                                 CREATE_SUSPENDED,      /* Thread created in suspended state */
+                                 &stack->id);           /* Store thread identifier in thread pseudo stack */
+    thread->stackPtr = stack;
 }
 
 void nOS_SwitchContext(void)
 {
-    Context *ctx = (Context*)nOS_runningThread->stackPtr;
+    nOS_Stack *stack = nOS_runningThread->stackPtr;
 
-    ctx->sync = true;
-    ctx->crit = _criticalNestingCounter;
+    stack->sync = true;
+    stack->crit = _criticalNestingCounter;
     SetEvent(_hSchedRequest);
     /* Leave critical section (allow Scheduler and SysTick to run) */
     ReleaseMutex(_hCritical);
 
     /* Wait synchronization event from Scheduler */
-    while(WaitForSingleObject(ctx->hsync, INFINITE) != WAIT_OBJECT_0);
+    while(WaitForSingleObject(stack->hsync, INFINITE) != WAIT_OBJECT_0);
 
     /* Enter critical section */
     while(WaitForSingleObject(_hCritical, INFINITE) != WAIT_OBJECT_0);
-	_criticalNestingCounter = ctx->crit;
+	_criticalNestingCounter = stack->crit;
 }
 
 void nOS_EnterCritical(void)

@@ -79,7 +79,7 @@
 /* Priority of timer thread. */
 #define NOS_CONFIG_TIMER_THREAD_PRIO            1
 /* Stack size of timer thread. */
-#define NOS_CONFIG_TIMER_THREAD_STACK_SIZE      128
+#define NOS_CONFIG_TIMER_THREAD_STACK_SIZE      0
 /* Timer counter width in bits (can be 8, 16, 32 or 64) */
 #define NOS_CONFIG_TIMER_COUNT_WIDTH            16
 

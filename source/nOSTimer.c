@@ -23,7 +23,9 @@ static nOS_List     _timerList;
 static nOS_Sem      _timerSem;
 #if (NOS_CONFIG_TIMER_THREAD_ENABLE > 0)
  static nOS_Thread  _timerHandle;
- static nOS_Stack   _timerStack[NOS_CONFIG_TIMER_THREAD_STACK_SIZE];
+ #ifndef NOS_SIMULATED_STACK
+  static nOS_Stack  _timerStack[NOS_CONFIG_TIMER_THREAD_STACK_SIZE];
+ #endif
 #endif
 
 #if (NOS_CONFIG_TIMER_THREAD_ENABLE > 0)
@@ -77,9 +79,12 @@ void nOS_TimerInit(void)
 #if (NOS_CONFIG_TIMER_THREAD_ENABLE > 0)
     nOS_ThreadCreate(&_timerHandle,
                      _ThreadTimer,
-                     NULL,
-                     _timerStack,
-                     NOS_CONFIG_TIMER_THREAD_STACK_SIZE
+                     NULL
+#ifndef NOS_SIMULATED_STACK
+                     ,_timerStack
+#else
+                     ,NOS_CONFIG_TIMER_THREAD_STACK_SIZE
+#endif
 #ifdef NOS_USE_SEPARATE_CALL_STACK
                      ,NOS_CONFIG_TIMER_THREAD_CALL_STACK_SIZE
 #endif

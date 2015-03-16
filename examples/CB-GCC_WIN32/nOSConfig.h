@@ -70,7 +70,7 @@
 #define NOS_CONFIG_MEM_SANITY_CHECK_ENABLE      1
 
 /* Enable or disable timer thread with callback. */
-#define NOS_CONFIG_TIMER_ENABLE                 0
+#define NOS_CONFIG_TIMER_ENABLE                 1
 /* Let timer thread taking care of timer process or not
  * (if 0, application is responsible to call nOS_TimerProcess) */
 #define NOS_CONFIG_TIMER_THREAD_ENABLE          1
@@ -79,9 +79,7 @@
 /* Priority of timer thread. */
 #define NOS_CONFIG_TIMER_THREAD_PRIO            1
 /* Stack size of timer thread. */
-#define NOS_CONFIG_TIMER_THREAD_STACK_SIZE      128
-/* Call stack size of timer thread (used only on IAR for AVR) */
-#define NOS_CONFIG_TIMER_THREAD_CALL_STACK_SIZE 16
+#define NOS_CONFIG_TIMER_THREAD_STACK_SIZE      0
 /* Timer counter width in bits (can be 8, 16, 32 or 64) */
 #define NOS_CONFIG_TIMER_COUNT_WIDTH            16
 
@@ -93,20 +91,3 @@
 #define NOS_CONFIG_TIME_TICKS_PER_SECOND        1000
 /* Time ticks counter width in bits (can be 32 or 64). */
 #define NOS_CONFIG_TIME_COUNT_WIDTH             32
-
-/* Stack size to use from interrupt routines in number of nOS_Stack entries.
- * Not used on all platforms. */
-#define NOS_CONFIG_ISR_STACK_SIZE               128
-
-/* Add possibility to override NVIC_PRIO_BITS if CMSIS is not used and
- * microcontroller have less or more than default (4 bits). */
-#define NOS_CONFIG_NVIC_PRIO_BITS               4
-
-/* Highest priority of interrupt routines that use nOS API which can enable
- * zero interrupt latency for high priority ISR. You should not call any nOS
- * API from interrupt handlers with priority higher than this setting. Can't
- * be set to zero.
- * Lower number = Higher priority (except PIC24)
- * Higher number = Higher priority (PIC24 only, max value: 7)
- * Not used on all platforms. */
-#define NOS_CONFIG_MAX_UNSAFE_ISR_PRIO          5
