@@ -155,9 +155,12 @@ nOS_Error nOS_TimeWait (nOS_Time time)
         err = NOS_E_LOCKED;
     }
 #endif
+#ifndef NOS_PSEUDO_SCHEDULER
     else if (nOS_runningThread == &nOS_idleHandle) {
         err = NOS_E_IDLE;
-    } else {
+    }
+#endif
+    else {
         nOS_EnterCritical();
         if (_timeCounter < time) {
             err = NOS_E_ELAPSED;

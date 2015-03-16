@@ -37,6 +37,11 @@ static void _TestFlag (void *payload, void *arg)
             res->rflags |= r;
         }
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
+ #ifdef NOS_PSEUDO_SCHEDULER
+        if (nOS_runningThread == NULL) {
+            res->sched = true;
+        } else
+ #endif
         /* Indicate that we need a preemptive scheduling. */
         if (thread->prio > nOS_runningThread->prio) {
             res->sched = true;
@@ -191,11 +196,14 @@ nOS_Error nOS_FlagWait (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits *res,
             err = NOS_E_LOCKED;
         }
 #endif
+#ifndef NOS_PSEUDO_SCHEDULER
         /* Main thread can't wait */
         else if (nOS_runningThread == &nOS_idleHandle) {
             err = NOS_E_IDLE;
+        }
+#endif
         /* Calling thread must wait on flag. */
-        } else {
+        else {
             ctx.flags   = flags;
             ctx.opt     = opt;
             ctx.rflags  = &r;

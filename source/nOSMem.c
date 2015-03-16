@@ -219,9 +219,12 @@ void *nOS_MemAlloc(nOS_Mem *mem, nOS_TickCounter tout)
             block = NULL;
         }
 #endif
+#ifndef NOS_PSEUDO_SCHEDULER
         else if (nOS_runningThread == &nOS_idleHandle) {
             block = NULL;
-        } else {
+        }
+#endif
+        else {
             nOS_runningThread->ext = (void*)&block;
             if (nOS_WaitForEvent((nOS_Event*)mem, NOS_THREAD_ALLOC_MEM, tout) != NOS_OK) {
                 block = NULL;
@@ -284,6 +287,11 @@ nOS_Error nOS_MemFree(nOS_Mem *mem, void *block)
         if (thread != NULL) {
             *(void**)thread->ext = block;
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
+ #ifndef NOS_PSEUDO_SCHEDULER
+            if (nOS_runningThread == NULL) {
+                nOS_Schedule();
+            } else
+ #endif
             if ((thread->state == NOS_THREAD_READY) && (thread->prio > nOS_runningThread->prio)) {
                 nOS_Schedule();
             }

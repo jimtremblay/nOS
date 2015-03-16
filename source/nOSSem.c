@@ -115,11 +115,14 @@ nOS_Error nOS_SemTake (nOS_Sem *sem, nOS_TickCounter tout)
             err = NOS_E_LOCKED;
         }
 #endif
+#ifndef NOS_PSEUDO_SCHEDULER
         /* Main thread can't wait */
         else if (nOS_runningThread == &nOS_idleHandle) {
             err = NOS_E_IDLE;
+        }
+#endif
         /* Calling thread must wait on sem. */
-        } else {
+        else {
             err = nOS_WaitForEvent((nOS_Event*)sem, NOS_THREAD_TAKING_SEM, tout);
         }
         nOS_LeaveCritical();
@@ -151,6 +154,11 @@ nOS_Error nOS_SemGive (nOS_Sem *sem)
         thread = nOS_SignalEvent((nOS_Event*)sem, NOS_OK);
         if (thread != NULL) {
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
+ #ifdef NOS_PSEUDO_SCHEDULER
+            if (nOS_runningThread == NULL) {
+                nOS_Schedule();
+            } else
+ #endif
             if ((thread->state == NOS_THREAD_READY) && (thread->prio > nOS_runningThread->prio)) {
                 nOS_Schedule();
             }

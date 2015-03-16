@@ -49,14 +49,22 @@ static DWORD WINAPI _Scheduler (LPVOID lpParameter)
          * suspend running thread and resume high prio thread */
         nOS_highPrioThread = nOS_FindHighPrioThread();
         if (nOS_runningThread != nOS_highPrioThread) {
-            SuspendThread(nOS_runningThread->stackPtr->handle);
-            nOS_runningThread = nOS_highPrioThread;
-            ResumeThread(nOS_highPrioThread->stackPtr->handle);
+            /* If a thread is currently running, suspend it */
+            if (nOS_runningThread != NULL) {
+                SuspendThread(nOS_runningThread->stackPtr->handle);
+            }
 
-            /* Release sync object only if resumed thread is waiting in context switch */
-            if (nOS_highPrioThread->stackPtr->sync) {
-                nOS_highPrioThread->stackPtr->sync = false;
-                ReleaseSemaphore(nOS_highPrioThread->stackPtr->hsync, 1, NULL);
+            nOS_runningThread = nOS_highPrioThread;
+
+            /* If a thread need to be schedule, resume it */
+            if (nOS_highPrioThread != NULL) {
+                ResumeThread(nOS_highPrioThread->stackPtr->handle);
+
+                /* Release sync object only if resumed thread is waiting in context switch */
+                if (nOS_highPrioThread->stackPtr->sync) {
+                    nOS_highPrioThread->stackPtr->sync = false;
+                    ReleaseSemaphore(nOS_highPrioThread->stackPtr->hsync, 1, NULL);
+                }
             }
         }
 

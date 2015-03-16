@@ -23,6 +23,7 @@ extern "C" {
 #define NOS_32_BITS_SCHEDULER
 
 #define NOS_SIMULATED_STACK
+#define NOS_PSEUDO_SCHEDULER
 
 typedef struct nOS_Stack
 {
