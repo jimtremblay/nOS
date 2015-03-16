@@ -40,7 +40,7 @@ void nOS_DeleteEvent (nOS_Event *event)
     do {
         thread = nOS_SignalEvent(event, NOS_E_DELETED);
         if (thread != NULL) {
-#ifdef NOS_PSEUDO_SCHEDULER
+#ifdef NOS_EMULATOR
             if (nOS_runningThread == NULL) {
                 sched = true;
             } else

@@ -131,7 +131,7 @@ void nOS_SetThreadPrio (nOS_Thread *thread, uint8_t prio)
 nOS_Error nOS_ThreadCreate (nOS_Thread *thread,
                             nOS_ThreadEntry entry,
                             void *arg
-#ifndef NOS_SIMULATED_STACK
+#ifndef NOS_EMULATOR
                             ,nOS_Stack *stack
 #endif
                             ,size_t ssize
@@ -159,7 +159,7 @@ nOS_Error nOS_ThreadCreate (nOS_Thread *thread,
     } else if (entry == NULL) {
         err = NOS_E_INV_VAL;
     }
-#ifndef NOS_SIMULATED_STACK
+#ifndef NOS_EMULATOR
     else if (stack == NULL) {
         err = NOS_E_INV_VAL;
     } else if (ssize == 0) {
@@ -200,7 +200,7 @@ nOS_Error nOS_ThreadCreate (nOS_Thread *thread,
         thread->node.payload = thread;
         thread->readyWait.payload = thread;
         nOS_InitContext(thread
-#ifndef NOS_SIMULATED_STACK
+#ifndef NOS_EMULATOR
                         ,stack
 #endif
                         ,ssize
@@ -216,7 +216,7 @@ nOS_Error nOS_ThreadCreate (nOS_Thread *thread,
         {
             nOS_AppendThreadToReadyList(thread);
 #if (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
- #ifdef NOS_PSEUDO_SCHEDULER
+ #ifdef NOS_EMULATOR
             if (nOS_runningThread == NULL) {
                 nOS_Schedule();
             } else
@@ -297,7 +297,7 @@ nOS_Error nOS_ThreadSuspend (nOS_Thread *thread)
     }
 
 #if (NOS_CONFIG_SAFE > 0)
- #ifndef NOS_PSEUDO_SCHEDULER
+ #ifndef NOS_EMULATOR
     /* Main thread can't be suspended */
     if (thread == &nOS_idleHandle) {
         err = NOS_E_IDLE;
@@ -339,7 +339,7 @@ nOS_Error nOS_ThreadSuspendAll (void)
 {
     nOS_Error   err;
 
-#ifndef NOS_PSEUDO_SCHEDULER
+#ifndef NOS_EMULATOR
  #if (NOS_CONFIG_SAFE > 0)
   #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
     /* Can't suspend all threads from any thread (except idle) when scheduler is locked */
@@ -375,7 +375,7 @@ nOS_Error nOS_ThreadResume (nOS_Thread *thread)
     } else if (thread == nOS_runningThread) {
         err = NOS_E_INV_VAL;
     }
-#ifndef NOS_PSEUDO_SCHEDULER
+#ifndef NOS_EMULATOR
     else if (thread == &nOS_idleHandle) {
         err = NOS_E_IDLE;
     }
@@ -449,7 +449,7 @@ nOS_Error nOS_ThreadSetPriority (nOS_Thread *thread, uint8_t prio)
         if (prio != thread->prio) {
             nOS_SetThreadPrio(thread, prio);
 #if (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
- #ifdef NOS_PSEUDO_SCHEDULER
+ #ifdef NOS_EMULATOR
             if (nOS_runningThread == NULL) {
                 nOS_Schedule();
             } else

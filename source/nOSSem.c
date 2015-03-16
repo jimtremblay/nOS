@@ -115,7 +115,7 @@ nOS_Error nOS_SemTake (nOS_Sem *sem, nOS_TickCounter tout)
             err = NOS_E_LOCKED;
         }
 #endif
-#ifndef NOS_PSEUDO_SCHEDULER
+#ifndef NOS_EMULATOR
         /* Main thread can't wait */
         else if (nOS_runningThread == &nOS_idleHandle) {
             err = NOS_E_IDLE;
@@ -154,7 +154,7 @@ nOS_Error nOS_SemGive (nOS_Sem *sem)
         thread = nOS_SignalEvent((nOS_Event*)sem, NOS_OK);
         if (thread != NULL) {
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
- #ifdef NOS_PSEUDO_SCHEDULER
+ #ifdef NOS_EMULATOR
             if (nOS_runningThread == NULL) {
                 nOS_Schedule();
             } else

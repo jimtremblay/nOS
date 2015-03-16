@@ -556,7 +556,7 @@ struct nOS_Thread
 #if (NOS_CONFIG_THREAD_NAME_ENABLE > 0)
     const char          *name;
 #endif
-#ifdef NOS_SIMULATED_STACK
+#ifdef NOS_EMULATOR
     nOS_Stack           stack;
 #endif
 
@@ -773,7 +773,7 @@ nOS_TickCounter nOS_GetTickCount                    (void);
  void           nOS_SignalThread                    (nOS_Thread *thread, nOS_Error err);
 #endif
 nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread, nOS_ThreadEntry entry, void *arg
-#ifndef NOS_SIMULATED_STACK
+#ifndef NOS_EMULATOR
                                                     ,nOS_Stack *stack
 #endif
                                                     ,size_t ssize

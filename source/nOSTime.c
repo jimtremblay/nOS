@@ -155,7 +155,7 @@ nOS_Error nOS_TimeWait (nOS_Time time)
         err = NOS_E_LOCKED;
     }
 #endif
-#ifndef NOS_PSEUDO_SCHEDULER
+#ifndef NOS_EMULATOR
     else if (nOS_runningThread == &nOS_idleHandle) {
         err = NOS_E_IDLE;
     }

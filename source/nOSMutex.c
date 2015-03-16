@@ -203,7 +203,7 @@ nOS_Error nOS_MutexLock (nOS_Mutex *mutex, nOS_TickCounter tout)
             err = NOS_E_LOCKED;
         }
 #endif
-#ifndef NOS_PSEUDO_SCHEDULER
+#ifndef NOS_EMULATOR
         /* Main thread can't wait */
         else if (nOS_runningThread == &nOS_idleHandle) {
             err = NOS_E_IDLE;

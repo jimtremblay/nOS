@@ -125,7 +125,7 @@ nOS_Error nOS_QueueRead (nOS_Queue *queue, void *buffer, nOS_TickCounter tout)
                 /* Write thread's buffer in queue */
                 _Write(queue, thread->ext);
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
- #ifdef NOS_PSEUDO_SCHEDULER
+ #ifdef NOS_EMULATOR
                 if (nOS_runningThread == NULL) {
                     nOS_Schedule();
                 } else
@@ -146,7 +146,7 @@ nOS_Error nOS_QueueRead (nOS_Queue *queue, void *buffer, nOS_TickCounter tout)
             err = NOS_E_LOCKED;
         }
 #endif
-#ifndef NOS_PSEUDO_SCHEDULER
+#ifndef NOS_EMULATOR
         else if (nOS_runningThread == &nOS_idleHandle) {
             err = NOS_E_IDLE;
         }
@@ -185,7 +185,7 @@ nOS_Error nOS_QueueWrite (nOS_Queue *queue, void *buffer, nOS_TickCounter tout)
                 /* Direct copy between thread's buffers */
                 memcpy(thread->ext, buffer, queue->bsize);
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
-#ifdef NOS_PSEUDO_SCHEDULER
+#ifdef NOS_EMULATOR
                 if (nOS_runningThread == NULL) {
                     nOS_Schedule();
                 } else
@@ -217,7 +217,7 @@ nOS_Error nOS_QueueWrite (nOS_Queue *queue, void *buffer, nOS_TickCounter tout)
             err = NOS_E_LOCKED;
         }
 #endif
-#ifndef NOS_PSEUDO_SCHEDULER
+#ifndef NOS_EMULATOR
         else if (nOS_runningThread == &nOS_idleHandle) {
             err = NOS_E_IDLE;
         }

@@ -56,7 +56,7 @@ extern "C" {
     {
         uint32_t    prio;
 
-#ifdef NOS_PSEUDO_SCHEDULER
+#ifdef NOS_EMULATOR
         if (_readyThreadByPrio == 0) {
             return NULL;
         }
@@ -71,7 +71,7 @@ extern "C" {
         uint32_t    group;
         uint32_t    prio;
 
-#ifdef NOS_PSEUDO_SCHEDULER
+#ifdef NOS_EMULATOR
         if (_readyThreadByGroup == 0) {
             return NULL;
         }
@@ -102,7 +102,7 @@ extern "C" {
         prio |= prio >> 16;
         prio = (uint32_t)tableDeBruijn[(uint32_t)(prio * 0x07c4acddUL) >> 27];
 
-#ifdef NOS_PSEUDO_SCHEDULER
+#ifdef NOS_EMULATOR
         return (nOS_Thread*)nOS_GetHeadOfList(&nOS_readyThreadList[prio]);
 #else
         return (nOS_Thread*)nOS_readyThreadList[prio].head->payload;
@@ -130,7 +130,7 @@ extern "C" {
         prio |= prio >> 16;
         prio = (uint32_t)tableDeBruijn[(uint32_t)(prio * 0x07c4acddUL) >> 27];
 
-#ifdef NOS_PSEUDO_SCHEDULER
+#ifdef NOS_EMULATOR
         return (nOS_Thread*)nOS_GetHeadOfList(&nOS_readyThreadList[(group << 5) | prio]);
 #else
         return (nOS_Thread*)nOS_readyThreadList[(group << 5) | prio].head->payload;
@@ -155,7 +155,7 @@ extern "C" {
        prio |= prio >> 8;
        prio = tableDeBruijn[(uint16_t)(prio * 0xf2d) >> 12];
 
-#ifdef NOS_PSEUDO_SCHEDULER
+#ifdef NOS_EMULATOR
        return (nOS_Thread*)nOS_GetHeadOfList(&nOS_readyThreadList[prio]);
 #else
        return (nOS_Thread*)nOS_readyThreadList[prio].head->payload;
@@ -181,7 +181,7 @@ extern "C" {
        prio |= prio >> 8;
        prio = tableDeBruijn[(uint16_t)(prio * 0xf2d) >> 12];
 
-#ifdef NOS_PSEUDO_SCHEDULER
+#ifdef NOS_EMULATOR
        return (nOS_Thread*)nOS_GetHeadOfList(&nOS_readyThreadList[(group << 4) | prio]);
 #else
        return (nOS_Thread*)nOS_readyThreadList[(group << 4) | prio].head->payload;
@@ -205,7 +205,7 @@ extern "C" {
        prio |= prio >> 4;
        prio = tableDeBruijn[(uint8_t)(prio * 0x1d) >> 5];
 
-#ifdef NOS_PSEUDO_SCHEDULER
+#ifdef NOS_EMULATOR
        return (nOS_Thread*)nOS_GetHeadOfList(&nOS_readyThreadList[prio]);
 #else
        return (nOS_Thread*)nOS_readyThreadList[prio].head->payload;
@@ -228,7 +228,7 @@ extern "C" {
        prio |= prio >> 8;
        prio = tableDeBruijn[(uint16_t)(prio * 0xf2d) >> 12];
 
-#ifdef NOS_PSEUDO_SCHEDULER
+#ifdef NOS_EMULATOR
        return (nOS_Thread*)nOS_GetHeadOfList(&nOS_readyThreadList[prio]);
 #else
        return (nOS_Thread*)nOS_readyThreadList[prio].head->payload;
@@ -257,7 +257,7 @@ extern "C" {
        prio |= prio >> 4;
        prio = tableDeBruijn[(uint8_t)(prio * 0x1d) >> 5];
 
-#ifdef NOS_PSEUDO_SCHEDULER
+#ifdef NOS_EMULATOR
        return (nOS_Thread*)nOS_GetHeadOfList(&nOS_readyThreadList[(group << 3) | prio]);
 #else
        return (nOS_Thread*)nOS_readyThreadList[(group << 3) | prio].head->payload;
@@ -288,7 +288,7 @@ extern "C" {
        prio |= prio >> 8;
        prio = tableDeBruijn[(uint16_t)(prio * 0xf2d) >> 12];
 
-#ifdef NOS_PSEUDO_SCHEDULER
+#ifdef NOS_EMULATOR
        return (nOS_Thread*)nOS_GetHeadOfList(&nOS_readyThreadList[(group << 4) | prio]);
 #else
        return (nOS_Thread*)nOS_readyThreadList[(group << 4) | prio].head->payload;
@@ -560,7 +560,7 @@ void nOS_Tick(void)
     nOS_WalkInList(&nOS_mainList, nOS_TickThread, NULL);
 #if (NOS_CONFIG_SCHED_ROUND_ROBIN_ENABLE > 0)
  #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
-  #ifdef NOS_PSEUDO_SCHEDULER
+  #ifdef NOS_EMULATOR
     if (nOS_runningThread != NULL)
   #endif
     {
@@ -598,7 +598,7 @@ nOS_Error nOS_Sleep (nOS_TickCounter ticks)
         err = NOS_E_LOCKED;
     }
 #endif
-#ifndef NOS_PSEUDO_SCHEDULER
+#ifndef NOS_EMULATOR
     else if (nOS_runningThread == &nOS_idleHandle) {
         err = NOS_E_IDLE;
     }
@@ -630,7 +630,7 @@ nOS_Error nOS_SleepUntil (nOS_TickCounter tick)
         err = NOS_E_LOCKED;
     }
 #endif
-#ifndef NOS_PSEUDO_SCHEDULER
+#ifndef NOS_EMULATOR
     else if (nOS_runningThread == &nOS_idleHandle) {
         err = NOS_E_IDLE;
     }
