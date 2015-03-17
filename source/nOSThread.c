@@ -131,7 +131,7 @@ void nOS_SetThreadPrio (nOS_Thread *thread, uint8_t prio)
 nOS_Error nOS_ThreadCreate (nOS_Thread *thread,
                             nOS_ThreadEntry entry,
                             void *arg
-#ifndef NOS_EMULATOR
+#ifndef NOS_SIMULATED_STACK
                             ,nOS_Stack *stack
 #endif
                             ,size_t ssize
@@ -159,7 +159,7 @@ nOS_Error nOS_ThreadCreate (nOS_Thread *thread,
     } else if (entry == NULL) {
         err = NOS_E_INV_VAL;
     }
-#ifndef NOS_EMULATOR
+#ifndef NOS_SIMULATED_STACK
     else if (stack == NULL) {
         err = NOS_E_INV_VAL;
     } else if (ssize == 0) {
@@ -200,7 +200,7 @@ nOS_Error nOS_ThreadCreate (nOS_Thread *thread,
         thread->node.payload = thread;
         thread->readyWait.payload = thread;
         nOS_InitContext(thread
-#ifndef NOS_EMULATOR
+#ifndef NOS_SIMULATED_STACK
                         ,stack
 #endif
                         ,ssize
@@ -216,11 +216,6 @@ nOS_Error nOS_ThreadCreate (nOS_Thread *thread,
         {
             nOS_AppendThreadToReadyList(thread);
 #if (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
- #if (NOS_CONFIG_SLEEP_WAIT_FROM_MAIN > 0)
-            if (nOS_runningThread == NULL) {
-                nOS_Schedule();
-            } else
- #endif
             if (prio > nOS_runningThread->prio) {
                 nOS_Schedule();
             }
@@ -247,12 +242,12 @@ nOS_Error nOS_ThreadDelete (nOS_Thread *thread)
     if (thread == &nOS_idleHandle) {
         err = NOS_E_IDLE;
     } else if (thread == nOS_runningThread) {
-#if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
+ #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
         /* Can't switch context if scheduler is locked */
         if (nOS_lockNestingCounter > 0) {
             err = NOS_E_LOCKED;
         } else
-#endif
+ #endif
         {
             err = NOS_OK;
         }
@@ -297,25 +292,24 @@ nOS_Error nOS_ThreadSuspend (nOS_Thread *thread)
     }
 
 #if (NOS_CONFIG_SAFE > 0)
- #if (NOS_CONFIG_SLEEP_WAIT_FROM_MAIN == 0)
-    /* Main thread can't be suspended */
     if (thread == &nOS_idleHandle) {
+        /* Main thread can't be suspended */
         err = NOS_E_IDLE;
-    } else
- #endif
-    if (thread == nOS_runningThread) {
-#if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
-        /* Can't switch context if scheduler is locked */
+    } else if (thread == nOS_runningThread) {
+ #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
         if (nOS_lockNestingCounter > 0) {
+            /* Can't switch context if scheduler is locked */
             err = NOS_E_LOCKED;
         } else
-#endif
+ #endif
         {
             err = NOS_OK;
         }
     } else if (thread->state == NOS_THREAD_STOPPED) {
+        /* Thread is not created */
         err = NOS_E_DELETED;
     } else if ((thread->state & NOS_THREAD_SUSPENDED) == NOS_THREAD_SUSPENDED) {
+        /* Thread is already suspended */
         err = NOS_E_INV_STATE;
     } else
 #endif
@@ -341,13 +335,8 @@ nOS_Error nOS_ThreadSuspendAll (void)
 
 #if (NOS_CONFIG_SAFE > 0)
  #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
-  #if (NOS_CONFIG_SLEEP_WAIT_FROM_MAIN > 0)
-    /* Can't suspend all threads when scheduler is locked */
-    if (nOS_lockNestingCounter > 0)
-  #else
     /* Can't suspend all threads from any thread (except idle) when scheduler is locked */
     if ((nOS_lockNestingCounter > 0) && (nOS_runningThread != &nOS_idleHandle))
-  #endif
     {
         err = NOS_E_LOCKED;
     } else
@@ -378,13 +367,9 @@ nOS_Error nOS_ThreadResume (nOS_Thread *thread)
         err = NOS_E_NULL;
     } else if (thread == nOS_runningThread) {
         err = NOS_E_INV_VAL;
-    }
-#if (NOS_CONFIG_SLEEP_WAIT_FROM_MAIN == 0)
-    else if (thread == &nOS_idleHandle) {
+    } else if (thread == &nOS_idleHandle) {
         err = NOS_E_IDLE;
-    }
-#endif
-    else if (thread->state == NOS_THREAD_STOPPED) {
+    } else if (thread->state == NOS_THREAD_STOPPED) {
         err = NOS_E_NOT_CREATED;
     } else if ((thread->state & NOS_THREAD_SUSPENDED) != NOS_THREAD_SUSPENDED) {
         err = NOS_E_INV_STATE;
@@ -453,11 +438,6 @@ nOS_Error nOS_ThreadSetPriority (nOS_Thread *thread, uint8_t prio)
         if (prio != thread->prio) {
             nOS_SetThreadPrio(thread, prio);
 #if (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
- #if (NOS_CONFIG_SLEEP_WAIT_FROM_MAIN > 0)
-            if (nOS_runningThread == NULL) {
-                nOS_Schedule();
-            } else
- #endif
             if (prio > nOS_runningThread->prio) {
                 nOS_Schedule();
             }

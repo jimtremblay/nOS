@@ -203,19 +203,14 @@ nOS_Error nOS_MutexLock (nOS_Mutex *mutex, nOS_TickCounter tout)
             err = NOS_E_LOCKED;
         }
 #endif
-#if (NOS_CONFIG_SLEEP_WAIT_FROM_MAIN == 0)
-        /* Main thread can't wait */
         else if (nOS_runningThread == &nOS_idleHandle) {
+            /* Main thread can't wait */
             err = NOS_E_IDLE;
-        }
-#endif
-        /* Calling thread must wait on mutex. */
-        else {
+        } else {
+            /* Calling thread must wait on mutex. */
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
-            /*
-             * If current thread can ask to lock mutex,
-             * maybe is prio is higher than mutex owner.
-             */
+            /* If current thread can ask to lock mutex, maybe running
+             * thread prio is higher than mutex owner prio. */
             if (mutex->prio == NOS_MUTEX_PRIO_INHERIT) {
                 if (mutex->owner->prio < nOS_runningThread->prio) {
                     nOS_SetThreadPrio(mutex->owner, nOS_runningThread->prio);

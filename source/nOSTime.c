@@ -150,17 +150,14 @@ nOS_Error nOS_TimeWait (nOS_Time time)
         err = NOS_E_ISR;
     }
 #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
-    /* Can't switch context when scheduler is locked */
     else if (nOS_lockNestingCounter > 0) {
+        /* Can't switch context when scheduler is locked */
         err = NOS_E_LOCKED;
     }
 #endif
-#if (NOS_CONFIG_SLEEP_WAIT_FROM_MAIN == 0)
     else if (nOS_runningThread == &nOS_idleHandle) {
         err = NOS_E_IDLE;
-    }
-#endif
-    else {
+    } else {
         nOS_EnterCritical();
         if (_timeCounter < time) {
             err = NOS_E_ELAPSED;

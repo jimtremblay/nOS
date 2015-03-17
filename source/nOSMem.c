@@ -20,15 +20,17 @@ static nOS_Error _SanityCheck(nOS_Mem *mem, void *block)
     nOS_Error   err;
     void        *p;
 
-    /* Memory block pointer is out of range? */
     if (block < (void*)mem->buffer) {
+        /* Memory block pointer is out of range. */
         err = NOS_E_INV_VAL;
     } else if (block >= (void*)(mem->buffer + (mem->bsize * mem->bmax))) {
+        /* Memory block pointer is out of range. */
         err = NOS_E_INV_VAL;
-    /* Memory block pointer is multiple of block size? */
     } else if ((uint16_t)((uint8_t*)block - mem->buffer) % mem->bsize != 0) {
+        /* Memory block pointer is not a multiple of block size. */
         err = NOS_E_INV_VAL;
     } else if (mem->bcount == mem->bmax) {
+        /* All blocks are already free. */
         err = NOS_E_OVERFLOW;
     } else {
         /* Memory block is already free? */
@@ -219,12 +221,9 @@ void *nOS_MemAlloc(nOS_Mem *mem, nOS_TickCounter tout)
             block = NULL;
         }
 #endif
-#if (NOS_CONFIG_SLEEP_WAIT_FROM_MAIN == 0)
         else if (nOS_runningThread == &nOS_idleHandle) {
             block = NULL;
-        }
-#endif
-        else {
+        } else {
             nOS_runningThread->ext = (void*)&block;
             if (nOS_WaitForEvent((nOS_Event*)mem, NOS_THREAD_ALLOC_MEM, tout) != NOS_OK) {
                 block = NULL;

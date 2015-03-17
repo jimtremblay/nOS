@@ -196,15 +196,15 @@ nOS_Error nOS_QueueWrite (nOS_Queue *queue, void *buffer, nOS_TickCounter tout)
 #endif
                 err = NOS_OK;
             } else if (queue->buffer != NULL) {
-                /* No thread waiting to read from queue, store it */
+                /* No thread waiting to read from queue, then store it */
                 _Write(queue, buffer);
                 err = NOS_OK;
             } else {
                 /* No thread waiting to consume message, inform producer */
                 err = NOS_E_CONSUMER;
             }
-        /* No chance a thread waiting to read from queue if count is higher than 0 */
         } else if (queue->bcount < queue->bmax) {
+            /* No chance a thread waiting to read from queue if count is higher than 0 */
             _Write(queue, buffer);
             err = NOS_OK;
         } else if (tout == NOS_NO_WAIT) {
@@ -217,12 +217,10 @@ nOS_Error nOS_QueueWrite (nOS_Queue *queue, void *buffer, nOS_TickCounter tout)
             err = NOS_E_LOCKED;
         }
 #endif
-#if (NOS_CONFIG_SLEEP_WAIT_FROM_MAIN == 0)
         else if (nOS_runningThread == &nOS_idleHandle) {
+            /* Main threadv can't wait. */
             err = NOS_E_IDLE;
-        }
-#endif
-        else {
+        } else {
             nOS_runningThread->ext = buffer;
             err = nOS_WaitForEvent((nOS_Event*)queue, NOS_THREAD_WRITING_QUEUE, tout);
         }

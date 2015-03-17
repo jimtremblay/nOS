@@ -37,13 +37,8 @@ static void _TestFlag (void *payload, void *arg)
             res->rflags |= r;
         }
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
- #if (NOS_CONFIG_SLEEP_WAIT_FROM_MAIN > 0)
-        if (nOS_runningThread == NULL) {
-            res->sched = true;
-        } else
- #endif
-        /* Indicate that we need a preemptive scheduling. */
         if (thread->prio > nOS_runningThread->prio) {
+            /* Indicate that we need a preemptive scheduling. */
             res->sched = true;
         }
 #endif
@@ -183,27 +178,24 @@ nOS_Error nOS_FlagWait (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits *res,
                 flag->flags &=~ r;
             }
             err = NOS_OK;
-        /* Caller can't wait? Try again. */
         } else if (tout == NOS_NO_WAIT) {
+            /* Caller can't wait? Try again. */
             err = NOS_E_AGAIN;
-        /* Can't wait from ISR */
         } else if (nOS_isrNestingCounter > 0) {
+            /* Can't wait from ISR */
             err = NOS_E_ISR;
         }
 #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
-        /* Can't switch context when scheduler is locked */
         else if (nOS_lockNestingCounter > 0) {
+            /* Can't switch context when scheduler is locked */
             err = NOS_E_LOCKED;
         }
 #endif
-#if (NOS_CONFIG_SLEEP_WAIT_FROM_MAIN == 0)
-        /* Main thread can't wait */
         else if (nOS_runningThread == &nOS_idleHandle) {
+            /* Main thread can't wait */
             err = NOS_E_IDLE;
-        }
-#endif
-        /* Calling thread must wait on flag. */
-        else {
+        } else {
+            /* Calling thread must wait on flag. */
             ctx.flags   = flags;
             ctx.opt     = opt;
             ctx.rflags  = &r;

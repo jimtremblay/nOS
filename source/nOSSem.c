@@ -98,31 +98,28 @@ nOS_Error nOS_SemTake (nOS_Sem *sem, nOS_TickCounter tout)
 #endif
     {
         nOS_EnterCritical();
-        /* Sem available? Take it */
         if (sem->count > 0) {
+            /* Sem available. */
             sem->count--;
             err = NOS_OK;
-        /* Calling thread can't wait? Try again */
         } else if (tout == NOS_NO_WAIT) {
+            /* Calling thread can't wait. */
             err = NOS_E_AGAIN;
-        /* Can't wait from ISR */
         } else if (nOS_isrNestingCounter > 0) {
+            /* Can't wait from ISR */
             err = NOS_E_ISR;
         }
 #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
-        /* Can't switch context when scheduler is locked */
         else if (nOS_lockNestingCounter > 0) {
+            /* Can't switch context when scheduler is locked */
             err = NOS_E_LOCKED;
         }
 #endif
-#if (NOS_CONFIG_SLEEP_WAIT_FROM_MAIN == 0)
-        /* Main thread can't wait */
         else if (nOS_runningThread == &nOS_idleHandle) {
+            /* Main thread can't wait */
             err = NOS_E_IDLE;
-        }
-#endif
-        /* Calling thread must wait on sem. */
-        else {
+        } else {
+            /* Calling thread must wait on sem. */
             err = nOS_WaitForEvent((nOS_Event*)sem, NOS_THREAD_TAKING_SEM, tout);
         }
         nOS_LeaveCritical();
@@ -154,11 +151,6 @@ nOS_Error nOS_SemGive (nOS_Sem *sem)
         thread = nOS_SignalEvent((nOS_Event*)sem, NOS_OK);
         if (thread != NULL) {
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
- #if (NOS_CONFIG_SLEEP_WAIT_FROM_MAIN > 0)
-            if (nOS_runningThread == NULL) {
-                nOS_Schedule();
-            } else
- #endif
             if ((thread->state == NOS_THREAD_READY) && (thread->prio > nOS_runningThread->prio)) {
                 nOS_Schedule();
             }

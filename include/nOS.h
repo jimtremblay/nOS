@@ -529,17 +529,6 @@ typedef enum nOS_TimerState
  #define NOS_CONST                  const
 #endif
 
-#ifdef NOS_EMULATOR
- #ifndef NOS_CONFIG_SLEEP_WAIT_FROM_MAIN
-  #error "nOSConfig.h: NOS_CONFIG_SLEEP_WAIT_FROM_MAIN is not defined: must be set to 0 or 1."
- #elif (NOS_CONFIG_SLEEP_WAIT_FROM_MAIN != 0) && (NOS_CONFIG_SLEEP_WAIT_FROM_MAIN != 1)
-  #error "nOSConfig.h: NOS_CONFIG_SLEEP_WAIT_FROM_MAIN is set to invalid value: must me set to 0 or 1."
- #endif
-#else
- #undef  NOS_CONFIG_SLEEP_WAIT_FROM_MAIN
- #define NOS_CONFIG_SLEEP_WAIT_FROM_MAIN    0
-#endif
-
 struct nOS_List
 {
     nOS_Node            *head;
@@ -567,7 +556,7 @@ struct nOS_Thread
 #if (NOS_CONFIG_THREAD_NAME_ENABLE > 0)
     const char          *name;
 #endif
-#ifdef NOS_EMULATOR
+#ifdef NOS_SIMULATED_STACK
     nOS_Stack           stack;
 #endif
 
@@ -784,7 +773,7 @@ nOS_TickCounter nOS_GetTickCount                    (void);
  void           nOS_SignalThread                    (nOS_Thread *thread, nOS_Error err);
 #endif
 nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread, nOS_ThreadEntry entry, void *arg
-#ifndef NOS_EMULATOR
+#ifndef NOS_SIMULATED_STACK
                                                     ,nOS_Stack *stack
 #endif
                                                     ,size_t ssize
