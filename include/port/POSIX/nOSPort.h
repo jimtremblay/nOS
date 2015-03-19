@@ -9,7 +9,7 @@
 #ifndef NOSPORT_H
 #define NOSPORT_H
 
-#include <windows.h>
+#include <pthread.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -18,7 +18,11 @@ extern "C" {
 #define NOS_UNUSED(v)                       (void)v
 
 #define NOS_MEM_ALIGNMENT                   8
-#define NOS_MEM_POINTER_WIDTH               4
+#ifdef __x86_64__
+ #define NOS_MEM_POINTER_WIDTH              8
+#else
+ #define NOS_MEM_POINTER_WIDTH              4
+#endif
 
 #define NOS_32_BITS_SCHEDULER
 
@@ -26,13 +30,13 @@ extern "C" {
 
 typedef struct nOS_Stack
 {
-    HANDLE          handle;
-    DWORD           id;
-    uint32_t        crit;
-    nOS_ThreadEntry entry;
-    void            *arg;
-    bool            sync;
-    HANDLE          hsync;
+    pthread_t           handle;
+    nOS_ThreadEntry     entry;
+    void                *arg;
+    uint32_t            crit;
+    pthread_cond_t      cond;
+    bool                started;
+    bool                running;
 } nOS_Stack;
 
 #ifndef NOS_CONFIG_TICKS_PER_SECOND

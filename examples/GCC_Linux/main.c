@@ -1,3 +1,4 @@
+#include <unistd.h>
 #include "nOS.h"
 
 nOS_Thread threadA;
@@ -50,7 +51,7 @@ int main(int argc, char *argv[])
     nOS_ThreadCreate(&threadB, ThreadB, NULL, &stackB, 0, NOS_CONFIG_HIGHEST_THREAD_PRIO-1, NOS_THREAD_READY, "ThreadB");
     nOS_ThreadCreate(&threadC, ThreadC, NULL, &stackC, 0, NOS_CONFIG_HIGHEST_THREAD_PRIO-2, NOS_THREAD_READY, "ThreadC");
 
-    while (true) {
+    while (1) {
         nOS_Print("%s running\n", nOS_ThreadGetName(NULL));
         nOS_SemGive(&semC);
     }

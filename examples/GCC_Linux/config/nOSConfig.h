@@ -34,7 +34,7 @@
 /* Enable or disable thread set/get priority at run-time. */
 #define NOS_CONFIG_THREAD_SET_PRIO_ENABLE       1
 /* Enable or disable thread naming (useful for debugging). */
-#define NOS_CONFIG_THREAD_NAME_ENABLE			1
+#define NOS_CONFIG_THREAD_NAME_ENABLE           1
 
 /* Enable or disable semaphore. */
 #define NOS_CONFIG_SEM_ENABLE                   1

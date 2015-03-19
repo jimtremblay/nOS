@@ -13,7 +13,7 @@
 #define NOS_CONFIG_TICK_COUNT_WIDTH             16
 
 /* Number of ticks per second (not used in scheduler for the moment). */
-#define NOS_CONFIG_TICKS_PER_SECOND             10
+#define NOS_CONFIG_TICKS_PER_SECOND             100
 
 /* Enable or disable preemptive scheduler (set to 0 to enable a cooperative scheduling). */
 #define NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE      1
