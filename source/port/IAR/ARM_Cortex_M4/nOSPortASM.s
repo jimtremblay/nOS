@@ -24,8 +24,10 @@ PendSV_Handler:
     LDR         R2,         [R3]
 
 #ifdef __ARMVFP__
-    /* Push high VFP registers */
-    VSTMDB      R0!,        {S16-S31}
+    /* Is thread using FPU? Yes, push high VFP registers to stack */
+    TST         LR,         #0x10
+    IT          EQ
+    VSTMDBEQ    R0!,        {S16-S31}
 #endif
 
     /* Push remaining registers on thread stack */
@@ -48,8 +50,10 @@ PendSV_Handler:
     LDMIA       R0!,        {R4-R11, LR}
 
 #ifdef __ARMVFP__
-    /* Pop high VFP registers */
-    VLDMIA      R0!,        {S16-S31}
+    /* Is thread using FPU? Yes, pop high VFP registers from stack */
+    TST         LR,         #0x10
+    IT          EQ
+    VLDMIAEQ    R0!,        {S16-S31}
 #endif
 
     /* Restore PSP to high prio thread stack */
