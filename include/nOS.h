@@ -415,90 +415,90 @@ typedef struct nOS_Event            nOS_Event;
 
 typedef enum nOS_Error
 {
-    NOS_OK = 0,
-    NOS_E_NULL = -1,
-    NOS_E_INV_VAL = -2,
-    NOS_E_LOCKED = -3,
-    NOS_E_ISR = -4,
-    NOS_E_IDLE = -5,
-    NOS_E_TIMEOUT = -6,
-    NOS_E_UNDERFLOW = -7,
-    NOS_E_OVERFLOW = -8,
-    NOS_E_AGAIN = -9,
-    NOS_E_OWNER = -10,
-    NOS_E_EMPTY = -11,
-    NOS_E_FULL = -12,
-    NOS_E_INIT = -13,
-    NOS_E_DELETED = -14,
-    NOS_E_INV_OBJ = -15,
-    NOS_E_ELAPSED = -16,
-    NOS_E_NOT_CREATED = -17,
-    NOS_E_INV_STATE = -18,
-    NOS_E_CONSUMER = -19
+    NOS_OK                      = 0,
+    NOS_E_NULL                  = -1,
+    NOS_E_INV_VAL               = -2,
+    NOS_E_LOCKED                = -3,
+    NOS_E_ISR                   = -4,
+    NOS_E_IDLE                  = -5,
+    NOS_E_TIMEOUT               = -6,
+    NOS_E_UNDERFLOW             = -7,
+    NOS_E_OVERFLOW              = -8,
+    NOS_E_AGAIN                 = -9,
+    NOS_E_OWNER                 = -10,
+    NOS_E_EMPTY                 = -11,
+    NOS_E_FULL                  = -12,
+    NOS_E_INIT                  = -13,
+    NOS_E_DELETED               = -14,
+    NOS_E_INV_OBJ               = -15,
+    NOS_E_ELAPSED               = -16,
+    NOS_E_NOT_CREATED           = -17,
+    NOS_E_INV_STATE             = -18,
+    NOS_E_CONSUMER              = -19
 } nOS_Error;
 
 typedef enum nOS_ThreadState
 {
-    NOS_THREAD_STOPPED        = 0x00,
-    NOS_THREAD_TAKING_SEM     = 0x01,
-    NOS_THREAD_LOCKING_MUTEX  = 0x02,
-    NOS_THREAD_READING_QUEUE  = 0x03,
-    NOS_THREAD_WRITING_QUEUE  = 0x04,
-    NOS_THREAD_WAITING_FLAG   = 0x05,
-    NOS_THREAD_ALLOC_MEM      = 0x06,
-    NOS_THREAD_WAITING_EVENT  = 0x07,
-    NOS_THREAD_SLEEPING       = 0x08,
-    NOS_THREAD_SLEEPING_UNTIL = 0x10,
-    NOS_THREAD_WAITING_TIME   = 0x20,
-    NOS_THREAD_SUSPENDED      = 0x40,
-    NOS_THREAD_READY          = 0x80
+    NOS_THREAD_STOPPED          = 0x00,
+    NOS_THREAD_TAKING_SEM       = 0x01,
+    NOS_THREAD_LOCKING_MUTEX    = 0x02,
+    NOS_THREAD_READING_QUEUE    = 0x03,
+    NOS_THREAD_WRITING_QUEUE    = 0x04,
+    NOS_THREAD_WAITING_FLAG     = 0x05,
+    NOS_THREAD_ALLOC_MEM        = 0x06,
+    NOS_THREAD_WAITING_EVENT    = 0x07,
+    NOS_THREAD_SLEEPING         = 0x08,
+    NOS_THREAD_SLEEPING_UNTIL   = 0x10,
+    NOS_THREAD_WAITING_TIME     = 0x20,
+    NOS_THREAD_SUSPENDED        = 0x40,
+    NOS_THREAD_READY            = 0x80
 } nOS_ThreadState;
 
 #if (NOS_CONFIG_SAFE > 0)
 typedef enum nOS_EventType
 {
-    NOS_EVENT_INVALID = 0x00,
-    NOS_EVENT_BASE    = 0x01,
-    NOS_EVENT_SEM     = 0x02,
-    NOS_EVENT_MUTEX   = 0x03,
-    NOS_EVENT_QUEUE   = 0x04,
-    NOS_EVENT_FLAG    = 0x05,
-    NOS_EVENT_MEM     = 0x06
+    NOS_EVENT_INVALID           = 0x00,
+    NOS_EVENT_BASE              = 0x01,
+    NOS_EVENT_SEM               = 0x02,
+    NOS_EVENT_MUTEX             = 0x03,
+    NOS_EVENT_QUEUE             = 0x04,
+    NOS_EVENT_FLAG              = 0x05,
+    NOS_EVENT_MEM               = 0x06
 } nOS_EventType;
 #endif
 
 #if (NOS_CONFIG_MUTEX_ENABLE > 0) && (NOS_CONFIG_MUTEX_RECURSIVE_ENABLE > 0)
 typedef enum nOS_MutexType
 {
-    NOS_MUTEX_NORMAL    = 0,
-    NOS_MUTEX_RECURSIVE = 1
+    NOS_MUTEX_NORMAL            = 0x00,
+    NOS_MUTEX_RECURSIVE         = 0x01
 } nOS_MutexType;
 #endif
 
 #if (NOS_CONFIG_FLAG_ENABLE > 0)
 typedef enum nOS_FlagOption
 {
-    NOS_FLAG_WAIT_ANY      = 0x00,
-    NOS_FLAG_WAIT_ALL      = 0x01,
-    NOS_FLAG_WAIT          = 0x01,
-    NOS_FLAG_CLEAR_ON_EXIT = 0x02
+    NOS_FLAG_WAIT_ANY           = 0x00,
+    NOS_FLAG_WAIT_ALL           = 0x01,
+    NOS_FLAG_WAIT               = 0x01,
+    NOS_FLAG_CLEAR_ON_EXIT      = 0x02
 } nOS_FlagOption;
 #endif
 
 #if (NOS_CONFIG_TIMER_ENABLE > 0)
 typedef enum nOS_TimerMode
 {
-    NOS_TIMER_ONE_SHOT     = 0x00,
-    NOS_TIMER_FREE_RUNNING = 0x01,
-    NOS_TIMER_MODE         = 0x01
+    NOS_TIMER_ONE_SHOT          = 0x00,
+    NOS_TIMER_FREE_RUNNING      = 0x01,
+    NOS_TIMER_MODE              = 0x01
 } nOS_TimerMode;
 
 typedef enum nOS_TimerState
 {
-    NOS_TIMER_DELETED      = 0x00,
-    NOS_TIMER_PAUSED       = 0x20,
-    NOS_TIMER_RUNNING      = 0x40,
-    NOS_TIMER_CREATED      = 0x80
+    NOS_TIMER_DELETED           = 0x00,
+    NOS_TIMER_PAUSED            = 0x20,
+    NOS_TIMER_RUNNING           = 0x40,
+    NOS_TIMER_CREATED           = 0x80
 } nOS_TimerState;
 #endif
 
@@ -817,7 +817,7 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread, nOS_Thr
 #endif
 
 #if (NOS_CONFIG_SEM_ENABLE > 0)
- nOS_Error      nOS_SemCreate                       (nOS_Sem *sem, nOS_SemCounter cntr, nOS_SemCounter max);
+ nOS_Error      nOS_SemCreate                       (nOS_Sem *sem, nOS_SemCounter count, nOS_SemCounter max);
  #if (NOS_CONFIG_SEM_DELETE_ENABLE > 0)
   nOS_Error     nOS_SemDelete                       (nOS_Sem *sem);
  #endif
@@ -849,8 +849,8 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread, nOS_Thr
  #if (NOS_CONFIG_QUEUE_DELETE_ENABLE > 0)
   nOS_Error     nOS_QueueDelete                     (nOS_Queue *queue);
  #endif
- nOS_Error      nOS_QueueRead                       (nOS_Queue *queue, void *buffer, nOS_TickCounter tout);
- nOS_Error      nOS_QueueWrite                      (nOS_Queue *queue, void *buffer, nOS_TickCounter tout);
+ nOS_Error      nOS_QueueRead                       (nOS_Queue *queue, void *block, nOS_TickCounter tout);
+ nOS_Error      nOS_QueueWrite                      (nOS_Queue *queue, void *block, nOS_TickCounter tout);
  bool           nOS_QueueIsEmpty                    (nOS_Queue *queue);
  bool           nOS_QueueIsFull                     (nOS_Queue *queue);
 #endif

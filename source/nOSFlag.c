@@ -17,8 +17,8 @@ extern "C" {
 /* Internal function */
 static void _TestFlag (void *payload, void *arg)
 {
-    nOS_Thread      *thread = (nOS_Thread*)payload;
-    nOS_Flag        *flag = (nOS_Flag*)thread->event;
+    nOS_Thread      *thread  = (nOS_Thread*)payload;
+    nOS_Flag        *flag    = (nOS_Flag*)thread->event;
     nOS_FlagContext *ctx = (nOS_FlagContext*)thread->ext;
     nOS_FlagResult  *res = (nOS_FlagResult*)arg;
     nOS_FlagBits    r;
@@ -50,7 +50,7 @@ static void _TestFlag (void *payload, void *arg)
  *
  * Description : Initialize a flag event object with given flags.
  *
- * Arguments   : flag  : Pointer to flag object.
+ * Arguments   : flag    : Pointer to flag object.
  *               flags : Initial values.
  *
  * Return      : Error code.
@@ -126,7 +126,7 @@ nOS_Error nOS_FlagDelete (nOS_Flag *flag)
  *               will contain flags that have awoken the thread. If caller specify
  *               NOS_FLAG_CLEAR_ON_EXIT, ONLY awoken flags will be cleared.
  *
- * Arguments   : flag  : Pointer to flag object.
+ * Arguments   : flag   :  Pointer to flag object.
  *               flags : All flags to wait.
  *               res   : Pointer where to store awoken flags if needed. Only valid if
  *                       returned error code is NOS_OK. Otherwise, res is unchanged.
@@ -135,9 +135,9 @@ nOS_Error nOS_FlagDelete (nOS_Flag *flag)
  *                       NOS_FLAG_WAIT_ANY      : Wait for any flags to be set.
  *                       NOS_FLAG_CLEAR_ON_EXIT : Clear woken flags.
  *               tout  : Timeout value
- *                       NOS_NO_WAIT       : No waiting.
- *                       NOS_WAIT_INFINITE : Never timeout.
- *                       0 > tout < 65535  : Number of ticks to wait on flag object.
+ *                         NOS_NO_WAIT       : No waiting.
+ *                         NOS_WAIT_INFINITE : Never timeout.
+ *                         0 > tout < 65535  : Number of ticks to wait on flag object.
  *
  * Return      : Error code.
  *               NOS_E_NULL    : Pointer to flag object is NULL.
@@ -282,12 +282,12 @@ nOS_FlagBits nOS_FlagTest (nOS_Flag *flag, nOS_FlagBits flags, bool all)
 #endif
     {
         nOS_EnterCritical();
-        if (all) {
-            res = (flag->flags & flags) == flags ? flags : NOS_FLAG_NONE;
-        } else {
-            res = (flag->flags & flags);
-        }
+        res = (flag->flags & flags);
         nOS_LeaveCritical();
+        if (all && (res != flags)) {
+            res = NOS_FLAG_NONE;
+        }
+
     }
 
     return res;

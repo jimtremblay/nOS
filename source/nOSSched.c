@@ -568,7 +568,7 @@ nOS_Error nOS_Sleep (nOS_TickCounter ticks)
 #if (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
 nOS_Error nOS_SleepUntil (nOS_TickCounter tick)
 {
-    nOS_Error           err;
+    nOS_Error   err;
 
     if (nOS_isrNestingCounter > 0) {
         err = NOS_E_ISR;
@@ -584,7 +584,6 @@ nOS_Error nOS_SleepUntil (nOS_TickCounter tick)
     } else {
         nOS_EnterCritical();
         if (tick == nOS_tickCounter) {
-            nOS_Yield();
             err = NOS_OK;
         } else {
             err = nOS_WaitForEvent(NULL, NOS_THREAD_SLEEPING_UNTIL, tick);

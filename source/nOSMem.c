@@ -14,8 +14,30 @@ extern "C" {
 #endif
 
 #if (NOS_CONFIG_MEM_ENABLE > 0)
+inline void *_Alloc (nOS_Mem *mem)
+{
+    void *block;
+
+    block = (void*)mem->blist;
+    mem->blist = *(void***)block;
 #if (NOS_CONFIG_MEM_SANITY_CHECK_ENABLE > 0)
-static nOS_Error _SanityCheck(nOS_Mem *mem, void *block)
+    mem->bcount--;
+#endif
+
+    return block;
+}
+
+inline void _Free(nOS_Mem *mem, void *block)
+{
+    *(void**)block = mem->blist;
+    mem->blist = (void**)block;
+#if (NOS_CONFIG_MEM_SANITY_CHECK_ENABLE > 0)
+    mem->bcount++;
+#endif
+}
+
+#if (NOS_CONFIG_MEM_SANITY_CHECK_ENABLE > 0)
+static nOS_Error _SanityCheck (nOS_Mem *mem, void *block)
 {
     nOS_Error   err;
     void        *p;
@@ -121,12 +143,12 @@ nOS_Error nOS_MemCreate (nOS_Mem *mem, void *buffer, size_t bsize, uint16_t bmax
             buffer = (void*)((uint8_t*)buffer + bsize);
         }
         *(void**)buffer = blist;
-        mem->blist = (void**)buffer;
+        mem->blist  = (void**)buffer;
 #if (NOS_CONFIG_MEM_SANITY_CHECK_ENABLE > 0)
-        mem->buffer = (uint8_t*)buffer;
-        mem->bsize = bsize;
+        mem->buffer     = (uint8_t*)buffer;
+        mem->bsize  = bsize;
         mem->bcount = bmax;
-        mem->bmax = bmax;
+        mem->bmax   = bmax;
 #endif
         nOS_LeaveCritical();
         err = NOS_OK;
@@ -206,23 +228,22 @@ void *nOS_MemAlloc(nOS_Mem *mem, nOS_TickCounter tout)
     {
         nOS_EnterCritical();
         if (mem->blist != NULL) {
-            block = (void*)mem->blist;
-            mem->blist = *(void***)block;
-#if (NOS_CONFIG_MEM_SANITY_CHECK_ENABLE > 0)
-            mem->bcount--;
-#endif
-        /* Caller can't wait? Try again. */
+            block = _Alloc(mem);
         } else if (tout == NOS_NO_WAIT) {
+            /* Caller can't wait? Try again. */
             block = NULL;
         } else if (nOS_isrNestingCounter > 0) {
+            /* Can't wait from ISR */
             block = NULL;
         }
 #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
         else if (nOS_lockNestingCounter > 0) {
+            /* Can't switch context when scheduler is locked */
             block = NULL;
         }
 #endif
         else if (nOS_runningThread == &nOS_idleHandle) {
+            /* Main thread can't wait */
             block = NULL;
         } else {
             nOS_runningThread->ext = (void*)&block;
@@ -287,21 +308,12 @@ nOS_Error nOS_MemFree(nOS_Mem *mem, void *block)
         if (thread != NULL) {
             *(void**)thread->ext = block;
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
- #if (NOS_CONFIG_SLEEP_WAIT_FROM_MAIN > 0)
-            if (nOS_runningThread == NULL) {
-                nOS_Schedule();
-            } else
- #endif
             if ((thread->state == NOS_THREAD_READY) && (thread->prio > nOS_runningThread->prio)) {
                 nOS_Schedule();
             }
 #endif
         } else {
-            *(void**)block = mem->blist;
-            mem->blist = (void**)block;
-#if (NOS_CONFIG_MEM_SANITY_CHECK_ENABLE > 0)
-            mem->bcount++;
-#endif
+            _Free(mem, block);
         }
         nOS_LeaveCritical();
         err = NOS_OK;
