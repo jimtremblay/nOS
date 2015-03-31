@@ -19,24 +19,29 @@ OBJCOPY=$(PREFIX)objcopy
 CFLAGS   = -g -O2 -Wall
 CFLAGS  += -mlittle-endian -mthumb -mcpu=cortex-m4 -mthumb-interwork
 CFLAGS  += -mfloat-abi=hard -mfpu=fpv4-sp-d16
-LDFLAGS  = -Tstm32f429zi_flash.ld -Map $(EXEC).map
+AFLAGS   = -g -mlittle-endian -mthumb -mcpu=cortex-m4 -mthumb-interwork
+AFLAGS  += -mfloat-abi=hard -mfpu=fpv4-sp-d16
+LDFLAGS  = -Tstm32f429zi_flash.ld -Map $(EXEC).map -nostartfiles
 
-OBJS  = $(SRCS:.c=.o) $(ASMS:.S:.o)
+OBJS     = $(ASMS:.S=.o) $(SRCS:.c=.o)
 
 .PHONY: all clean
 
 all: $(EXEC).elf
 
-.c.o:
-	$(CC) $(CFLAGS) $(INCS) -c $< -o $@
-
 .S.o:
-	$(AS) $(CFLAGS) -c $< -o $@
+	@echo Assembling $<
+	@$(AS) $(AFLAGS) -g $< -o $@
+
+.c.o:
+	@echo Compiling $<
+	@$(CC) $(CFLAGS) $(INCS) -c $< -o $@
 
 $(EXEC).elf: $(OBJS)
-	$(LD) $(LDFLAGS) $(OBJS) -o $@ $(LIBS)
-	$(OBJCOPY) -O ihex $(EXEC).elf $(EXEC).hex
-	$(OBJCOPY) -O binary $(EXEC).elf $(EXEC).bin
+	@echo Linking $@
+	@$(LD) $(LDFLAGS) $(OBJS) -o $@ $(LIBS)
+	@$(OBJCOPY) -O ihex $(EXEC).elf $(EXEC).hex
+	@$(OBJCOPY) -O binary $(EXEC).elf $(EXEC).bin
 
 clean:
-	rm -f $(OBJS) $(EXEC).elf $(EXEC).map $(EXEC).hex $(EXEC).bin
+	-@rm -f $(OBJS) $(EXEC).elf $(EXEC).map $(EXEC).hex $(EXEC).bin 2>/dev/null || true
