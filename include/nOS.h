@@ -809,8 +809,8 @@ struct nOS_TimeDate
   void          nOS_RemoveThreadFromReadyList       (nOS_Thread *thread);
  #else
   #define       nOS_FindHighPrioThread()            nOS_GetHeadOfList(&nOS_readyThreadList)
-  #define       nOS_AppendThreadToReadyList(t)      nOS_AppendToList(&nOS_readyThreadList, &t->readyWait)
-  #define       nOS_RemoveThreadFromReadyList(t)    nOS_RemoveFromList(&nOS_readyThreadList, &t->readyWait)
+  #define       nOS_AppendThreadToReadyList(t)      nOS_AppendToList(&nOS_readyThreadList, &(t)->readyWait)
+  #define       nOS_RemoveThreadFromReadyList(t)    nOS_RemoveFromList(&nOS_readyThreadList, &(t)->readyWait)
  #endif
  nOS_Error      nOS_Schedule                        (void);
 #endif
