@@ -18,6 +18,7 @@ void nOS_InitList (nOS_List *list)
     list->head = NULL;
     list->tail = NULL;
 }
+/*----------------------------------------------------------------------------*/
 
 void* nOS_GetHeadOfList (nOS_List *list)
 {
@@ -27,6 +28,7 @@ void* nOS_GetHeadOfList (nOS_List *list)
         return NULL;
     }
 }
+/*----------------------------------------------------------------------------*/
 
 void nOS_AppendToList (nOS_List *list, nOS_Node *node)
 {
@@ -40,6 +42,7 @@ void nOS_AppendToList (nOS_List *list, nOS_Node *node)
         list->head = node;
     }
 }
+/*----------------------------------------------------------------------------*/
 
 void nOS_RemoveFromList (nOS_List *list, nOS_Node *node)
 {
@@ -58,6 +61,7 @@ void nOS_RemoveFromList (nOS_List *list, nOS_Node *node)
     node->prev = NULL;
     node->next = NULL;
 }
+/*----------------------------------------------------------------------------*/
 
 void nOS_RotateList (nOS_List *list)
 {
@@ -72,6 +76,7 @@ void nOS_RotateList (nOS_List *list)
         }
     }
 }
+/*----------------------------------------------------------------------------*/
 
 /* Return 0 to continue to walk into list
  * Return non-zero values to return from walk with last iterator payload
@@ -87,6 +92,7 @@ void nOS_WalkInList (nOS_List *list, nOS_NodeHandler handler, void *arg)
         it = next;
     }
 }
+/*----------------------------------------------------------------------------*/
 
 #ifdef __cplusplus
 }

@@ -39,6 +39,7 @@ static void _ThreadTimer (void *arg)
         nOS_TimerProcess();
     }
 }
+/*----------------------------------------------------------------------------*/
 #endif
 
 static void _TickTimer (void *payload, void *arg)
@@ -73,6 +74,7 @@ static void _TickTimer (void *payload, void *arg)
         }
     }
 }
+/*----------------------------------------------------------------------------*/
 
 void nOS_TimerInit(void)
 {
@@ -103,11 +105,13 @@ void nOS_TimerInit(void)
                      );
 #endif  /* NOS_CONFIG_TIMER_THREAD_ENABLE */
 }
+/*----------------------------------------------------------------------------*/
 
 void nOS_TimerTick (void)
 {
     nOS_SemGive(&_timerSem);
 }
+/*----------------------------------------------------------------------------*/
 
 void nOS_TimerProcess (void)
 {
@@ -121,6 +125,7 @@ void nOS_TimerProcess (void)
         nOS_WalkInList(&_timerList, _TickTimer, NULL);
     }
 }
+/*----------------------------------------------------------------------------*/
 
 nOS_Error nOS_TimerCreate (nOS_Timer *timer, nOS_TimerCallback callback, void *arg, nOS_TimerCounter reload, nOS_TimerMode mode)
 {
@@ -128,11 +133,11 @@ nOS_Error nOS_TimerCreate (nOS_Timer *timer, nOS_TimerCallback callback, void *a
 
 #if (NOS_CONFIG_SAFE > 0)
     if (timer == NULL) {
-        err = NOS_E_NULL;
-    } else if ((mode != NOS_TIMER_FREE_RUNNING) && (mode != NOS_TIMER_ONE_SHOT)) {
-        err = NOS_E_INV_VAL;
+        err = NOS_E_INV_OBJ;
     } else if (timer->state != NOS_TIMER_DELETED) {
         err = NOS_E_INV_OBJ;
+    } else if ((mode != NOS_TIMER_FREE_RUNNING) && (mode != NOS_TIMER_ONE_SHOT)) {
+        err = NOS_E_INV_VAL;
     } else
 #endif
     {
@@ -158,7 +163,7 @@ nOS_Error nOS_TimerDelete (nOS_Timer *timer)
 
 #if (NOS_CONFIG_SAFE > 0)
     if (timer == NULL) {
-        err = NOS_E_NULL;
+        err = NOS_E_INV_OBJ;
     } else if (timer->state == NOS_TIMER_DELETED) {
         err = NOS_E_DELETED;
     } else
@@ -173,6 +178,7 @@ nOS_Error nOS_TimerDelete (nOS_Timer *timer)
 
     return err;
 }
+/*----------------------------------------------------------------------------*/
 #endif
 
 nOS_Error nOS_TimerStart (nOS_Timer *timer)
@@ -181,7 +187,7 @@ nOS_Error nOS_TimerStart (nOS_Timer *timer)
 
 #if (NOS_CONFIG_SAFE > 0)
     if (timer == NULL) {
-        err = NOS_E_NULL;
+        err = NOS_E_INV_OBJ;
     } else if (timer->state == NOS_TIMER_DELETED) {
         err = NOS_E_DELETED;
     } else
@@ -196,6 +202,7 @@ nOS_Error nOS_TimerStart (nOS_Timer *timer)
 
     return err;
 }
+/*----------------------------------------------------------------------------*/
 
 nOS_Error nOS_TimerStop (nOS_Timer *timer)
 {
@@ -203,7 +210,7 @@ nOS_Error nOS_TimerStop (nOS_Timer *timer)
 
 #if (NOS_CONFIG_SAFE > 0)
     if (timer == NULL) {
-        err = NOS_E_NULL;
+        err = NOS_E_INV_OBJ;
     } else if (timer->state == NOS_TIMER_DELETED) {
         err = NOS_E_DELETED;
     } else
@@ -217,6 +224,7 @@ nOS_Error nOS_TimerStop (nOS_Timer *timer)
 
     return err;
 }
+/*----------------------------------------------------------------------------*/
 
 nOS_Error nOS_TimerRestart (nOS_Timer *timer, nOS_TimerCounter reload)
 {
@@ -224,7 +232,7 @@ nOS_Error nOS_TimerRestart (nOS_Timer *timer, nOS_TimerCounter reload)
 
 #if (NOS_CONFIG_SAFE > 0)
     if (timer == NULL) {
-        err = NOS_E_NULL;
+        err = NOS_E_INV_OBJ;
     } else if (timer->state == NOS_TIMER_DELETED) {
         err = NOS_E_DELETED;
     } else
@@ -240,6 +248,7 @@ nOS_Error nOS_TimerRestart (nOS_Timer *timer, nOS_TimerCounter reload)
 
     return err;
 }
+/*----------------------------------------------------------------------------*/
 
 nOS_Error nOS_TimerPause (nOS_Timer *timer)
 {
@@ -247,7 +256,7 @@ nOS_Error nOS_TimerPause (nOS_Timer *timer)
 
 #if (NOS_CONFIG_SAFE > 0)
     if (timer == NULL) {
-        err = NOS_E_NULL;
+        err = NOS_E_INV_OBJ;
     } else if (timer->state == NOS_TIMER_DELETED) {
         err = NOS_E_DELETED;
     } else
@@ -261,6 +270,7 @@ nOS_Error nOS_TimerPause (nOS_Timer *timer)
 
     return err;
 }
+/*----------------------------------------------------------------------------*/
 
 nOS_Error nOS_TimerResume (nOS_Timer *timer)
 {
@@ -268,7 +278,7 @@ nOS_Error nOS_TimerResume (nOS_Timer *timer)
 
 #if (NOS_CONFIG_SAFE > 0)
     if (timer == NULL) {
-        err = NOS_E_NULL;
+        err = NOS_E_INV_OBJ;
     } else if (timer->state == NOS_TIMER_DELETED) {
         err = NOS_E_DELETED;
     } else
@@ -282,6 +292,7 @@ nOS_Error nOS_TimerResume (nOS_Timer *timer)
 
     return err;
 }
+/*----------------------------------------------------------------------------*/
 
 nOS_Error nOS_TimerSetReload (nOS_Timer *timer, nOS_TimerCounter reload)
 {
@@ -289,7 +300,7 @@ nOS_Error nOS_TimerSetReload (nOS_Timer *timer, nOS_TimerCounter reload)
 
 #if (NOS_CONFIG_SAFE > 0)
     if (timer == NULL) {
-        err = NOS_E_NULL;
+        err = NOS_E_INV_OBJ;
     } else if (timer->state == NOS_TIMER_DELETED) {
         err = NOS_E_DELETED;
     } else
@@ -303,6 +314,7 @@ nOS_Error nOS_TimerSetReload (nOS_Timer *timer, nOS_TimerCounter reload)
 
     return err;
 }
+/*----------------------------------------------------------------------------*/
 
 nOS_Error nOS_TimerSetCallback (nOS_Timer *timer, nOS_TimerCallback callback, void *arg)
 {
@@ -310,7 +322,7 @@ nOS_Error nOS_TimerSetCallback (nOS_Timer *timer, nOS_TimerCallback callback, vo
 
 #if (NOS_CONFIG_SAFE > 0)
     if (timer == NULL) {
-        err = NOS_E_NULL;
+        err = NOS_E_INV_OBJ;
     } else if (timer->state == NOS_TIMER_DELETED) {
         err = NOS_E_DELETED;
     } else
@@ -325,6 +337,7 @@ nOS_Error nOS_TimerSetCallback (nOS_Timer *timer, nOS_TimerCallback callback, vo
 
     return err;
 }
+/*----------------------------------------------------------------------------*/
 
 nOS_Error nOS_TimerSetMode (nOS_Timer *timer, nOS_TimerMode mode)
 {
@@ -332,7 +345,7 @@ nOS_Error nOS_TimerSetMode (nOS_Timer *timer, nOS_TimerMode mode)
 
 #if (NOS_CONFIG_SAFE > 0)
     if (timer == NULL) {
-        err = NOS_E_NULL;
+        err = NOS_E_INV_OBJ;
     } else if ((mode != NOS_TIMER_FREE_RUNNING) && (mode != NOS_TIMER_ONE_SHOT)) {
         err = NOS_E_INV_VAL;
     } else if (timer->state == NOS_TIMER_DELETED) {
@@ -348,6 +361,7 @@ nOS_Error nOS_TimerSetMode (nOS_Timer *timer, nOS_TimerMode mode)
 
     return err;
 }
+/*----------------------------------------------------------------------------*/
 
 bool nOS_TimerIsRunning (nOS_Timer *timer)
 {
@@ -368,6 +382,7 @@ bool nOS_TimerIsRunning (nOS_Timer *timer)
 
     return running;
 }
+/*----------------------------------------------------------------------------*/
 #endif  /* NOS_CONFIG_TIMER_ENABLE */
 
 #ifdef __cplusplus

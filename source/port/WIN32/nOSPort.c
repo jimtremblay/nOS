@@ -28,6 +28,10 @@ static DWORD WINAPI _Entry (LPVOID lpParameter)
 {
     nOS_Thread *thread = (nOS_Thread*)lpParameter;
 
+    while(WaitForSingleObject(_hCritical, INFINITE) != WAIT_OBJECT_0);
+    _criticalNestingCounter = 0;
+    ReleaseMutex(_hCritical);
+
     /* Enter thread main loop */
     thread->stackPtr->entry(thread->stackPtr->arg);
 
@@ -41,32 +45,23 @@ static DWORD WINAPI _Scheduler (LPVOID lpParameter)
         while (WaitForSingleObject(_hSchedRequest, INFINITE) != WAIT_OBJECT_0);
 
         /* Enter critical section */
-        while (WaitForSingleObject(_hCritical, INFINITE) != WAIT_OBJECT_0);
+        while(WaitForSingleObject(_hCritical, INFINITE) != WAIT_OBJECT_0);
 
         /* Reset context switching request event in critical section */
         ResetEvent(_hSchedRequest);
 
-        /* If a high prio thread is waiting,
-         * suspend running thread and resume high prio thread */
-        nOS_highPrioThread = nOS_FindHighPrioThread();
-        if (nOS_runningThread != nOS_highPrioThread) {
-            /* If a thread is currently running, suspend it */
-            if (nOS_runningThread != NULL) {
-                SuspendThread(nOS_runningThread->stackPtr->handle);
-            }
+        /* Suspend currently running thread */
+        SuspendThread(nOS_runningThread->stackPtr->handle);
 
-            nOS_runningThread = nOS_highPrioThread;
+        nOS_runningThread = nOS_highPrioThread;
 
-            /* If a thread need to be schedule, resume it */
-            if (nOS_highPrioThread != NULL) {
-                ResumeThread(nOS_highPrioThread->stackPtr->handle);
+        /* Resume high prio thread */
+        ResumeThread(nOS_highPrioThread->stackPtr->handle);
 
-                /* Release sync object only if resumed thread is waiting in context switch */
-                if (nOS_highPrioThread->stackPtr->sync) {
-                    nOS_highPrioThread->stackPtr->sync = false;
-                    ReleaseSemaphore(nOS_highPrioThread->stackPtr->hsync, 1, NULL);
-                }
-            }
+        /* Release sync object only if resumed thread is waiting in context switch */
+        if (nOS_highPrioThread->stackPtr->sync) {
+            nOS_highPrioThread->stackPtr->sync = false;
+            ReleaseSemaphore(nOS_highPrioThread->stackPtr->hsync, 1, NULL);
         }
 
         /* Leave critical section */
@@ -78,39 +73,30 @@ static DWORD WINAPI _Scheduler (LPVOID lpParameter)
 
 static DWORD WINAPI _SysTick (LPVOID lpParameter)
 {
-    uint32_t crit;
-
     while (true) {
         Sleep(1000/NOS_CONFIG_TICKS_PER_SECOND);
 
         /* Enter critical section */
-        while (WaitForSingleObject(_hCritical, INFINITE) != WAIT_OBJECT_0);
-
-		/* Backup critical nesting counter to restore it at the end of SysTick */
-        crit = _criticalNestingCounter;
+        while(WaitForSingleObject(_hCritical, INFINITE) != WAIT_OBJECT_0);
         _criticalNestingCounter = 1;
 
-		/* Simulate entry in interrupt */
-		nOS_isrNestingCounter = 1;
+        /* Simulate entry in interrupt */
+        nOS_isrNestingCounter = 1;
 
         nOS_Tick();
-#if (NOS_CONFIG_TIMER_ENABLE > 0)
-        nOS_TimerTick();
-#endif
-#if (NOS_CONFIG_TIME_ENABLE > 0)
-        nOS_TimeTick();
-#endif
 
-		/* Simulate exit of interrupt */
-		nOS_isrNestingCounter = 0;
-
-        if (nOS_runningThread != nOS_FindHighPrioThread()) {
+#if (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
+        nOS_highPrioThread = nOS_FindHighPrioThread();
+        if (nOS_runningThread != nOS_highPrioThread) {
             SetEvent(_hSchedRequest);
         }
+#endif
 
-        _criticalNestingCounter = crit;
+        /* Simulate exit of interrupt */
+        nOS_isrNestingCounter = 0;
 
         /* Leave critical section */
+        _criticalNestingCounter = 0;
         ReleaseMutex(_hCritical);
     }
 
@@ -128,7 +114,6 @@ void nOS_InitSpecific(void)
     nOS_idleHandle.stackPtr = &_idleStack;
     _idleStack.entry = NULL;
     _idleStack.arg = NULL;
-    _idleStack.crit = 0;
     _idleStack.sync = false;
     _idleStack.hsync = CreateSemaphore(NULL,        /* Default security descriptor */
                                        0,           /* Initial count = 0 */
@@ -169,7 +154,6 @@ void nOS_InitContext(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_Thr
     thread->stackPtr = stack;
     stack->entry = entry;
     stack->arg = arg;
-    stack->crit = 0;
     stack->sync = false;
     /* Create a semaphore for context switching synchronization */
     stack->hsync = CreateSemaphore(NULL,            /* Default security descriptor */
@@ -186,20 +170,25 @@ void nOS_InitContext(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_Thr
 
 void nOS_SwitchContext(void)
 {
-    nOS_Stack *stack = nOS_runningThread->stackPtr;
+    uint32_t crit;
 
-    stack->sync = true;
-    stack->crit = _criticalNestingCounter;
+    /* Backup thread's critical nesting counter */
+    crit = _criticalNestingCounter;
+
+    nOS_runningThread->stackPtr->sync = true;
     SetEvent(_hSchedRequest);
+
     /* Leave critical section (allow Scheduler and SysTick to run) */
     ReleaseMutex(_hCritical);
 
     /* Wait synchronization event from Scheduler */
-    while(WaitForSingleObject(stack->hsync, INFINITE) != WAIT_OBJECT_0);
+    while(WaitForSingleObject(nOS_runningThread->stackPtr->hsync, INFINITE) != WAIT_OBJECT_0);
 
     /* Enter critical section */
     while(WaitForSingleObject(_hCritical, INFINITE) != WAIT_OBJECT_0);
-	_criticalNestingCounter = stack->crit;
+
+    /* Restore thread's critical nesting counter */
+    _criticalNestingCounter = crit;
 }
 
 void nOS_EnterCritical(void)
@@ -208,8 +197,7 @@ void nOS_EnterCritical(void)
         /* Enter critical section */
         while(WaitForSingleObject(_hCritical, INFINITE) != WAIT_OBJECT_0);
         if (_criticalNestingCounter > 0) {
-            /* Keep only one level of Windows critical to be able
-			 * to leave critical section when switching context */
+            /* Keep only one level of lock to leave critical section when need scheduling */
             ReleaseMutex(_hCritical);
         }
         _criticalNestingCounter++;

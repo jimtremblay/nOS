@@ -28,7 +28,6 @@ typedef struct nOS_Stack
 {
     HANDLE          handle;
     DWORD           id;
-    uint32_t        crit;
     nOS_ThreadEntry entry;
     void            *arg;
     bool            sync;

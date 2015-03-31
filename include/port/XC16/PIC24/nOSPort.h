@@ -34,9 +34,9 @@ typedef uint16_t                            nOS_Stack;
  #error "nOSConfig.h: NOS_CONFIG_MAX_UNSAFE_ISR_PRIO is not defined: must be set between 1 and 6 inclusively."
 #elif (NOS_CONFIG_MAX_UNSAFE_ISR_PRIO < 1) || (NOS_CONFIG_MAX_UNSAFE_ISR_PRIO > 6)
  #error "nOSConfig.h: NOS_CONFIG_MAX_UNSAFE_ISR_PRIO is set to invalid value: must be set between 1 and 6 inclusively."
-#else
- #define NOS_MAX_UNSAFE_IPL                 NOS_CONFIG_MAX_UNSAFE_ISR_PRIO
 #endif
+
+#define NOS_MAX_UNSAFE_IPL                  NOS_CONFIG_MAX_UNSAFE_ISR_PRIO
 
 #define nOS_EnterCritical()                                                     \
 {                                                                               \

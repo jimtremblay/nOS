@@ -25,40 +25,30 @@ nOS_Stack threadCStack[THREAD_STACK_SIZE];
 
 void ThreadA(void *arg)
 {
-    volatile uint32_t cntr = 0;
-
-    (void)arg;
+    NOS_UNUSED(arg);
 
     while (1) {
         nOS_SemTake(&semA, NOS_WAIT_INFINITE);
-        cntr++;
     }
 }
 
 void ThreadB(void *arg)
 {
-    volatile uint32_t cntr = 0;
-    cntr |= 0x80;
-
-    (void)arg;
+    NOS_UNUSED(arg);
 
     while (1) {
         nOS_SemTake(&semB, NOS_WAIT_INFINITE);
         nOS_SemGive(&semA);
-        cntr++;
     }
 }
 
 void ThreadC(void *arg)
 {
-    volatile uint32_t cntr = 0;
-
-    (void)arg;
+    NOS_UNUSED(arg);
 
     while (1) {
         nOS_SemTake(&semC, NOS_WAIT_INFINITE);
         nOS_SemGive(&semB);
-        cntr++;
     }
 }
 
@@ -97,9 +87,9 @@ NOS_ISR(_T2Interrupt)
  */
 int main(int argc, char** argv)
 {
-    volatile uint32_t cntr = 0;
-
     nOS_Init();
+
+    nOS_ThreadSetName(NULL, "main");
 
     TimerInit();
 
@@ -107,16 +97,11 @@ int main(int argc, char** argv)
     nOS_SemCreate(&semB, 0, 1);
     nOS_SemCreate(&semC, 0, 1);
 
-    nOS_ThreadCreate(&threadA, ThreadA, (void*)300, threadAStack, THREAD_STACK_SIZE, 5, NOS_THREAD_READY);
-    nOS_ThreadCreate(&threadB, ThreadB, (void*)200, threadBStack, THREAD_STACK_SIZE, 4, NOS_THREAD_READY);
-    nOS_ThreadCreate(&threadC, ThreadC, (void*)100, threadCStack, THREAD_STACK_SIZE, 3, NOS_THREAD_READY);
+    nOS_ThreadCreate(&threadA, ThreadA, (void*)300, threadAStack, THREAD_STACK_SIZE, 5, NOS_THREAD_READY, "ThreadA");
+    nOS_ThreadCreate(&threadB, ThreadB, (void*)200, threadBStack, THREAD_STACK_SIZE, 4, NOS_THREAD_READY, "ThreadB");
+    nOS_ThreadCreate(&threadC, ThreadC, (void*)100, threadCStack, THREAD_STACK_SIZE, 3, NOS_THREAD_READY, "ThreadC");
 
     while (1) {
-#if (NOS_CONFIG_TIMER_ENABLE > 0) && (NOS_CONFIG_TIMER_THREAD_ENABLE == 0)
-        nOS_TimerProcess();
-#endif
         nOS_SemGive(&semC);
-        cntr++;
     }
 }
-

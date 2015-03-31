@@ -132,13 +132,15 @@ nOS_Stack *nOS_LeaveIsr (nOS_Stack *sp)
     /* Interrupts already disabled before leaving ISR */
     nOS_isrNestingCounter--;
     if (nOS_isrNestingCounter == 0) {
-#if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
+#if (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
+ #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
         if (nOS_lockNestingCounter == 0)
-#endif
+ #endif
         {
             nOS_highPrioThread = nOS_FindHighPrioThread();
             nOS_runningThread = nOS_highPrioThread;
         }
+#endif
         sp = nOS_runningThread->stackPtr;
     }
 

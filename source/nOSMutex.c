@@ -14,41 +14,12 @@ extern "C" {
 #endif
 
 #if (NOS_CONFIG_MUTEX_ENABLE > 0)
-/*
- * Name        : nOS_MutexCreate
- *
- * Description : Initialize a mutex object. A mutex can only be locked from thread
- *               and unlocked from mutex owner. Any attempt to unlock a mutex that
- *               not belong to the caller thread will failed.
- *
- * Arguments   : mutex : Pointer to mutex object.
- *               type  : Type of mutex to create.
- *                       NOS_MUTEX_NORMAL    : Standard mutex (like binary
- *                                             semaphore).
- *                       NOS_MUTEX_RECURSIVE : Mutex that can be locked
- *                                             recursively.
- *               prio  : NOS_MUTEX_PRIO_INHERIT : Mutex owner inherit higher prio
- *                                                from other threads that try to
- *                                                lock this mutex.
- *                       prio > 0               : Mutex owner increase its prio
- *                                                to this value when it lock the
- *                                                mutex (ceiling protocol).
- *
- * Return      : Error code.
- *               NOS_E_NULL    : Pointer to mutex object is NULL.
- *               NOS_E_INV_VAL : Type of mutex is not valid.
- *               NOS_OK        : Mutex initialized with success.
- *
- * Note        : Mutex object must be created before using it, else
- *               behaviour is undefined and must be called one time
- *               ONLY for each mutex object.
- */
-nOS_Error nOS_MutexCreate (nOS_Mutex *mutex
+/*----------------------------------------------------------------------------*/
+
+nOS_Error nOS_MutexCreate (nOS_Mutex *mutex,
+                           nOS_MutexType type
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
                            ,uint8_t prio
-#endif
-#if (NOS_CONFIG_MUTEX_RECURSIVE_ENABLE > 0)
-                           ,nOS_MutexType type
 #endif
                            )
 {
@@ -56,15 +27,12 @@ nOS_Error nOS_MutexCreate (nOS_Mutex *mutex
 
 #if (NOS_CONFIG_SAFE > 0)
     if (mutex == NULL) {
-        err = NOS_E_NULL;
+        err = NOS_E_INV_OBJ;
     } else if (mutex->e.type != NOS_EVENT_INVALID) {
         err = NOS_E_INV_OBJ;
-    }
- #if (NOS_CONFIG_MUTEX_RECURSIVE_ENABLE > 0)
-    else if ((type != NOS_MUTEX_NORMAL) && (type != NOS_MUTEX_RECURSIVE)) {
+    } else if ((type != NOS_MUTEX_NORMAL) && (type != NOS_MUTEX_RECURSIVE)) {
         err = NOS_E_INV_VAL;
     }
- #endif
     else
 #endif
     {
@@ -74,11 +42,9 @@ nOS_Error nOS_MutexCreate (nOS_Mutex *mutex
 #else
         nOS_CreateEvent((nOS_Event*)mutex);
 #endif
-#if (NOS_CONFIG_MUTEX_RECURSIVE_ENABLE > 0)
+        mutex->owner = NULL;
         mutex->type = type;
         mutex->count = 0;
-#endif
-        mutex->owner = NULL;
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
         mutex->prio = prio;
         mutex->backup = 0;
@@ -89,6 +55,7 @@ nOS_Error nOS_MutexCreate (nOS_Mutex *mutex
 
     return err;
 }
+/*----------------------------------------------------------------------------*/
 
 #if (NOS_CONFIG_MUTEX_DELETE_ENABLE > 0)
 nOS_Error nOS_MutexDelete (nOS_Mutex *mutex)
@@ -97,17 +64,15 @@ nOS_Error nOS_MutexDelete (nOS_Mutex *mutex)
 
 #if (NOS_CONFIG_SAFE > 0)
     if (mutex == NULL) {
-        err = NOS_E_NULL;
+        err = NOS_E_INV_OBJ;
     } else if (mutex->e.type != NOS_EVENT_MUTEX) {
         err = NOS_E_INV_OBJ;
     } else
 #endif
     {
         nOS_EnterCritical();
-#if (NOS_CONFIG_MUTEX_RECURSIVE_ENABLE > 0)
-        mutex->count = 0;
-#endif
         mutex->owner = NULL;
+        mutex->count = 0;
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
         if (nOS_DeleteEvent((nOS_Event*)mutex)) {
             nOS_Schedule();
@@ -121,27 +86,16 @@ nOS_Error nOS_MutexDelete (nOS_Mutex *mutex)
 
     return err;
 }
+/*----------------------------------------------------------------------------*/
 #endif
 
-/* nOS_MutexLock
- * mutex: must be a valid mutex object
- * tout: NOS_NO_TIMEOUT = wait indefinitely
- *       != 0 = number of ticks to wait
- * Can be called from threads
- * NOS_OK: Succeed to lock mutex
- * NOS_E_LOCKED: Thread can't wait for mutex when scheduler is locked
- * NOS_E_ISR: Mutex can't be locked from ISR
- * NOS_E_IDLE: Idle thread can't wait for mutex
- * NOS_E_TIMEOUT: Mutex can't be taken in required time
- * NOS_E_OVERFLOW: Mutex have been locked too much times
- */
 nOS_Error nOS_MutexLock (nOS_Mutex *mutex, nOS_TickCounter tout)
 {
     nOS_Error   err;
 
 #if (NOS_CONFIG_SAFE > 0)
     if (mutex == NULL) {
-        err = NOS_E_NULL;
+        err = NOS_E_INV_OBJ;
     } else if (mutex->e.type != NOS_EVENT_MUTEX) {
         err = NOS_E_INV_OBJ;
     } else
@@ -153,9 +107,7 @@ nOS_Error nOS_MutexLock (nOS_Mutex *mutex, nOS_TickCounter tout)
         nOS_EnterCritical();
         /* Mutex available? Reserve it for calling thread */
         if (mutex->owner == NULL) {
-#if (NOS_CONFIG_MUTEX_RECURSIVE_ENABLE > 0)
             mutex->count++;
-#endif
             mutex->owner = nOS_runningThread;
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
             mutex->backup = nOS_runningThread->prio;
@@ -166,24 +118,21 @@ nOS_Error nOS_MutexLock (nOS_Mutex *mutex, nOS_TickCounter tout)
             }
 #endif
             err = NOS_OK;
-        /* Mutex owner relock it? */
         } else if (mutex->owner == nOS_runningThread) {
-#if (NOS_CONFIG_MUTEX_RECURSIVE_ENABLE > 0)
+            /* Mutex owner relock it? */
             if (mutex->type == NOS_MUTEX_RECURSIVE) {
-                if (mutex->count < UINT8_MAX) {
+                if (mutex->count < NOS_MUTEX_COUNT_MAX) {
                     mutex->count++;
                     err = NOS_OK;
                 } else {
                     err = NOS_E_OVERFLOW;
                 }
-            /* Binary mutex */
-            } else
-#endif
-            {
+            } else {
+                /* Binary mutex: can't relock */
                 err = NOS_E_OVERFLOW;
             }
-        /* Calling thread can't wait? Try again. */
         } else if (tout == NOS_NO_WAIT) {
+            /* Calling thread can't wait? Try again. */
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
             /*
              * If current thread can ask to lock mutex,
@@ -224,17 +173,8 @@ nOS_Error nOS_MutexLock (nOS_Mutex *mutex, nOS_TickCounter tout)
 
     return err;
 }
+/*----------------------------------------------------------------------------*/
 
-/* nOS_MutexUnlock
- * mutex: must be a valid mutex object
- * tout: NOS_NO_TIMEOUT = wait indefinitely
- *       != 0 = number of ticks to wait
- * Can be called from threads and idle
- * NOS_OK: Succeed to unlock mutex
- * NOS_E_ISR: Mutex can't be unlocked from ISR
- * NOS_E_OWNER: You can't unlock the mutex for the owner
- * NOS_E_UNDERFLOW: Mutex have been unlocked too much times
- */
 nOS_Error nOS_MutexUnlock (nOS_Mutex *mutex)
 {
     nOS_Thread      *thread;
@@ -242,7 +182,7 @@ nOS_Error nOS_MutexUnlock (nOS_Mutex *mutex)
 
 #if (NOS_CONFIG_SAFE > 0)
     if (mutex == NULL) {
-        err = NOS_E_NULL;
+        err = NOS_E_INV_OBJ;
     } else if (mutex->e.type != NOS_EVENT_MUTEX) {
         err = NOS_E_INV_OBJ;
     } else
@@ -254,30 +194,25 @@ nOS_Error nOS_MutexUnlock (nOS_Mutex *mutex)
         nOS_EnterCritical();
         if (mutex->owner != NULL) {
             if (mutex->owner == nOS_runningThread) {
-#if (NOS_CONFIG_MUTEX_RECURSIVE_ENABLE > 0)
                 mutex->count--;
-                if (mutex->count == 0)
-#endif
-                {
+                if (mutex->count == 0) {
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
                     nOS_SetThreadPrio(mutex->owner, mutex->backup);
 #endif
                     thread = nOS_SignalEvent((nOS_Event*)mutex, NOS_OK);
                     if (thread != NULL) {
-#if (NOS_CONFIG_MUTEX_RECURSIVE_ENABLE > 0)
                         mutex->count++;
-#endif
                         mutex->owner = thread;
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
                         mutex->backup = thread->prio;
                         if (mutex->prio != NOS_MUTEX_PRIO_INHERIT) {
                             nOS_SetThreadPrio(thread, mutex->prio);
                         }
-#if (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
+ #if (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
                         if ((thread->state == NOS_THREAD_READY) && (thread->prio > nOS_runningThread->prio)) {
                             nOS_Schedule();
                         }
-#endif
+ #endif
 #endif
                     } else {
                         mutex->owner = NULL;
@@ -295,6 +230,7 @@ nOS_Error nOS_MutexUnlock (nOS_Mutex *mutex)
 
     return err;
 }
+/*----------------------------------------------------------------------------*/
 
 bool nOS_MutexIsLocked (nOS_Mutex *mutex)
 {
@@ -315,6 +251,7 @@ bool nOS_MutexIsLocked (nOS_Mutex *mutex)
 
     return locked;
 }
+/*----------------------------------------------------------------------------*/
 
 nOS_Thread* nOS_MutexGetOwner (nOS_Mutex *mutex)
 {
@@ -335,6 +272,7 @@ nOS_Thread* nOS_MutexGetOwner (nOS_Mutex *mutex)
 
     return owner;
 }
+/*----------------------------------------------------------------------------*/
 #endif  /* NOS_CONFIG_MUTEX_ENABLE */
 
 #ifdef __cplusplus

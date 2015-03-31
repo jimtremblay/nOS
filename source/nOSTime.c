@@ -41,6 +41,7 @@ static void _TickTime(void *payload, void *arg)
         nOS_SignalThread(thread, NOS_OK);
     }
 }
+/*----------------------------------------------------------------------------*/
 #endif
 
 void nOS_TimeInit (void)
@@ -57,6 +58,7 @@ void nOS_TimeInit (void)
  #endif
 #endif
 }
+/*----------------------------------------------------------------------------*/
 
 void nOS_TimeTick (void)
 {
@@ -74,6 +76,7 @@ void nOS_TimeTick (void)
     }
     nOS_LeaveCritical();
 }
+/*----------------------------------------------------------------------------*/
 
 nOS_Time nOS_TimeGet (void)
 {
@@ -85,6 +88,7 @@ nOS_Time nOS_TimeGet (void)
 
     return time;
 }
+/*----------------------------------------------------------------------------*/
 
 nOS_Error nOS_TimeSet (nOS_Time time)
 {
@@ -97,6 +101,7 @@ nOS_Error nOS_TimeSet (nOS_Time time)
 
     return NOS_OK;
 }
+/*----------------------------------------------------------------------------*/
 
 nOS_TimeDate nOS_TimeConvert (nOS_Time time)
 {
@@ -140,6 +145,7 @@ nOS_TimeDate nOS_TimeConvert (nOS_Time time)
 
     return timedate;
 }
+/*----------------------------------------------------------------------------*/
 
 #if (NOS_CONFIG_TIME_WAIT_ENABLE > 0)
 nOS_Error nOS_TimeWait (nOS_Time time)
@@ -172,12 +178,14 @@ nOS_Error nOS_TimeWait (nOS_Time time)
 
     return err;
 }
+/*----------------------------------------------------------------------------*/
 #endif
 
 nOS_TimeDate nOS_TimeDateGet (void)
 {
     return nOS_TimeConvert(nOS_TimeGet());
 }
+/*----------------------------------------------------------------------------*/
 
 nOS_Error nOS_TimeDateSet (nOS_TimeDate *timedate)
 {
@@ -194,6 +202,7 @@ nOS_Error nOS_TimeDateSet (nOS_TimeDate *timedate)
 
     return err;
 }
+/*----------------------------------------------------------------------------*/
 
 nOS_Time nOS_TimeDateConvert (nOS_TimeDate *timedate)
 {
@@ -232,6 +241,7 @@ nOS_Time nOS_TimeDateConvert (nOS_TimeDate *timedate)
 
     return time;
 }
+/*----------------------------------------------------------------------------*/
 
 #if (NOS_CONFIG_TIME_WAIT_ENABLE > 0)
 nOS_Error nOS_TimeDateWait (nOS_TimeDate *timedate)
@@ -249,6 +259,7 @@ nOS_Error nOS_TimeDateWait (nOS_TimeDate *timedate)
 
     return err;
 }
+/*----------------------------------------------------------------------------*/
 #endif
 #endif  /* NOS_CONFIG_TIME_ENABLE */
 

@@ -253,6 +253,7 @@ extern "C" {
    }
   #endif
  #endif
+/*----------------------------------------------------------------------------*/
 
  #ifdef NOS_32_BITS_SCHEDULER
   void nOS_AppendThreadToReadyList (nOS_Thread *thread)
@@ -395,6 +396,7 @@ extern "C" {
   }
  #endif
 #endif
+/*----------------------------------------------------------------------------*/
 
 /* Always called from critical section */
 nOS_Error nOS_Schedule(void)
@@ -424,6 +426,7 @@ nOS_Error nOS_Schedule(void)
 
     return err;
 }
+/*----------------------------------------------------------------------------*/
 
 /* Public functions */
 
@@ -481,6 +484,7 @@ nOS_Error nOS_Init(void)
 
     return NOS_OK;
 }
+/*----------------------------------------------------------------------------*/
 
 nOS_Error nOS_Yield(void)
 {
@@ -508,6 +512,7 @@ nOS_Error nOS_Yield(void)
 
     return err;
 }
+/*----------------------------------------------------------------------------*/
 
 void nOS_Tick(void)
 {
@@ -515,15 +520,22 @@ void nOS_Tick(void)
     nOS_tickCounter++;
 
     nOS_WalkInList(&nOS_mainList, nOS_TickThread, NULL);
-#if (NOS_CONFIG_SCHED_ROUND_ROBIN_ENABLE > 0)
+#if (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0) && (NOS_CONFIG_SCHED_ROUND_ROBIN_ENABLE > 0)
  #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
     nOS_RotateList(&nOS_readyThreadList[nOS_runningThread->prio]);
  #else
     nOS_RotateList(&nOS_readyThreadList);
  #endif
 #endif
+#if (NOS_CONFIG_TIMER_ENABLE > 0) && (NOS_CONFIG_TIMER_TICK_ENABLE > 0)
+    nOS_TimerTick();
+#endif
+#if (NOS_CONFIG_TIME_ENABLE > 0) && (NOS_CONFIG_TIME_TICK_ENABLE > 0)
+    nOS_TimeTick();
+#endif
     nOS_LeaveCritical();
 }
+/*----------------------------------------------------------------------------*/
 
 nOS_TickCounter nOS_GetTickCount(void)
 {
@@ -535,6 +547,25 @@ nOS_TickCounter nOS_GetTickCount(void)
 
     return tickcnt;
 }
+/*----------------------------------------------------------------------------*/
+
+#if defined(NOS_CONFIG_TICKS_PER_SECOND) && (NOS_CONFIG_TICKS_PER_SECOND > 0)
+uint32_t nOS_MsToTicks (uint16_t ms)
+{
+    uint32_t    ticks;
+
+    /* Convert ms to ticks: ms/1000 = ticks/NOS_CONFIG_TICKS_PER_SECOND */
+    ticks = (uint32_t)ms * NOS_CONFIG_TICKS_PER_SECOND;
+    /* Round to upper tick count */
+    if ((ticks % 1000) > 0) {
+        ticks += 1000;
+    }
+    ticks /= 1000;
+
+    return ticks;
+}
+/*----------------------------------------------------------------------------*/
+#endif
 
 #if (NOS_CONFIG_SLEEP_ENABLE > 0)
 nOS_Error nOS_Sleep (nOS_TickCounter ticks)
@@ -563,6 +594,47 @@ nOS_Error nOS_Sleep (nOS_TickCounter ticks)
 
     return err;
 }
+/*----------------------------------------------------------------------------*/
+
+#if defined(NOS_CONFIG_TICKS_PER_SECOND) && (NOS_CONFIG_TICKS_PER_SECOND > 0)
+nOS_Error nOS_SleepMs (uint16_t ms)
+{
+    nOS_Error   err;
+    uint32_t    ticks;
+
+    if (nOS_isrNestingCounter > 0) {
+        err = NOS_E_ISR;
+    }
+#if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
+    /* Can't switch context when scheduler is locked */
+    else if (nOS_lockNestingCounter > 0) {
+        err = NOS_E_LOCKED;
+    }
+#endif
+    else if (nOS_runningThread == &nOS_idleHandle) {
+        err = NOS_E_IDLE;
+    } else if (ms == 0) {
+        nOS_Yield();
+        err = NOS_OK;
+    } else {
+        ticks = nOS_MsToTicks(ms);
+
+        nOS_EnterCritical();
+        err = NOS_OK;
+        while ((err == NOS_OK) && (ticks > NOS_TICKS_WAIT_MAX)) {
+            err = nOS_WaitForEvent(NULL, NOS_THREAD_SLEEPING, NOS_TICKS_WAIT_MAX);
+            ticks -= NOS_TICKS_WAIT_MAX;
+        }
+        if ((err == NOS_OK) && (ticks > 0)) {
+            err = nOS_WaitForEvent(NULL, NOS_THREAD_SLEEPING, ticks);
+        }
+        nOS_LeaveCritical();
+    }
+
+    return err;
+}
+/*----------------------------------------------------------------------------*/
+#endif
 #endif
 
 #if (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
@@ -593,6 +665,7 @@ nOS_Error nOS_SleepUntil (nOS_TickCounter tick)
 
     return err;
 }
+/*----------------------------------------------------------------------------*/
 #endif
 
 #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
@@ -615,6 +688,7 @@ nOS_Error nOS_SchedLock(void)
 
     return err;
 }
+/*----------------------------------------------------------------------------*/
 
 nOS_Error nOS_SchedUnlock(void)
 {
@@ -638,6 +712,7 @@ nOS_Error nOS_SchedUnlock(void)
 
     return err;
 }
+/*----------------------------------------------------------------------------*/
 #endif  /* NOS_CONFIG_SCHED_LOCK_ENABLE */
 
 #ifdef __cplusplus

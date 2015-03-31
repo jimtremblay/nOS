@@ -65,6 +65,8 @@ int main (void)
 {	
     nOS_Init();
     
+    nOS_ThreadSetName(NULL, "main");
+    
     TimerA0_Init();
     
     asm("FSET I");
@@ -74,9 +76,9 @@ int main (void)
     nOS_SemCreate(&semB, 0, 1);
     nOS_SemCreate(&semC, 0, 1);
 	
-	nOS_ThreadCreate(&threadA, ThreadA, NULL, stackA, 64, NOS_CONFIG_HIGHEST_THREAD_PRIO,   NOS_THREAD_READY);
-    nOS_ThreadCreate(&threadB, ThreadB, NULL, stackB, 64, NOS_CONFIG_HIGHEST_THREAD_PRIO-1, NOS_THREAD_READY);
-    nOS_ThreadCreate(&threadC, ThreadC, NULL, stackC, 64, NOS_CONFIG_HIGHEST_THREAD_PRIO-2, NOS_THREAD_READY);
+	nOS_ThreadCreate(&threadA, ThreadA, NULL, stackA, 64, NOS_CONFIG_HIGHEST_THREAD_PRIO,   NOS_THREAD_READY, "ThreadA");
+    nOS_ThreadCreate(&threadB, ThreadB, NULL, stackB, 64, NOS_CONFIG_HIGHEST_THREAD_PRIO-1, NOS_THREAD_READY, "ThreadB");
+    nOS_ThreadCreate(&threadC, ThreadC, NULL, stackC, 64, NOS_CONFIG_HIGHEST_THREAD_PRIO-2, NOS_THREAD_READY, "ThreadC");
 
     while (1){
         nOS_SemGive(&semC);

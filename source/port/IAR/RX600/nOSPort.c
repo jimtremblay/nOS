@@ -101,10 +101,11 @@ void nOS_LeaveIsr (void)
 {
     nOS_EnterCritical();
     nOS_isrNestingCounter--;
+#if (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
     if (nOS_isrNestingCounter == 0) {
-#if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
+ #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
         if (nOS_lockNestingCounter == 0)
-#endif
+ #endif
         {
             nOS_highPrioThread = nOS_FindHighPrioThread();
             if (nOS_runningThread != nOS_highPrioThread) {
@@ -113,6 +114,7 @@ void nOS_LeaveIsr (void)
             }
         }
     }
+#endif
     nOS_LeaveCritical();
 }
 

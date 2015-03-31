@@ -20,7 +20,7 @@ nOS_Error nOS_SemCreate (nOS_Sem *sem, nOS_SemCounter count, nOS_SemCounter max)
 
 #if (NOS_CONFIG_SAFE > 0)
     if (sem == NULL) {
-        err = NOS_E_NULL;
+        err = NOS_E_INV_OBJ;
     } else if (sem->e.type != NOS_EVENT_INVALID) {
         err = NOS_E_INV_OBJ;
     } else if (count > max) {
@@ -42,6 +42,7 @@ nOS_Error nOS_SemCreate (nOS_Sem *sem, nOS_SemCounter count, nOS_SemCounter max)
 
     return err;
 }
+/*----------------------------------------------------------------------------*/
 
 #if (NOS_CONFIG_SEM_DELETE_ENABLE > 0)
 nOS_Error nOS_SemDelete (nOS_Sem *sem)
@@ -50,7 +51,7 @@ nOS_Error nOS_SemDelete (nOS_Sem *sem)
 
 #if (NOS_CONFIG_SAFE > 0)
     if (sem == NULL) {
-        err = NOS_E_NULL;
+        err = NOS_E_INV_OBJ;
     } else if (sem->e.type != NOS_EVENT_SEM) {
         err = NOS_E_INV_OBJ;
     } else
@@ -72,26 +73,16 @@ nOS_Error nOS_SemDelete (nOS_Sem *sem)
 
     return err;
 }
+/*----------------------------------------------------------------------------*/
 #endif
 
-/* nOS_SemTake
- * sem: must be a valid semaphore object
- * tout: NOS_NO_TIMEOUT = wait indefinitely
- *       != 0 = number of ticks to wait
- * Can be called from threads
- * NOS_OK: Succeed to take semaphore
- * NOS_E_LOCKED: Thread can't wait for semaphore when scheduler is locked
- * NOS_E_ISR: Thread can't wait for semaphore from ISR
- * NOS_E_IDLE: Idle thread can't wait for semaphore
- * NOS_E_TIMEOUT: Semaphore can't be taken in required time
- */
 nOS_Error nOS_SemTake (nOS_Sem *sem, nOS_TickCounter tout)
 {
     nOS_Error   err;
 
 #if (NOS_CONFIG_SAFE > 0)
     if (sem == NULL) {
-        err = NOS_E_NULL;
+        err = NOS_E_INV_OBJ;
     } else if (sem->e.type != NOS_EVENT_SEM) {
         err = NOS_E_INV_OBJ;
     } else
@@ -127,6 +118,7 @@ nOS_Error nOS_SemTake (nOS_Sem *sem, nOS_TickCounter tout)
 
     return err;
 }
+/*----------------------------------------------------------------------------*/
 
 /* nOS_SemGive
  * sem: must be a valid semaphore object
@@ -141,7 +133,7 @@ nOS_Error nOS_SemGive (nOS_Sem *sem)
 
 #if (NOS_CONFIG_SAFE > 0)
     if (sem == NULL) {
-        err = NOS_E_NULL;
+        err = NOS_E_INV_OBJ;
     } else if (sem->e.type != NOS_EVENT_SEM) {
         err = NOS_E_INV_OBJ;
     } else
@@ -163,13 +155,14 @@ nOS_Error nOS_SemGive (nOS_Sem *sem)
             err = NOS_E_OVERFLOW;
         } else {
             /* No thread waiting to consume sem, inform producer */
-            err = NOS_E_CONSUMER;
+            err = NOS_E_NO_CONSUMER;
         }
         nOS_LeaveCritical();
     }
 
     return err;
 }
+/*----------------------------------------------------------------------------*/
 
 bool nOS_SemIsAvailable (nOS_Sem *sem)
 {
@@ -190,6 +183,7 @@ bool nOS_SemIsAvailable (nOS_Sem *sem)
 
     return avail;
 }
+/*----------------------------------------------------------------------------*/
 #endif  /* NOS_CONFIG_SEM_ENABLE */
 
 #ifdef __cplusplus

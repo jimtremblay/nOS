@@ -17,12 +17,6 @@ nOS_Stack stackC[THREAD_STACK_SIZE];
 NOS_ISR(BASICTIMER_VECTOR)
 {
     nOS_Tick();
-#if (NOS_CONFIG_TIMER_ENABLE > 0)
-    nOS_TimerTick();
-#endif
-#if (NOS_CONFIG_TIME_ENABLE > 0)
-    nOS_TimeTick();
-#endif
 }
 
 void ThreadA (void *arg)
@@ -60,15 +54,9 @@ int main( void )
     WDTCTL = WDTPW + WDTHOLD;
 
     nOS_Init();
-
-    nOS_SemCreate(&semA, 0, 1);
-    nOS_SemCreate(&semB, 0, 1);
-    nOS_SemCreate(&semC, 0, 1);
-
-    nOS_ThreadCreate(&threadA, ThreadA, 0, stackA, THREAD_STACK_SIZE, NOS_CONFIG_HIGHEST_THREAD_PRIO,   NOS_THREAD_READY);
-    nOS_ThreadCreate(&threadB, ThreadB, 0, stackB, THREAD_STACK_SIZE, NOS_CONFIG_HIGHEST_THREAD_PRIO-1, NOS_THREAD_READY);
-    nOS_ThreadCreate(&threadC, ThreadC, 0, stackC, THREAD_STACK_SIZE, NOS_CONFIG_HIGHEST_THREAD_PRIO-2, NOS_THREAD_READY);
-
+    
+    nOS_ThreadSetName(NULL, "main");
+    
     BTCTL = BTHOLD|BTDIV|BT_fCLK2_DIV128;
     BTCNT1 = 0;
     BTCNT2 = 0;
@@ -77,10 +65,15 @@ int main( void )
 
     __enable_interrupt();
 
+    nOS_SemCreate(&semA, 0, 1);
+    nOS_SemCreate(&semB, 0, 1);
+    nOS_SemCreate(&semC, 0, 1);
+
+    nOS_ThreadCreate(&threadA, ThreadA, 0, stackA, THREAD_STACK_SIZE, NOS_CONFIG_HIGHEST_THREAD_PRIO,   NOS_THREAD_READY, "ThreadA");
+    nOS_ThreadCreate(&threadB, ThreadB, 0, stackB, THREAD_STACK_SIZE, NOS_CONFIG_HIGHEST_THREAD_PRIO-1, NOS_THREAD_READY, "ThreadB");
+    nOS_ThreadCreate(&threadC, ThreadC, 0, stackC, THREAD_STACK_SIZE, NOS_CONFIG_HIGHEST_THREAD_PRIO-2, NOS_THREAD_READY, "ThreadC");
+
     while (1) {
-#if (NOS_CONFIG_TIMER_ENABLE > 0) && (NOS_CONFIG_TIMER_THREAD_ENABLE == 0)
-        nOS_TimerProcess();
-#endif
         nOS_SemGive(&semC);
     }
 }

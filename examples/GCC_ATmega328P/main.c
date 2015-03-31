@@ -78,12 +78,6 @@ void ThreadC(void *arg)
 NOS_ISR(TIMER2_OVF_vect)
 {
     nOS_Tick();
-#if (NOS_CONFIG_TIMER_ENABLE > 0)
-    nOS_TimerTick();
-#endif
-#if (NOS_CONFIG_TIME_ENABLE > 0)
-    nOS_TimeTick();
-#endif
 }
 
 static void Timer2Init(void)
@@ -98,35 +92,24 @@ int main (void)
     volatile uint32_t cntr = 0;
 
     nOS_Init();
+	
+	nOS_ThreadSetName(NULL, "main");
+	
+	Timer2Init();
+	
+	/* enable all interrupts */
+	sei();
 
     nOS_SemCreate(&semA, 0, 1);
     nOS_SemCreate(&semB, 0, 1);
     nOS_SemCreate(&semC, 0, 1);
 
-#if (NOS_CONFIG_THREAD_SUSPEND_ENABLE > 0)
-    nOS_ThreadCreate(&threadA, ThreadA, (void*)300, threadAStack, THREAD_STACK_SIZE, 5, NOS_THREAD_SUSPENDED);
-    nOS_ThreadCreate(&threadB, ThreadB, (void*)200, threadBStack, THREAD_STACK_SIZE, 4, NOS_THREAD_SUSPENDED);
-    nOS_ThreadCreate(&threadC, ThreadC, (void*)100, threadCStack, THREAD_STACK_SIZE, 3, NOS_THREAD_SUSPENDED);
-#else
-    nOS_ThreadCreate(&threadA, ThreadA, (void*)300, threadAStack, THREAD_STACK_SIZE, 5);
-    nOS_ThreadCreate(&threadB, ThreadB, (void*)200, threadBStack, THREAD_STACK_SIZE, 4);
-    nOS_ThreadCreate(&threadC, ThreadC, (void*)100, threadCStack, THREAD_STACK_SIZE, 3);
-#endif
-
-    Timer2Init();
-
-    /* enable all interrupts */
-    sei();
-
-#if (NOS_CONFIG_THREAD_SUSPEND_ENABLE > 0)
-    nOS_ThreadResumeAll();
-#endif
+    nOS_ThreadCreate(&threadA, ThreadA, (void*)300, threadAStack, THREAD_STACK_SIZE, NOS_CONFIG_HIGHEST_THREAD_PRIO,   NOS_THREAD_READY, "ThreadA");
+    nOS_ThreadCreate(&threadB, ThreadB, (void*)200, threadBStack, THREAD_STACK_SIZE, NOS_CONFIG_HIGHEST_THREAD_PRIO-1, NOS_THREAD_READY, "ThreadB");
+    nOS_ThreadCreate(&threadC, ThreadC, (void*)100, threadCStack, THREAD_STACK_SIZE, NOS_CONFIG_HIGHEST_THREAD_PRIO-2, NOS_THREAD_READY, "ThreadC");
 
     while (1)
     {
-#if (NOS_CONFIG_TIMER_ENABLE > 0) && (NOS_CONFIG_TIMER_THREAD_ENABLE == 0)
-        nOS_TimerProcess();
-#endif
         nOS_SemGive(&semC);
         cntr++;
     }

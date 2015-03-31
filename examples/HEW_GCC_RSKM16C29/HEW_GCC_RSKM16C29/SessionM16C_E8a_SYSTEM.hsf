@@ -165,8 +165,11 @@
 [WINDOW_POSITION_STATE_DATA_VD3]
 [WINDOW_POSITION_STATE_DATA_VD4]
 [WINDOW_Z_ORDER]
+"C:\Users\Jim\Projets\nOS\examples\HEW_GCC_RSKM16C29\HEW_GCC_RSKM16C29\main.c" 
+"C:\Users\Jim\Projets\nOS\source\port\GCC\M16C_R8C\nOSPort.c" 
+"C:\Users\Jim\Projets\nOS\examples\HEW_GCC_RSKM16C29\HEW_GCC_RSKM16C29\nOSConfig.h" 
+"C:\Users\Jim\Projets\nOS\source\nOSFlag.c" 
 "C:\Users\Jim\Projets\nOS\source\nOSMem.c" 
-"C:\Users\Jim\Projets\nOS\source\port\GCC\M16C\nOSPort.c" 
 [TARGET_NAME]
 "M16C E8a SYSTEM" "" 0 
 [STATUSBAR_STATEINFO_VD1]
