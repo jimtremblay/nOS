@@ -726,15 +726,16 @@ struct nOS_TimeDate
 
 #define NOS_NO_WAIT                 0
 #if (NOS_CONFIG_TICK_COUNT_WIDTH == 8)
- #define NOS_WAIT_INFINITE          UINT8_MAX
+ #define NOS_TICK_COUNT_MAX         UINT8_MAX
 #elif (NOS_CONFIG_TICK_COUNT_WIDTH == 16)
- #define NOS_WAIT_INFINITE          UINT16_MAX
+ #define NOS_TICK_COUNT_MAX         UINT16_MAX
 #elif (NOS_CONFIG_TICK_COUNT_WIDTH == 32)
- #define NOS_WAIT_INFINITE          UINT32_MAX
+ #define NOS_TICK_COUNT_MAX         UINT32_MAX
 #elif (NOS_CONFIG_TICK_COUNT_WIDTH == 64)
- #define NOS_WAIT_INFINITE          UINT64_MAX
+ #define NOS_TICK_COUNT_MAX         UINT64_MAX
 #endif
-#define NOS_TICKS_WAIT_MAX          (NOS_WAIT_INFINITE-1)
+#define NOS_WAIT_INFINITE           NOS_TICK_COUNT_MAX
+#define NOS_TICKS_WAIT_MAX          (NOS_TICK_COUNT_MAX-1)
 
 #define NOS_THREAD_PRIO_IDLE        0
 
@@ -784,14 +785,12 @@ struct nOS_TimeDate
  #else
   extern bool               nOS_running;
  #endif
-
  NOS_EXTERN nOS_Thread      nOS_idleHandle;
  NOS_EXTERN nOS_TickCounter nOS_tickCounter;
  NOS_EXTERN uint8_t         nOS_isrNestingCounter;
  #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
   NOS_EXTERN uint8_t        nOS_lockNestingCounter;
  #endif
-
  NOS_EXTERN nOS_Thread      *nOS_runningThread;
  NOS_EXTERN nOS_Thread      *nOS_highPrioThread;
  NOS_EXTERN nOS_List        nOS_mainList;
@@ -800,9 +799,7 @@ struct nOS_TimeDate
  #else
   NOS_EXTERN nOS_List       nOS_readyThreadList;
  #endif
-#endif
 
-#ifdef NOS_PRIVATE
  #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
   nOS_Thread*   nOS_FindHighPrioThread              (void);
   void          nOS_AppendThreadToReadyList         (nOS_Thread *thread);
@@ -813,43 +810,141 @@ struct nOS_TimeDate
   #define       nOS_RemoveThreadFromReadyList(t)    nOS_RemoveFromList(&nOS_readyThreadList, &t->readyWait)
  #endif
  nOS_Error      nOS_Schedule                        (void);
-#endif
-nOS_Error       nOS_Init                            (void);
-nOS_Error       nOS_Yield                           (void);
-void            nOS_Tick                            (void);
-nOS_TickCounter nOS_GetTickCount                    (void);
-#if defined(NOS_CONFIG_TICKS_PER_SECOND) && (NOS_CONFIG_TICKS_PER_SECOND > 0)
- uint32_t       nOS_MsToTicks                       (uint16_t ms);
-#endif
-#if (NOS_CONFIG_SLEEP_ENABLE > 0)
- nOS_Error      nOS_Sleep                           (nOS_TickCounter ticks);
- #if defined(NOS_CONFIG_TICKS_PER_SECOND) && (NOS_CONFIG_TICKS_PER_SECOND > 0)
-  nOS_Error     nOS_SleepMs                         (uint16_t ms);
- #endif
-#endif
-#if (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
- nOS_Error      nOS_SleepUntil                      (nOS_TickCounter tick);
-#endif
-#if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
- nOS_Error      nOS_SchedLock                       (void);
- nOS_Error      nOS_SchedUnlock                     (void);
-#endif
 
-#ifdef NOS_PRIVATE
  void           nOS_InitList                        (nOS_List *list);
  void*          nOS_GetHeadOfList                   (nOS_List *list);
  void           nOS_AppendToList                    (nOS_List *list, nOS_Node *node);
  void           nOS_RemoveFromList                  (nOS_List *list, nOS_Node *node);
  void           nOS_RotateList                      (nOS_List *list);
  void           nOS_WalkInList                      (nOS_List *list, nOS_NodeHandler handler, void *arg);
-#endif
 
-#ifdef NOS_PRIVATE
  #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
   void          nOS_SetThreadPrio                   (nOS_Thread *thread, uint8_t prio);
  #endif
  void           nOS_TickThread                      (void *payload, void *arg);
  void           nOS_SignalThread                    (nOS_Thread *thread, nOS_Error err);
+
+ #if (NOS_CONFIG_SAFE > 0)
+  void          nOS_CreateEvent                     (nOS_Event *event, nOS_EventType type);
+ #else
+  void          nOS_CreateEvent                     (nOS_Event *event);
+ #endif
+ #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
+  bool          nOS_DeleteEvent                     (nOS_Event *event);
+ #else
+  void          nOS_DeleteEvent                     (nOS_Event *event);
+ #endif
+ nOS_Error      nOS_WaitForEvent                    (nOS_Event *event, nOS_ThreadState state, nOS_TickCounter tout);
+ nOS_Thread*    nOS_SignalEvent                     (nOS_Event *event, nOS_Error err);
+
+ #if (NOS_CONFIG_TIMER_ENABLE > 0)
+  void          nOS_InitTimer                       (void);
+ #endif
+
+ #if (NOS_CONFIG_TIME_ENABLE > 0)
+  void          nOS_InitTime                        (void);
+ #endif
+#endif
+
+/*
+ * Name        : nOS_Init
+ *
+ * Description : Initialize nOS scheduler and enabled services.
+ *
+ * Return      : Error code.
+ *   NOS_OK    : Initialization successfully completed.
+ *
+ * Notes
+ *   1. This is the first nOS function that the application should call, else the behaviour is undefined.
+ */
+nOS_Error       nOS_Init                            (void);
+
+/*
+ * Name           : nOS_Yield
+ *
+ * Description    : Request an immediate context switch from currently running thread to highest priority ready to run
+ *                  thread.
+ *
+ * Return         : Error code
+ *   NOS_OK       : Yielding successfully completed.
+ *   NOS_E_ISR    : Can't yield from interrupt service routine.
+ *   NOS_E_LOCKED : Can't yield from a scheduler locked section.
+ */
+nOS_Error       nOS_Yield                           (void);
+
+/*
+ * Name        : nOS_Tick
+ *
+ * Description : Send a tick to scheduler and enabled services.
+ *
+ * Notes
+ *   1. Must be called x times per second by the application if needed.
+ *        x = NOS_CONFIG_TICKS_PER_SECOND
+ */
+void            nOS_Tick                            (void);
+
+/*
+ * Name        : nOS_GetTickCount
+ *
+ * Description : Get scheduler free running tick counter. Can be used to compute number of ticks passed since last event
+ *               or create periodic task in combination with nOS_SleepUntil.
+ *
+ * Return      : Tick counter.
+ *                 See note 1
+ *
+ * Notes
+ *   1. Bits width is determined by NOS_CONFIG_TICK_COUNT_WIDTH.
+ *   2. This is a free running counter that will certainly overflow.
+ */
+nOS_TickCounter nOS_GetTickCount                    (void);
+
+#if defined(NOS_CONFIG_TICKS_PER_SECOND) && (NOS_CONFIG_TICKS_PER_SECOND > 0)
+/*
+ * Name        : nOS_MsToTicks
+ *
+ * Description : Convert a number of milliseconds in number of ticks. Can be used for timer reload value.
+ *
+ * Parameters
+ *   ms        : Number of milliseconds.
+ *
+ * Return      : Number of ticks.
+ *
+ * Notes
+ *   1. Can return a higher count than nOS_TickCounter if NOS_CONFIG_TICK_COUNT_WIDTH is less than 32 bits.
+ */
+ uint32_t       nOS_MsToTicks                       (uint16_t ms);
+#endif
+
+#if (NOS_CONFIG_SLEEP_ENABLE > 0)
+/*
+ * Name           : nOS_Sleep
+ *
+ * Description    : Place currently running thread in sleeping state for specified number of ticks.
+ *
+ * Parameters
+ *   ticks        : Number of ticks to wait.
+ *
+ * Return         : Error code.
+ *   NOS_OK       : Running thread successfully sleeping.
+ *   NOS_E_ISR    : Can't sleep from interrupt service routine.
+ *   NOS_E_LOCKED : Can't sleep from scheduler locked section.
+ *   NOS_E_IDLE   : Can't sleep from main thread.
+ */
+ nOS_Error      nOS_Sleep                           (nOS_TickCounter ticks);
+
+ #if defined(NOS_CONFIG_TICKS_PER_SECOND) && (NOS_CONFIG_TICKS_PER_SECOND > 0)
+  nOS_Error     nOS_SleepMs                         (uint16_t ms);
+ #endif
+#endif
+
+#if (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
+ nOS_Error      nOS_SleepUntil                      (nOS_TickCounter tick);
+#endif
+
+#if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
+ nOS_Error      nOS_SchedLock                       (void);
+
+ nOS_Error      nOS_SchedUnlock                     (void);
 #endif
 
 /*
@@ -926,28 +1021,36 @@ nOS_Error       nOS_ThreadCreate                   (nOS_Thread *thread,
  void           nOS_ThreadSetName                   (nOS_Thread *thread, const char *name);
 #endif
 
-#ifdef NOS_PRIVATE
- #if (NOS_CONFIG_SAFE > 0)
-  void          nOS_CreateEvent                     (nOS_Event *event, nOS_EventType type);
- #else
-  void          nOS_CreateEvent                     (nOS_Event *event);
- #endif
- #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
-  bool          nOS_DeleteEvent                     (nOS_Event *event);
- #else
-  void          nOS_DeleteEvent                     (nOS_Event *event);
- #endif
- nOS_Error      nOS_WaitForEvent                    (nOS_Event *event, nOS_ThreadState state, nOS_TickCounter tout);
- nOS_Thread*    nOS_SignalEvent                     (nOS_Event *event, nOS_Error err);
-#endif
-
 #if (NOS_CONFIG_SEM_ENABLE > 0)
+/*
+ * Name            : nOS_SemCreate
+ *
+ * Description     : Create a new semaphore object.
+ *
+ * Parameters
+ *   sem           : Pointer to semaphore object.
+ *   count         : Initial count of semaphore.
+ *   max           : Maximum count of semaphore.
+ *
+ * Return          : Error code.
+ *   NOS_OK        : Semaphore successfully created.
+ *   NOS_E_INV_OBJ : Pointer to sempahore object is invalid.
+ *   NOS_E_INV_VAL : Initial count is higher than defined maximum.
+ *
+ * Notes
+ *   1. Semaphore object must be created before using it, else the behaviour is undefined.
+ *   2. Must be called one time only for each semaphore object.
+ */
  nOS_Error      nOS_SemCreate                       (nOS_Sem *sem, nOS_SemCounter count, nOS_SemCounter max);
+
  #if (NOS_CONFIG_SEM_DELETE_ENABLE > 0)
   nOS_Error     nOS_SemDelete                       (nOS_Sem *sem);
  #endif
+
  nOS_Error      nOS_SemTake                         (nOS_Sem *sem, nOS_TickCounter tout);
+
  nOS_Error      nOS_SemGive                         (nOS_Sem *sem);
+
  bool           nOS_SemIsAvailable                  (nOS_Sem *sem);
 #endif
 
@@ -974,7 +1077,7 @@ nOS_Error       nOS_ThreadCreate                   (nOS_Thread *thread,
  *   NOS_E_INV_VAL : Type of mutex is invalid.
  *
  * Notes
- *   1. Mutex object must be created before using it, else behaviour is undefined.
+ *   1. Mutex object must be created before using it, else the behaviour is undefined.
  *   2. Must be called one time only for each mutex object.
  */
  nOS_Error      nOS_MutexCreate                     (nOS_Mutex *mutex,
@@ -1024,6 +1127,22 @@ nOS_Error       nOS_ThreadCreate                   (nOS_Thread *thread,
  nOS_Error      nOS_FlagCreate                      (nOS_Flag *flag, nOS_FlagBits flags);
 
  #if (NOS_CONFIG_FLAG_DELETE_ENABLE > 0)
+/*
+ * Name            : nOS_FlagDelete
+ *
+ * Description     : Delete a flag event object and wake up all waiting threads.
+ *
+ * Parameters
+ *   flag          : Pointer to flag object.
+ *
+ * Return          : Error code.
+ *   NOS_OK        : Flag successfully deleted.
+ *   NOS_E_INV_OBJ : Pointer to flag object is invalid.
+ *
+ * Notes
+ *   1. Flag object must be created before, else the behaviour is undefined.
+ *   2. Flag object must not be used after deletion, else the behaviour is undefined.
+ */
   nOS_Error     nOS_FlagDelete                      (nOS_Flag *flag);
  #endif
 
@@ -1059,6 +1178,7 @@ nOS_Error       nOS_ThreadCreate                   (nOS_Thread *thread,
  *   NOS_E_LOCKED  : Can't wit scheduler is locked.
  *   NOS_E_IDLE    : Can't wait from main thread (idle).
  *   NOS_E_TIMEOUT : Flags had not been set before reaching timeout.
+ *   NOS_E_DELETED : Flag object has been deleted.
  *
  * Notes
  *   1. Only valid if returned error code is NOS_OK. Otherwise, res is unchanged.
@@ -1084,8 +1204,6 @@ nOS_Error       nOS_ThreadCreate                   (nOS_Thread *thread,
  *   NOS_E_INV_OBJ : Pointer to flag object is invalid.
  */
  nOS_Error      nOS_FlagSend                        (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits mask);
-
- nOS_FlagBits   nOS_FlagTest                        (nOS_Flag *flag, nOS_FlagBits flags, bool all);
 #endif
 
 #if (NOS_CONFIG_MEM_ENABLE > 0)
@@ -1172,13 +1290,22 @@ nOS_Error       nOS_ThreadCreate                   (nOS_Thread *thread,
  */
  nOS_Error      nOS_MemFree                         (nOS_Mem *mem, void *block);
 
+/*
+ * Name        : nOS_MemIsAvailable
+ *
+ * Description : Check if at least one block of memory is available.
+ *
+ * Parameters
+ *   mem       : Pointer to mem object.
+ *
+ * Return      : Block availability.
+ *   false     : No block of memory is currently available.
+ *   true      : At least one block of memory is available.
+ */
  bool           nOS_MemIsAvailable                  (nOS_Mem *mem);
 #endif
 
 #if (NOS_CONFIG_TIMER_ENABLE > 0)
- #ifdef NOS_PRIVATE
-  void          nOS_TimerInit                       (void);
- #endif
  void           nOS_TimerTick                       (void);
  void           nOS_TimerProcess                    (void);
  nOS_Error      nOS_TimerCreate                     (nOS_Timer *timer, nOS_TimerCallback callback, void *arg, nOS_TimerCounter reload, nOS_TimerMode mode);
@@ -1197,9 +1324,6 @@ nOS_Error       nOS_ThreadCreate                   (nOS_Thread *thread,
 #endif
 
 #if (NOS_CONFIG_TIME_ENABLE > 0)
- #ifdef NOS_PRIVATE
-  void          nOS_TimeInit                        (void);
- #endif
  void           nOS_TimeTick                        (void);
  nOS_Time       nOS_TimeGet                         (void);
  nOS_Error      nOS_TimeSet                         (nOS_Time time);

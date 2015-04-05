@@ -44,7 +44,7 @@ static void _TickTime(void *payload, void *arg)
 /*----------------------------------------------------------------------------*/
 #endif
 
-void nOS_TimeInit (void)
+void nOS_InitTime (void)
 {
 #if (NOS_CONFIG_TIME_TICKS_PER_SECOND > 1)
     _timePrescaler = 0;

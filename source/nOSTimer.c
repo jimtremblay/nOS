@@ -76,7 +76,7 @@ static void _TickTimer (void *payload, void *arg)
 }
 /*----------------------------------------------------------------------------*/
 
-void nOS_TimerInit(void)
+void nOS_InitTimer(void)
 {
     nOS_InitList(&_timerList);
     nOS_SemCreate(&_timerSem, 0, NOS_SEM_COUNT_MAX);

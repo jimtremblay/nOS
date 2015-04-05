@@ -467,19 +467,19 @@ nOS_Error nOS_Init(void)
         nOS_runningThread = &nOS_idleHandle;
         nOS_highPrioThread = &nOS_idleHandle;
 
+        /* Let port doing special initialization if needed */
+        nOS_InitSpecific();
+
 #if (NOS_CONFIG_TIMER_ENABLE > 0)
-        nOS_TimerInit();
+        nOS_InitTimer();
 #endif
 
 #if (NOS_CONFIG_TIME_ENABLE > 0)
-        nOS_TimeInit();
+        nOS_InitTime();
 #endif
 
         /* Context switching is possible after this point */
         nOS_running = true;
-
-        /* Let port doing special initialization if needed */
-        nOS_InitSpecific();
     }
 
     return NOS_OK;
@@ -518,7 +518,6 @@ void nOS_Tick(void)
 {
     nOS_EnterCritical();
     nOS_tickCounter++;
-
     nOS_WalkInList(&nOS_mainList, nOS_TickThread, NULL);
 #if (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0) && (NOS_CONFIG_SCHED_ROUND_ROBIN_ENABLE > 0)
  #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
