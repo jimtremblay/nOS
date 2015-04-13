@@ -14,8 +14,6 @@ extern "C" {
 #endif
 
 #if (NOS_CONFIG_MUTEX_ENABLE > 0)
-/*----------------------------------------------------------------------------*/
-
 nOS_Error nOS_MutexCreate (nOS_Mutex *mutex,
                            nOS_MutexType type
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
@@ -55,7 +53,6 @@ nOS_Error nOS_MutexCreate (nOS_Mutex *mutex,
 
     return err;
 }
-/*----------------------------------------------------------------------------*/
 
 #if (NOS_CONFIG_MUTEX_DELETE_ENABLE > 0)
 nOS_Error nOS_MutexDelete (nOS_Mutex *mutex)
@@ -86,7 +83,6 @@ nOS_Error nOS_MutexDelete (nOS_Mutex *mutex)
 
     return err;
 }
-/*----------------------------------------------------------------------------*/
 #endif
 
 nOS_Error nOS_MutexLock (nOS_Mutex *mutex, nOS_TickCounter tout)
@@ -173,7 +169,6 @@ nOS_Error nOS_MutexLock (nOS_Mutex *mutex, nOS_TickCounter tout)
 
     return err;
 }
-/*----------------------------------------------------------------------------*/
 
 nOS_Error nOS_MutexUnlock (nOS_Mutex *mutex)
 {
@@ -230,7 +225,6 @@ nOS_Error nOS_MutexUnlock (nOS_Mutex *mutex)
 
     return err;
 }
-/*----------------------------------------------------------------------------*/
 
 bool nOS_MutexIsLocked (nOS_Mutex *mutex)
 {
@@ -251,7 +245,6 @@ bool nOS_MutexIsLocked (nOS_Mutex *mutex)
 
     return locked;
 }
-/*----------------------------------------------------------------------------*/
 
 nOS_Thread* nOS_MutexGetOwner (nOS_Mutex *mutex)
 {
@@ -272,7 +265,6 @@ nOS_Thread* nOS_MutexGetOwner (nOS_Mutex *mutex)
 
     return owner;
 }
-/*----------------------------------------------------------------------------*/
 #endif  /* NOS_CONFIG_MUTEX_ENABLE */
 
 #ifdef __cplusplus

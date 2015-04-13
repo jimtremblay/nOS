@@ -47,7 +47,6 @@ static nOS_Error _SanityCheck (nOS_Mem *mem, void *block)
 
     return err;
 }
-/*----------------------------------------------------------------------------*/
 #endif  /* NOS_CONFIG_MEM_SANITY_CHECK_ENABLE */
 
 nOS_Error nOS_MemCreate (nOS_Mem *mem, void *buffer, nOS_MemSize bsize, nOS_MemCounter bmax)
@@ -110,7 +109,6 @@ nOS_Error nOS_MemCreate (nOS_Mem *mem, void *buffer, nOS_MemSize bsize, nOS_MemC
 
     return err;
 }
-/*----------------------------------------------------------------------------*/
 
 #if (NOS_CONFIG_MEM_DELETE_ENABLE > 0)
 nOS_Error nOS_MemDelete (nOS_Mem *mem)
@@ -146,7 +144,6 @@ nOS_Error nOS_MemDelete (nOS_Mem *mem)
 
     return err;
 }
-/*----------------------------------------------------------------------------*/
 #endif
 
 void *nOS_MemAlloc(nOS_Mem *mem, nOS_TickCounter tout)
@@ -195,7 +192,6 @@ void *nOS_MemAlloc(nOS_Mem *mem, nOS_TickCounter tout)
 
     return block;
 }
-/*----------------------------------------------------------------------------*/
 
 nOS_Error nOS_MemFree(nOS_Mem *mem, void *block)
 {
@@ -241,7 +237,6 @@ nOS_Error nOS_MemFree(nOS_Mem *mem, void *block)
 
     return err;
 }
-/*----------------------------------------------------------------------------*/
 
 bool nOS_MemIsAvailable (nOS_Mem *mem)
 {
@@ -262,7 +257,6 @@ bool nOS_MemIsAvailable (nOS_Mem *mem)
 
     return avail;
 }
-/*----------------------------------------------------------------------------*/
 #endif  /* NOS_CONFIG_MEM_ENABLE */
 
 #ifdef __cplusplus

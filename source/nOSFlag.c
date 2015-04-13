@@ -14,7 +14,6 @@ extern "C" {
 #endif
 
 #if (NOS_CONFIG_FLAG_ENABLE > 0)
-/* Internal function */
 static void _TestFlag (void *payload, void *arg)
 {
     nOS_Thread      *thread  = (nOS_Thread*)payload;
@@ -44,7 +43,6 @@ static void _TestFlag (void *payload, void *arg)
 #endif
     }
 }
-/*----------------------------------------------------------------------------*/
 
 nOS_Error nOS_FlagCreate (nOS_Flag *flag, nOS_FlagBits flags)
 {
@@ -71,7 +69,6 @@ nOS_Error nOS_FlagCreate (nOS_Flag *flag, nOS_FlagBits flags)
 
     return err;
 }
-/*----------------------------------------------------------------------------*/
 
 #if (NOS_CONFIG_FLAG_DELETE_ENABLE > 0)
 nOS_Error nOS_FlagDelete (nOS_Flag *flag)
@@ -102,7 +99,6 @@ nOS_Error nOS_FlagDelete (nOS_Flag *flag)
     return err;
 }
 #endif
-/*----------------------------------------------------------------------------*/
 
 nOS_Error nOS_FlagWait (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits *res,
                         nOS_FlagOption opt, nOS_TickCounter tout)
@@ -168,7 +164,6 @@ nOS_Error nOS_FlagWait (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits *res,
 
     return err;
 }
-/*----------------------------------------------------------------------------*/
 
 nOS_Error nOS_FlagSend (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits mask)
 {
@@ -204,7 +199,6 @@ nOS_Error nOS_FlagSend (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits mask)
 
     return err;
 }
-/*----------------------------------------------------------------------------*/
 #endif  /* NOS_CONFIG_FLAG_ENABLE */
 
 #ifdef __cplusplus

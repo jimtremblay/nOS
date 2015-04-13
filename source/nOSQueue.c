@@ -20,7 +20,6 @@ static void _Write (nOS_Queue *queue, void *block)
     queue->w = (queue->w + 1) % queue->bmax;
     queue->bcount++;
 }
-/*----------------------------------------------------------------------------*/
 
 static void _Read (nOS_Queue *queue, void *block)
 {
@@ -28,7 +27,6 @@ static void _Read (nOS_Queue *queue, void *block)
     queue->r = (queue->r + 1) % queue->bmax;
     queue->bcount--;
 }
-/*----------------------------------------------------------------------------*/
 
 nOS_Error nOS_QueueCreate (nOS_Queue *queue, void *buffer, uint8_t bsize, nOS_QueueCounter bmax)
 {
@@ -66,7 +64,6 @@ nOS_Error nOS_QueueCreate (nOS_Queue *queue, void *buffer, uint8_t bsize, nOS_Qu
 
     return err;
 }
-/*----------------------------------------------------------------------------*/
 
 #if (NOS_CONFIG_QUEUE_DELETE_ENABLE > 0)
 nOS_Error nOS_QueueDelete (nOS_Queue *queue)
@@ -101,7 +98,6 @@ nOS_Error nOS_QueueDelete (nOS_Queue *queue)
 
     return err;
 }
-/*----------------------------------------------------------------------------*/
 #endif
 
 nOS_Error nOS_QueueRead (nOS_Queue *queue, void *block, nOS_TickCounter tout)
@@ -157,7 +153,6 @@ nOS_Error nOS_QueueRead (nOS_Queue *queue, void *block, nOS_TickCounter tout)
 
     return err;
 }
-/*----------------------------------------------------------------------------*/
 
 nOS_Error nOS_QueueWrite (nOS_Queue *queue, void *block, nOS_TickCounter tout)
 {
@@ -222,7 +217,6 @@ nOS_Error nOS_QueueWrite (nOS_Queue *queue, void *block, nOS_TickCounter tout)
 
     return err;
 }
-/*----------------------------------------------------------------------------*/
 
 bool nOS_QueueIsEmpty (nOS_Queue *queue)
 {
@@ -247,7 +241,6 @@ bool nOS_QueueIsEmpty (nOS_Queue *queue)
 
     return empty;
 }
-/*----------------------------------------------------------------------------*/
 
 bool nOS_QueueIsFull (nOS_Queue *queue)
 {
@@ -272,7 +265,6 @@ bool nOS_QueueIsFull (nOS_Queue *queue)
 
     return full;
 }
-/*----------------------------------------------------------------------------*/
 #endif  /* NOS_CONFIG_QUEUE_ENABLE */
 
 #ifdef __cplusplus

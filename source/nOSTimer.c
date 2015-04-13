@@ -39,7 +39,6 @@ static void _ThreadTimer (void *arg)
         nOS_TimerProcess();
     }
 }
-/*----------------------------------------------------------------------------*/
 #endif
 
 static void _TickTimer (void *payload, void *arg)
@@ -74,7 +73,6 @@ static void _TickTimer (void *payload, void *arg)
         }
     }
 }
-/*----------------------------------------------------------------------------*/
 
 void nOS_InitTimer(void)
 {
@@ -105,13 +103,11 @@ void nOS_InitTimer(void)
                      );
 #endif  /* NOS_CONFIG_TIMER_THREAD_ENABLE */
 }
-/*----------------------------------------------------------------------------*/
 
 void nOS_TimerTick (void)
 {
     nOS_SemGive(&_timerSem);
 }
-/*----------------------------------------------------------------------------*/
 
 void nOS_TimerProcess (void)
 {
@@ -125,7 +121,6 @@ void nOS_TimerProcess (void)
         nOS_WalkInList(&_timerList, _TickTimer, NULL);
     }
 }
-/*----------------------------------------------------------------------------*/
 
 nOS_Error nOS_TimerCreate (nOS_Timer *timer, nOS_TimerCallback callback, void *arg, nOS_TimerCounter reload, nOS_TimerMode mode)
 {
@@ -178,7 +173,6 @@ nOS_Error nOS_TimerDelete (nOS_Timer *timer)
 
     return err;
 }
-/*----------------------------------------------------------------------------*/
 #endif
 
 nOS_Error nOS_TimerStart (nOS_Timer *timer)
@@ -202,7 +196,6 @@ nOS_Error nOS_TimerStart (nOS_Timer *timer)
 
     return err;
 }
-/*----------------------------------------------------------------------------*/
 
 nOS_Error nOS_TimerStop (nOS_Timer *timer)
 {
@@ -224,7 +217,6 @@ nOS_Error nOS_TimerStop (nOS_Timer *timer)
 
     return err;
 }
-/*----------------------------------------------------------------------------*/
 
 nOS_Error nOS_TimerRestart (nOS_Timer *timer, nOS_TimerCounter reload)
 {
@@ -248,7 +240,6 @@ nOS_Error nOS_TimerRestart (nOS_Timer *timer, nOS_TimerCounter reload)
 
     return err;
 }
-/*----------------------------------------------------------------------------*/
 
 nOS_Error nOS_TimerPause (nOS_Timer *timer)
 {
@@ -270,7 +261,6 @@ nOS_Error nOS_TimerPause (nOS_Timer *timer)
 
     return err;
 }
-/*----------------------------------------------------------------------------*/
 
 nOS_Error nOS_TimerResume (nOS_Timer *timer)
 {
@@ -292,7 +282,6 @@ nOS_Error nOS_TimerResume (nOS_Timer *timer)
 
     return err;
 }
-/*----------------------------------------------------------------------------*/
 
 nOS_Error nOS_TimerSetReload (nOS_Timer *timer, nOS_TimerCounter reload)
 {
@@ -314,7 +303,6 @@ nOS_Error nOS_TimerSetReload (nOS_Timer *timer, nOS_TimerCounter reload)
 
     return err;
 }
-/*----------------------------------------------------------------------------*/
 
 nOS_Error nOS_TimerSetCallback (nOS_Timer *timer, nOS_TimerCallback callback, void *arg)
 {
@@ -337,7 +325,6 @@ nOS_Error nOS_TimerSetCallback (nOS_Timer *timer, nOS_TimerCallback callback, vo
 
     return err;
 }
-/*----------------------------------------------------------------------------*/
 
 nOS_Error nOS_TimerSetMode (nOS_Timer *timer, nOS_TimerMode mode)
 {
@@ -361,7 +348,6 @@ nOS_Error nOS_TimerSetMode (nOS_Timer *timer, nOS_TimerMode mode)
 
     return err;
 }
-/*----------------------------------------------------------------------------*/
 
 bool nOS_TimerIsRunning (nOS_Timer *timer)
 {
@@ -382,7 +368,6 @@ bool nOS_TimerIsRunning (nOS_Timer *timer)
 
     return running;
 }
-/*----------------------------------------------------------------------------*/
 #endif  /* NOS_CONFIG_TIMER_ENABLE */
 
 #ifdef __cplusplus

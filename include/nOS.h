@@ -846,7 +846,8 @@ struct nOS_TimeDate
  #endif
 #endif
 
-/*
+/***********************************************************************************************************************
+ *
  * Name        : nOS_Init
  *
  * Description : Initialize nOS scheduler and enabled services.
@@ -856,23 +857,27 @@ struct nOS_TimeDate
  *
  * Notes
  *   1. This is the first nOS function that the application should call, else the behaviour is undefined.
- */
+ *
+ **********************************************************************************************************************/
 nOS_Error       nOS_Init                            (void);
 
-/*
+/***********************************************************************************************************************
+ *
  * Name           : nOS_Yield
  *
  * Description    : Request an immediate context switch from currently running thread to highest priority ready to run
  *                  thread.
  *
- * Return         : Error code
+ * Return         : Error code.
  *   NOS_OK       : Yielding successfully completed.
  *   NOS_E_ISR    : Can't yield from interrupt service routine.
  *   NOS_E_LOCKED : Can't yield from a scheduler locked section.
- */
+ *
+ **********************************************************************************************************************/
 nOS_Error       nOS_Yield                           (void);
 
-/*
+/***********************************************************************************************************************
+ *
  * Name        : nOS_Tick
  *
  * Description : Send a tick to scheduler and enabled services.
@@ -880,14 +885,16 @@ nOS_Error       nOS_Yield                           (void);
  * Notes
  *   1. Must be called x times per second by the application if needed.
  *        x = NOS_CONFIG_TICKS_PER_SECOND
- */
+ *
+ **********************************************************************************************************************/
 void            nOS_Tick                            (void);
 
-/*
+/***********************************************************************************************************************
+ *
  * Name        : nOS_GetTickCount
  *
- * Description : Get scheduler free running tick counter. Can be used to compute number of ticks passed since last event
- *               or create periodic task in combination with nOS_SleepUntil.
+ * Description : Get scheduler free running tick counter. Can be used to compute number of ticks passed since last
+ *               event or create periodic task in combination with nOS_SleepUntil.
  *
  * Return      : Tick counter.
  *                 See note 1
@@ -895,11 +902,13 @@ void            nOS_Tick                            (void);
  * Notes
  *   1. Bits width is determined by NOS_CONFIG_TICK_COUNT_WIDTH.
  *   2. This is a free running counter that will certainly overflow.
- */
+ *
+ **********************************************************************************************************************/
 nOS_TickCounter nOS_GetTickCount                    (void);
 
 #if defined(NOS_CONFIG_TICKS_PER_SECOND) && (NOS_CONFIG_TICKS_PER_SECOND > 0)
-/*
+/***********************************************************************************************************************
+ *
  * Name        : nOS_MsToTicks
  *
  * Description : Convert a number of milliseconds in number of ticks. Can be used for timer reload value.
@@ -911,12 +920,14 @@ nOS_TickCounter nOS_GetTickCount                    (void);
  *
  * Notes
  *   1. Can return a higher count than nOS_TickCounter if NOS_CONFIG_TICK_COUNT_WIDTH is less than 32 bits.
- */
+ *
+ **********************************************************************************************************************/
  uint32_t       nOS_MsToTicks                       (uint16_t ms);
 #endif
 
 #if (NOS_CONFIG_SLEEP_ENABLE > 0)
-/*
+/***********************************************************************************************************************
+ *
  * Name           : nOS_Sleep
  *
  * Description    : Place currently running thread in sleeping state for specified number of ticks.
@@ -929,25 +940,90 @@ nOS_TickCounter nOS_GetTickCount                    (void);
  *   NOS_E_ISR    : Can't sleep from interrupt service routine.
  *   NOS_E_LOCKED : Can't sleep from scheduler locked section.
  *   NOS_E_IDLE   : Can't sleep from main thread.
- */
+ *
+ **********************************************************************************************************************/
  nOS_Error      nOS_Sleep                           (nOS_TickCounter ticks);
 
  #if defined(NOS_CONFIG_TICKS_PER_SECOND) && (NOS_CONFIG_TICKS_PER_SECOND > 0)
+/***********************************************************************************************************************
+ *
+ * Name           : nOS_SleepMs
+ *
+ * Description    : Place currently running thread in sleeping state for specified number of milliseconds.
+ *
+ * Parameters
+ *   ms           : Number of milliseconds to wait.
+ *
+ * Return         : Error code.
+ *   NOS_OK       : Running thread successfully sleeping.
+ *   NOS_E_ISR    : Can't sleep from interrupt service routine.
+ *   NOS_E_LOCKED : Can't sleep from scheduler locked section.
+ *   NOS_E_IDLE   : Can't sleep from main thread.
+ *
+ **********************************************************************************************************************/
   nOS_Error     nOS_SleepMs                         (uint16_t ms);
  #endif
 #endif
 
 #if (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
+/***********************************************************************************************************************
+ *
+ * Name           : nOS_SleepUntil
+ *
+ * Description    : Place currently running thread in sleeping state until reaching specified tick counter. Can be used
+ *                  in combination with nOS_GetTickCount to create periodic task.
+ *
+ * Parameters
+ *   tick         : Absolute tick counter to wait.
+ *
+ * Return         : Error code.
+ *   NOS_OK       : Running thread successfully sleeping.
+ *   NOS_E_ISR    : Can't sleep from interrupt service routine.
+ *   NOS_E_LOCKED : Can't sleep from scheduler locked section.
+ *   NOS_E_IDLE   : Can't sleep from main thread.
+ *
+ **********************************************************************************************************************/
  nOS_Error      nOS_SleepUntil                      (nOS_TickCounter tick);
 #endif
 
 #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
+/***********************************************************************************************************************
+ *
+ * Name             : nOS_SchedLock
+ *
+ * Description      : Lock the scheduler to disable context switching without disabling interrupts.
+ *
+ * Return           : Error code.
+ *   NOS_OK         : Scheduler successfully locked.
+ *   NOS_E_ISR      : Can't lock scheduler from interrupt service routine.
+ *   NOS_E_OVERFLOW : Scheduler locked too many times.
+ *
+ * Notes
+ *   1. For each lock called, the same number of unlock should be called to unlock the scheduler.
+ *
+ **********************************************************************************************************************/
  nOS_Error      nOS_SchedLock                       (void);
 
+/***********************************************************************************************************************
+ *
+ * Name              : nOS_SchedUnlock
+ *
+ * Description       : Unlock the scheduler and re-enable context switching.
+ *
+ * Return            : Error code.
+ *   NOS_OK          : Scheduler successfully unlocked.
+ *   NOS_E_ISR       : Can't unlock scheduler from interrupt service routine.
+ *   NOS_E_UNDERFLOW : Scheduler unlocked too many times.
+ *
+ * Notes
+ *   1. For each lock called, the same number of unlock should be called to unlock the scheduler.
+ *
+ **********************************************************************************************************************/
  nOS_Error      nOS_SchedUnlock                     (void);
 #endif
 
-/*
+/***********************************************************************************************************************
+ *
  * Name              : nOS_ThreadCreate
  *
  * Description       : Create a new thread and add it to the list of threads managed by the scheduler.
@@ -956,7 +1032,7 @@ nOS_TickCounter nOS_GetTickCount                    (void);
  *   thread          : Pointer to nOS_Thread object allocated by the application.
  *   entry           : Pointer to the thread entry function. It shall be implemented has a never ending loop.
  *   arg             : Pointer that will be used as parameter when thread will run.
- *   stack           : Pointer to an array of nOS_Stack entries allocated by the application that will be used as stack.
+ *   stack           : Pointer to an array of nOS_Stack entries allocated by the application.
  *   ssize           : Total size of the stack in number of nOS_Stack entries.
  *   cssize          : Size of the call stack to reserve on stack in number of call entries.
  *                       See note 1
@@ -973,7 +1049,8 @@ nOS_TickCounter nOS_GetTickCount                    (void);
  * Return            : Error code.
  *   NOS_OK          : Thread successfully created.
  *   NOS_E_INV_OBJ   : Pointer to nOS_Thread object is invalid.
- *   NOS_E_INV_VAL   : Invalid parameter(s) (can be an invalid thread entry, stack array, stack size and/or call stack size).
+ *   NOS_E_INV_VAL   : Invalid parameter(s) (can be an invalid thread entry, stack array, stack size and/or
+ *                     call stack size).
  *   NOS_E_INV_PRIO  : Priority is higher than NOS_CONFIG_HIGHEST_THREAD_PRIO.
  *   NOS_E_INV_STATE : State of the thread is invalid.
  *
@@ -983,12 +1060,13 @@ nOS_TickCounter nOS_GetTickCount                    (void);
  *   3. If NOS_CONFIG_THREAD_SUSPEND_ENABLE if defined to 0, this parameter is not available and threads will always
  *      be created in ready state.
  *   4. Not available if NOS_CONFIG_THREAD_NAME_ENABLE is defined to 0.
- */
-nOS_Error       nOS_ThreadCreate                   (nOS_Thread *thread,
-                                                    nOS_ThreadEntry entry,
-                                                    void *arg,
-                                                    nOS_Stack *stack,
-                                                    size_t ssize
+ *
+ **********************************************************************************************************************/
+nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
+                                                     nOS_ThreadEntry entry,
+                                                     void *arg,
+                                                     nOS_Stack *stack,
+                                                     size_t ssize
 #ifdef NOS_USE_SEPARATE_CALL_STACK
                                                     ,size_t cssize
 #endif
@@ -1004,13 +1082,95 @@ nOS_Error       nOS_ThreadCreate                   (nOS_Thread *thread,
                                                     );
 
 #if (NOS_CONFIG_THREAD_DELETE_ENABLE > 0)
+/***********************************************************************************************************************
+ *
+ * Name            : nOS_ThreadDelete
+ *
+ * Description     : Delete thread and remove it from ready to run list or any waiting list managed by the scheduler.
+ *
+ * Parameters
+ *   thread        : Pointer to nOS_Thread object.
+ *                     See note 1.
+ *
+ * Return          : Error code.
+ *   NOS_OK        : Thread successfully deleted.
+ *   NOS_E_INV_OBJ : Pointer to nOS_Thread object is invalid.
+ *   NOS_E_LOCKED  : Can't delete running thread from scheduler locked section.
+ *
+ * Notes
+ *   1. Pointer can be NULL to access the running thread.
+ *
+ **********************************************************************************************************************/
  nOS_Error      nOS_ThreadDelete                    (nOS_Thread *thread);
 #endif
+
 #if (NOS_CONFIG_THREAD_SUSPEND_ENABLE > 0)
+/***********************************************************************************************************************
+ *
+ * Name              : nOS_ThreadSuspend
+ *
+ * Description       : Suspend thread and remove it from ready to run list if applicable. Use this function with high
+ *                     care, if thread is holding ressources, it can produce a deadlock if other threads need these
+ *                     ressources.
+ *
+ * Parameters
+ *   thread          : Pointer to nOS_Thread object.
+ *                       See note 1.
+ *
+ * Return            : Error code.
+ *   NOS_OK          : Thread successfully suspended.
+ *   NOS_E_INV_OBJ   : Pointer to nOS_Thread object is invalid.
+ *   NOS_E_INV_STATE : Thread is already in suspended state.
+ *   NOS_E_LOCKED    : Can't suspend running thread from scheduler locked section.
+ *
+ * Notes
+ *   1. Pointer can be NULL to access the running thread.
+ *
+ **********************************************************************************************************************/
  nOS_Error      nOS_ThreadSuspend                   (nOS_Thread *thread);
+
+/***********************************************************************************************************************
+ *
+ * Name           : nOS_ThreadSuspendAll
+ *
+ * Description    : Suspend all threads (except main thread) and remove them from ready ro run list.
+ *
+ * Return         : Error code.
+ *   NOS_OK       : All threads successfully suspended.
+ *   NOS_E_LOCKED : Can't lock all threads from scheduler locked section if not called from main thread.
+ *
+ **********************************************************************************************************************/
  nOS_Error      nOS_ThreadSuspendAll                (void);
+
+/***********************************************************************************************************************
+ *
+ * Name              : nOS_ThreadResume
+ *
+ * Description       : Resume previously suspended thread and add it to ready to run list if applicable.
+ *
+ * Parameters
+ *   thread          : Pointer to nOS_Thread object.
+ *
+ * Return            : Error code.
+ *   NOS_OK          : Thread successfully resumed.
+ *   NOS_E_INV_OBJ   : Pointer to nOS_Thread object is invalid.
+ *   NOS_E_INV_STATE : Thread is not in suspended state.
+ *
+ **********************************************************************************************************************/
  nOS_Error      nOS_ThreadResume                    (nOS_Thread *thread);
+
+/***********************************************************************************************************************
+ *
+ * Name        : nOS_ThreadResumeAll
+ *
+ * Description : Resume all suspended threads and add them to ready to run list.
+ *
+ * Return      : Error code.
+ *   NOS_OK    : All suspended threads successfully resumed.
+ *
+ **********************************************************************************************************************/
  nOS_Error      nOS_ThreadResumeAll                 (void);
+
 #endif
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_THREAD_SET_PRIO_ENABLE > 0)
  int16_t        nOS_ThreadGetPriority               (nOS_Thread *thread);
@@ -1022,7 +1182,8 @@ nOS_Error       nOS_ThreadCreate                   (nOS_Thread *thread,
 #endif
 
 #if (NOS_CONFIG_SEM_ENABLE > 0)
-/*
+/***********************************************************************************************************************
+ *
  * Name            : nOS_SemCreate
  *
  * Description     : Create a new semaphore object.
@@ -1040,13 +1201,54 @@ nOS_Error       nOS_ThreadCreate                   (nOS_Thread *thread,
  * Notes
  *   1. Semaphore object must be created before using it, else the behaviour is undefined.
  *   2. Must be called one time only for each semaphore object.
- */
+ *
+ **********************************************************************************************************************/
  nOS_Error      nOS_SemCreate                       (nOS_Sem *sem, nOS_SemCounter count, nOS_SemCounter max);
 
  #if (NOS_CONFIG_SEM_DELETE_ENABLE > 0)
+/***********************************************************************************************************************
+ *
+ * Name            : nOS_SemDelete
+ *
+ * Description     : Delete semaphore object and wake up all waiting threads if any.
+ *
+ * Parameters
+ *   sem           : Pointer to semaphore object.
+ *
+ * Return          : Error code.
+ *   NOS_OK        : Semaphore successfully deleted.
+ *   NOS_E_INV_OBJ : Pointer to semaphore object is invalid.
+ *
+ **********************************************************************************************************************/
   nOS_Error     nOS_SemDelete                       (nOS_Sem *sem);
  #endif
 
+/***********************************************************************************************************************
+ *
+ * Name            : nOS_SemTake
+ *
+ * Description     : Take semaphore pointed by object pointer. If not available, calling thread will be placed event's
+ *                   waiting list for number of ticks specified by tout. If semaphore is not available in required
+ *                   time, an error will be returned and semaphore will be left unchanged.
+ *
+ * Parameters
+ *   sem           : Pointer to semaphore object.
+ *   tout          : Timeout value
+ *                     NOS_NO_WAIT                 : Don't wait if the semaphore is not available.
+ *                     0 > tout < NOS_WAIT_INIFITE : Maximum number of ticks to wait for the semaphore to be available.
+ *                     NOS_WAIT_INIFINE            : Wait indefinitly until the semaphore become available.
+ *
+ * Return          : Error code.
+ *   NOS_OK        : Requested semaphore have been successfully taken.
+ *   NOS_E_INV_OBJ : Pointer to semaphore object is invalid.
+ *   NOS_E_AGAIN   : Semaphore is unavailable (happens when timeout equal NOS_NO_WAIT).
+ *   NOS_E_ISR     : Can't wait from interrupt service routine.
+ *   NOS_E_LOCKED  : Can't wait from scheduler locked section.
+ *   NOS_E_IDLE    : Can't wait from main thread (idle).
+ *   NOS_E_TIMEOUT : Semaphore has not been given before reaching timeout.
+ *   NOS_E_DELETED : Semaphore object has been deleted.
+ *
+ **********************************************************************************************************************/
  nOS_Error      nOS_SemTake                         (nOS_Sem *sem, nOS_TickCounter tout);
 
  nOS_Error      nOS_SemGive                         (nOS_Sem *sem);
@@ -1055,7 +1257,8 @@ nOS_Error       nOS_ThreadCreate                   (nOS_Thread *thread,
 #endif
 
 #if (NOS_CONFIG_MUTEX_ENABLE > 0)
-/*
+/***********************************************************************************************************************
+ *
  * Name            : nOS_MutexCreate
  *
  * Description     : Create a new mutex object.
@@ -1079,9 +1282,10 @@ nOS_Error       nOS_ThreadCreate                   (nOS_Thread *thread,
  * Notes
  *   1. Mutex object must be created before using it, else the behaviour is undefined.
  *   2. Must be called one time only for each mutex object.
- */
+ *
+ **********************************************************************************************************************/
  nOS_Error      nOS_MutexCreate                     (nOS_Mutex *mutex,
-                                                    nOS_MutexType type
+                                                     nOS_MutexType type
  #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
                                                     ,uint8_t prio
  #endif
@@ -1107,7 +1311,8 @@ nOS_Error       nOS_ThreadCreate                   (nOS_Thread *thread,
 #endif
 
 #if (NOS_CONFIG_FLAG_ENABLE > 0)
-/*
+/***********************************************************************************************************************
+ *
  * Name            : nOS_FlagCreate
  *
  * Description     : Create a flag event object and initialize it with given flags.
@@ -1123,11 +1328,13 @@ nOS_Error       nOS_ThreadCreate                   (nOS_Thread *thread,
  * Notes
  *   1. Flag object must be created before using it, else the behaviour is undefined.
  *   2. Must be called one time only for each flag object.
- */
+ *
+ **********************************************************************************************************************/
  nOS_Error      nOS_FlagCreate                      (nOS_Flag *flag, nOS_FlagBits flags);
 
  #if (NOS_CONFIG_FLAG_DELETE_ENABLE > 0)
-/*
+/***********************************************************************************************************************
+ *
  * Name            : nOS_FlagDelete
  *
  * Description     : Delete a flag event object and wake up all waiting threads.
@@ -1142,52 +1349,56 @@ nOS_Error       nOS_ThreadCreate                   (nOS_Thread *thread,
  * Notes
  *   1. Flag object must be created before, else the behaviour is undefined.
  *   2. Flag object must not be used after deletion, else the behaviour is undefined.
- */
+ *
+ **********************************************************************************************************************/
   nOS_Error     nOS_FlagDelete                      (nOS_Flag *flag);
  #endif
 
-/*
- * Name        : nOS_FlagWait
+/***********************************************************************************************************************
  *
- * Description : Wait on flag object for given flags. If flags are NOT set, calling thread will be placed in event's
- *               waiting list for number of ticks specified by tout. If flags are set before end of timeout, res will
- *               contain flags that have awoken the thread. If caller specify NOS_FLAG_CLEAR_ON_EXIT, only awoken flags
- *               will be cleared.
+ * Name            : nOS_FlagWait
+ *
+ * Description     : Wait on flag object for given flags. If flags are NOT set, calling thread will be placed in
+ *                   event's waiting list for number of ticks specified by tout. If flags are set before end of
+ *                   timeout, res will contain flags that have awoken the thread. If caller specify
+ *                   NOS_FLAG_CLEAR_ON_EXIT, only awoken flags will be cleared.
  *
  * Parameters
- *   flag      : Pointer to flag object.
- *   flags     : All flags to wait.
- *   res       : Pointer where to store awoken flags if needed.
- *                 See note 1
- *   opt       : Waiting options
- *                 NOS_FLAG_WAIT_ALL      : Wait for all flags to be set.
- *                 NOS_FLAG_WAIT_ANY      : Wait for any flags to be set.
- *               Altering options
- *                 NOS_FLAG_CLEAR_ON_EXIT : Clear awoken flags.
- *                 See note 2
- *   tout      : Timeout value
- *                 NOS_NO_WAIT                 : Don't wait if flags are not set.
- *                 0 > tout < NOS_WAIT_INIFITE : Maximum number of ticks to wait for flags to be set.
- *                 NOS_WAIT_INIFINE            : Wait indefinitly until flags are set.
+ *   flag          : Pointer to flag object.
+ *   flags         : All flags to wait.
+ *   res           : Pointer where to store awoken flags if needed.
+ *                     See note 1
+ *   opt           : Waiting options
+ *                     NOS_FLAG_WAIT_ALL      : Wait for all flags to be set.
+ *                     NOS_FLAG_WAIT_ANY      : Wait for any flags to be set.
+ *                   Altering options
+ *                     NOS_FLAG_CLEAR_ON_EXIT : Clear awoken flags.
+ *                       See note 2
+ *   tout          : Timeout value
+ *                     NOS_NO_WAIT                 : Don't wait if flags are not set.
+ *                     0 > tout < NOS_WAIT_INIFITE : Maximum number of ticks to wait for flags to be set.
+ *                     NOS_WAIT_INIFINE            : Wait indefinitly until flags are set.
  *
- * Return      : Error code.
+ * Return          : Error code.
  *   NOS_OK        : Requested flags have been set in required time.
  *   NOS_E_INV_OBJ : Pointer to flag object is invalid.
- *   NOS_E_AGAIN   : Flags are not in required state.
+ *   NOS_E_AGAIN   : Flags are not in required state (happens when timeout equal NOS_NO_WAIT).
  *   NOS_E_ISR     : Can't wait from interrupt service routine.
- *   NOS_E_LOCKED  : Can't wit scheduler is locked.
+ *   NOS_E_LOCKED  : Can't wait from scheduler locked section.
  *   NOS_E_IDLE    : Can't wait from main thread (idle).
- *   NOS_E_TIMEOUT : Flags had not been set before reaching timeout.
+ *   NOS_E_TIMEOUT : Flags have not been set before reaching timeout.
  *   NOS_E_DELETED : Flag object has been deleted.
  *
  * Notes
  *   1. Only valid if returned error code is NOS_OK. Otherwise, res is unchanged.
  *   2. One waiting option can be OR'ed with altering option if needed.
- *   3. Safe to be called from threads.
- */
- nOS_Error      nOS_FlagWait                        (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits *res, nOS_FlagOption opt, nOS_TickCounter tout);
+ *
+ **********************************************************************************************************************/
+ nOS_Error      nOS_FlagWait                        (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits *res,
+                                                     nOS_FlagOption opt, nOS_TickCounter tout);
 
-/*
+/***********************************************************************************************************************
+ *
  * Name            : nOS_FlagSend
  *
  * Description     : Set/clear given flags in flag object. Many flags can be set/clear atomically. Just sended flags
@@ -1202,12 +1413,14 @@ nOS_Error       nOS_ThreadCreate                   (nOS_Thread *thread,
  * Return          : Error code.
  *   NOS_OK        : Flags successfully sended.
  *   NOS_E_INV_OBJ : Pointer to flag object is invalid.
- */
+ *
+ **********************************************************************************************************************/
  nOS_Error      nOS_FlagSend                        (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits mask);
 #endif
 
 #if (NOS_CONFIG_MEM_ENABLE > 0)
-/*
+/***********************************************************************************************************************
+ *
  * Name            : nOS_MemCreate
  *
  * Description     : Create a fixed-sized array of memory block.
@@ -1234,14 +1447,16 @@ nOS_Error       nOS_ThreadCreate                   (nOS_Thread *thread,
  *   4. Shall be higher than 0.
  *   5. Mem object must be created before using it, otherwise the behaviour is undefined.
  *   6. Must be called one time only for each mem object.
- */
+ *
+ **********************************************************************************************************************/
  nOS_Error      nOS_MemCreate                       (nOS_Mem *mem, void *buffer, nOS_MemSize bsize, nOS_MemCounter bmax);
 
  #if (NOS_CONFIG_MEM_DELETE_ENABLE > 0)
   nOS_Error     nOS_MemDelete                       (nOS_Mem *mem);
  #endif
 
-/*
+/***********************************************************************************************************************
+ *
  * Name        : nOS_MemAlloc
  *
  * Description : Try to take one block from memory array of mem. If no block available, calling thread will be removed
@@ -1263,10 +1478,12 @@ nOS_Error       nOS_ThreadCreate                   (nOS_Thread *thread,
  * Notes
  *   1. Mem object shall be created before trying to allocate a block.
  *   2. Caller is responsible to free the block when memory is no longer needed.
- */
+ *
+ **********************************************************************************************************************/
  void*          nOS_MemAlloc                        (nOS_Mem *mem, nOS_TickCounter tout);
 
-/*
+/***********************************************************************************************************************
+ *
  * Name             : nOS_MemFree
  *
  * Description      : Free a previously allocated block of memory.
@@ -1287,10 +1504,12 @@ nOS_Error       nOS_ThreadCreate                   (nOS_Thread *thread,
  *   1. Only available if NOS_CONFIG_MEM_SANITY_CHECK_ENABLE is defined to 1.
  *   2. Never suppose to happen normally, can be a sign of corruption.
  *   3. Do not continue to use memory block after it has been freed.
- */
+ *
+ **********************************************************************************************************************/
  nOS_Error      nOS_MemFree                         (nOS_Mem *mem, void *block);
 
-/*
+/***********************************************************************************************************************
+ *
  * Name        : nOS_MemIsAvailable
  *
  * Description : Check if at least one block of memory is available.
@@ -1301,14 +1520,16 @@ nOS_Error       nOS_ThreadCreate                   (nOS_Thread *thread,
  * Return      : Block availability.
  *   false     : No block of memory is currently available.
  *   true      : At least one block of memory is available.
- */
+ *
+ **********************************************************************************************************************/
  bool           nOS_MemIsAvailable                  (nOS_Mem *mem);
 #endif
 
 #if (NOS_CONFIG_TIMER_ENABLE > 0)
  void           nOS_TimerTick                       (void);
  void           nOS_TimerProcess                    (void);
- nOS_Error      nOS_TimerCreate                     (nOS_Timer *timer, nOS_TimerCallback callback, void *arg, nOS_TimerCounter reload, nOS_TimerMode mode);
+ nOS_Error      nOS_TimerCreate                     (nOS_Timer *timer, nOS_TimerCallback callback, void *arg,
+                                                     nOS_TimerCounter reload, nOS_TimerMode mode);
  #if (NOS_CONFIG_TIMER_DELETE_ENABLE > 0)
   nOS_Error     nOS_TimerDelete                     (nOS_Timer *timer);
  #endif

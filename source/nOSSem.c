@@ -42,7 +42,6 @@ nOS_Error nOS_SemCreate (nOS_Sem *sem, nOS_SemCounter count, nOS_SemCounter max)
 
     return err;
 }
-/*----------------------------------------------------------------------------*/
 
 #if (NOS_CONFIG_SEM_DELETE_ENABLE > 0)
 nOS_Error nOS_SemDelete (nOS_Sem *sem)
@@ -73,7 +72,6 @@ nOS_Error nOS_SemDelete (nOS_Sem *sem)
 
     return err;
 }
-/*----------------------------------------------------------------------------*/
 #endif
 
 nOS_Error nOS_SemTake (nOS_Sem *sem, nOS_TickCounter tout)
@@ -118,14 +116,7 @@ nOS_Error nOS_SemTake (nOS_Sem *sem, nOS_TickCounter tout)
 
     return err;
 }
-/*----------------------------------------------------------------------------*/
 
-/* nOS_SemGive
- * sem: must be a valid semaphore object
- * Can be called from threads, idle and ISR
- * NOS_OK: Succeed to give semaphore
- * NOS_E_OVERFLOW: Too much semaphore given, limit exceeded
- */
 nOS_Error nOS_SemGive (nOS_Sem *sem)
 {
     nOS_Thread  *thread;
@@ -162,7 +153,6 @@ nOS_Error nOS_SemGive (nOS_Sem *sem)
 
     return err;
 }
-/*----------------------------------------------------------------------------*/
 
 bool nOS_SemIsAvailable (nOS_Sem *sem)
 {
@@ -183,7 +173,6 @@ bool nOS_SemIsAvailable (nOS_Sem *sem)
 
     return avail;
 }
-/*----------------------------------------------------------------------------*/
 #endif  /* NOS_CONFIG_SEM_ENABLE */
 
 #ifdef __cplusplus
