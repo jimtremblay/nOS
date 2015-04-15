@@ -17,29 +17,50 @@ extern "C" {
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
  #ifdef NOS_32_BITS_SCHEDULER
   #if (NOS_CONFIG_HIGHEST_THREAD_PRIO < 32)
-   static uint32_t          _readyThreadByPrio;
+   static uint32_t              _readyThreadByPrio;
   #elif (NOS_CONFIG_HIGHEST_THREAD_PRIO < 256)
-   static uint32_t          _readyThreadByGroup;
-   static uint32_t          _readyThreadByPrio[((NOS_CONFIG_HIGHEST_THREAD_PRIO+31)/32)];
+   static uint32_t              _readyThreadByGroup;
+   static uint32_t              _readyThreadByPrio[((NOS_CONFIG_HIGHEST_THREAD_PRIO+31)/32)];
+  #endif
+  #ifndef NOS_USE_CLZ
+   static NOS_CONST uint8_t     _tableDeBruijn[32] = {
+       0, 9, 1, 10, 13, 21, 2, 29, 11, 14, 16, 18, 22, 25, 3, 30,
+       8, 12, 20, 28, 15, 17, 24, 7, 19, 27, 23, 6, 26, 5, 4, 31
+   };
   #endif
  #elif defined(NOS_16_BITS_SCHEDULER)
   #if (NOS_CONFIG_HIGHEST_THREAD_PRIO < 16)
-   static uint16_t          _readyThreadByPrio;
+   static uint16_t              _readyThreadByPrio;
   #elif (NOS_CONFIG_HIGHEST_THREAD_PRIO < 256)
-   static uint16_t          _readyThreadByGroup;
-   static uint16_t          _readyThreadByPrio[((NOS_CONFIG_HIGHEST_THREAD_PRIO+15)/16)];
+   static uint16_t              _readyThreadByGroup;
+   static uint16_t              _readyThreadByPrio[((NOS_CONFIG_HIGHEST_THREAD_PRIO+15)/16)];
   #endif
+  static NOS_CONST uint8_t      _tableDeBruijn[16] = {
+      0, 7, 1, 13, 8, 10, 2, 14, 6, 12, 9, 5, 11, 4, 3, 15
+  };
  #else
   #if (NOS_CONFIG_HIGHEST_THREAD_PRIO < 8)
-   static uint8_t           _readyThreadByPrio;
+   static uint8_t               _readyThreadByPrio;
+   static NOS_CONST uint8_t     _tableDeBruijn[8] = {
+       0, 5, 1, 6, 4, 3, 2, 7
+   };
   #elif (NOS_CONFIG_HIGHEST_THREAD_PRIO < 16)
-   static uint16_t          _readyThreadByPrio;
+   static uint16_t              _readyThreadByPrio;
+   static NOS_CONST uint8_t     _tableDeBruijn[16] = {
+       0, 7, 1, 13, 8, 10, 2, 14, 6, 12, 9, 5, 11, 4, 3, 15
+   };
   #elif (NOS_CONFIG_HIGHEST_THREAD_PRIO < 64)
-   static uint8_t           _readyThreadByGroup;
-   static uint8_t           _readyThreadByPrio[((NOS_CONFIG_HIGHEST_THREAD_PRIO+7)/8)];
+   static uint8_t               _readyThreadByGroup;
+   static uint8_t               _readyThreadByPrio[((NOS_CONFIG_HIGHEST_THREAD_PRIO+7)/8)];
+   static NOS_CONST uint8_t     _tableDeBruijn[8] = {
+       0, 5, 1, 6, 4, 3, 2, 7
+   };
   #elif (NOS_CONFIG_HIGHEST_THREAD_PRIO < 256)
-   static uint16_t          _readyThreadByGroup;
-   static uint16_t          _readyThreadByPrio[((NOS_CONFIG_HIGHEST_THREAD_PRIO+15)/16)];
+   static uint16_t              _readyThreadByGroup;
+   static uint16_t              _readyThreadByPrio[((NOS_CONFIG_HIGHEST_THREAD_PRIO+15)/16)];
+   static NOS_CONST uint8_t     _tableDeBruijn[16] = {
+       0, 7, 1, 13, 8, 10, 2, 14, 6, 12, 9, 5, 11, 4, 3, 15
+   };
   #endif
  #endif
 #endif
@@ -69,11 +90,6 @@ extern "C" {
     }
    #endif
   #else
-   static NOS_CONST uint8_t tableDeBruijn[32] =
-   {
-       0, 9, 1, 10, 13, 21, 2, 29, 11, 14, 16, 18, 22, 25, 3, 30,
-       8, 12, 20, 28, 15, 17, 24, 7, 19, 27, 23, 6, 26, 5, 4, 31
-   };
    #if (NOS_CONFIG_HIGHEST_THREAD_PRIO < 32)
     nOS_Thread* nOS_FindHighPrioThread(void)
     {
@@ -85,7 +101,7 @@ extern "C" {
         prio |= prio >> 4;
         prio |= prio >> 8;
         prio |= prio >> 16;
-        prio = (uint32_t)tableDeBruijn[(uint32_t)(prio * 0x07c4acddUL) >> 27];
+        prio = (uint32_t)_tableDeBruijn[(uint32_t)(prio * 0x07c4acddUL) >> 27];
 
         return (nOS_Thread*)nOS_readyThreadList[prio].head->payload;
     }
@@ -101,7 +117,7 @@ extern "C" {
         group |= group >> 4;
         group |= group >> 8;
         group |= group >> 16;
-        group = (uint32_t)tableDeBruijn[(uint32_t)(group * 0x07c4acddUL) >> 27];
+        group = (uint32_t)_tableDeBruijn[(uint32_t)(group * 0x07c4acddUL) >> 27];
 
         prio = _readyThreadByPrio[group];
         prio |= prio >> 1; // first round down to one less than a power of 2
@@ -109,17 +125,13 @@ extern "C" {
         prio |= prio >> 4;
         prio |= prio >> 8;
         prio |= prio >> 16;
-        prio = (uint32_t)tableDeBruijn[(uint32_t)(prio * 0x07c4acddUL) >> 27];
+        prio = (uint32_t)_tableDeBruijn[(uint32_t)(prio * 0x07c4acddUL) >> 27];
 
         return (nOS_Thread*)nOS_readyThreadList[(group << 5) | prio].head->payload;
     }
    #endif
   #endif
  #elif defined(NOS_16_BITS_SCHEDULER)
-  static NOS_CONST uint16_t tableDeBruijn[16] =
-  {
-      0, 7, 1, 13, 8, 10, 2, 14, 6, 12, 9, 5, 11, 4, 3, 15
-  };
   #if (NOS_CONFIG_HIGHEST_THREAD_PRIO < 16)
    nOS_Thread* nOS_FindHighPrioThread(void)
    {
@@ -130,7 +142,7 @@ extern "C" {
        prio |= prio >> 2;
        prio |= prio >> 4;
        prio |= prio >> 8;
-       prio = tableDeBruijn[(uint16_t)(prio * 0xf2d) >> 12];
+       prio = (uint16_t)_tableDeBruijn[(uint16_t)(prio * 0xf2d) >> 12];
 
        return (nOS_Thread*)nOS_readyThreadList[prio].head->payload;
    }
@@ -145,25 +157,20 @@ extern "C" {
        group |= group >> 2;
        group |= group >> 4;
        group |= group >> 8;
-       group = tableDeBruijn[(uint16_t)(group * 0xf2d) >> 12];
+       group = (uint16_t)_tableDeBruijn[(uint16_t)(group * 0xf2d) >> 12];
 
        prio = _readyThreadByPrio[group];
        prio |= prio >> 1; // first round down to one less than a power of 2
        prio |= prio >> 2;
        prio |= prio >> 4;
        prio |= prio >> 8;
-       prio = tableDeBruijn[(uint16_t)(prio * 0xf2d) >> 12];
+       prio = (uint16_t)_tableDeBruijn[(uint16_t)(prio * 0xf2d) >> 12];
 
        return (nOS_Thread*)nOS_readyThreadList[(group << 4) | prio].head->payload;
    }
   #endif
  #else
   #if (NOS_CONFIG_HIGHEST_THREAD_PRIO < 8)
-   static NOS_CONST uint8_t tableDeBruijn[8] =
-   {
-       0, 5, 1, 6, 4, 3, 2, 7
-   };
-
    nOS_Thread* nOS_FindHighPrioThread(void)
    {
        uint8_t prio;
@@ -172,16 +179,11 @@ extern "C" {
        prio |= prio >> 1; // first round down to one less than a power of 2
        prio |= prio >> 2;
        prio |= prio >> 4;
-       prio = tableDeBruijn[(uint8_t)(prio * 0x1d) >> 5];
+       prio = (uint8_t)_tableDeBruijn[(uint8_t)(prio * 0x1d) >> 5];
 
        return (nOS_Thread*)nOS_readyThreadList[prio].head->payload;
    }
   #elif (NOS_CONFIG_HIGHEST_THREAD_PRIO < 16)
-   static NOS_CONST uint16_t tableDeBruijn[16] =
-   {
-       0, 7, 1, 13, 8, 10, 2, 14, 6, 12, 9, 5, 11, 4, 3, 15
-   };
-
    nOS_Thread* nOS_FindHighPrioThread(void)
    {
        uint16_t    prio;
@@ -191,16 +193,11 @@ extern "C" {
        prio |= prio >> 2;
        prio |= prio >> 4;
        prio |= prio >> 8;
-       prio = tableDeBruijn[(uint16_t)(prio * 0xf2d) >> 12];
+       prio = (uint16_t)_tableDeBruijn[(uint16_t)(prio * 0xf2d) >> 12];
 
        return (nOS_Thread*)nOS_readyThreadList[prio].head->payload;
    }
   #elif (NOS_CONFIG_HIGHEST_THREAD_PRIO < 64)
-   static NOS_CONST uint8_t tableDeBruijn[8] =
-   {
-       0, 5, 1, 6, 4, 3, 2, 7
-   };
-
    nOS_Thread* nOS_FindHighPrioThread(void)
    {
        uint8_t     group;
@@ -210,22 +207,17 @@ extern "C" {
        group |= group >> 1; // first round down to one less than a power of 2
        group |= group >> 2;
        group |= group >> 4;
-       group = tableDeBruijn[(uint8_t)(group * 0x1d) >> 5];
+       group = (uint8_t)_tableDeBruijn[(uint8_t)(group * 0x1d) >> 5];
 
        prio = _readyThreadByPrio[group];
        prio |= prio >> 1; // first round down to one less than a power of 2
        prio |= prio >> 2;
        prio |= prio >> 4;
-       prio = tableDeBruijn[(uint8_t)(prio * 0x1d) >> 5];
+       prio = (uint8_t)_tableDeBruijn[(uint8_t)(prio * 0x1d) >> 5];
 
        return (nOS_Thread*)nOS_readyThreadList[(group << 3) | prio].head->payload;
    }
   #elif (NOS_CONFIG_HIGHEST_THREAD_PRIO < 256)
-   static NOS_CONST uint16_t tableDeBruijn[16] =
-   {
-       0, 7, 1, 13, 8, 10, 2, 14, 6, 12, 9, 5, 11, 4, 3, 15
-   };
-
    nOS_Thread* nOS_FindHighPrioThread(void)
    {
        uint16_t    group;
@@ -236,14 +228,14 @@ extern "C" {
        group |= group >> 2;
        group |= group >> 4;
        group |= group >> 8;
-       group = tableDeBruijn[(uint16_t)(group * 0xf2d) >> 12];
+       group = (uint16_t)_tableDeBruijn[(uint16_t)(group * 0xf2d) >> 12];
 
        prio = _readyThreadByPrio[group];
        prio |= prio >> 1; // first round down to one less than a power of 2
        prio |= prio >> 2;
        prio |= prio >> 4;
        prio |= prio >> 8;
-       prio = tableDeBruijn[(uint16_t)(prio * 0xf2d) >> 12];
+       prio = (uint16_t)_tableDeBruijn[(uint16_t)(prio * 0xf2d) >> 12];
 
        return (nOS_Thread*)nOS_readyThreadList[(group << 4) | prio].head->payload;
    }
