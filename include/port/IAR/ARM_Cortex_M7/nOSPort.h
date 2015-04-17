@@ -16,6 +16,7 @@ extern "C" {
 #endif
 
 typedef uint32_t                            nOS_Stack;
+typedef uint32_t                            nOS_StatusReg;
 
 #define NOS_UNUSED(v)                       (void)v
 
@@ -48,31 +49,22 @@ typedef uint32_t                            nOS_Stack;
 
 #define _CLZ(n)                             __CLZ(n)
 
-#define nOS_EnterCritical()                                                     \
-{                                                                               \
-    uint32_t _basepri = __get_BASEPRI();                                        \
-    __set_BASEPRI(NOS_MAX_UNSAFE_BASEPRI);                                      \
-    __DSB();                                                                    \
-    __ISB()
+#define nOS_EnterCritical(sr)                                                   \
+    do {                                                                        \
+        sr = __get_BASEPRI();                                                   \
+        if (sr < NOS_MAX_UNSAFE_BASEPRI) {                                      \
+            __set_BASEPRI(NOS_MAX_UNSAFE_BASEPRI);                              \
+            __DSB();                                                            \
+            __ISB();                                                            \
+        }                                                                       \
+    } while (0)
 
-#define nOS_LeaveCritical()                                                     \
-    __set_BASEPRI(_basepri);                                                    \
-    __DSB();                                                                    \
-    __ISB();                                                                    \
-}
-
-/*
- * Request a context switch and enable interrupts to allow PendSV interrupt.
- */
-#define nOS_SwitchContext()                                                     \
-    *(volatile uint32_t *)0xE000ED04UL = 0x10000000;                            \
-    __set_BASEPRI(0);                                                           \
-    __DSB();                                                                    \
-    __ISB();                                                                    \
-    __no_operation();                                                           \
-    __set_BASEPRI(NOS_MAX_UNSAFE_BASEPRI);                                      \
-    __DSB();                                                                    \
-    __ISB()
+#define nOS_LeaveCritical(sr)                                                   \
+    do {                                                                        \
+        __set_BASEPRI(sr);                                                      \
+        __DSB();                                                                \
+        __ISB();                                                                \
+    } while (0)
 
 void    nOS_EnterIsr    (void);
 void    nOS_LeaveIsr    (void);
@@ -90,6 +82,7 @@ void func##_ISR(void)
 #ifdef NOS_PRIVATE
  void   nOS_InitSpecific    (void);
  void   nOS_InitContext     (nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg);
+ void   nOS_SwitchContext   (void);
 #endif
 
 #ifdef __cplusplus

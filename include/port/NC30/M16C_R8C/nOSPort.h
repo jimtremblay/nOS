@@ -14,6 +14,7 @@ extern "C" {
 #endif
 
 typedef uint16_t                            nOS_Stack;
+typedef uint16_t                            nOS_StatusReg;
 
 #define NOS_UNUSED(v)                       (void)v
 
@@ -33,19 +34,19 @@ typedef uint16_t                            nOS_Stack;
 uint8_t     _GetIPL     (void);
 void        _SetIPL     (uint8_t ipl);
 
-#define nOS_EnterCritical()                                                     \
-{                                                                               \
-    uint8_t _ipl = _GetIPL();                                                   \
-    if (_ipl < NOS_MAX_UNSAFE_IPL) {                                            \
-        asm("LDIPL  #"NOS_STR(NOS_MAX_UNSAFE_IPL)" \n"                          \
-            "NOP                                        \n"                     \
-        );                                                                      \
-    }
+#define nOS_EnterCritical(sr)                                                   \
+    do {                                                                        \
+        sr = _GetIPL();                                                         \
+        if (sr < NOS_MAX_UNSAFE_IPL) {                                          \
+            asm("LDIPL  #"NOS_STR(NOS_MAX_UNSAFE_IPL)"      \n"                 \
+                "NOP                                        \n"                 \
+            );                                                                  \
+        }                                                                       \
+    } while (0)
 
 
-#define nOS_LeaveCritical()                                                     \
-    _SetIPL(_ipl);                                                              \
-}
+#define nOS_LeaveCritical(sr)                                                   \
+    _SetIPL(sr)
 
 #define nOS_SwitchContext()                                         asm ("INT #32")
 

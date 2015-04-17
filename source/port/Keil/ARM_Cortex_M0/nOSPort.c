@@ -20,24 +20,24 @@ extern "C" {
 void nOS_InitSpecific(void)
 {
 #ifdef NOS_CONFIG_ISR_STACK_SIZE
-    register uint32_t volatile _msp __asm("msp");
-    register uint32_t volatile _psp __asm("psp");
-    register uint32_t volatile _control __asm("control");
-#if (NOS_CONFIG_DEBUG > 0)
+ #if (NOS_CONFIG_DEBUG > 0)
     size_t i;
 
     for (i = 0; i < NOS_CONFIG_ISR_STACK_SIZE; i++) {
         _isrStack[i] = 0xFFFFFFFFUL;
     }
-#endif
+ #endif
 
     /* Copy MSP to PSP */
-    _psp = _msp;
+    _SetPSP(_GetMSP());
+
     /* Set MSP to local ISR stack */
-    _msp = ((uint32_t)&_isrStack[NOS_CONFIG_ISR_STACK_SIZE] & 0xFFFFFFF8UL);
+    _SetMSP((uint32_t)&_isrStack[NOS_CONFIG_ISR_STACK_SIZE] & 0xFFFFFFF8UL);
+
     /* Set current stack to PSP and privileged mode */
-    _control |= 0x00000002UL;
+    _SetCONTROL(_GetCONTROL() | 0x00000002UL);
 #endif
+
     /* Set PendSV exception to lowest priority */
     *(volatile uint32_t *)0xE000ED20UL |= 0x00FF0000UL;
 }
@@ -81,16 +81,38 @@ void nOS_InitContext(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_Thr
     thread->stackPtr = tos;
 }
 
+void nOS_SwitchContext (void)
+{
+    /* Request context switch */
+    *(volatile uint32_t *)0xE000ED04UL = 0x10000000UL;
+
+    /* Leave critical section */
+    __enable_irq();
+    __dsb(0xF);
+    __isb(0xF);
+
+    __nop();
+
+    /* Enter critical section */
+    __disable_irq();
+    __dsb(0xF);
+    __isb(0xF);
+}
+
 void nOS_EnterIsr (void)
 {
-    nOS_EnterCritical();
+    nOS_StatusReg   sr;
+
+    nOS_EnterCritical(sr);
     nOS_isrNestingCounter++;
-    nOS_LeaveCritical();
+    nOS_LeaveCritical(sr);
 }
 
 void nOS_LeaveIsr (void)
 {
-    nOS_EnterCritical();
+    nOS_StatusReg   sr;
+
+    nOS_EnterCritical(sr);
     nOS_isrNestingCounter--;
 #if (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
     if (nOS_isrNestingCounter == 0) {
@@ -105,7 +127,7 @@ void nOS_LeaveIsr (void)
         }
     }
 #endif
-    nOS_LeaveCritical();
+    nOS_LeaveCritical(sr);
 }
 
 __asm void PendSV_Handler(void)

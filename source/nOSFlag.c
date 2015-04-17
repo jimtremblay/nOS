@@ -46,7 +46,8 @@ static void _TestFlag (void *payload, void *arg)
 
 nOS_Error nOS_FlagCreate (nOS_Flag *flag, nOS_FlagBits flags)
 {
-    nOS_Error   err;
+    nOS_Error       err;
+    nOS_StatusReg   sr;
 
 #if (NOS_CONFIG_SAFE > 0)
     if (flag == NULL) {
@@ -56,14 +57,14 @@ nOS_Error nOS_FlagCreate (nOS_Flag *flag, nOS_FlagBits flags)
     } else
 #endif
     {
-        nOS_EnterCritical();
+        nOS_EnterCritical(sr);
 #if (NOS_CONFIG_SAFE > 0)
         nOS_CreateEvent((nOS_Event*)flag, NOS_EVENT_FLAG);
 #else
         nOS_CreateEvent((nOS_Event*)flag);
 #endif
         flag->flags = flags;
-        nOS_LeaveCritical();
+        nOS_LeaveCritical(sr);
         err = NOS_OK;
     }
 
@@ -73,7 +74,8 @@ nOS_Error nOS_FlagCreate (nOS_Flag *flag, nOS_FlagBits flags)
 #if (NOS_CONFIG_FLAG_DELETE_ENABLE > 0)
 nOS_Error nOS_FlagDelete (nOS_Flag *flag)
 {
-    nOS_Error   err;
+    nOS_Error       err;
+    nOS_StatusReg   sr;
 
 #if (NOS_CONFIG_SAFE > 0)
     if (flag == NULL) {
@@ -83,7 +85,7 @@ nOS_Error nOS_FlagDelete (nOS_Flag *flag)
     } else
 #endif
     {
-        nOS_EnterCritical();
+        nOS_EnterCritical(sr);
         flag->flags = NOS_FLAG_NONE;
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
         if (nOS_DeleteEvent((nOS_Event*)flag)) {
@@ -92,7 +94,7 @@ nOS_Error nOS_FlagDelete (nOS_Flag *flag)
 #else
         nOS_DeleteEvent((nOS_Event*)flag);
 #endif
-        nOS_LeaveCritical();
+        nOS_LeaveCritical(sr);
         err = NOS_OK;
     }
 
@@ -104,6 +106,7 @@ nOS_Error nOS_FlagWait (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits *res,
                         nOS_FlagOption opt, nOS_TickCounter tout)
 {
     nOS_Error       err;
+    nOS_StatusReg   sr;
     nOS_FlagContext ctx;
     nOS_FlagBits    r;
 
@@ -115,7 +118,7 @@ nOS_Error nOS_FlagWait (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits *res,
     } else
 #endif
     {
-        nOS_EnterCritical();
+        nOS_EnterCritical(sr);
         r = flag->flags & flags;
         /* If thread is waiting for ALL flags, then clear result if NOT ALL flags set. */
         if (((opt & NOS_FLAG_WAIT) == NOS_FLAG_WAIT_ALL) && (r != flags)) {
@@ -152,7 +155,7 @@ nOS_Error nOS_FlagWait (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits *res,
             nOS_runningThread->ext = &ctx;
             err = nOS_WaitForEvent((nOS_Event*)flag, NOS_THREAD_WAITING_FLAG, tout);
         }
-        nOS_LeaveCritical();
+        nOS_LeaveCritical(sr);
 
         /* Return awoken flags if succeed to wait on flag object. */
         if (err == NOS_OK) {
@@ -168,6 +171,7 @@ nOS_Error nOS_FlagWait (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits *res,
 nOS_Error nOS_FlagSend (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits mask)
 {
     nOS_Error       err;
+    nOS_StatusReg   sr;
     nOS_FlagResult  res;
 
 #if (NOS_CONFIG_SAFE > 0)
@@ -182,7 +186,7 @@ nOS_Error nOS_FlagSend (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits mask)
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
         res.sched = false;
 #endif
-        nOS_EnterCritical();
+        nOS_EnterCritical(sr);
         flag->flags ^= ((flag->flags ^ flags) & mask);
         nOS_WalkInList(&flag->e.waitList, _TestFlag, &res);
         /* Clear all flags that have awoken the waiting threads. */
@@ -193,7 +197,7 @@ nOS_Error nOS_FlagSend (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits mask)
             nOS_Schedule();
         }
 #endif
-        nOS_LeaveCritical();
+        nOS_LeaveCritical(sr);
         err = NOS_OK;
     }
 

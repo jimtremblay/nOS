@@ -16,6 +16,7 @@ extern "C" {
 #endif
 
 typedef uint8_t                         nOS_Stack;
+typedef uint8_t                         nOS_StatusReg;
 
 #define NOS_UNUSED(v)                   (void)v
 
@@ -55,15 +56,14 @@ typedef uint8_t                         nOS_Stack;
  #define POP_EIND
 #endif
 
-#define nOS_EnterCritical()                                                     \
-{                                                                               \
-    volatile unsigned char _sr;                                                 \
-    _sr = __save_interrupt();                                                   \
-    __disable_interrupt()
+#define nOS_EnterCritical(sr)                                                   \
+    do {                                                                        \
+        sr = __save_interrupt();                                                \
+        __disable_interrupt();                                                  \
+    } while (0)
 
-#define nOS_LeaveCritical()                                                     \
-    __restore_interrupt(_sr);                                                   \
-}
+#define nOS_LeaveCritical(sr)                                                   \
+    __restore_interrupt(sr)
 
 #define PUSH_CONTEXT()                                                          \
     __asm (                                                                     \

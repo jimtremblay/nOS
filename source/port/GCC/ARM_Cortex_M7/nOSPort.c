@@ -81,16 +81,40 @@ void nOS_InitContext(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_Thr
     thread->stackPtr = tos;
 }
 
+void nOS_SwitchContext(void)
+{
+    nOS_StatusReg   sr = _GetBASEPRI();
+
+    /* Request context switch */
+    *(volatile uint32_t *)0xE000ED04UL = 0x10000000UL;
+
+    /* Leave critical section */
+    _SetBASEPRI(0);
+    _DSB();
+    _ISB();
+
+    _NOP();
+
+    /* Enter critical section */
+    _SetBASEPRI(sr);
+    _DSB();
+    _ISB();
+}
+
 void nOS_EnterIsr (void)
 {
-    nOS_EnterCritical();
+    nOS_StatusReg   sr;
+
+    nOS_EnterCritical(sr);
     nOS_isrNestingCounter++;
-    nOS_LeaveCritical();
+    nOS_LeaveCritical(sr);
 }
 
 void nOS_LeaveIsr (void)
 {
-    nOS_EnterCritical();
+    nOS_StatusReg   sr;
+
+    nOS_EnterCritical(sr);
     nOS_isrNestingCounter--;
 #if (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
     if (nOS_isrNestingCounter == 0) {
@@ -105,7 +129,7 @@ void nOS_LeaveIsr (void)
         }
     }
 #endif
-    nOS_LeaveCritical();
+    nOS_LeaveCritical(sr);
 }
 
 void PendSV_Handler(void)

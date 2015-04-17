@@ -92,14 +92,18 @@ void nOS_InitContext(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_Thr
 
 void nOS_EnterIsr (void)
 {
-    nOS_EnterCritical();
+    nOS_StatusReg   sr;
+
+    nOS_EnterCritical(sr);
     nOS_isrNestingCounter++;
-    nOS_LeaveCritical();
+    nOS_LeaveCritical(sr);
 }
 
 void nOS_LeaveIsr (void)
 {
-    nOS_EnterCritical();
+    nOS_StatusReg   sr;
+
+    nOS_EnterCritical(sr);
     nOS_isrNestingCounter--;
 #if (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
     if (nOS_isrNestingCounter == 0) {
@@ -115,7 +119,7 @@ void nOS_LeaveIsr (void)
         }
     }
 #endif
-    nOS_LeaveCritical();
+    nOS_LeaveCritical(sr);
 }
 
 #ifdef __cplusplus

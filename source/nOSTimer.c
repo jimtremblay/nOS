@@ -43,12 +43,13 @@ static void _ThreadTimer (void *arg)
 
 static void _TickTimer (void *payload, void *arg)
 {
-    nOS_Timer   *timer = (nOS_Timer *)payload;
-    bool        call = false;
+    nOS_StatusReg   sr;
+    nOS_Timer       *timer = (nOS_Timer *)payload;
+    bool            call = false;
 
     NOS_UNUSED(arg);
 
-    nOS_EnterCritical();
+    nOS_EnterCritical(sr);
     if ((timer->state & (NOS_TIMER_RUNNING | NOS_TIMER_PAUSED)) == NOS_TIMER_RUNNING) {
         if (timer->count > 0) {
             timer->count--;
@@ -65,7 +66,7 @@ static void _TickTimer (void *payload, void *arg)
             call = true;
         }
     }
-    nOS_LeaveCritical();
+    nOS_LeaveCritical(sr);
 
     if (call) {
         if (timer->callback != NULL) {
@@ -124,7 +125,8 @@ void nOS_TimerProcess (void)
 
 nOS_Error nOS_TimerCreate (nOS_Timer *timer, nOS_TimerCallback callback, void *arg, nOS_TimerCounter reload, nOS_TimerMode mode)
 {
-    nOS_Error   err;
+    nOS_Error       err;
+    nOS_StatusReg   sr;
 
 #if (NOS_CONFIG_SAFE > 0)
     if (timer == NULL) {
@@ -142,9 +144,11 @@ nOS_Error nOS_TimerCreate (nOS_Timer *timer, nOS_TimerCallback callback, void *a
         timer->callback = callback;
         timer->arg = arg;
         timer->node.payload = (void *)timer;
-        nOS_EnterCritical();
+
+        nOS_EnterCritical(sr);
         nOS_AppendToList(&_timerList, &timer->node);
-        nOS_LeaveCritical();
+        nOS_LeaveCritical(sr);
+
         err = NOS_OK;
     }
 
@@ -154,7 +158,8 @@ nOS_Error nOS_TimerCreate (nOS_Timer *timer, nOS_TimerCallback callback, void *a
 #if (NOS_CONFIG_TIMER_DELETE_ENABLE > 0)
 nOS_Error nOS_TimerDelete (nOS_Timer *timer)
 {
-    nOS_Error   err;
+    nOS_Error       err;
+    nOS_StatusReg   sr;
 
 #if (NOS_CONFIG_SAFE > 0)
     if (timer == NULL) {
@@ -164,10 +169,11 @@ nOS_Error nOS_TimerDelete (nOS_Timer *timer)
     } else
 #endif
     {
-        nOS_EnterCritical();
+        nOS_EnterCritical(sr);
         timer->state = NOS_TIMER_DELETED;
         nOS_RemoveFromList(&_timerList, &timer->node);
-        nOS_LeaveCritical();
+        nOS_LeaveCritical(sr);
+
         err = NOS_OK;
     }
 
@@ -177,7 +183,8 @@ nOS_Error nOS_TimerDelete (nOS_Timer *timer)
 
 nOS_Error nOS_TimerStart (nOS_Timer *timer)
 {
-    nOS_Error   err;
+    nOS_Error       err;
+    nOS_StatusReg   sr;
 
 #if (NOS_CONFIG_SAFE > 0)
     if (timer == NULL) {
@@ -187,10 +194,11 @@ nOS_Error nOS_TimerStart (nOS_Timer *timer)
     } else
 #endif
     {
-        nOS_EnterCritical();
+        nOS_EnterCritical(sr);
         timer->count = timer->reload;
         timer->state = (nOS_TimerState)(timer->state | NOS_TIMER_RUNNING);
-        nOS_LeaveCritical();
+        nOS_LeaveCritical(sr);
+
         err = NOS_OK;
     }
 
@@ -199,7 +207,8 @@ nOS_Error nOS_TimerStart (nOS_Timer *timer)
 
 nOS_Error nOS_TimerStop (nOS_Timer *timer)
 {
-    nOS_Error   err;
+    nOS_Error       err;
+    nOS_StatusReg   sr;
 
 #if (NOS_CONFIG_SAFE > 0)
     if (timer == NULL) {
@@ -209,9 +218,10 @@ nOS_Error nOS_TimerStop (nOS_Timer *timer)
     } else
 #endif
     {
-        nOS_EnterCritical();
+        nOS_EnterCritical(sr);
         timer->state = (nOS_TimerState)(timer->state &~ NOS_TIMER_RUNNING);
-        nOS_LeaveCritical();
+        nOS_LeaveCritical(sr);
+
         err = NOS_OK;
     }
 
@@ -220,7 +230,8 @@ nOS_Error nOS_TimerStop (nOS_Timer *timer)
 
 nOS_Error nOS_TimerRestart (nOS_Timer *timer, nOS_TimerCounter reload)
 {
-    nOS_Error   err;
+    nOS_Error       err;
+    nOS_StatusReg   sr;
 
 #if (NOS_CONFIG_SAFE > 0)
     if (timer == NULL) {
@@ -230,11 +241,12 @@ nOS_Error nOS_TimerRestart (nOS_Timer *timer, nOS_TimerCounter reload)
     } else
 #endif
     {
-        nOS_EnterCritical();
+        nOS_EnterCritical(sr);
         timer->reload = reload;
         timer->count  = reload;
         timer->state  = (nOS_TimerState)(timer->state | NOS_TIMER_RUNNING);
-        nOS_LeaveCritical();
+        nOS_LeaveCritical(sr);
+
         err = NOS_OK;
     }
 
@@ -243,7 +255,8 @@ nOS_Error nOS_TimerRestart (nOS_Timer *timer, nOS_TimerCounter reload)
 
 nOS_Error nOS_TimerPause (nOS_Timer *timer)
 {
-    nOS_Error   err;
+    nOS_Error       err;
+    nOS_StatusReg   sr;
 
 #if (NOS_CONFIG_SAFE > 0)
     if (timer == NULL) {
@@ -253,9 +266,10 @@ nOS_Error nOS_TimerPause (nOS_Timer *timer)
     } else
 #endif
     {
-        nOS_EnterCritical();
+        nOS_EnterCritical(sr);
         timer->state = (nOS_TimerState)(timer->state | NOS_TIMER_PAUSED);
-        nOS_LeaveCritical();
+        nOS_LeaveCritical(sr);
+
         err = NOS_OK;
     }
 
@@ -264,7 +278,8 @@ nOS_Error nOS_TimerPause (nOS_Timer *timer)
 
 nOS_Error nOS_TimerResume (nOS_Timer *timer)
 {
-    nOS_Error   err;
+    nOS_Error       err;
+    nOS_StatusReg   sr;
 
 #if (NOS_CONFIG_SAFE > 0)
     if (timer == NULL) {
@@ -274,9 +289,10 @@ nOS_Error nOS_TimerResume (nOS_Timer *timer)
     } else
 #endif
     {
-        nOS_EnterCritical();
+        nOS_EnterCritical(sr);
         timer->state = (nOS_TimerState)(timer->state &~ NOS_TIMER_PAUSED);
-        nOS_LeaveCritical();
+        nOS_LeaveCritical(sr);
+
         err = NOS_OK;
     }
 
@@ -285,7 +301,8 @@ nOS_Error nOS_TimerResume (nOS_Timer *timer)
 
 nOS_Error nOS_TimerSetReload (nOS_Timer *timer, nOS_TimerCounter reload)
 {
-    nOS_Error   err;
+    nOS_Error       err;
+    nOS_StatusReg   sr;
 
 #if (NOS_CONFIG_SAFE > 0)
     if (timer == NULL) {
@@ -295,9 +312,10 @@ nOS_Error nOS_TimerSetReload (nOS_Timer *timer, nOS_TimerCounter reload)
     } else
 #endif
     {
-        nOS_EnterCritical();
+        nOS_EnterCritical(sr);
         timer->reload = reload;
-        nOS_LeaveCritical();
+        nOS_LeaveCritical(sr);
+
         err = NOS_OK;
     }
 
@@ -306,7 +324,8 @@ nOS_Error nOS_TimerSetReload (nOS_Timer *timer, nOS_TimerCounter reload)
 
 nOS_Error nOS_TimerSetCallback (nOS_Timer *timer, nOS_TimerCallback callback, void *arg)
 {
-    nOS_Error   err;
+    nOS_Error       err;
+    nOS_StatusReg   sr;
 
 #if (NOS_CONFIG_SAFE > 0)
     if (timer == NULL) {
@@ -316,10 +335,11 @@ nOS_Error nOS_TimerSetCallback (nOS_Timer *timer, nOS_TimerCallback callback, vo
     } else
 #endif
     {
-        nOS_EnterCritical();
+        nOS_EnterCritical(sr);
         timer->callback = callback;
         timer->arg = arg;
-        nOS_LeaveCritical();
+        nOS_LeaveCritical(sr);
+
         err = NOS_OK;
     }
 
@@ -328,7 +348,8 @@ nOS_Error nOS_TimerSetCallback (nOS_Timer *timer, nOS_TimerCallback callback, vo
 
 nOS_Error nOS_TimerSetMode (nOS_Timer *timer, nOS_TimerMode mode)
 {
-    nOS_Error   err;
+    nOS_Error       err;
+    nOS_StatusReg   sr;
 
 #if (NOS_CONFIG_SAFE > 0)
     if (timer == NULL) {
@@ -340,9 +361,10 @@ nOS_Error nOS_TimerSetMode (nOS_Timer *timer, nOS_TimerMode mode)
     } else
 #endif
     {
-        nOS_EnterCritical();
+        nOS_EnterCritical(sr);
         timer->state = (nOS_TimerState)(((nOS_TimerMode)timer->state &~ NOS_TIMER_MODE) | mode);
-        nOS_LeaveCritical();
+        nOS_LeaveCritical(sr);
+
         err = NOS_OK;
     }
 
@@ -351,7 +373,8 @@ nOS_Error nOS_TimerSetMode (nOS_Timer *timer, nOS_TimerMode mode)
 
 bool nOS_TimerIsRunning (nOS_Timer *timer)
 {
-    bool running;
+    nOS_StatusReg   sr;
+    bool            running;
 
 #if (NOS_CONFIG_SAFE > 0)
     if (timer == NULL) {
@@ -361,9 +384,9 @@ bool nOS_TimerIsRunning (nOS_Timer *timer)
     } else
 #endif
     {
-        nOS_EnterCritical();
+        nOS_EnterCritical(sr);
         running = (timer->state & NOS_TIMER_RUNNING) == NOS_TIMER_RUNNING;
-        nOS_LeaveCritical();
+        nOS_LeaveCritical(sr);
     }
 
     return running;

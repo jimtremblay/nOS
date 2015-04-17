@@ -111,7 +111,7 @@ void nOS_SwitchContext(void)
     PUSH_CONTEXT();
     nOS_runningThread->stackPtr = (uint8_t*)SP;
     nOS_runningThread = nOS_highPrioThread;
-    SP = (int)nOS_runningThread->stackPtr;
+    SP = (int)nOS_highPrioThread->stackPtr;
     POP_CONTEXT();
     asm volatile("ret");
 }

@@ -19,8 +19,10 @@ void nOS_InitSpecific(void)
 {
     /* Enable software interrupt */
     *(uint8_t*)0x00087203UL |= (uint8_t)0x08;
+
     /* Clear software interrupt */
     *(uint8_t*)0x00087003UL &=~ (uint8_t)0x08;
+
     /* Set software interrupt to lowest priority level */
     *(uint8_t*)0x00087303UL = (uint8_t)1;
 }
@@ -70,14 +72,18 @@ void nOS_InitContext(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_Thr
 
 void nOS_EnterIsr (void)
 {
-    nOS_EnterCritical();
+    nOS_StatusReg   sr;
+
+    nOS_EnterCritical(sr);
     nOS_isrNestingCounter++;
-    nOS_LeaveCritical();
+    nOS_LeaveCritical(sr);
 }
 
 void nOS_LeaveIsr (void)
 {
-    nOS_EnterCritical();
+    nOS_StatusReg   sr;
+
+    nOS_EnterCritical(sr);
     nOS_isrNestingCounter--;
 #if (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
     if (nOS_isrNestingCounter == 0) {
@@ -93,7 +99,7 @@ void nOS_LeaveIsr (void)
         }
     }
 #endif
-    nOS_LeaveCritical();
+    nOS_LeaveCritical(sr);
 }
 
 void INT_Excep_ICU_SWINT(void)

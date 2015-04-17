@@ -52,6 +52,7 @@ static nOS_Error _SanityCheck (nOS_Mem *mem, void *block)
 nOS_Error nOS_MemCreate (nOS_Mem *mem, void *buffer, nOS_MemSize bsize, nOS_MemCounter bmax)
 {
     nOS_Error       err;
+    nOS_StatusReg   sr;
     nOS_MemCounter  i;
     void            **blist;
 
@@ -82,7 +83,7 @@ nOS_Error nOS_MemCreate (nOS_Mem *mem, void *buffer, nOS_MemSize bsize, nOS_MemC
     } else
 #endif
     {
-        nOS_EnterCritical();
+        nOS_EnterCritical(sr);
 #if (NOS_CONFIG_SAFE > 0)
         nOS_CreateEvent((nOS_Event*)mem, NOS_EVENT_MEM);
 #else
@@ -103,7 +104,7 @@ nOS_Error nOS_MemCreate (nOS_Mem *mem, void *buffer, nOS_MemSize bsize, nOS_MemC
         mem->bcount = bmax;
         mem->bmax   = bmax;
 #endif
-        nOS_LeaveCritical();
+        nOS_LeaveCritical(sr);
         err = NOS_OK;
     }
 
@@ -113,7 +114,8 @@ nOS_Error nOS_MemCreate (nOS_Mem *mem, void *buffer, nOS_MemSize bsize, nOS_MemC
 #if (NOS_CONFIG_MEM_DELETE_ENABLE > 0)
 nOS_Error nOS_MemDelete (nOS_Mem *mem)
 {
-    nOS_Error   err;
+    nOS_Error       err;
+    nOS_StatusReg   sr;
 
 #if (NOS_CONFIG_SAFE > 0)
     if (mem == NULL) {
@@ -123,7 +125,7 @@ nOS_Error nOS_MemDelete (nOS_Mem *mem)
     } else
 #endif
     {
-        nOS_EnterCritical();
+        nOS_EnterCritical(sr);
         mem->blist  = NULL;
 #if (NOS_CONFIG_MEM_SANITY_CHECK_ENABLE > 0)
         mem->buffer = NULL;
@@ -138,7 +140,7 @@ nOS_Error nOS_MemDelete (nOS_Mem *mem)
 #else
         nOS_DeleteEvent((nOS_Event*)mem);
 #endif
-        nOS_LeaveCritical();
+        nOS_LeaveCritical(sr);
         err = NOS_OK;
     }
 
@@ -148,7 +150,8 @@ nOS_Error nOS_MemDelete (nOS_Mem *mem)
 
 void *nOS_MemAlloc(nOS_Mem *mem, nOS_TickCounter tout)
 {
-    void    *block;
+    nOS_StatusReg   sr;
+    void            *block;
 
 #if (NOS_CONFIG_SAFE > 0)
     if (mem == NULL) {
@@ -158,7 +161,7 @@ void *nOS_MemAlloc(nOS_Mem *mem, nOS_TickCounter tout)
     } else
 #endif
     {
-        nOS_EnterCritical();
+        nOS_EnterCritical(sr);
         if (mem->blist != NULL) {
             block = (void*)mem->blist;
             mem->blist = *(void***)block;
@@ -187,7 +190,7 @@ void *nOS_MemAlloc(nOS_Mem *mem, nOS_TickCounter tout)
                 block = NULL;
             }
         }
-        nOS_LeaveCritical();
+        nOS_LeaveCritical(sr);
     }
 
     return block;
@@ -195,8 +198,9 @@ void *nOS_MemAlloc(nOS_Mem *mem, nOS_TickCounter tout)
 
 nOS_Error nOS_MemFree(nOS_Mem *mem, void *block)
 {
-    nOS_Error   err;
-    nOS_Thread  *thread;
+    nOS_Error       err;
+    nOS_StatusReg   sr;
+    nOS_Thread      *thread;
 
 #if (NOS_CONFIG_SAFE > 0)
     if (mem == NULL) {
@@ -215,7 +219,7 @@ nOS_Error nOS_MemFree(nOS_Mem *mem, void *block)
     if (err == NOS_OK)
 #endif
     {
-        nOS_EnterCritical();
+        nOS_EnterCritical(sr);
         thread = nOS_SignalEvent((nOS_Event*)mem, NOS_OK);
         if (thread != NULL) {
             *(void**)thread->ext = block;
@@ -231,7 +235,7 @@ nOS_Error nOS_MemFree(nOS_Mem *mem, void *block)
             mem->bcount++;
 #endif
         }
-        nOS_LeaveCritical();
+        nOS_LeaveCritical(sr);
         err = NOS_OK;
     }
 
@@ -240,7 +244,8 @@ nOS_Error nOS_MemFree(nOS_Mem *mem, void *block)
 
 bool nOS_MemIsAvailable (nOS_Mem *mem)
 {
-    bool    avail;
+    nOS_StatusReg   sr;
+    bool            avail;
 
 #if (NOS_CONFIG_SAFE > 0)
     if (mem == NULL) {
@@ -250,9 +255,9 @@ bool nOS_MemIsAvailable (nOS_Mem *mem)
     } else
 #endif
     {
-        nOS_EnterCritical();
+        nOS_EnterCritical(sr);
         avail = (mem->blist != NULL);
-        nOS_LeaveCritical();
+        nOS_LeaveCritical(sr);
     }
 
     return avail;

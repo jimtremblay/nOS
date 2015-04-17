@@ -16,6 +16,7 @@ extern "C" {
 #endif
 
 typedef uint16_t                            nOS_Stack;
+typedef __ilevel_t                          nOS_StatusReg;
 
 #define NOS_UNUSED(v)                       (void)v
 
@@ -32,16 +33,16 @@ typedef uint16_t                            nOS_Stack;
  #define NOS_MAX_UNSAFE_IPL            NOS_CONFIG_MAX_UNSAFE_ISR_PRIO
 #endif
 
-#define nOS_EnterCritical()                                                     \
-{                                                                               \
-    __ilevel_t _ipl = __get_interrupt_level();                                  \
-    if (_ipl < NOS_MAX_UNSAFE_IPL) {                                            \
-        __set_interrupt_level(NOS_MAX_UNSAFE_IPL);                              \
-    }
+#define nOS_EnterCritical(sr)                                                   \
+    do {                                                                        \
+        sr = __get_interrupt_level();                                           \
+        if (sr < NOS_MAX_UNSAFE_IPL) {                                          \
+            __set_interrupt_level(NOS_MAX_UNSAFE_IPL);                          \
+        }                                                                       \
+    } while (0)
 
-#define nOS_LeaveCritical()                                                     \
-    __set_interrupt_level(_ipl);                                                \
-}
+#define nOS_LeaveCritical(sr)                                                   \
+    __set_interrupt_level(sr)
 
 #define nOS_SwitchContext()                                     __asm ("INT #32")
 

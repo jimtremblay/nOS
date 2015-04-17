@@ -21,8 +21,9 @@
 extern "C" {
 #endif
 
-static pthread_mutex_t  _criticalSection;
-volatile uint32_t       _criticalNestingCounter;
+volatile uint32_t       nOS_criticalNestingCounter;
+pthread_mutex_t         nOS_criticalSection;
+
 static pthread_cond_t   _schedCond;
 volatile bool           _schedStarted;
 volatile bool           _schedRequest;
@@ -32,7 +33,7 @@ static void* _Entry (void *arg)
 {
     nOS_Thread  *thread = (nOS_Thread*)arg;
 
-    pthread_mutex_lock(&_criticalSection);
+    pthread_mutex_lock(&nOS_criticalSection);
 
     /* Signal to creator we're running */
     thread->stackPtr->started = true;
@@ -40,13 +41,13 @@ static void* _Entry (void *arg)
 
     /* Wait to have the permission to run (given by scheduler) */
     while (!thread->stackPtr->running) {
-        pthread_cond_wait(&thread->stackPtr->cond, &_criticalSection);
+        pthread_cond_wait(&thread->stackPtr->cond, &nOS_criticalSection);
     }
 
     /* Initialize critical section counter */
-    _criticalNestingCounter = thread->stackPtr->crit;
+    nOS_criticalNestingCounter = thread->stackPtr->crit;
 
-    pthread_mutex_unlock(&_criticalSection);
+    pthread_mutex_unlock(&nOS_criticalSection);
 
     thread->stackPtr->entry(thread->stackPtr->arg);
 
@@ -55,7 +56,7 @@ static void* _Entry (void *arg)
 
 static void* _Scheduler (void *arg)
 {
-    pthread_mutex_lock(&_criticalSection);
+    pthread_mutex_lock(&nOS_criticalSection);
 
     /* Signal to init we're running and ready to accept request */
     _schedStarted = true;
@@ -64,7 +65,7 @@ static void* _Scheduler (void *arg)
     while (true) {
         /* Wait until a thread send a scheduling request */
         while (!_schedRequest) {
-            pthread_cond_wait(&_schedCond, &_criticalSection);
+            pthread_cond_wait(&_schedCond, &nOS_criticalSection);
         }
         _schedRequest = false;
 
@@ -75,7 +76,7 @@ static void* _Scheduler (void *arg)
         pthread_cond_signal(&nOS_highPrioThread->stackPtr->cond);
     }
 
-    pthread_mutex_unlock(&_criticalSection);
+    pthread_mutex_unlock(&nOS_criticalSection);
 
     return 0;
 }
@@ -85,8 +86,8 @@ static void* _SysTick (void *arg)
     while (true) {
         usleep(1000000/NOS_CONFIG_TICKS_PER_SECOND);
 
-        pthread_mutex_lock(&_criticalSection);
-        _criticalNestingCounter = 1;
+        pthread_mutex_lock(&nOS_criticalSection);
+        nOS_criticalNestingCounter = 1;
 
         /* Simulate entry in interrupt */
         nOS_isrNestingCounter = 1;
@@ -96,19 +97,19 @@ static void* _SysTick (void *arg)
         /* Simulate exit of interrupt */
         nOS_isrNestingCounter = 0;
 
-        _criticalNestingCounter = 0;
-        pthread_mutex_unlock(&_criticalSection);
+        nOS_criticalNestingCounter = 0;
+        pthread_mutex_unlock(&nOS_criticalSection);
     }
 
     return 0;
 }
 
-void nOS_InitSpecific(void)
+void nOS_InitSpecific (void)
 {
     pthread_t pthread;
 
-    _criticalNestingCounter = 0;
-    pthread_mutex_init(&_criticalSection, NULL);
+    nOS_criticalNestingCounter = 0;
+    pthread_mutex_init(&nOS_criticalSection, NULL);
 
     pthread_cond_init (&_schedCond, NULL);
 
@@ -120,7 +121,7 @@ void nOS_InitSpecific(void)
     _idleStack.running = true;
     pthread_cond_init(&_idleStack.cond, NULL);
 
-    pthread_mutex_lock(&_criticalSection);
+    pthread_mutex_lock(&nOS_criticalSection);
 
     _schedStarted = false;
     _schedRequest = false;
@@ -128,19 +129,19 @@ void nOS_InitSpecific(void)
 
     /* Wait until scheduler is running and waiting for request */
     while (!_schedStarted) {
-        pthread_cond_wait(&_schedCond, &_criticalSection);
+        pthread_cond_wait(&_schedCond, &nOS_criticalSection);
     }
 
     /* Create a SysTick thread to allow sleep/timeout */
     pthread_create(&pthread, NULL, _SysTick, NULL);
 
-    pthread_mutex_unlock(&_criticalSection);
+    pthread_mutex_unlock(&nOS_criticalSection);
 }
 
 /* Called outside of critical section */
-void nOS_InitContext(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg)
+void nOS_InitContext (nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg)
 {
-    pthread_mutex_lock(&_criticalSection);
+    pthread_mutex_lock(&nOS_criticalSection);
 
     thread->stackPtr = stack;
     stack->entry = entry;
@@ -153,19 +154,19 @@ void nOS_InitContext(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_Thr
 
     /* Wait until thread is started and waiting to run */
     while (!stack->started) {
-        pthread_cond_wait(&stack->cond, &_criticalSection);
+        pthread_cond_wait(&stack->cond, &nOS_criticalSection);
     }
 
-    pthread_mutex_unlock(&_criticalSection);
+    pthread_mutex_unlock(&nOS_criticalSection);
 }
 
 /* Called from critical section */
-void nOS_SwitchContext(void)
+void nOS_SwitchContext (void)
 {
     nOS_Stack *stack = nOS_runningThread->stackPtr;
 
     /* Backup critical nesting counter and stop running */
-    stack->crit = _criticalNestingCounter;
+    stack->crit = nOS_criticalNestingCounter;
     stack->running = false;
 
     /* Send scheduling request */
@@ -174,41 +175,24 @@ void nOS_SwitchContext(void)
 
     /* Wait until we have permission to run */
     while (!stack->running) {
-        pthread_cond_wait(&stack->cond, &_criticalSection);
+        pthread_cond_wait(&stack->cond, &nOS_criticalSection);
     }
 
     /* Restore critical nesting counter */
-    _criticalNestingCounter = stack->crit;
+    nOS_criticalNestingCounter = stack->crit;
 }
 
-void nOS_EnterCritical(void)
+int nOS_Print (const char *format, ...)
 {
-    if (_criticalNestingCounter == 0) {
-        /* Lock mutex only one time */
-        pthread_mutex_lock(&_criticalSection);
-    }
-    _criticalNestingCounter++;
-}
-
-void nOS_LeaveCritical(void)
-{
-    _criticalNestingCounter--;
-    if (_criticalNestingCounter == 0) {
-        /* Unlock mutex when nesting counter reach zero */
-        pthread_mutex_unlock(&_criticalSection);
-    }
-}
-
-int nOS_Print(const char *format, ...)
-{
-    va_list args;
-    int ret;
+    va_list         args;
+    nOS_StatusReg   sr;
+    int             ret;
 
     va_start(args, format);
 
-    nOS_EnterCritical();
+    nOS_EnterCritical(sr);
     ret = vprintf(format, args);
-    nOS_LeaveCritical();
+    nOS_LeaveCritical(sr);
 
     va_end(args);
 

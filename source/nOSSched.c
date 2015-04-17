@@ -469,7 +469,8 @@ nOS_Error nOS_Init(void)
 
 nOS_Error nOS_Yield(void)
 {
-    nOS_Error   err;
+    nOS_Error       err;
+    nOS_StatusReg   sr;
 
     if (nOS_isrNestingCounter > 0) {
         err = NOS_E_ISR;
@@ -480,14 +481,14 @@ nOS_Error nOS_Yield(void)
     }
 #endif
     else {
-        nOS_EnterCritical();
+        nOS_EnterCritical(sr);
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
         nOS_RotateList(&nOS_readyThreadList[nOS_runningThread->prio]);
 #else
         nOS_RotateList(&nOS_readyThreadList);
 #endif
         nOS_Schedule();
-        nOS_LeaveCritical();
+        nOS_LeaveCritical(sr);
         err = NOS_OK;
     }
 
@@ -496,7 +497,9 @@ nOS_Error nOS_Yield(void)
 
 void nOS_Tick(void)
 {
-    nOS_EnterCritical();
+    nOS_StatusReg   sr;
+
+    nOS_EnterCritical(sr);
     nOS_tickCounter++;
     nOS_WalkInList(&nOS_mainList, nOS_TickThread, NULL);
 #if (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0) && (NOS_CONFIG_SCHED_ROUND_ROBIN_ENABLE > 0)
@@ -512,16 +515,17 @@ void nOS_Tick(void)
 #if (NOS_CONFIG_TIME_ENABLE > 0) && (NOS_CONFIG_TIME_TICK_ENABLE > 0)
     nOS_TimeTick();
 #endif
-    nOS_LeaveCritical();
+    nOS_LeaveCritical(sr);
 }
 
 nOS_TickCounter nOS_GetTickCount(void)
 {
-    nOS_TickCounter   tickcnt;
+    nOS_StatusReg   sr;
+    nOS_TickCounter tickcnt;
 
-    nOS_EnterCritical();
+    nOS_EnterCritical(sr);
     tickcnt = nOS_tickCounter;
-    nOS_LeaveCritical();
+    nOS_LeaveCritical(sr);
 
     return tickcnt;
 }
@@ -546,7 +550,8 @@ uint32_t nOS_MsToTicks (uint16_t ms)
 #if (NOS_CONFIG_SLEEP_ENABLE > 0)
 nOS_Error nOS_Sleep (nOS_TickCounter ticks)
 {
-    nOS_Error   err;
+    nOS_Error       err;
+    nOS_StatusReg   sr;
 
     if (nOS_isrNestingCounter > 0) {
         err = NOS_E_ISR;
@@ -563,9 +568,9 @@ nOS_Error nOS_Sleep (nOS_TickCounter ticks)
         nOS_Yield();
         err = NOS_OK;
     } else {
-        nOS_EnterCritical();
+        nOS_EnterCritical(sr);
         err = nOS_WaitForEvent(NULL, NOS_THREAD_SLEEPING, ticks);
-        nOS_LeaveCritical();
+        nOS_LeaveCritical(sr);
     }
 
     return err;
@@ -574,8 +579,9 @@ nOS_Error nOS_Sleep (nOS_TickCounter ticks)
 #if defined(NOS_CONFIG_TICKS_PER_SECOND) && (NOS_CONFIG_TICKS_PER_SECOND > 0)
 nOS_Error nOS_SleepMs (uint16_t ms)
 {
-    nOS_Error   err;
-    uint32_t    ticks;
+    nOS_Error       err;
+    nOS_StatusReg   sr;
+    uint32_t        ticks;
 
     if (nOS_isrNestingCounter > 0) {
         err = NOS_E_ISR;
@@ -594,7 +600,7 @@ nOS_Error nOS_SleepMs (uint16_t ms)
     } else {
         ticks = nOS_MsToTicks(ms);
 
-        nOS_EnterCritical();
+        nOS_EnterCritical(sr);
         err = NOS_OK;
         while ((err == NOS_OK) && (ticks > NOS_TICKS_WAIT_MAX)) {
             err = nOS_WaitForEvent(NULL, NOS_THREAD_SLEEPING, NOS_TICKS_WAIT_MAX);
@@ -603,7 +609,7 @@ nOS_Error nOS_SleepMs (uint16_t ms)
         if ((err == NOS_OK) && (ticks > 0)) {
             err = nOS_WaitForEvent(NULL, NOS_THREAD_SLEEPING, ticks);
         }
-        nOS_LeaveCritical();
+        nOS_LeaveCritical(sr);
     }
 
     return err;
@@ -614,7 +620,8 @@ nOS_Error nOS_SleepMs (uint16_t ms)
 #if (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
 nOS_Error nOS_SleepUntil (nOS_TickCounter tick)
 {
-    nOS_Error   err;
+    nOS_Error       err;
+    nOS_StatusReg   sr;
 
     if (nOS_isrNestingCounter > 0) {
         err = NOS_E_ISR;
@@ -628,13 +635,13 @@ nOS_Error nOS_SleepUntil (nOS_TickCounter tick)
     else if (nOS_runningThread == &nOS_idleHandle) {
         err = NOS_E_IDLE;
     } else {
-        nOS_EnterCritical();
+        nOS_EnterCritical(sr);
         if (tick == nOS_tickCounter) {
             err = NOS_OK;
         } else {
             err = nOS_WaitForEvent(NULL, NOS_THREAD_SLEEPING_UNTIL, tick);
         }
-        nOS_LeaveCritical();
+        nOS_LeaveCritical(sr);
     }
 
     return err;
@@ -644,19 +651,20 @@ nOS_Error nOS_SleepUntil (nOS_TickCounter tick)
 #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
 nOS_Error nOS_SchedLock(void)
 {
-    nOS_Error   err;
+    nOS_Error       err;
+    nOS_StatusReg   sr;
 
     if (nOS_isrNestingCounter > 0) {
         err = NOS_E_ISR;
     } else {
-        nOS_EnterCritical();
+        nOS_EnterCritical(sr);
         if (nOS_lockNestingCounter < UINT8_MAX) {
             nOS_lockNestingCounter++;
             err = NOS_OK;
         } else {
             err = NOS_E_OVERFLOW;
         }
-        nOS_LeaveCritical();
+        nOS_LeaveCritical(sr);
     }
 
     return err;
@@ -664,12 +672,13 @@ nOS_Error nOS_SchedLock(void)
 
 nOS_Error nOS_SchedUnlock(void)
 {
-    nOS_Error   err;
+    nOS_Error       err;
+    nOS_StatusReg   sr;
 
     if (nOS_isrNestingCounter > 0) {
         err = NOS_E_ISR;
     } else {
-        nOS_EnterCritical();
+        nOS_EnterCritical(sr);
         if (nOS_lockNestingCounter > 0) {
             nOS_lockNestingCounter--;
             if (nOS_lockNestingCounter == 0) {
@@ -679,7 +688,7 @@ nOS_Error nOS_SchedUnlock(void)
         } else {
             err = NOS_E_UNDERFLOW;
         }
-        nOS_LeaveCritical();
+        nOS_LeaveCritical(sr);
     }
 
     return err;

@@ -14,6 +14,7 @@ extern "C" {
 #endif
 
 typedef uint32_t                        nOS_Stack;
+typedef uint32_t                        nOS_StatusReg;
 
 #define NOS_UNUSED(v)                   (void)v
 
@@ -60,17 +61,16 @@ __attribute( ( always_inline ) ) static inline void _DI(void)
     __asm volatile("CLRPSW I");
 }
 
-#define nOS_EnterCritical()                                                     \
-{                                                                               \
-    uint32_t _ipl = _GetIPL();                                                  \
-    if (_ipl < NOS_MAX_UNSAFE_IPL) {                                            \
-        __asm volatile ("MVTIPL %0" :: "i" (NOS_MAX_UNSAFE_IPL) );              \
-    }
+#define nOS_EnterCritical(sr)                                                   \
+    do {                                                                        \
+        sr = _GetIPL();                                                         \
+        if (sr < NOS_MAX_UNSAFE_IPL) {                                          \
+            __asm volatile ("MVTIPL %0" :: "i" (NOS_MAX_UNSAFE_IPL) );          \
+        }                                                                       \
+    } while (0)
 
-
-#define nOS_LeaveCritical()                                                     \
-    _SetIPL(_ipl);                                                              \
-}
+#define nOS_LeaveCritical(sr)                                                   \
+    _SetIPL(sr)
 
 #define nOS_SwitchContext()                                     __asm("INT  #27")
 

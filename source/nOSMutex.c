@@ -21,7 +21,8 @@ nOS_Error nOS_MutexCreate (nOS_Mutex *mutex,
 #endif
                            )
 {
-    nOS_Error   err;
+    nOS_Error       err;
+    nOS_StatusReg   sr;
 
 #if (NOS_CONFIG_SAFE > 0)
     if (mutex == NULL) {
@@ -34,7 +35,7 @@ nOS_Error nOS_MutexCreate (nOS_Mutex *mutex,
     else
 #endif
     {
-        nOS_EnterCritical();
+        nOS_EnterCritical(sr);
 #if (NOS_CONFIG_SAFE > 0)
         nOS_CreateEvent((nOS_Event*)mutex, NOS_EVENT_MUTEX);
 #else
@@ -47,7 +48,7 @@ nOS_Error nOS_MutexCreate (nOS_Mutex *mutex,
         mutex->prio = prio;
         mutex->backup = 0;
 #endif
-        nOS_LeaveCritical();
+        nOS_LeaveCritical(sr);
         err = NOS_OK;
     }
 
@@ -57,7 +58,8 @@ nOS_Error nOS_MutexCreate (nOS_Mutex *mutex,
 #if (NOS_CONFIG_MUTEX_DELETE_ENABLE > 0)
 nOS_Error nOS_MutexDelete (nOS_Mutex *mutex)
 {
-    nOS_Error   err;
+    nOS_Error       err;
+    nOS_StatusReg   sr;
 
 #if (NOS_CONFIG_SAFE > 0)
     if (mutex == NULL) {
@@ -67,7 +69,7 @@ nOS_Error nOS_MutexDelete (nOS_Mutex *mutex)
     } else
 #endif
     {
-        nOS_EnterCritical();
+        nOS_EnterCritical(sr);
         mutex->owner = NULL;
         mutex->count = 0;
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
@@ -77,7 +79,7 @@ nOS_Error nOS_MutexDelete (nOS_Mutex *mutex)
 #else
         nOS_DeleteEvent((nOS_Event*)mutex);
 #endif
-        nOS_LeaveCritical();
+        nOS_LeaveCritical(sr);
         err = NOS_OK;
     }
 
@@ -87,7 +89,8 @@ nOS_Error nOS_MutexDelete (nOS_Mutex *mutex)
 
 nOS_Error nOS_MutexLock (nOS_Mutex *mutex, nOS_TickCounter tout)
 {
-    nOS_Error   err;
+    nOS_Error       err;
+    nOS_StatusReg   sr;
 
 #if (NOS_CONFIG_SAFE > 0)
     if (mutex == NULL) {
@@ -100,7 +103,7 @@ nOS_Error nOS_MutexLock (nOS_Mutex *mutex, nOS_TickCounter tout)
     if (nOS_isrNestingCounter > 0) {
         err = NOS_E_ISR;
     } else {
-        nOS_EnterCritical();
+        nOS_EnterCritical(sr);
         /* Mutex available? Reserve it for calling thread */
         if (mutex->owner == NULL) {
             mutex->count++;
@@ -164,7 +167,7 @@ nOS_Error nOS_MutexLock (nOS_Mutex *mutex, nOS_TickCounter tout)
 #endif
             err = nOS_WaitForEvent((nOS_Event*)mutex, NOS_THREAD_LOCKING_MUTEX, tout);
         }
-        nOS_LeaveCritical();
+        nOS_LeaveCritical(sr);
     }
 
     return err;
@@ -172,8 +175,9 @@ nOS_Error nOS_MutexLock (nOS_Mutex *mutex, nOS_TickCounter tout)
 
 nOS_Error nOS_MutexUnlock (nOS_Mutex *mutex)
 {
-    nOS_Thread      *thread;
     nOS_Error       err;
+    nOS_StatusReg   sr;
+    nOS_Thread      *thread;
 
 #if (NOS_CONFIG_SAFE > 0)
     if (mutex == NULL) {
@@ -186,7 +190,7 @@ nOS_Error nOS_MutexUnlock (nOS_Mutex *mutex)
     if (nOS_isrNestingCounter > 0) {
         err = NOS_E_ISR;
     } else {
-        nOS_EnterCritical();
+        nOS_EnterCritical(sr);
         if (mutex->owner != NULL) {
             if (mutex->owner == nOS_runningThread) {
                 mutex->count--;
@@ -220,7 +224,7 @@ nOS_Error nOS_MutexUnlock (nOS_Mutex *mutex)
         } else {
             err = NOS_E_UNDERFLOW;
         }
-        nOS_LeaveCritical();
+        nOS_LeaveCritical(sr);
     }
 
     return err;
@@ -228,7 +232,8 @@ nOS_Error nOS_MutexUnlock (nOS_Mutex *mutex)
 
 bool nOS_MutexIsLocked (nOS_Mutex *mutex)
 {
-    bool    locked;
+    nOS_StatusReg   sr;
+    bool            locked;
 
 #if (NOS_CONFIG_SAFE > 0)
     if (mutex == NULL) {
@@ -238,9 +243,9 @@ bool nOS_MutexIsLocked (nOS_Mutex *mutex)
     } else
 #endif
     {
-        nOS_EnterCritical();
+        nOS_EnterCritical(sr);
         locked = (mutex->owner != NULL);
-        nOS_LeaveCritical();
+        nOS_LeaveCritical(sr);
     }
 
     return locked;
@@ -248,7 +253,8 @@ bool nOS_MutexIsLocked (nOS_Mutex *mutex)
 
 nOS_Thread* nOS_MutexGetOwner (nOS_Mutex *mutex)
 {
-    nOS_Thread *owner;
+    nOS_StatusReg   sr;
+    nOS_Thread      *owner;
 
 #if (NOS_CONFIG_SAFE > 0)
     if (mutex == NULL) {
@@ -258,9 +264,9 @@ nOS_Thread* nOS_MutexGetOwner (nOS_Mutex *mutex)
     } else
 #endif
     {
-        nOS_EnterCritical();
+        nOS_EnterCritical(sr);
         owner = mutex->owner;
-        nOS_LeaveCritical();
+        nOS_LeaveCritical(sr);
     }
 
     return owner;

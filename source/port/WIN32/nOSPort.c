@@ -15,12 +15,9 @@
 extern "C" {
 #endif
 
-static DWORD WINAPI _Entry (LPVOID lpParameter);
-static DWORD WINAPI _Scheduler (LPVOID lpParameter);
-static DWORD WINAPI _SysTick (LPVOID lpParameter);
+HANDLE                  nOS_hCritical;
+uint32_t                nOS_criticalNestingCounter;
 
-static HANDLE           _hCritical;
-static uint32_t         _criticalNestingCounter;
 static HANDLE           _hSchedRequest;
 static nOS_Stack        _idleStack;
 
@@ -28,9 +25,9 @@ static DWORD WINAPI _Entry (LPVOID lpParameter)
 {
     nOS_Thread *thread = (nOS_Thread*)lpParameter;
 
-    while(WaitForSingleObject(_hCritical, INFINITE) != WAIT_OBJECT_0);
-    _criticalNestingCounter = 0;
-    ReleaseMutex(_hCritical);
+    while(WaitForSingleObject(nOS_hCritical, INFINITE) != WAIT_OBJECT_0);
+    nOS_criticalNestingCounter = 0;
+    ReleaseMutex(nOS_hCritical);
 
     /* Enter thread main loop */
     thread->stackPtr->entry(thread->stackPtr->arg);
@@ -45,7 +42,7 @@ static DWORD WINAPI _Scheduler (LPVOID lpParameter)
         while (WaitForSingleObject(_hSchedRequest, INFINITE) != WAIT_OBJECT_0);
 
         /* Enter critical section */
-        while(WaitForSingleObject(_hCritical, INFINITE) != WAIT_OBJECT_0);
+        while(WaitForSingleObject(nOS_hCritical, INFINITE) != WAIT_OBJECT_0);
 
         /* Reset context switching request event in critical section */
         ResetEvent(_hSchedRequest);
@@ -65,7 +62,7 @@ static DWORD WINAPI _Scheduler (LPVOID lpParameter)
         }
 
         /* Leave critical section */
-        ReleaseMutex(_hCritical);
+        ReleaseMutex(nOS_hCritical);
     }
 
     return 0;
@@ -77,8 +74,8 @@ static DWORD WINAPI _SysTick (LPVOID lpParameter)
         Sleep(1000/NOS_CONFIG_TICKS_PER_SECOND);
 
         /* Enter critical section */
-        while(WaitForSingleObject(_hCritical, INFINITE) != WAIT_OBJECT_0);
-        _criticalNestingCounter = 1;
+        while(WaitForSingleObject(nOS_hCritical, INFINITE) != WAIT_OBJECT_0);
+        nOS_criticalNestingCounter = 1;
 
         /* Simulate entry in interrupt */
         nOS_isrNestingCounter = 1;
@@ -96,20 +93,20 @@ static DWORD WINAPI _SysTick (LPVOID lpParameter)
         nOS_isrNestingCounter = 0;
 
         /* Leave critical section */
-        _criticalNestingCounter = 0;
-        ReleaseMutex(_hCritical);
+        nOS_criticalNestingCounter = 0;
+        ReleaseMutex(nOS_hCritical);
     }
 
     return 0;
 }
 
-void nOS_InitSpecific(void)
+void nOS_InitSpecific (void)
 {
-    _criticalNestingCounter = 0;
+    nOS_criticalNestingCounter = 0;
     /* Create a mutex for critical section */
-    _hCritical = CreateMutex(NULL,                  /* Default security descriptor */
-                             false,                 /* Initial state is unlocked */
-                             NULL);                 /* No name */
+    nOS_hCritical = CreateMutex(NULL,               /* Default security descriptor */
+                                false,              /* Initial state is unlocked */
+                                NULL);              /* No name */
 
     nOS_idleHandle.stackPtr = &_idleStack;
     _idleStack.entry = NULL;
@@ -149,7 +146,7 @@ void nOS_InitSpecific(void)
                  NULL);                             /* Don't get thread identifier */
 }
 
-void nOS_InitContext(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg)
+void nOS_InitContext (nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg)
 {
     thread->stackPtr = stack;
     stack->entry = entry;
@@ -168,63 +165,40 @@ void nOS_InitContext(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_Thr
                                  &stack->id);       /* Store thread identifier in thread pseudo stack */
 }
 
-void nOS_SwitchContext(void)
+void nOS_SwitchContext (void)
 {
     uint32_t crit;
 
     /* Backup thread's critical nesting counter */
-    crit = _criticalNestingCounter;
+    crit = nOS_criticalNestingCounter;
 
     nOS_runningThread->stackPtr->sync = true;
     SetEvent(_hSchedRequest);
 
     /* Leave critical section (allow Scheduler and SysTick to run) */
-    ReleaseMutex(_hCritical);
+    ReleaseMutex(nOS_hCritical);
 
     /* Wait synchronization event from Scheduler */
     while(WaitForSingleObject(nOS_runningThread->stackPtr->hsync, INFINITE) != WAIT_OBJECT_0);
 
     /* Enter critical section */
-    while(WaitForSingleObject(_hCritical, INFINITE) != WAIT_OBJECT_0);
+    while(WaitForSingleObject(nOS_hCritical, INFINITE) != WAIT_OBJECT_0);
 
     /* Restore thread's critical nesting counter */
-    _criticalNestingCounter = crit;
+    nOS_criticalNestingCounter = crit;
 }
 
-void nOS_EnterCritical(void)
+int nOS_Print (const char *format, ...)
 {
-    if (nOS_running) {
-        /* Enter critical section */
-        while(WaitForSingleObject(_hCritical, INFINITE) != WAIT_OBJECT_0);
-        if (_criticalNestingCounter > 0) {
-            /* Keep only one level of lock to leave critical section when need scheduling */
-            ReleaseMutex(_hCritical);
-        }
-        _criticalNestingCounter++;
-    }
-}
-
-void nOS_LeaveCritical(void)
-{
-    if (nOS_running) {
-        _criticalNestingCounter--;
-        if (_criticalNestingCounter == 0) {
-            /* Leave critical section */
-            ReleaseMutex(_hCritical);
-        }
-    }
-}
-
-int nOS_Print(const char *format, ...)
-{
-    va_list args;
-    int ret;
+    va_list         args;
+    nOS_StatusReg   sr;
+    int             ret;
 
     va_start(args, format);
 
-    nOS_EnterCritical();
+    nOS_EnterCritical(sr);
     ret = vprintf(format, args);
-    nOS_LeaveCritical();
+    nOS_LeaveCritical(sr);
 
     va_end(args);
 

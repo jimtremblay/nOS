@@ -60,7 +60,9 @@ void nOS_InitTime (void)
 
 void nOS_TimeTick (void)
 {
-    nOS_EnterCritical();
+    nOS_StatusReg   sr;
+
+    nOS_EnterCritical(sr);
 #if (NOS_CONFIG_TIME_TICKS_PER_SECOND > 1)
     _timePrescaler++;
     _timePrescaler %= NOS_CONFIG_TIME_TICKS_PER_SECOND;
@@ -72,28 +74,31 @@ void nOS_TimeTick (void)
         nOS_WalkInList(&_timeEvent.waitList, _TickTime, NULL);
 #endif
     }
-    nOS_LeaveCritical();
+    nOS_LeaveCritical(sr);
 }
 
 nOS_Time nOS_TimeGet (void)
 {
-    nOS_Time    time;
+    nOS_StatusReg   sr;
+    nOS_Time        time;
 
-    nOS_EnterCritical();
+    nOS_EnterCritical(sr);
     time = _timeCounter;
-    nOS_LeaveCritical();
+    nOS_LeaveCritical(sr);
 
     return time;
 }
 
 nOS_Error nOS_TimeSet (nOS_Time time)
 {
-    nOS_EnterCritical();
+    nOS_StatusReg   sr;
+
+    nOS_EnterCritical(sr);
     _timeCounter = time;
 #if (NOS_CONFIG_TIME_TICKS_PER_SECOND > 1)
     _timePrescaler = 0;
 #endif
-    nOS_LeaveCritical();
+    nOS_LeaveCritical(sr);
 
     return NOS_OK;
 }
@@ -145,6 +150,7 @@ nOS_TimeDate nOS_TimeConvert (nOS_Time time)
 nOS_Error nOS_TimeWait (nOS_Time time)
 {
     nOS_Error       err;
+    nOS_StatusReg   sr;
 
     if (nOS_isrNestingCounter > 0) {
         err = NOS_E_ISR;
@@ -158,7 +164,7 @@ nOS_Error nOS_TimeWait (nOS_Time time)
     else if (nOS_runningThread == &nOS_idleHandle) {
         err = NOS_E_IDLE;
     } else {
-        nOS_EnterCritical();
+        nOS_EnterCritical(sr);
         if (_timeCounter < time) {
             err = NOS_E_ELAPSED;
         } else if (_timeCounter == time) {
@@ -167,7 +173,7 @@ nOS_Error nOS_TimeWait (nOS_Time time)
             nOS_runningThread->ext = (void*)&time;
             err = nOS_WaitForEvent(&_timeEvent, NOS_THREAD_WAITING_TIME, NOS_WAIT_INFINITE);
         }
-        nOS_LeaveCritical();
+        nOS_LeaveCritical(sr);
     }
 
     return err;

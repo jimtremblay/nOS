@@ -96,7 +96,9 @@ __task void nOS_SwitchContext(void)
 
 nOS_Stack* nOS_EnterIsr (nOS_Stack *sp)
 {
-    nOS_EnterCritical();
+    nOS_StatusReg   sr;
+
+    nOS_EnterCritical(sr);
     if (nOS_isrNestingCounter == 0) {
         nOS_runningThread->stackPtr = sp;
 #ifdef NOS_CONFIG_ISR_STACK_SIZE
@@ -106,14 +108,16 @@ nOS_Stack* nOS_EnterIsr (nOS_Stack *sp)
 #endif
     }
     nOS_isrNestingCounter++;
-    nOS_LeaveCritical();
+    nOS_LeaveCritical(sr);
 
     return sp;
 }
 
 nOS_Stack* nOS_LeaveIsr (nOS_Stack *sp)
 {
-    nOS_EnterCritical();
+    nOS_StatusReg   sr;
+
+    nOS_EnterCritical(sr);
     nOS_isrNestingCounter--;
     if (nOS_isrNestingCounter == 0) {
 #if (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
@@ -127,7 +131,7 @@ nOS_Stack* nOS_LeaveIsr (nOS_Stack *sp)
 #endif
         sp = nOS_runningThread->stackPtr;
     }
-    nOS_LeaveCritical();
+    nOS_LeaveCritical(sr);
 
     return sp;
 }

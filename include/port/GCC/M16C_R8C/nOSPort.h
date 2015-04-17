@@ -14,6 +14,7 @@ extern "C" {
 #endif
 
 typedef uint16_t                            nOS_Stack;
+typedef uint16_t                            nOS_StatusReg;
 
 #define NOS_UNUSED(v)                       (void)v
 
@@ -57,20 +58,20 @@ __attribute__( ( always_inline ) ) static inline void _SetIPL(uint16_t ipl)
     :: "r" (flg), "r" (ipl));
 }
 
-#define nOS_EnterCritical()                                                     \
-{                                                                               \
-    uint16_t _ipl = _GetIPL();                                                  \
-    if (_ipl < NOS_MAX_UNSAFE_IPL) {                                            \
-        __asm volatile (                                                        \
-            "LDIPL  %0              \n"                                         \
-            "NOP                    \n"                                         \
-        :: "i" (NOS_MAX_UNSAFE_IPL));                                           \
-    }
+#define nOS_EnterCritical(sr)                                                   \
+    do {                                                                        \
+        sr = _GetIPL();                                                         \
+        if (sr < NOS_MAX_UNSAFE_IPL) {                                          \
+            __asm volatile (                                                    \
+                "LDIPL  %0              \n"                                     \
+                "NOP                    \n"                                     \
+            :: "i" (NOS_MAX_UNSAFE_IPL));                                       \
+        }                                                                       \
+    } while (0)
 
 
-#define nOS_LeaveCritical()                                                     \
-    _SetIPL(_ipl);                                                              \
-}
+#define nOS_LeaveCritical(sr)                                                   \
+    _SetIPL(sr)
 
 #define nOS_SwitchContext()                             __asm volatile("INT #32")
 

@@ -14,6 +14,7 @@ extern "C" {
 #endif
 
 typedef uint32_t                            nOS_Stack;
+typedef uint32_t                            nOS_StatusReg;
 
 #define NOS_UNUSED(v)                       (void)v
 
@@ -28,35 +29,76 @@ typedef uint32_t                            nOS_Stack;
  #endif
 #endif
 
-#define nOS_EnterCritical()                                                     \
-{                                                                               \
-    uint32_t    _backup;                                                        \
-    register uint32_t volatile _primask __asm("primask");                       \
-    _backup = _primask;                                                         \
-    __disable_irq();                                                            \
-    __dsb(0xF);                                                                 \
-    __isb(0xF)
+static inline uint32_t _GetMSP (void)
+{
+    register uint32_t volatile _msp __asm("msp");
 
-
-#define nOS_LeaveCritical()                                                     \
-    _primask = _backup;                                                         \
-    __dsb(0xF);                                                                 \
-    __isb(0xF);                                                                 \
+    return _msp;
 }
 
-/*
- * Request a context switch and enable interrupts to allow PendSV interrupt.
- */
-#define nOS_SwitchContext()                                                     \
-    *(volatile uint32_t *)0xE000ED04UL = 0x10000000UL;                          \
-    __enable_irq();                                                             \
-    __dsb(0xF);                                                                 \
-    __isb(0xF);                                                                 \
-    __nop();                                                                    \
-    __disable_irq();                                                            \
-    __dsb(0xF);                                                                 \
-    __isb(0xF)
+static inline void _SetMSP (uint32_t r)
+{
+    register uint32_t volatile _msp __asm("msp");
 
+    _msp = r;
+}
+
+static inline uint32_t _GetPSP (void)
+{
+    register uint32_t volatile _psp __asm("psp");
+
+    return _psp;
+}
+
+static inline void _SetPSP (uint32_t r)
+{
+    register uint32_t volatile _psp __asm("psp");
+
+    _psp = r;
+}
+
+static inline uint32_t _GetCONTROL (void)
+{
+    register uint32_t volatile _control __asm("control");
+
+    return _control;
+}
+
+static inline void _SetCONTROL (uint32_t r)
+{
+    register uint32_t volatile _control __asm("control");
+
+    _control = r;
+}
+
+static inline uint32_t _GetPRIMASK (void)
+{
+    register uint32_t volatile _primask __asm("primask");
+
+    return _primask;
+}
+
+static inline void _SetPRIMASK (uint32_t r)
+{
+    register uint32_t volatile _primask __asm("primask");
+
+    _primask = r;
+}
+
+#define nOS_EnterCritical(sr)                                                   \
+    do {                                                                        \
+        sr = _GetPRIMASK();                                                     \
+        __disable_irq();                                                        \
+        __dsb(0xF);                                                             \
+        __isb(0xF);                                                             \
+    } while (0)
+
+#define nOS_LeaveCritical(sr)                                                   \
+    do {                                                                        \
+        _SetPRIMASK(sr);                                                        \
+        __dsb(0xF);                                                             \
+        __isb(0xF);                                                             \
+    } while (0)
 
 void    nOS_EnterIsr    (void);
 void    nOS_LeaveIsr    (void);
@@ -72,8 +114,9 @@ void func(void)                                                                 
 void func##_ISR(void)
 
 #ifdef NOS_PRIVATE
- void       nOS_InitSpecific    (void);
- void       nOS_InitContext     (nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg);
+ void   nOS_InitSpecific    (void);
+ void   nOS_InitContext     (nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg);
+ void   nOS_SwitchContext   (void);
 #endif
 
 #ifdef __cplusplus

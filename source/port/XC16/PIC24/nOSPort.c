@@ -17,7 +17,7 @@ extern "C" {
  static nOS_Stack _isrStack[NOS_CONFIG_ISR_STACK_SIZE];
 #endif
 
-void nOS_InitContext(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg)
+void nOS_InitContext (nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg)
 {
     nOS_Stack *tos = (nOS_Stack*)((uint16_t)stack & 0xFFFE);
 #if (NOS_CONFIG_DEBUG > 0)
@@ -63,7 +63,7 @@ void nOS_InitContext(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_Thr
     thread->stackPtr = tos;
 }
 
-void __attribute__((naked)) nOS_SwitchContext(void)
+void __attribute__((naked)) nOS_SwitchContext (void)
 {
     /* Enter critical is not needed here, interrupts are already disabled */
     __asm volatile (

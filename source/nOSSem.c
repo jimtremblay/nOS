@@ -16,7 +16,8 @@ extern "C" {
 #if (NOS_CONFIG_SEM_ENABLE > 0)
 nOS_Error nOS_SemCreate (nOS_Sem *sem, nOS_SemCounter count, nOS_SemCounter max)
 {
-    nOS_Error   err;
+    nOS_Error       err;
+    nOS_StatusReg   sr;
 
 #if (NOS_CONFIG_SAFE > 0)
     if (sem == NULL) {
@@ -28,7 +29,7 @@ nOS_Error nOS_SemCreate (nOS_Sem *sem, nOS_SemCounter count, nOS_SemCounter max)
     } else
 #endif
     {
-        nOS_EnterCritical();
+        nOS_EnterCritical(sr);
 #if (NOS_CONFIG_SAFE > 0)
         nOS_CreateEvent((nOS_Event*)sem, NOS_EVENT_SEM);
 #else
@@ -36,7 +37,7 @@ nOS_Error nOS_SemCreate (nOS_Sem *sem, nOS_SemCounter count, nOS_SemCounter max)
 #endif
         sem->count = count;
         sem->max = max;
-        nOS_LeaveCritical();
+        nOS_LeaveCritical(sr);
         err = NOS_OK;
     }
 
@@ -46,7 +47,8 @@ nOS_Error nOS_SemCreate (nOS_Sem *sem, nOS_SemCounter count, nOS_SemCounter max)
 #if (NOS_CONFIG_SEM_DELETE_ENABLE > 0)
 nOS_Error nOS_SemDelete (nOS_Sem *sem)
 {
-    nOS_Error   err;
+    nOS_Error       err;
+    nOS_StatusReg   sr;
 
 #if (NOS_CONFIG_SAFE > 0)
     if (sem == NULL) {
@@ -56,7 +58,7 @@ nOS_Error nOS_SemDelete (nOS_Sem *sem)
     } else
 #endif
     {
-        nOS_EnterCritical();
+        nOS_EnterCritical(sr);
         sem->count = 0;
         sem->max = 0;
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
@@ -66,7 +68,7 @@ nOS_Error nOS_SemDelete (nOS_Sem *sem)
 #else
         nOS_DeleteEvent((nOS_Event*)sem);
 #endif
-        nOS_LeaveCritical();
+        nOS_LeaveCritical(sr);
         err = NOS_OK;
     }
 
@@ -76,7 +78,8 @@ nOS_Error nOS_SemDelete (nOS_Sem *sem)
 
 nOS_Error nOS_SemTake (nOS_Sem *sem, nOS_TickCounter tout)
 {
-    nOS_Error   err;
+    nOS_Error       err;
+    nOS_StatusReg   sr;
 
 #if (NOS_CONFIG_SAFE > 0)
     if (sem == NULL) {
@@ -86,7 +89,7 @@ nOS_Error nOS_SemTake (nOS_Sem *sem, nOS_TickCounter tout)
     } else
 #endif
     {
-        nOS_EnterCritical();
+        nOS_EnterCritical(sr);
         if (sem->count > 0) {
             /* Sem available. */
             sem->count--;
@@ -111,7 +114,7 @@ nOS_Error nOS_SemTake (nOS_Sem *sem, nOS_TickCounter tout)
             /* Calling thread must wait on sem. */
             err = nOS_WaitForEvent((nOS_Event*)sem, NOS_THREAD_TAKING_SEM, tout);
         }
-        nOS_LeaveCritical();
+        nOS_LeaveCritical(sr);
     }
 
     return err;
@@ -119,8 +122,9 @@ nOS_Error nOS_SemTake (nOS_Sem *sem, nOS_TickCounter tout)
 
 nOS_Error nOS_SemGive (nOS_Sem *sem)
 {
-    nOS_Thread  *thread;
-    nOS_Error   err;
+    nOS_Error       err;
+    nOS_StatusReg   sr;
+    nOS_Thread      *thread;
 
 #if (NOS_CONFIG_SAFE > 0)
     if (sem == NULL) {
@@ -130,7 +134,7 @@ nOS_Error nOS_SemGive (nOS_Sem *sem)
     } else
 #endif
     {
-        nOS_EnterCritical();
+        nOS_EnterCritical(sr);
         thread = nOS_SignalEvent((nOS_Event*)sem, NOS_OK);
         if (thread != NULL) {
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
@@ -148,7 +152,7 @@ nOS_Error nOS_SemGive (nOS_Sem *sem)
             /* No thread waiting to consume sem, inform producer */
             err = NOS_E_NO_CONSUMER;
         }
-        nOS_LeaveCritical();
+        nOS_LeaveCritical(sr);
     }
 
     return err;
@@ -156,7 +160,8 @@ nOS_Error nOS_SemGive (nOS_Sem *sem)
 
 bool nOS_SemIsAvailable (nOS_Sem *sem)
 {
-    bool    avail;
+    nOS_StatusReg   sr;
+    bool            avail;
 
 #if (NOS_CONFIG_SAFE > 0)
     if (sem == NULL) {
@@ -166,9 +171,9 @@ bool nOS_SemIsAvailable (nOS_Sem *sem)
     } else
 #endif
     {
-        nOS_EnterCritical();
+        nOS_EnterCritical(sr);
         avail = (sem->count > 0);
-        nOS_LeaveCritical();
+        nOS_LeaveCritical(sr);
     }
 
     return avail;

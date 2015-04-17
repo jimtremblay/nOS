@@ -39,20 +39,43 @@ typedef struct nOS_Stack
     bool                running;
 } nOS_Stack;
 
+typedef uint32_t                            nOS_StatusReg;
+
 #ifndef NOS_CONFIG_TICKS_PER_SECOND
  #error "nOSConfig.h: NOS_CONFIG_TICKS_PER_SECOND is not defined: must be set between 1 and 100 inclusively."
 #elif (NOS_CONFIG_TICKS_PER_SECOND < 1) || (NOS_CONFIG_TICKS_PER_SECOND > 100)
  #error "nOSConfig.h: NOS_CONFIG_TICKS_PER_SECOND is set to invalid value: must be set between 1 and 100 inclusively."
 #endif
 
-void    nOS_EnterCritical    (void);
-void    nOS_LeaveCritical    (void);
-int     nOS_Print            (const char *format, ...);
+#define nOS_EnterCritical(sr)                                                   \
+    do {                                                                        \
+        NOS_UNUSED(sr);                                                         \
+        if (nOS_criticalNestingCounter == 0) {                                  \
+            /* Lock mutex only one time */                                      \
+            pthread_mutex_lock(&nOS_criticalSection);                           \
+        }                                                                       \
+        nOS_criticalNestingCounter++;                                           \
+    } while (0)
+
+#define nOS_LeaveCritical(sr)                                                   \
+    do {                                                                        \
+        NOS_UNUSED(sr);                                                         \
+        nOS_criticalNestingCounter--;                                           \
+        if (nOS_criticalNestingCounter == 0) {                                  \
+            /* Unlock mutex when nesting counter reach zero */                  \
+            pthread_mutex_unlock(&nOS_criticalSection);                         \
+        }                                                                       \
+    } while (0)
+
+extern volatile uint32_t    nOS_criticalNestingCounter;
+extern pthread_mutex_t      nOS_criticalSection;
+
+int     nOS_Print           (const char *format, ...);
 
 #ifdef NOS_PRIVATE
- void   nOS_InitSpecific            (void);
- void   nOS_InitContext             (nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg);
- void   nOS_SwitchContext           (void);
+ void   nOS_InitSpecific    (void);
+ void   nOS_InitContext     (nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg);
+ void   nOS_SwitchContext   (void);
 #endif
 
 #ifdef __cplusplus

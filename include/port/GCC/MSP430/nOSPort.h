@@ -16,6 +16,7 @@ extern "C" {
 #endif
 
 typedef uint16_t                    nOS_Stack;
+typedef uint16_t                    nOS_StatusReg;
 
 #define NOS_UNUSED(v)               (void)v
 
@@ -100,19 +101,18 @@ typedef uint16_t                    nOS_Stack;
     )
 #endif
 
+#define nOS_EnterCritical(sr)                                                   \
+    do {                                                                        \
+        sr = __get_interrupt_state();                                           \
+        __disable_interrupt();                                                  \
+        __no_operation();                                                       \
+    } while (0)
 
-#define nOS_EnterCritical()                                                     \
-{                                                                               \
-    volatile uint16_t _sr;                                                      \
-    _sr = __get_interrupt_state();                                              \
-    __disable_interrupt();                                                      \
-    __no_operation()
-
-
-#define nOS_LeaveCritical()                                                     \
-    __set_interrupt_state(_sr);                                                 \
-    __no_operation();                                                           \
-}
+#define nOS_LeaveCritical(sr)                                                   \
+    do {                                                                        \
+        __set_interrupt_state(sr);                                              \
+        __no_operation();                                                       \
+    } while (0)
 
 nOS_Stack*  nOS_EnterIsr        (nOS_Stack *sp);
 nOS_Stack*  nOS_LeaveIsr        (nOS_Stack *sp);

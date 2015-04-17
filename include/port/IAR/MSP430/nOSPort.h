@@ -35,6 +35,7 @@ extern "C" {
  #define NOS_MEM_ALIGNMENT          2
  #define NOS_MEM_POINTER_WIDTH      2
 #endif
+typedef __istate_t                  nOS_StatusReg;
 
 #ifdef NOS_CONFIG_ISR_STACK_SIZE
  #if (NOS_CONFIG_ISR_STACK_SIZE == 0)
@@ -114,14 +115,14 @@ extern "C" {
     "POP    R15             \n"
 #endif
 
-#define nOS_EnterCritical()                                                     \
-{                                                                               \
-    __istate_t _sr = __get_interrupt_state();                                   \
-    __disable_interrupt()
+#define nOS_EnterCritical(sr)                                                   \
+    do {                                                                        \
+        sr = __get_interrupt_state();                                           \
+        __disable_interrupt();                                                  \
+    } while (0)
 
-#define nOS_LeaveCritical()                                                     \
-    __set_interrupt_state(_sr);                                                 \
-}
+#define nOS_LeaveCritical(sr)                                                   \
+    __set_interrupt_state(sr)
 
 nOS_Stack*  nOS_EnterIsr        (nOS_Stack *sp);
 nOS_Stack*  nOS_LeaveIsr        (nOS_Stack *sp);

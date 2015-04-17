@@ -13,7 +13,7 @@
 extern "C" {
 #endif
 
-void nOS_InitContext(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, size_t cssize, nOS_ThreadEntry entry, void *arg)
+void nOS_InitContext (nOS_Thread *thread, nOS_Stack *stack, size_t ssize, size_t cssize, nOS_ThreadEntry entry, void *arg)
 {
     /* Stack grow from high to low address */
     nOS_Stack *tocs = stack + (ssize - 1);
@@ -99,7 +99,7 @@ void nOS_InitContext(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, size_t 
 }
 
 /* Absolutely need a naked function because function call push the return address on the stack */
-__task void nOS_SwitchContext(void)
+__task void nOS_SwitchContext (void)
 {
     PUSH_CONTEXT();
     __asm (

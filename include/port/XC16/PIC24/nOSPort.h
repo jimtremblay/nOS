@@ -16,6 +16,7 @@ extern "C" {
 #endif
 
 typedef uint16_t                            nOS_Stack;
+typedef uint16_t                            nOS_StatusReg;
 
 #define NOS_UNUSED(v)                       (void)v
 
@@ -38,17 +39,16 @@ typedef uint16_t                            nOS_Stack;
 
 #define NOS_MAX_UNSAFE_IPL                  NOS_CONFIG_MAX_UNSAFE_ISR_PRIO
 
-#define nOS_EnterCritical()                                                     \
-{                                                                               \
-    uint16_t _sr;                                                               \
-    _sr = SRbits.IPL;                                                           \
-    if (SRbits.IPL < NOS_MAX_UNSAFE_IPL) {                                      \
-        SRbits.IPL = NOS_MAX_UNSAFE_IPL;                                        \
-    }
+#define nOS_EnterCritical(sr)                                                   \
+    do {                                                                        \
+        sr = SRbits.IPL;                                                        \
+        if (sr < NOS_MAX_UNSAFE_IPL) {                                          \
+            SRbits.IPL = NOS_MAX_UNSAFE_IPL;                                    \
+        }                                                                       \
+    } while (0)
 
-#define nOS_LeaveCritical()                                                     \
-    SRbits.IPL = _sr;                                                           \
-}
+#define nOS_LeaveCritical(sr)                                                   \
+    SRbits.IPL = sr
 
 #ifdef __HAS_EDS__
  #define PUSH_PAGE_ADDRESS                                                      \

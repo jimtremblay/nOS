@@ -34,20 +34,49 @@ typedef struct nOS_Stack
     HANDLE          hsync;
 } nOS_Stack;
 
+typedef DWORD                               nOS_StatusReg;
+
 #ifndef NOS_CONFIG_TICKS_PER_SECOND
  #error "nOSConfig.h: NOS_CONFIG_TICKS_PER_SECOND is not defined: must be set between 1 and 100 inclusively."
 #elif (NOS_CONFIG_TICKS_PER_SECOND < 1) || (NOS_CONFIG_TICKS_PER_SECOND > 100)
  #error "nOSConfig.h: NOS_CONFIG_TICKS_PER_SECOND is set to invalid value: must be set between 1 and 100 inclusively."
 #endif
 
-void    nOS_EnterCritical    (void);
-void    nOS_LeaveCritical    (void);
-int     nOS_Print            (const char *format, ...);
+#define nOS_EnterCritical(sr)                                                   \
+    do {                                                                        \
+        NOS_UNUSED(sr);                                                         \
+        if (nOS_running) {                                                      \
+            /* Enter critical section */                                        \
+            while(WaitForSingleObject(nOS_hCritical, INFINITE) != WAIT_OBJECT_0);\
+            if (nOS_criticalNestingCounter > 0) {                               \
+                /* Keep only one level of lock to leave critical section */     \
+                ReleaseMutex(nOS_hCritical);                                    \
+            }                                                                   \
+            nOS_criticalNestingCounter++;                                       \
+        }                                                                       \
+    } while (0)
+
+#define nOS_LeaveCritical(sr)                                                   \
+    do {                                                                        \
+        NOS_UNUSED(sr);                                                         \
+        if (nOS_running) {                                                      \
+            nOS_criticalNestingCounter--;                                       \
+            if (nOS_criticalNestingCounter == 0) {                              \
+                /* Leave critical section */                                    \
+                ReleaseMutex(nOS_hCritical);                                    \
+            }                                                                   \
+        }                                                                       \
+    } while (0)
+
+extern HANDLE       nOS_hCritical;
+extern uint32_t     nOS_criticalNestingCounter;
+
+int     nOS_Print           (const char *format, ...);
 
 #ifdef NOS_PRIVATE
- void   nOS_InitSpecific            (void);
- void   nOS_InitContext             (nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg);
- void   nOS_SwitchContext           (void);
+ void   nOS_InitSpecific    (void);
+ void   nOS_InitContext     (nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg);
+ void   nOS_SwitchContext   (void);
 #endif
 
 #ifdef __cplusplus

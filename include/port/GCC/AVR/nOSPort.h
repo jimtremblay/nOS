@@ -17,6 +17,7 @@ extern "C" {
 #endif
 
 typedef uint8_t                 nOS_Stack;
+typedef uint8_t                 nOS_StatusReg;
 
 #define NOS_UNUSED(v)           (void)v
 
@@ -72,19 +73,19 @@ typedef uint8_t                 nOS_Stack;
  #define POP_EIND()
 #endif
 
-#define nOS_EnterCritical()                                                     \
+#define nOS_EnterCritical(sr)                                                   \
     asm volatile (                                                              \
-        "in   __tmp_reg__, %[SREG_ADDR]     \n"                                 \
+        "in   %[SR], %[SREG_ADDR]           \n"                                 \
         "cli                                \n"                                 \
-        "push __tmp_reg__                   \n"                                 \
-        :: [SREG_ADDR] "I" (_SFR_IO_ADDR(SREG))                                 \
+        : [SR] "=r" (sr)                                                        \
+        : [SREG_ADDR] "I" (_SFR_IO_ADDR(SREG))                                  \
     )
 
-#define nOS_LeaveCritical()                                                     \
+#define nOS_LeaveCritical(sr)                                                   \
     asm volatile (                                                              \
-        "pop  __tmp_reg__                   \n"                                 \
-        "out  %[SREG_ADDR], __tmp_reg__     \n"                                 \
-        :: [SREG_ADDR] "I" (_SFR_IO_ADDR(SREG))                                 \
+        "out  %[SREG_ADDR], %[SR]           \n"                                 \
+        : [SR] "=r" (sr)                                                        \
+        : [SREG_ADDR] "I" (_SFR_IO_ADDR(SREG))                                  \
     )
 
 #define PUSH_CONTEXT()                                                          \

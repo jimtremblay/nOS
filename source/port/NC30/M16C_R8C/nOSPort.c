@@ -50,16 +50,19 @@ void nOS_InitContext(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_Thr
 
 void nOS_EnterIsr (void)
 {
-    nOS_EnterCritical();
+    nOS_StatusReg   sr;
+
+    nOS_EnterCritical(sr);
     nOS_isrNestingCounter++;
-    nOS_LeaveCritical();
+    nOS_LeaveCritical(sr);
 }
 
 bool nOS_LeaveIsr (void)
 {
-    bool    swctx = false;
+    nOS_StatusReg   sr;
+    bool            swctx = false;
 
-    nOS_EnterCritical();
+    nOS_EnterCritical(sr);
     nOS_isrNestingCounter--;
 #if (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
     if (nOS_isrNestingCounter == 0) {
@@ -74,7 +77,7 @@ bool nOS_LeaveIsr (void)
         }
     }
 #endif
-    nOS_LeaveCritical();
+    nOS_LeaveCritical(sr);
 
     return swctx;
 }
