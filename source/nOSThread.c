@@ -75,8 +75,8 @@ void nOS_TickThread (void *payload, void *arg)
 #if (NOS_CONFIG_SLEEP_ENABLE > 0)
                          | NOS_THREAD_SLEEPING
 #endif
-                         )
-    ) {
+                        ))
+    {
         if (thread->timeout > 0) {
             thread->timeout--;
             if (thread->timeout == 0) {
@@ -99,7 +99,14 @@ void nOS_SignalThread (nOS_Thread *thread, nOS_Error err)
         nOS_RemoveFromList(&thread->event->waitList, &thread->readyWait);
     }
     thread->error = err;
-    thread->state = (nOS_ThreadState)(thread->state &~ NOS_THREAD_STATE_WAIT_MASK);
+    thread->state = (nOS_ThreadState)(thread->state &~ (NOS_THREAD_WAITING_EVENT
+#if (NOS_CONFIG_SLEEP_ENABLE > 0)
+                                                        | NOS_THREAD_SLEEPING
+#endif
+#if (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
+                                                        | NOS_THREAD_SLEEPING_UNTIL
+#endif
+                                                       ));
     thread->timeout = 0;
     if (thread->state == NOS_THREAD_READY) {
         nOS_AppendThreadToReadyList(thread);
