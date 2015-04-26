@@ -29,7 +29,7 @@ static void _TestFlag (void *payload, void *arg)
     }
     /* If conditions are met, wake up the thread and give it the result. */
     if (r != NOS_FLAG_NONE) {
-        nOS_SignalThread(thread, NOS_OK);
+        nOS_WakeUpThread(thread, NOS_OK);
         *ctx->rflags = r;
         /* Accumulate awoken flags if waiting thread want to clear it when awoken. */
         if (ctx->opt & NOS_FLAG_CLEAR_ON_EXIT) {

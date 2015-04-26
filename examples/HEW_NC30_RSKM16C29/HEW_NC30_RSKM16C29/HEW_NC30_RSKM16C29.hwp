@@ -118,6 +118,7 @@
 "C:\Users\Jim\Projets\nOS\source\nOSQueue.c" "User" "nOS" 2 
 "C:\Users\Jim\Projets\nOS\source\nOSSched.c" "User" "nOS" 2 
 "C:\Users\Jim\Projets\nOS\source\nOSSem.c" "User" "nOS" 2 
+"C:\Users\Jim\Projets\nOS\source\nOSSignal.c" "User" "nOS" 2 
 "C:\Users\Jim\Projets\nOS\source\nOSThread.c" "User" "nOS" 2 
 "C:\Users\Jim\Projets\nOS\source\nOSTime.c" "User" "nOS" 2 
 "C:\Users\Jim\Projets\nOS\source\nOSTimer.c" "User" "nOS" 2 
@@ -151,20 +152,21 @@
 "C:\Users\Jim\Projets\nOS\source\nOSQueue.c" "0d9fe6ae15450d10" 1 
 "C:\Users\Jim\Projets\nOS\source\nOSSched.c" "0d9fe6ae15450d10" 1 
 "C:\Users\Jim\Projets\nOS\source\nOSSem.c" "0d9fe6ae15450d10" 1 
+"C:\Users\Jim\Projets\nOS\source\nOSSignal.c" "0009c21a22080d10" 1 
 "C:\Users\Jim\Projets\nOS\source\nOSThread.c" "0d9fe6ae15450d10" 1 
 "C:\Users\Jim\Projets\nOS\source\nOSTime.c" "0d9fe6ae15450d10" 1 
 "C:\Users\Jim\Projets\nOS\source\nOSTimer.c" "0d9fe6ae15450d10" 1 
 "C:\Users\Jim\Projets\nOS\source\port\NC30\M16C_R8C\nOSPort.c" "0d9fe6ae15450d10" 1 
 [OPTIONS_Debug_Renesas M16C Configurator]
-"Single Shot" "0406773e15450d10" 6 
+"Single Shot" "0009c21a22080d10" 6 
 [OPTIONS_Debug_Renesas M16C ConfiguratorR8C]
-"Single Shot" "0406773e15450d10" 6 
+"Single Shot" "0009c21a22080d10" 6 
 [OPTIONS_Debug_Renesas M16C Librarian]
-"Single Shot" "0406773e15450d10" 5 
+"Single Shot" "0009c21a22080d10" 5 
 [OPTIONS_Debug_Renesas M16C Linker]
-"Single Shot" "0c89873e15450d10" 3 
+"Single Shot" "0ab4a31a22080d10" 3 
 [OPTIONS_Debug_Renesas M16C Stype Converter]
-"Single Shot" "0c89873e15450d10" 4 
+"Single Shot" "0ab4a31a22080d10" 4 
 [OPTIONS_Debug]
 "" 0 
 "[V|VERSION|1] [B|COMMAND|1] [S|SPEC|UITRON4] " 6 
@@ -193,20 +195,21 @@
 "C:\Users\Jim\Projets\nOS\source\nOSQueue.c" "01846a8ea2940d10" 1 
 "C:\Users\Jim\Projets\nOS\source\nOSSched.c" "01846a8ea2940d10" 1 
 "C:\Users\Jim\Projets\nOS\source\nOSSem.c" "01846a8ea2940d10" 1 
+"C:\Users\Jim\Projets\nOS\source\nOSSignal.c" "0009c21a22080d10" 1 
 "C:\Users\Jim\Projets\nOS\source\nOSThread.c" "01846a8ea2940d10" 1 
 "C:\Users\Jim\Projets\nOS\source\nOSTime.c" "01846a8ea2940d10" 1 
 "C:\Users\Jim\Projets\nOS\source\nOSTimer.c" "01846a8ea2940d10" 1 
 "C:\Users\Jim\Projets\nOS\source\port\NC30\M16C_R8C\nOSPort.c" "0406773e15450d10" 1 
 [OPTIONS_Debug_M16C_E8a_SYSTEM_Renesas M16C Configurator]
-"Single Shot" "0406773e15450d10" 6 
+"Single Shot" "0009c21a22080d10" 6 
 [OPTIONS_Debug_M16C_E8a_SYSTEM_Renesas M16C ConfiguratorR8C]
-"Single Shot" "0406773e15450d10" 6 
+"Single Shot" "0009c21a22080d10" 6 
 [OPTIONS_Debug_M16C_E8a_SYSTEM_Renesas M16C Librarian]
-"Single Shot" "0406773e15450d10" 5 
+"Single Shot" "0009c21a22080d10" 5 
 [OPTIONS_Debug_M16C_E8a_SYSTEM_Renesas M16C Linker]
-"Single Shot" "0c89873e15450d10" 3 
+"Single Shot" "0ab4a31a22080d10" 3 
 [OPTIONS_Debug_M16C_E8a_SYSTEM_Renesas M16C Stype Converter]
-"Single Shot" "0c89873e15450d10" 4 
+"Single Shot" "0ab4a31a22080d10" 4 
 [OPTIONS_Debug_M16C_E8a_SYSTEM]
 "" 0 
 "[V|VERSION|1] [B|COMMAND|1] [S|SPEC|UITRON4] " 6 
@@ -234,20 +237,21 @@
 "C:\Users\Jim\Projets\nOS\source\nOSQueue.c" "01846a8ea2940d10" 1 
 "C:\Users\Jim\Projets\nOS\source\nOSSched.c" "01846a8ea2940d10" 1 
 "C:\Users\Jim\Projets\nOS\source\nOSSem.c" "01846a8ea2940d10" 1 
+"C:\Users\Jim\Projets\nOS\source\nOSSignal.c" "0009c21a22080d10" 1 
 "C:\Users\Jim\Projets\nOS\source\nOSThread.c" "01846a8ea2940d10" 1 
 "C:\Users\Jim\Projets\nOS\source\nOSTime.c" "01846a8ea2940d10" 1 
 "C:\Users\Jim\Projets\nOS\source\nOSTimer.c" "01846a8ea2940d10" 1 
 "C:\Users\Jim\Projets\nOS\source\port\NC30\M16C_R8C\nOSPort.c" "0406773e15450d10" 1 
 [OPTIONS_Release_Renesas M16C Configurator]
-"Single Shot" "0406773e15450d10" 6 
+"Single Shot" "0009c21a22080d10" 6 
 [OPTIONS_Release_Renesas M16C ConfiguratorR8C]
-"Single Shot" "0406773e15450d10" 6 
+"Single Shot" "0009c21a22080d10" 6 
 [OPTIONS_Release_Renesas M16C Librarian]
-"Single Shot" "0406773e15450d10" 5 
+"Single Shot" "0009c21a22080d10" 5 
 [OPTIONS_Release_Renesas M16C Linker]
-"Single Shot" "0c89873e15450d10" 3 
+"Single Shot" "0ab4a31a22080d10" 3 
 [OPTIONS_Release_Renesas M16C Stype Converter]
-"Single Shot" "0c89873e15450d10" 4 
+"Single Shot" "0ab4a31a22080d10" 4 
 [OPTIONS_Release]
 "" 0 
 "[V|VERSION|1] [B|COMMAND|1] [S|SPEC|UITRON4] " 6 

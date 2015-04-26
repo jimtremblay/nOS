@@ -468,6 +468,11 @@
               <FileType>1</FileType>
               <FilePath>..\..\source\port\Keil\ARM_Cortex_M0\nOSPort.c</FilePath>
             </File>
+            <File>
+              <FileName>nOSSignal.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\source\nOSSignal.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

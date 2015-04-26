@@ -218,7 +218,7 @@ nOS_Error nOS_MutexUnlock (nOS_Mutex *mutex)
     #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
                         nOS_SetThreadPrio(mutex->owner, mutex->backup);
     #endif
-                        thread = nOS_SignalEvent((nOS_Event*)mutex, NOS_OK);
+                        thread = nOS_SendEvent((nOS_Event*)mutex, NOS_OK);
                         if (thread != NULL) {
                             mutex->count++;
                             mutex->owner = thread;

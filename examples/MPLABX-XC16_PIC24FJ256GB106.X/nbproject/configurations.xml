@@ -23,6 +23,7 @@
       <itemPath>../../source/nOSTime.c</itemPath>
       <itemPath>../../source/nOSTimer.c</itemPath>
       <itemPath>../../source/port/XC16/PIC24/nOSPort.c</itemPath>
+      <itemPath>../../source/nOSSignal.c</itemPath>
     </logicalFolder>
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"

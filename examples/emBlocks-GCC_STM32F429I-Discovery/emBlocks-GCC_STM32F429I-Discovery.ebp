@@ -243,6 +243,9 @@
 		<Unit filename="..\..\source\nOSSem.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="..\..\source\nOSSignal.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="..\..\source\nOSThread.c">
 			<Option compilerVar="CC" />
 		</Unit>

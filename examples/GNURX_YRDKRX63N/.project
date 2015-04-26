@@ -71,6 +71,11 @@
 			<locationURI>PARENT-2-PROJECT_LOC/source/nOSSem.c</locationURI>
 		</link>
 		<link>
+			<name>nOS/nOSSignal.c</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/source/nOSSignal.c</locationURI>
+		</link>
+		<link>
 			<name>nOS/nOSThread.c</name>
 			<type>1</type>
 			<locationURI>PARENT-2-PROJECT_LOC/source/nOSThread.c</locationURI>

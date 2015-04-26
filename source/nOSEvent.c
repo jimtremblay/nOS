@@ -36,7 +36,7 @@ void nOS_DeleteEvent (nOS_Event *event)
     bool        sched = false;
 
     do {
-        thread = nOS_SignalEvent(event, NOS_E_DELETED);
+        thread = nOS_SendEvent(event, NOS_E_DELETED);
         if (thread != NULL) {
             if ((thread->state == NOS_THREAD_READY) && (thread->prio > nOS_runningThread->prio)) {
                 sched = true;
@@ -44,7 +44,7 @@ void nOS_DeleteEvent (nOS_Event *event)
         }
     } while (thread != NULL);
 #else
-    while (nOS_SignalEvent(event, NOS_E_DELETED) != NULL);
+    while (nOS_SendEvent(event, NOS_E_DELETED) != NULL);
 #endif
 #if (NOS_CONFIG_SAFE > 0)
     event->type = NOS_EVENT_INVALID;
@@ -77,13 +77,13 @@ nOS_Error nOS_WaitForEvent (nOS_Event *event, nOS_ThreadState state, nOS_TickCou
     return nOS_runningThread->error;
 }
 
-nOS_Thread* nOS_SignalEvent (nOS_Event *event, nOS_Error err)
+nOS_Thread* nOS_SendEvent (nOS_Event *event, nOS_Error err)
 {
     nOS_Thread  *thread;
 
     thread = (nOS_Thread*)nOS_GetHeadOfList(&event->waitList);
     if (thread != NULL) {
-        nOS_SignalThread(thread, err);
+        nOS_WakeUpThread(thread, err);
     }
 
     return thread;

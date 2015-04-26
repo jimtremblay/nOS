@@ -220,6 +220,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\nOSSignal.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\nOSThread.c"
 				>
 			</File>

@@ -1924,6 +1924,9 @@
   <file>
     <name>$PROJ_DIR$\main.c</name>
   </file>
+  <file>
+    <name>$PROJ_DIR$\..\..\source\nOSSignal.c</name>
+  </file>
 </project>
 
 

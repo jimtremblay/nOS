@@ -46,9 +46,6 @@ static void _TickTimer (void *payload, void *arg)
     nOS_StatusReg       sr;
     nOS_Timer           *timer = (nOS_Timer *)payload;
     nOS_TimerCallback   callback = NULL;
-    void                *carg;
-
-    NOS_UNUSED(arg);
 
     nOS_EnterCritical(sr);
     if ((timer->state & (NOS_TIMER_RUNNING | NOS_TIMER_PAUSED)) == NOS_TIMER_RUNNING) {
@@ -65,13 +62,13 @@ static void _TickTimer (void *payload, void *arg)
             }
             /* Call callback function outside of critical section */
             callback = timer->callback;
-            carg     = timer->arg;
+            arg      = timer->arg;
         }
     }
     nOS_LeaveCritical(sr);
 
     if (callback != NULL) {
-        callback(timer, carg);
+        callback(timer, arg);
     }
 }
 
@@ -83,26 +80,26 @@ void nOS_InitTimer(void)
     nOS_ThreadCreate(&_timerHandle,
                      _ThreadTimer,
                      NULL
-#ifdef NOS_SIMULATED_STACK
+ #ifdef NOS_SIMULATED_STACK
                      ,&_timerStack
-#else
+ #else
                      ,_timerStack
-#endif
+ #endif
                      ,NOS_CONFIG_TIMER_THREAD_STACK_SIZE
-#ifdef NOS_USE_SEPARATE_CALL_STACK
+ #ifdef NOS_USE_SEPARATE_CALL_STACK
                      ,NOS_CONFIG_TIMER_THREAD_CALL_STACK_SIZE
-#endif
-#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
+ #endif
+ #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
                      ,NOS_CONFIG_TIMER_THREAD_PRIO
-#endif
-#if (NOS_CONFIG_THREAD_SUSPEND_ENABLE > 0)
+ #endif
+ #if (NOS_CONFIG_THREAD_SUSPEND_ENABLE > 0)
                      ,NOS_THREAD_READY
-#endif
-#if (NOS_CONFIG_THREAD_NAME_ENABLE > 0)
+ #endif
+ #if (NOS_CONFIG_THREAD_NAME_ENABLE > 0)
                      ,"nOS_Timer"
-#endif
+ #endif
                      );
-#endif  /* NOS_CONFIG_TIMER_THREAD_ENABLE */
+#endif
 }
 
 void nOS_TimerTick (void)
@@ -118,7 +115,8 @@ void nOS_TimerProcess (void)
 #else
                      NOS_NO_WAIT
 #endif
-                     ) == NOS_OK) {
+                     ) == NOS_OK)
+    {
         nOS_WalkInList(&_timerList, _TickTimer, NULL);
     }
 }

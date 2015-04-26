@@ -136,6 +136,7 @@
 "C:\Users\Jim\Projets\nOS\source\nOSQueue.c" "User" "nOS" 2 
 "C:\Users\Jim\Projets\nOS\source\nOSSched.c" "User" "nOS" 2 
 "C:\Users\Jim\Projets\nOS\source\nOSSem.c" "User" "nOS" 2 
+"C:\Users\Jim\Projets\nOS\source\nOSSignal.c" "User" "nOS" 2 
 "C:\Users\Jim\Projets\nOS\source\nOSThread.c" "User" "nOS" 2 
 "C:\Users\Jim\Projets\nOS\source\nOSTime.c" "User" "nOS" 2 
 "C:\Users\Jim\Projets\nOS\source\nOSTimer.c" "User" "nOS" 2 
@@ -174,6 +175,7 @@
 "C:\Users\Jim\Projets\nOS\source\nOSQueue.c" "0805a17925450d10" 2 
 "C:\Users\Jim\Projets\nOS\source\nOSSched.c" "0805a17925450d10" 2 
 "C:\Users\Jim\Projets\nOS\source\nOSSem.c" "0805a17925450d10" 2 
+"C:\Users\Jim\Projets\nOS\source\nOSSignal.c" "0dd0ec1582080d10" 2 
 "C:\Users\Jim\Projets\nOS\source\nOSThread.c" "0805a17925450d10" 2 
 "C:\Users\Jim\Projets\nOS\source\nOSTime.c" "0805a17925450d10" 2 
 "C:\Users\Jim\Projets\nOS\source\nOSTimer.c" "0805a17925450d10" 2 
@@ -182,7 +184,7 @@
 [OPTIONS_Debug_GNU Library Generator]
 "Single Shot" "008eee2ec6840d10" 1 
 [OPTIONS_Debug_GNU Linker]
-"Single Shot" "0c3cc3f825450d10" 5 
+"Single Shot" "01b11d1582080d10" 5 
 [OPTIONS_Debug]
 "" 0 
 "[V|VERSION|2] [S|ENDIAN|LITTLE] [S|OUTPUTPATH|^"$(CONFIGDIR)\lib$(PROJECTNAME).a^"] [B|OPTIMIZE|1] [I|OPTTYPE|2] [S|MODE|BUILD/CHANGED] [S|CPUTYPE|M16C/Tiny] [B|DOPROJBUILT|1] [B|DOOPTLIB|0] [B|STDIO|1] [B|STDLIB|1] [B|STRING|1] " 1 
@@ -215,6 +217,7 @@
 "C:\Users\Jim\Projets\nOS\source\nOSQueue.c" "0df14b92d6840d10" 2 
 "C:\Users\Jim\Projets\nOS\source\nOSSched.c" "0df14b92d6840d10" 2 
 "C:\Users\Jim\Projets\nOS\source\nOSSem.c" "0df14b92d6840d10" 2 
+"C:\Users\Jim\Projets\nOS\source\nOSSignal.c" "0dd0ec1582080d10" 2 
 "C:\Users\Jim\Projets\nOS\source\nOSThread.c" "0df14b92d6840d10" 2 
 "C:\Users\Jim\Projets\nOS\source\nOSTime.c" "0df14b92d6840d10" 2 
 "C:\Users\Jim\Projets\nOS\source\nOSTimer.c" "0df14b92d6840d10" 2 
@@ -223,7 +226,7 @@
 [OPTIONS_Debug_M16C_E8a_SYSTEM_GNU Library Generator]
 "Single Shot" "008eee2ec6840d10" 1 
 [OPTIONS_Debug_M16C_E8a_SYSTEM_GNU Linker]
-"Single Shot" "0c3cc3f825450d10" 4 
+"Single Shot" "01b11d1582080d10" 4 
 [OPTIONS_Debug_M16C_E8a_SYSTEM]
 "" 0 
 "[V|VERSION|2] [S|ENDIAN|LITTLE] [S|OUTPUTPATH|^"$(CONFIGDIR)\lib$(PROJECTNAME).a^"] [B|OPTIMIZE|1] [I|OPTTYPE|2] [S|MODE|BUILD/CHANGED] [S|CPUTYPE|M16C/Tiny] [B|DOPROJBUILT|1] [B|DOOPTLIB|0] [B|STDIO|1] [B|STDLIB|1] [B|STRING|1] " 1 
@@ -253,6 +256,7 @@
 "C:\Users\Jim\Projets\nOS\source\nOSQueue.c" "0df14b92d6840d10" 2 
 "C:\Users\Jim\Projets\nOS\source\nOSSched.c" "0df14b92d6840d10" 2 
 "C:\Users\Jim\Projets\nOS\source\nOSSem.c" "0df14b92d6840d10" 2 
+"C:\Users\Jim\Projets\nOS\source\nOSSignal.c" "0dd0ec1582080d10" 2 
 "C:\Users\Jim\Projets\nOS\source\nOSThread.c" "0df14b92d6840d10" 2 
 "C:\Users\Jim\Projets\nOS\source\nOSTime.c" "0df14b92d6840d10" 2 
 "C:\Users\Jim\Projets\nOS\source\nOSTimer.c" "0df14b92d6840d10" 2 
@@ -261,7 +265,7 @@
 [OPTIONS_Release_GNU Library Generator]
 "Single Shot" "008eee2ec6840d10" 1 
 [OPTIONS_Release_GNU Linker]
-"Single Shot" "0c3cc3f825450d10" 4 
+"Single Shot" "01b11d1582080d10" 4 
 [OPTIONS_Release]
 "" 0 
 "[V|VERSION|2] [S|ENDIAN|LITTLE] [S|OUTPUTPATH|^"$(CONFIGDIR)\lib$(PROJECTNAME).a^"] [B|OPTIMIZE|1] [I|OPTTYPE|2] [S|MODE|BUILD/CHANGED] [S|CPUTYPE|M16C/Tiny] [B|DOPROJBUILT|1] [B|DOOPTLIB|0] [B|STDIO|1] [B|STDLIB|1] [B|STRING|1] " 1 

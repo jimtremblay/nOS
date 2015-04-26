@@ -2204,6 +2204,9 @@
       <name>$PROJ_DIR$\..\..\source\nOSSem.c</name>
     </file>
     <file>
+      <name>$PROJ_DIR$\..\..\source\nOSSignal.c</name>
+    </file>
+    <file>
       <name>$PROJ_DIR$\..\..\source\nOSThread.c</name>
     </file>
     <file>

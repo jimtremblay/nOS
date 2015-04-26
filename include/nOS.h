@@ -299,25 +299,26 @@ extern "C" {
  #elif (NOS_CONFIG_TIMER_DELETE_ENABLE != 0) && (NOS_CONFIG_TIMER_DELETE_ENABLE != 1)
   #error "nOSConfig.h: NOS_CONFIG_TIMER_DELETE_ENABLE is set to invalid value: must be set to 0 or 1."
  #endif
- #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
-  #ifndef NOS_CONFIG_TIMER_THREAD_PRIO
-   #error "nOSConfig.h: NOS_CONFIG_TIMER_THREAD_PRIO is not defined: must be set between 0 and NOS_CONFIG_HIGHEST_THREAD_PRIO inclusively."
-  #elif (NOS_CONFIG_TIMER_THREAD_PRIO < 0)
-   #error "nOSConfig.h: NOS_CONFIG_TIMER_THREAD_PRIO is set to invalid value: must be set between 0 and NOS_CONFIG_HIGHEST_THREAD_PRIO inclusively."
-  #elif (NOS_CONFIG_TIMER_THREAD_PRIO > NOS_CONFIG_HIGHEST_THREAD_PRIO)
-   #error "nOSConfig.h: NOS_CONFIG_TIMER_THREAD_PRIO is higher than NOS_CONFIG_HIGHEST_THREAD_PRIO: must be set between 0 and NOS_CONFIG_HIGHEST_THREAD_PRIO inclusively."
-  #endif
- #else
-  #undef NOS_CONFIG_TIMER_THREAD_PRIO
- #endif
- #ifndef NOS_CONFIG_TIMER_THREAD_STACK_SIZE
-  #error "nOSConfig.h: NOS_CONFIG_TIMER_THREAD_STACK_SIZE is not defined."
- #endif
  #ifndef NOS_CONFIG_TIMER_THREAD_ENABLE
   #error "nOSConfig.h: NOS_CONFIG_TIMER_THREAD_ENABLE is not defined: must be set to 0 or 1."
  #elif (NOS_CONFIG_TIMER_THREAD_ENABLE != 0) && (NOS_CONFIG_TIMER_THREAD_ENABLE != 1)
   #error "nOSConfig.h: NOS_CONFIG_TIMER_THREAD_ENABLE is set to invalid value: must be set to 0 or 1."
- #elif (NOS_CONFIG_TIMER_THREAD_ENABLE == 0)
+ #elif (NOS_CONFIG_TIMER_THREAD_ENABLE > 0)
+  #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
+   #ifndef NOS_CONFIG_TIMER_THREAD_PRIO
+    #error "nOSConfig.h: NOS_CONFIG_TIMER_THREAD_PRIO is not defined: must be set between 0 and NOS_CONFIG_HIGHEST_THREAD_PRIO inclusively."
+   #elif (NOS_CONFIG_TIMER_THREAD_PRIO < 0)
+    #error "nOSConfig.h: NOS_CONFIG_TIMER_THREAD_PRIO is set to invalid value: must be set between 0 and NOS_CONFIG_HIGHEST_THREAD_PRIO inclusively."
+   #elif (NOS_CONFIG_TIMER_THREAD_PRIO > NOS_CONFIG_HIGHEST_THREAD_PRIO)
+    #error "nOSConfig.h: NOS_CONFIG_TIMER_THREAD_PRIO is higher than NOS_CONFIG_HIGHEST_THREAD_PRIO: must be set between 0 and NOS_CONFIG_HIGHEST_THREAD_PRIO inclusively."
+   #endif
+  #else
+   #undef NOS_CONFIG_TIMER_THREAD_PRIO
+  #endif
+  #ifndef NOS_CONFIG_TIMER_THREAD_STACK_SIZE
+   #error "nOSConfig.h: NOS_CONFIG_TIMER_THREAD_STACK_SIZE is not defined."
+  #endif
+ #else
   #undef NOS_CONFIG_TIMER_THREAD_PRIO
   #undef NOS_CONFIG_TIMER_THREAD_STACK_SIZE
  #endif
@@ -328,11 +329,54 @@ extern "C" {
  #endif
 #else
  #undef NOS_CONFIG_TIMER_TICK_ENABLE
- #undef NOS_CONFIG_TIMER_THREAD_ENABLE
  #undef NOS_CONFIG_TIMER_DELETE_ENABLE
+ #undef NOS_CONFIG_TIMER_THREAD_ENABLE
  #undef NOS_CONFIG_TIMER_THREAD_PRIO
  #undef NOS_CONFIG_TIMER_THREAD_STACK_SIZE
  #undef NOS_CONFIG_TIMER_COUNT_WIDTH
+#endif
+
+#ifndef NOS_CONFIG_SIGNAL_ENABLE
+ #error "nOSConfig.h: NOS_CONFIG_SIGNAL_ENABLE is not defined: must be set to 0 or 1."
+#elif (NOS_CONFIG_SIGNAL_ENABLE != 0) && (NOS_CONFIG_SIGNAL_ENABLE != 1)
+ #error "nOSConfig.h: NOS_CONFIG_SIGNAL_ENABLE is set to invalid value: must be set to 0 or 1."
+#elif (NOS_CONFIG_SIGNAL_ENABLE > 0)
+ #if (NOS_CONFIG_SEM_ENABLE == 0)
+  #error "nOSConfig.h: NOS_CONFIG_SEM_ENABLE need to be enable when NOS_CONFIG_SIGNAL_ENABLE is enable."
+ #endif
+ #ifndef NOS_CONFIG_SIGNAL_DELETE_ENABLE
+  #error "nOSConfig.h: NOS_CONFIG_SIGNAL_DELETE_ENABLE is not defined: must be set to 0 or 1."
+ #elif (NOS_CONFIG_SIGNAL_DELETE_ENABLE != 0) && (NOS_CONFIG_SIGNAL_DELETE_ENABLE != 1)
+  #error "nOSConfig.h: NOS_CONFIG_SIGNAL_DELETE_ENABLE is set to invalid value: must be set to 0 or 1."
+ #endif
+ #ifndef NOS_CONFIG_SIGNAL_THREAD_ENABLE
+  #error "nOSConfig.h: NOS_CONFIG_SIGNAL_THREAD_ENABLE is not defined: must be set to 0 or 1."
+ #elif (NOS_CONFIG_SIGNAL_THREAD_ENABLE != 0) && (NOS_CONFIG_SIGNAL_THREAD_ENABLE != 1)
+  #error "nOSConfig.h: NOS_CONFIG_SIGNAL_THREAD_ENABLE is set to invalid value: must be set to 0 or 1."
+ #elif (NOS_CONFIG_SIGNAL_THREAD_ENABLE > 0)
+  #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
+   #ifndef NOS_CONFIG_SIGNAL_THREAD_PRIO
+    #error "nOSConfig.h: NOS_CONFIG_SIGNAL_THREAD_PRIO is not defined: must be set between 0 and NOS_CONFIG_HIGHEST_THREAD_PRIO inclusively."
+   #elif (NOS_CONFIG_SIGNAL_THREAD_PRIO < 0)
+    #error "nOSConfig.h: NOS_CONFIG_SIGNAL_THREAD_PRIO is set to invalid value: must be set between 0 and NOS_CONFIG_HIGHEST_THREAD_PRIO inclusively."
+   #elif (NOS_CONFIG_SIGNAL_THREAD_PRIO > NOS_CONFIG_HIGHEST_THREAD_PRIO)
+    #error "nOSConfig.h: NOS_CONFIG_SIGNAL_THREAD_PRIO is higher than NOS_CONFIG_HIGHEST_THREAD_PRIO: must be set between 0 and NOS_CONFIG_HIGHEST_THREAD_PRIO inclusively."
+   #endif
+  #else
+   #undef NOS_CONFIG_SIGNAL_THREAD_PRIO
+  #endif
+  #ifndef NOS_CONFIG_SIGNAL_THREAD_STACK_SIZE
+   #error "nOSConfig.h: NOS_CONFIG_SIGNAL_THREAD_STACK_SIZE is not defined."
+  #endif
+ #else
+  #undef NOS_CONFIG_SIGNAL_THREAD_PRIO
+  #undef NOS_CONFIG_SIGNAL_THREAD_STACK_SIZE
+ #endif
+#else
+ #undef NOS_CONFIG_SIGNAL_DELETE_ENABLE
+ #undef NOS_CONFIG_SIGNAL_THREAD_ENABLE
+ #undef NOS_CONFIG_SIGNAL_THREAD_PRIO
+ #undef NOS_CONFIG_SIGNAL_THREAD_STACK_SIZE
 #endif
 
 #ifndef NOS_CONFIG_TIME_ENABLE
@@ -466,6 +510,10 @@ typedef struct nOS_Event            nOS_Event;
  #endif
  typedef void(*nOS_TimerCallback)(nOS_Timer*,void*);
 #endif
+#if (NOS_CONFIG_SIGNAL_ENABLE > 0)
+ typedef struct nOS_Signal          nOS_Signal;
+ typedef void(*nOS_SignalCallback)(nOS_Signal*,void*);
+#endif
 #if (NOS_CONFIG_TIME_ENABLE > 0)
  #if (NOS_CONFIG_TIME_COUNT_WIDTH == 32)
   typedef uint32_t                  nOS_Time;
@@ -566,6 +614,15 @@ typedef enum nOS_TimerState
 } nOS_TimerState;
 #endif
 
+#if (NOS_CONFIG_SIGNAL_ENABLE > 0)
+typedef enum nOS_SignalState
+{
+    NOS_SIGNAL_DELETED          = 0x00,
+    NOS_SIGNAL_RAISED           = 0x01,
+    NOS_SIGNAL_CREATED          = 0x80
+} nOS_SignalState;
+#endif
+
 #include "nOSPort.h"
 
 /* Port specific config checkup */
@@ -585,6 +642,24 @@ typedef enum nOS_TimerState
  #endif
 #else
  #undef NOS_CONFIG_TIMER_THREAD_CALL_STACK_SIZE
+#endif
+
+#ifdef NOS_USE_SEPARATE_CALL_STACK
+ #if (NOS_CONFIG_SIGNAL_ENABLE > 0)
+  #if (NOS_CONFIG_SIGNAL_THREAD_ENABLE > 0)
+   #ifndef NOS_CONFIG_SIGNAL_THREAD_CALL_STACK_SIZE
+    #error "nOSConfig.h: NOS_CONFIG_SIGNAL_THREAD_CALL_STACK_SIZE is not defined: must be higher than 0."
+   #elif (NOS_CONFIG_SIGNAL_THREAD_CALL_STACK_SIZE == 0)
+    #error "nOSConfig.h: NOS_CONFIG_SIGNAL_THREAD_CALL_STACK_SIZE is set to invalid value: must be higher than 0."
+   #endif
+  #else
+   #undef NOS_CONFIG_SIGNAL_THREAD_CALL_STACK_SIZE
+  #endif
+ #else
+  #undef NOS_CONFIG_SIGNAL_THREAD_CALL_STACK_SIZE
+ #endif
+#else
+ #undef NOS_CONFIG_SIGNAL_THREAD_CALL_STACK_SIZE
 #endif
 
 #ifdef NOS_DONT_USE_CONST
@@ -718,6 +793,16 @@ struct nOS_Timer
 };
 #endif
 
+#if (NOS_CONFIG_SIGNAL_ENABLE > 0)
+struct nOS_Signal
+{
+    nOS_SignalState     state;
+    nOS_SignalCallback  callback;
+    void                *arg;
+    nOS_Node            node;
+};
+#endif
+
 #if (NOS_CONFIG_TIME_ENABLE > 0)
 struct nOS_TimeDate
 {
@@ -815,7 +900,7 @@ struct nOS_TimeDate
   void          nOS_SetThreadPrio                   (nOS_Thread *thread, uint8_t prio);
  #endif
  void           nOS_TickThread                      (void *payload, void *arg);
- void           nOS_SignalThread                    (nOS_Thread *thread, nOS_Error err);
+ void           nOS_WakeUpThread                    (nOS_Thread *thread, nOS_Error err);
 
  #if (NOS_CONFIG_SAFE > 0)
   void          nOS_CreateEvent                     (nOS_Event *event, nOS_EventType type);
@@ -828,10 +913,14 @@ struct nOS_TimeDate
   void          nOS_DeleteEvent                     (nOS_Event *event);
  #endif
  nOS_Error      nOS_WaitForEvent                    (nOS_Event *event, nOS_ThreadState state, nOS_TickCounter tout);
- nOS_Thread*    nOS_SignalEvent                     (nOS_Event *event, nOS_Error err);
+ nOS_Thread*    nOS_SendEvent                       (nOS_Event *event, nOS_Error err);
 
  #if (NOS_CONFIG_TIMER_ENABLE > 0)
   void          nOS_InitTimer                       (void);
+ #endif
+
+ #if (NOS_CONFIG_SIGNAL_ENABLE > 0)
+  void          nOS_InitSignal                      (void);
  #endif
 
  #if (NOS_CONFIG_TIME_ENABLE > 0)
@@ -1541,6 +1630,16 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
  nOS_Error      nOS_TimerSetCallback                (nOS_Timer *timer, nOS_TimerCallback callback, void *arg);
  nOS_Error      nOS_TimerSetMode                    (nOS_Timer *timer, nOS_TimerMode mode);
  bool           nOS_TimerIsRunning                  (nOS_Timer *timer);
+#endif
+
+#if (NOS_CONFIG_SIGNAL_ENABLE > 0)
+ void           nOS_SignalProcess                   (void);
+ nOS_Error      nOS_SignalCreate                    (nOS_Signal *signal, nOS_SignalCallback callback);
+ #if (NOS_CONFIG_SIGNAL_DELETE_ENABLE > 0)
+  nOS_Error     nOS_SignalDelete                    (nOS_Signal *signal);
+ #endif
+ nOS_Error      nOS_SignalRaise                     (nOS_Signal *signal, void *arg);
+ bool           nOS_SignalIsRaised                  (nOS_Signal *signal);
 #endif
 
 #if (NOS_CONFIG_TIME_ENABLE > 0)

@@ -138,26 +138,24 @@ void nOS_InitSpecific (void)
     pthread_mutex_unlock(&nOS_criticalSection);
 }
 
-/* Called outside of critical section */
+/* Called from critical section */
 void nOS_InitContext (nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg)
 {
-    pthread_mutex_lock(&nOS_criticalSection);
-
     thread->stackPtr = stack;
     stack->entry = entry;
     stack->arg = arg;
     stack->crit = 0;
     stack->started = false;
     stack->running = false;
+
     pthread_cond_init(&stack->cond, NULL);
+
     pthread_create(&stack->handle, NULL, _Entry, thread);
 
     /* Wait until thread is started and waiting to run */
     while (!stack->started) {
         pthread_cond_wait(&stack->cond, &nOS_criticalSection);
     }
-
-    pthread_mutex_unlock(&nOS_criticalSection);
 }
 
 /* Called from critical section */

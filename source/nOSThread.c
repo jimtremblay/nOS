@@ -67,7 +67,7 @@ void nOS_TickThread (void *payload, void *arg)
 #if (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
     if (thread->state & NOS_THREAD_SLEEPING_UNTIL) {
         if (nOS_tickCounter == thread->timeout) {
-            nOS_SignalThread(thread, NOS_OK);
+            nOS_WakeUpThread(thread, NOS_OK);
         }
     } else
 #endif
@@ -82,18 +82,18 @@ void nOS_TickThread (void *payload, void *arg)
             if (thread->timeout == 0) {
 #if (NOS_CONFIG_SLEEP_ENABLE > 0)
                 if (thread->state & NOS_THREAD_SLEEPING) {
-                    nOS_SignalThread(thread, NOS_OK);
+                    nOS_WakeUpThread(thread, NOS_OK);
                 } else
 #endif
                 {
-                    nOS_SignalThread(thread, NOS_E_TIMEOUT);
+                    nOS_WakeUpThread(thread, NOS_E_TIMEOUT);
                 }
             }
         }
     }
 }
 
-void nOS_SignalThread (nOS_Thread *thread, nOS_Error err)
+void nOS_WakeUpThread (nOS_Thread *thread, nOS_Error err)
 {
     if (thread->event != NULL) {
         nOS_RemoveFromList(&thread->event->waitList, &thread->readyWait);
@@ -337,7 +337,7 @@ nOS_Error nOS_ThreadAbort (nOS_Thread *thread)
         } else
 #endif
         {
-            nOS_SignalThread(thread, NOS_E_ABORT);
+            nOS_WakeUpThread(thread, NOS_E_ABORT);
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
             if (thread->prio > nOS_runningThread->prio) {
                 nOS_Schedule();

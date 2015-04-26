@@ -155,7 +155,7 @@ nOS_Error nOS_SemGive (nOS_Sem *sem)
         } else
 #endif
         {
-            thread = nOS_SignalEvent((nOS_Event*)sem, NOS_OK);
+            thread = nOS_SendEvent((nOS_Event*)sem, NOS_OK);
             if (thread != NULL) {
     #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
                 if ((thread->state == NOS_THREAD_READY) && (thread->prio > nOS_runningThread->prio)) {

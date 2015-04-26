@@ -45,17 +45,17 @@ OBJECTDIR=build/${CND_CONF}/${IMAGE_TYPE}
 DISTDIR=dist/${CND_CONF}/${IMAGE_TYPE}
 
 # Source Files Quoted if spaced
-SOURCEFILES_QUOTED_IF_SPACED=../../source/nOSEvent.c ../../source/nOSFlag.c ../../source/nOSList.c ../../source/nOSMem.c ../../source/nOSMutex.c ../../source/nOSQueue.c ../../source/nOSSched.c ../../source/nOSSem.c ../../source/nOSThread.c ../../source/nOSTime.c ../../source/nOSTimer.c ../../source/port/XC16/PIC24/nOSPort.c main.c
+SOURCEFILES_QUOTED_IF_SPACED=../../source/nOSEvent.c ../../source/nOSFlag.c ../../source/nOSList.c ../../source/nOSMem.c ../../source/nOSMutex.c ../../source/nOSQueue.c ../../source/nOSSched.c ../../source/nOSSem.c ../../source/nOSThread.c ../../source/nOSTime.c ../../source/nOSTimer.c ../../source/port/XC16/PIC24/nOSPort.c main.c ../../source/nOSSignal.c
 
 # Object Files Quoted if spaced
-OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/_ext/870914629/nOSEvent.o ${OBJECTDIR}/_ext/870914629/nOSFlag.o ${OBJECTDIR}/_ext/870914629/nOSList.o ${OBJECTDIR}/_ext/870914629/nOSMem.o ${OBJECTDIR}/_ext/870914629/nOSMutex.o ${OBJECTDIR}/_ext/870914629/nOSQueue.o ${OBJECTDIR}/_ext/870914629/nOSSched.o ${OBJECTDIR}/_ext/870914629/nOSSem.o ${OBJECTDIR}/_ext/870914629/nOSThread.o ${OBJECTDIR}/_ext/870914629/nOSTime.o ${OBJECTDIR}/_ext/870914629/nOSTimer.o ${OBJECTDIR}/_ext/1743343961/nOSPort.o ${OBJECTDIR}/main.o
-POSSIBLE_DEPFILES=${OBJECTDIR}/_ext/870914629/nOSEvent.o.d ${OBJECTDIR}/_ext/870914629/nOSFlag.o.d ${OBJECTDIR}/_ext/870914629/nOSList.o.d ${OBJECTDIR}/_ext/870914629/nOSMem.o.d ${OBJECTDIR}/_ext/870914629/nOSMutex.o.d ${OBJECTDIR}/_ext/870914629/nOSQueue.o.d ${OBJECTDIR}/_ext/870914629/nOSSched.o.d ${OBJECTDIR}/_ext/870914629/nOSSem.o.d ${OBJECTDIR}/_ext/870914629/nOSThread.o.d ${OBJECTDIR}/_ext/870914629/nOSTime.o.d ${OBJECTDIR}/_ext/870914629/nOSTimer.o.d ${OBJECTDIR}/_ext/1743343961/nOSPort.o.d ${OBJECTDIR}/main.o.d
+OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/_ext/870914629/nOSEvent.o ${OBJECTDIR}/_ext/870914629/nOSFlag.o ${OBJECTDIR}/_ext/870914629/nOSList.o ${OBJECTDIR}/_ext/870914629/nOSMem.o ${OBJECTDIR}/_ext/870914629/nOSMutex.o ${OBJECTDIR}/_ext/870914629/nOSQueue.o ${OBJECTDIR}/_ext/870914629/nOSSched.o ${OBJECTDIR}/_ext/870914629/nOSSem.o ${OBJECTDIR}/_ext/870914629/nOSThread.o ${OBJECTDIR}/_ext/870914629/nOSTime.o ${OBJECTDIR}/_ext/870914629/nOSTimer.o ${OBJECTDIR}/_ext/1743343961/nOSPort.o ${OBJECTDIR}/main.o ${OBJECTDIR}/_ext/870914629/nOSSignal.o
+POSSIBLE_DEPFILES=${OBJECTDIR}/_ext/870914629/nOSEvent.o.d ${OBJECTDIR}/_ext/870914629/nOSFlag.o.d ${OBJECTDIR}/_ext/870914629/nOSList.o.d ${OBJECTDIR}/_ext/870914629/nOSMem.o.d ${OBJECTDIR}/_ext/870914629/nOSMutex.o.d ${OBJECTDIR}/_ext/870914629/nOSQueue.o.d ${OBJECTDIR}/_ext/870914629/nOSSched.o.d ${OBJECTDIR}/_ext/870914629/nOSSem.o.d ${OBJECTDIR}/_ext/870914629/nOSThread.o.d ${OBJECTDIR}/_ext/870914629/nOSTime.o.d ${OBJECTDIR}/_ext/870914629/nOSTimer.o.d ${OBJECTDIR}/_ext/1743343961/nOSPort.o.d ${OBJECTDIR}/main.o.d ${OBJECTDIR}/_ext/870914629/nOSSignal.o.d
 
 # Object Files
-OBJECTFILES=${OBJECTDIR}/_ext/870914629/nOSEvent.o ${OBJECTDIR}/_ext/870914629/nOSFlag.o ${OBJECTDIR}/_ext/870914629/nOSList.o ${OBJECTDIR}/_ext/870914629/nOSMem.o ${OBJECTDIR}/_ext/870914629/nOSMutex.o ${OBJECTDIR}/_ext/870914629/nOSQueue.o ${OBJECTDIR}/_ext/870914629/nOSSched.o ${OBJECTDIR}/_ext/870914629/nOSSem.o ${OBJECTDIR}/_ext/870914629/nOSThread.o ${OBJECTDIR}/_ext/870914629/nOSTime.o ${OBJECTDIR}/_ext/870914629/nOSTimer.o ${OBJECTDIR}/_ext/1743343961/nOSPort.o ${OBJECTDIR}/main.o
+OBJECTFILES=${OBJECTDIR}/_ext/870914629/nOSEvent.o ${OBJECTDIR}/_ext/870914629/nOSFlag.o ${OBJECTDIR}/_ext/870914629/nOSList.o ${OBJECTDIR}/_ext/870914629/nOSMem.o ${OBJECTDIR}/_ext/870914629/nOSMutex.o ${OBJECTDIR}/_ext/870914629/nOSQueue.o ${OBJECTDIR}/_ext/870914629/nOSSched.o ${OBJECTDIR}/_ext/870914629/nOSSem.o ${OBJECTDIR}/_ext/870914629/nOSThread.o ${OBJECTDIR}/_ext/870914629/nOSTime.o ${OBJECTDIR}/_ext/870914629/nOSTimer.o ${OBJECTDIR}/_ext/1743343961/nOSPort.o ${OBJECTDIR}/main.o ${OBJECTDIR}/_ext/870914629/nOSSignal.o
 
 # Source Files
-SOURCEFILES=../../source/nOSEvent.c ../../source/nOSFlag.c ../../source/nOSList.c ../../source/nOSMem.c ../../source/nOSMutex.c ../../source/nOSQueue.c ../../source/nOSSched.c ../../source/nOSSem.c ../../source/nOSThread.c ../../source/nOSTime.c ../../source/nOSTimer.c ../../source/port/XC16/PIC24/nOSPort.c main.c
+SOURCEFILES=../../source/nOSEvent.c ../../source/nOSFlag.c ../../source/nOSList.c ../../source/nOSMem.c ../../source/nOSMutex.c ../../source/nOSQueue.c ../../source/nOSSched.c ../../source/nOSSem.c ../../source/nOSThread.c ../../source/nOSTime.c ../../source/nOSTimer.c ../../source/port/XC16/PIC24/nOSPort.c main.c ../../source/nOSSignal.c
 
 
 CFLAGS=
@@ -173,6 +173,13 @@ ${OBJECTDIR}/main.o: main.c  nbproject/Makefile-${CND_CONF}.mk
 	${MP_CC} $(MP_EXTRA_CC_PRE)  main.c  -o ${OBJECTDIR}/main.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/main.o.d"      -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1    -omf=elf -O0 -I"." -I"../../include" -I"../../include/port/XC16/PIC24" -msmart-io=1 -Wall -msfr-warn=off
 	@${FIXDEPS} "${OBJECTDIR}/main.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
+${OBJECTDIR}/_ext/870914629/nOSSignal.o: ../../source/nOSSignal.c  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} ${OBJECTDIR}/_ext/870914629 
+	@${RM} ${OBJECTDIR}/_ext/870914629/nOSSignal.o.d 
+	@${RM} ${OBJECTDIR}/_ext/870914629/nOSSignal.o 
+	${MP_CC} $(MP_EXTRA_CC_PRE)  ../../source/nOSSignal.c  -o ${OBJECTDIR}/_ext/870914629/nOSSignal.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/_ext/870914629/nOSSignal.o.d"      -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1    -omf=elf -O0 -I"." -I"../../include" -I"../../include/port/XC16/PIC24" -msmart-io=1 -Wall -msfr-warn=off
+	@${FIXDEPS} "${OBJECTDIR}/_ext/870914629/nOSSignal.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
+	
 else
 ${OBJECTDIR}/_ext/870914629/nOSEvent.o: ../../source/nOSEvent.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/870914629 
@@ -264,6 +271,13 @@ ${OBJECTDIR}/main.o: main.c  nbproject/Makefile-${CND_CONF}.mk
 	@${RM} ${OBJECTDIR}/main.o 
 	${MP_CC} $(MP_EXTRA_CC_PRE)  main.c  -o ${OBJECTDIR}/main.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/main.o.d"        -g -omf=elf -O0 -I"." -I"../../include" -I"../../include/port/XC16/PIC24" -msmart-io=1 -Wall -msfr-warn=off
 	@${FIXDEPS} "${OBJECTDIR}/main.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
+	
+${OBJECTDIR}/_ext/870914629/nOSSignal.o: ../../source/nOSSignal.c  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} ${OBJECTDIR}/_ext/870914629 
+	@${RM} ${OBJECTDIR}/_ext/870914629/nOSSignal.o.d 
+	@${RM} ${OBJECTDIR}/_ext/870914629/nOSSignal.o 
+	${MP_CC} $(MP_EXTRA_CC_PRE)  ../../source/nOSSignal.c  -o ${OBJECTDIR}/_ext/870914629/nOSSignal.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/_ext/870914629/nOSSignal.o.d"        -g -omf=elf -O0 -I"." -I"../../include" -I"../../include/port/XC16/PIC24" -msmart-io=1 -Wall -msfr-warn=off
+	@${FIXDEPS} "${OBJECTDIR}/_ext/870914629/nOSSignal.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
 endif
 

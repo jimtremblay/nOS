@@ -239,7 +239,7 @@ nOS_Error nOS_MemFree(nOS_Mem *mem, void *block)
         } else
 #endif
         {
-            thread = nOS_SignalEvent((nOS_Event*)mem, NOS_OK);
+            thread = nOS_SendEvent((nOS_Event*)mem, NOS_OK);
             if (thread != NULL) {
                 *(void**)thread->ext = block;
     #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)

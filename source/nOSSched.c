@@ -456,6 +456,10 @@ nOS_Error nOS_Init(void)
         nOS_InitTimer();
 #endif
 
+#if (NOS_CONFIG_SIGNAL_ENABLE > 0)
+        nOS_InitSignal();
+#endif
+
 #if (NOS_CONFIG_TIME_ENABLE > 0)
         nOS_InitTime();
 #endif

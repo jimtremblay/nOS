@@ -789,7 +789,7 @@
         </option>
         <option>
           <name>XclFile</name>
-          <state>$TOOLKIT_DIR$\src\template\cfgm2560.xcl</state>
+          <state>$TOOLKIT_DIR$\src\template\cfgm328p.xcl</state>
         </option>
         <option>
           <name>XclFileSlave</name>
@@ -2034,6 +2034,9 @@
     </file>
     <file>
       <name>$PROJ_DIR$\..\..\source\nOSSem.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\source\nOSSignal.c</name>
     </file>
     <file>
       <name>$PROJ_DIR$\..\..\source\nOSThread.c</name>
