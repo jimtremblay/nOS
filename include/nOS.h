@@ -151,6 +151,12 @@ extern "C" {
  #error "nOSConfig.h: NOS_CONFIG_THREAD_DELETE_ENABLE is set to invalid value: must be set to 0 or 1."
 #endif
 
+#ifndef NOS_CONFIG_THREAD_ABORT_ENABLE
+ #error "nOSConfig.h: NOS_CONFIG_THREAD_ABORT_ENABLE is not defined: must be set to 0 or 1."
+#elif (NOS_CONFIG_THREAD_ABORT_ENABLE != 0) && (NOS_CONFIG_THREAD_ABORT_ENABLE != 1)
+ #error "nOSConfig.h: NOS_CONFIG_THREAD_ABORT_ENABLE is not defined: must be set to 0 or 1."
+#endif
+
 #ifndef NOS_CONFIG_THREAD_SET_PRIO_ENABLE
  #error "nOSConfig.h: NOS_CONFIG_THREAD_SET_PRIO_ENABLE is not defined: must be set to 0 or 1."
 #elif (NOS_CONFIG_THREAD_SET_PRIO_ENABLE != 0) && (NOS_CONFIG_THREAD_SET_PRIO_ENABLE != 1)
@@ -492,6 +498,7 @@ typedef enum nOS_Error
     NOS_E_INV_STATE             = -18,
     NOS_E_NO_CONSUMER           = -19,
     NOS_E_INV_PRIO              = -20,
+    NOS_E_ABORT                 = -21
 } nOS_Error;
 
 typedef enum nOS_ThreadState
@@ -1088,6 +1095,10 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
  *                                                                                                                    *
  **********************************************************************************************************************/
  nOS_Error      nOS_ThreadDelete                    (nOS_Thread *thread);
+#endif
+
+#if (NOS_CONFIG_THREAD_ABORT_ENABLE > 0)
+ nOS_Error      nOS_ThreadAbort                     (nOS_Thread *thread);
 #endif
 
 #if (NOS_CONFIG_THREAD_SUSPEND_ENABLE > 0)

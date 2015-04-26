@@ -22,8 +22,6 @@ nOS_Error nOS_SemCreate (nOS_Sem *sem, nOS_SemCounter count, nOS_SemCounter max)
 #if (NOS_CONFIG_SAFE > 0)
     if (sem == NULL) {
         err = NOS_E_INV_OBJ;
-    } else if (sem->e.type != NOS_EVENT_INVALID) {
-        err = NOS_E_INV_OBJ;
     } else if (count > max) {
         err = NOS_E_INV_VAL;
     } else
@@ -31,14 +29,22 @@ nOS_Error nOS_SemCreate (nOS_Sem *sem, nOS_SemCounter count, nOS_SemCounter max)
     {
         nOS_EnterCritical(sr);
 #if (NOS_CONFIG_SAFE > 0)
-        nOS_CreateEvent((nOS_Event*)sem, NOS_EVENT_SEM);
-#else
-        nOS_CreateEvent((nOS_Event*)sem);
+        if (sem->e.type != NOS_EVENT_INVALID) {
+            err = NOS_E_INV_OBJ;
+        } else
 #endif
-        sem->count = count;
-        sem->max = max;
+        {
+#if (NOS_CONFIG_SAFE > 0)
+            nOS_CreateEvent((nOS_Event*)sem, NOS_EVENT_SEM);
+#else
+            nOS_CreateEvent((nOS_Event*)sem);
+#endif
+            sem->count = count;
+            sem->max = max;
+
+            err = NOS_OK;
+        }
         nOS_LeaveCritical(sr);
-        err = NOS_OK;
     }
 
     return err;
@@ -53,23 +59,28 @@ nOS_Error nOS_SemDelete (nOS_Sem *sem)
 #if (NOS_CONFIG_SAFE > 0)
     if (sem == NULL) {
         err = NOS_E_INV_OBJ;
-    } else if (sem->e.type != NOS_EVENT_SEM) {
-        err = NOS_E_INV_OBJ;
     } else
 #endif
     {
         nOS_EnterCritical(sr);
-        sem->count = 0;
-        sem->max = 0;
-#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
-        if (nOS_DeleteEvent((nOS_Event*)sem)) {
-            nOS_Schedule();
-        }
-#else
-        nOS_DeleteEvent((nOS_Event*)sem);
+#if (NOS_CONFIG_SAFE > 0)
+        if (sem->e.type != NOS_EVENT_SEM) {
+            err = NOS_E_INV_OBJ;
+        } else
 #endif
+        {
+            sem->count = 0;
+            sem->max = 0;
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
+            if (nOS_DeleteEvent((nOS_Event*)sem)) {
+                nOS_Schedule();
+            }
+#else
+            nOS_DeleteEvent((nOS_Event*)sem);
+#endif
+            err = NOS_OK;
+        }
         nOS_LeaveCritical(sr);
-        err = NOS_OK;
     }
 
     return err;
@@ -84,35 +95,40 @@ nOS_Error nOS_SemTake (nOS_Sem *sem, nOS_TickCounter tout)
 #if (NOS_CONFIG_SAFE > 0)
     if (sem == NULL) {
         err = NOS_E_INV_OBJ;
-    } else if (sem->e.type != NOS_EVENT_SEM) {
-        err = NOS_E_INV_OBJ;
     } else
 #endif
     {
         nOS_EnterCritical(sr);
-        if (sem->count > 0) {
-            /* Sem available. */
-            sem->count--;
-            err = NOS_OK;
-        } else if (tout == NOS_NO_WAIT) {
-            /* Calling thread can't wait. */
-            err = NOS_E_AGAIN;
-        } else if (nOS_isrNestingCounter > 0) {
-            /* Can't wait from ISR */
-            err = NOS_E_ISR;
-        }
-#if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
-        else if (nOS_lockNestingCounter > 0) {
-            /* Can't switch context when scheduler is locked */
-            err = NOS_E_LOCKED;
-        }
+#if (NOS_CONFIG_SAFE > 0)
+        if (sem->e.type != NOS_EVENT_SEM) {
+            err = NOS_E_INV_OBJ;
+        } else
 #endif
-        else if (nOS_runningThread == &nOS_idleHandle) {
-            /* Main thread can't wait */
-            err = NOS_E_IDLE;
-        } else {
-            /* Calling thread must wait on sem. */
-            err = nOS_WaitForEvent((nOS_Event*)sem, NOS_THREAD_TAKING_SEM, tout);
+        {
+            if (sem->count > 0) {
+                /* Sem available. */
+                sem->count--;
+                err = NOS_OK;
+            } else if (tout == NOS_NO_WAIT) {
+                /* Calling thread can't wait. */
+                err = NOS_E_AGAIN;
+            } else if (nOS_isrNestingCounter > 0) {
+                /* Can't wait from ISR */
+                err = NOS_E_ISR;
+            }
+    #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
+            else if (nOS_lockNestingCounter > 0) {
+                /* Can't switch context when scheduler is locked */
+                err = NOS_E_LOCKED;
+            }
+    #endif
+            else if (nOS_runningThread == &nOS_idleHandle) {
+                /* Main thread can't wait */
+                err = NOS_E_IDLE;
+            } else {
+                /* Calling thread must wait on sem. */
+                err = nOS_WaitForEvent((nOS_Event*)sem, NOS_THREAD_TAKING_SEM, tout);
+            }
         }
         nOS_LeaveCritical(sr);
     }
@@ -129,28 +145,35 @@ nOS_Error nOS_SemGive (nOS_Sem *sem)
 #if (NOS_CONFIG_SAFE > 0)
     if (sem == NULL) {
         err = NOS_E_INV_OBJ;
-    } else if (sem->e.type != NOS_EVENT_SEM) {
-        err = NOS_E_INV_OBJ;
     } else
 #endif
     {
         nOS_EnterCritical(sr);
-        thread = nOS_SignalEvent((nOS_Event*)sem, NOS_OK);
-        if (thread != NULL) {
-#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
-            if ((thread->state == NOS_THREAD_READY) && (thread->prio > nOS_runningThread->prio)) {
-                nOS_Schedule();
-            }
+#if (NOS_CONFIG_SAFE > 0)
+        if (sem->e.type != NOS_EVENT_SEM) {
+            err = NOS_E_INV_OBJ;
+        } else
 #endif
-            err = NOS_OK;
-        } else if (sem->count < sem->max) {
-            sem->count++;
-            err = NOS_OK;
-        } else if (sem->max > 0) {
-            err = NOS_E_OVERFLOW;
-        } else {
-            /* No thread waiting to consume sem, inform producer */
-            err = NOS_E_NO_CONSUMER;
+        {
+            thread = nOS_SignalEvent((nOS_Event*)sem, NOS_OK);
+            if (thread != NULL) {
+    #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
+                if ((thread->state == NOS_THREAD_READY) && (thread->prio > nOS_runningThread->prio)) {
+                    nOS_Schedule();
+                }
+    #endif
+
+                err = NOS_OK;
+            } else if (sem->count < sem->max) {
+                sem->count++;
+
+                err = NOS_OK;
+            } else if (sem->max > 0) {
+                err = NOS_E_OVERFLOW;
+            } else {
+                /* No thread waiting to consume sem, inform producer */
+                err = NOS_E_NO_CONSUMER;
+            }
         }
         nOS_LeaveCritical(sr);
     }
@@ -166,13 +189,18 @@ bool nOS_SemIsAvailable (nOS_Sem *sem)
 #if (NOS_CONFIG_SAFE > 0)
     if (sem == NULL) {
         avail = false;
-    } else if (sem->e.type != NOS_EVENT_SEM) {
-        avail = false;
     } else
 #endif
     {
         nOS_EnterCritical(sr);
-        avail = (sem->count > 0);
+#if (NOS_CONFIG_SAFE > 0)
+        if (sem->e.type != NOS_EVENT_SEM) {
+            avail = false;
+        } else
+#endif
+        {
+            avail = (sem->count > 0);
+        }
         nOS_LeaveCritical(sr);
     }
 

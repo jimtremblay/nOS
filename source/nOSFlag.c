@@ -52,20 +52,26 @@ nOS_Error nOS_FlagCreate (nOS_Flag *flag, nOS_FlagBits flags)
 #if (NOS_CONFIG_SAFE > 0)
     if (flag == NULL) {
         err = NOS_E_INV_OBJ;
-    } else if (flag->e.type != NOS_EVENT_INVALID) {
-        err = NOS_E_INV_OBJ;
     } else
 #endif
     {
         nOS_EnterCritical(sr);
 #if (NOS_CONFIG_SAFE > 0)
-        nOS_CreateEvent((nOS_Event*)flag, NOS_EVENT_FLAG);
-#else
-        nOS_CreateEvent((nOS_Event*)flag);
+        if (flag->e.type != NOS_EVENT_INVALID) {
+            err = NOS_E_INV_OBJ;
+        } else
 #endif
-        flag->flags = flags;
+        {
+#if (NOS_CONFIG_SAFE > 0)
+            nOS_CreateEvent((nOS_Event*)flag, NOS_EVENT_FLAG);
+#else
+            nOS_CreateEvent((nOS_Event*)flag);
+#endif
+            flag->flags = flags;
+
+            err = NOS_OK;
+        }
         nOS_LeaveCritical(sr);
-        err = NOS_OK;
     }
 
     return err;
@@ -80,22 +86,28 @@ nOS_Error nOS_FlagDelete (nOS_Flag *flag)
 #if (NOS_CONFIG_SAFE > 0)
     if (flag == NULL) {
         err = NOS_E_INV_OBJ;
-    } else if (flag->e.type != NOS_EVENT_FLAG) {
-        err = NOS_E_INV_OBJ;
     } else
 #endif
     {
         nOS_EnterCritical(sr);
-        flag->flags = NOS_FLAG_NONE;
-#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
-        if (nOS_DeleteEvent((nOS_Event*)flag)) {
-            nOS_Schedule();
-        }
-#else
-        nOS_DeleteEvent((nOS_Event*)flag);
+#if (NOS_CONFIG_SAFE > 0)
+        if (flag->e.type != NOS_EVENT_FLAG) {
+            err = NOS_E_INV_OBJ;
+        } else
 #endif
+        {
+            flag->flags = NOS_FLAG_NONE;
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
+            if (nOS_DeleteEvent((nOS_Event*)flag)) {
+                nOS_Schedule();
+            }
+#else
+            nOS_DeleteEvent((nOS_Event*)flag);
+#endif
+
+            err = NOS_OK;
+        }
         nOS_LeaveCritical(sr);
-        err = NOS_OK;
     }
 
     return err;
@@ -113,47 +125,54 @@ nOS_Error nOS_FlagWait (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits *res,
 #if (NOS_CONFIG_SAFE > 0)
     if (flag == NULL) {
         err = NOS_E_INV_OBJ;
-    } else if (flag->e.type != NOS_EVENT_FLAG) {
-        err = NOS_E_INV_OBJ;
     } else
 #endif
     {
         nOS_EnterCritical(sr);
-        r = flag->flags & flags;
-        /* If thread is waiting for ALL flags, then clear result if NOT ALL flags set. */
-        if (((opt & NOS_FLAG_WAIT) == NOS_FLAG_WAIT_ALL) && (r != flags)) {
-            r = NOS_FLAG_NONE;
-        }
-        /* If result is not cleared, then condition is met for waiting thread. */
-        if (r != NOS_FLAG_NONE) {
-            if (opt & NOS_FLAG_CLEAR_ON_EXIT) {
-                /* Clear all flags that have awoken the waiting threads. */
-                flag->flags &=~ r;
-            }
-            err = NOS_OK;
-        } else if (tout == NOS_NO_WAIT) {
-            /* Caller can't wait? Try again. */
-            err = NOS_E_AGAIN;
-        } else if (nOS_isrNestingCounter > 0) {
-            /* Can't wait from ISR */
-            err = NOS_E_ISR;
-        }
-#if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
-        else if (nOS_lockNestingCounter > 0) {
-            /* Can't switch context when scheduler is locked */
-            err = NOS_E_LOCKED;
-        }
+#if (NOS_CONFIG_SAFE > 0)
+        if (flag->e.type != NOS_EVENT_FLAG) {
+            err = NOS_E_INV_OBJ;
+        } else
 #endif
-        else if (nOS_runningThread == &nOS_idleHandle) {
-            /* Main thread can't wait */
-            err = NOS_E_IDLE;
-        } else {
-            /* Calling thread must wait on flag. */
-            ctx.flags   = flags;
-            ctx.opt     = opt;
-            ctx.rflags  = &r;
-            nOS_runningThread->ext = &ctx;
-            err = nOS_WaitForEvent((nOS_Event*)flag, NOS_THREAD_WAITING_FLAG, tout);
+        {
+            r = flag->flags & flags;
+            /* If thread is waiting for ALL flags, then clear result if NOT ALL flags set. */
+            if (((opt & NOS_FLAG_WAIT) == NOS_FLAG_WAIT_ALL) && (r != flags)) {
+                r = NOS_FLAG_NONE;
+            }
+            /* If result is not cleared, then condition is met for waiting thread. */
+            if (r != NOS_FLAG_NONE) {
+                if (opt & NOS_FLAG_CLEAR_ON_EXIT) {
+                    /* Clear all flags that have awoken the waiting threads. */
+                    flag->flags &=~ r;
+                }
+
+                err = NOS_OK;
+            } else if (tout == NOS_NO_WAIT) {
+                /* Caller can't wait? Try again. */
+                err = NOS_E_AGAIN;
+            } else if (nOS_isrNestingCounter > 0) {
+                /* Can't wait from ISR */
+                err = NOS_E_ISR;
+            }
+    #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
+            else if (nOS_lockNestingCounter > 0) {
+                /* Can't switch context when scheduler is locked */
+                err = NOS_E_LOCKED;
+            }
+    #endif
+            else if (nOS_runningThread == &nOS_idleHandle) {
+                /* Main thread can't wait */
+                err = NOS_E_IDLE;
+            } else {
+                /* Calling thread must wait on flag. */
+                ctx.flags   = flags;
+                ctx.opt     = opt;
+                ctx.rflags  = &r;
+                nOS_runningThread->ext = &ctx;
+
+                err = nOS_WaitForEvent((nOS_Event*)flag, NOS_THREAD_WAITING_FLAG, tout);
+            }
         }
         nOS_LeaveCritical(sr);
 
@@ -177,8 +196,6 @@ nOS_Error nOS_FlagSend (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits mask)
 #if (NOS_CONFIG_SAFE > 0)
     if (flag == NULL) {
         err = NOS_E_INV_OBJ;
-    } else if (flag->e.type != NOS_EVENT_FLAG) {
-        err = NOS_E_INV_OBJ;
     } else
 #endif
     {
@@ -187,18 +204,26 @@ nOS_Error nOS_FlagSend (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits mask)
         res.sched = false;
 #endif
         nOS_EnterCritical(sr);
-        flag->flags ^= ((flag->flags ^ flags) & mask);
-        nOS_WalkInList(&flag->e.waitList, _TestFlag, &res);
-        /* Clear all flags that have awoken the waiting threads. */
-        flag->flags &=~ res.rflags;
-#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
-        /* Schedule only if one of awoken thread has an higher priority. */
-        if (res.sched) {
-            nOS_Schedule();
-        }
+#if (NOS_CONFIG_SAFE > 0)
+        if (flag->e.type != NOS_EVENT_FLAG) {
+            err = NOS_E_INV_OBJ;
+        } else
 #endif
+        {
+            flag->flags ^= ((flag->flags ^ flags) & mask);
+            nOS_WalkInList(&flag->e.waitList, _TestFlag, &res);
+            /* Clear all flags that have awoken the waiting threads. */
+            flag->flags &=~ res.rflags;
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
+            /* Schedule only if one of awoken thread has an higher priority. */
+            if (res.sched) {
+                nOS_Schedule();
+            }
+#endif
+
+            err = NOS_OK;
+        }
         nOS_LeaveCritical(sr);
-        err = NOS_OK;
     }
 
     return err;

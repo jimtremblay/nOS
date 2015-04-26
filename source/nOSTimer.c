@@ -43,9 +43,10 @@ static void _ThreadTimer (void *arg)
 
 static void _TickTimer (void *payload, void *arg)
 {
-    nOS_StatusReg   sr;
-    nOS_Timer       *timer = (nOS_Timer *)payload;
-    bool            call = false;
+    nOS_StatusReg       sr;
+    nOS_Timer           *timer = (nOS_Timer *)payload;
+    nOS_TimerCallback   callback = NULL;
+    void                *carg;
 
     NOS_UNUSED(arg);
 
@@ -63,15 +64,14 @@ static void _TickTimer (void *payload, void *arg)
                 timer->state = (nOS_TimerState)(timer->state &~ NOS_TIMER_RUNNING);
             }
             /* Call callback function outside of critical section */
-            call = true;
+            callback = timer->callback;
+            carg     = timer->arg;
         }
     }
     nOS_LeaveCritical(sr);
 
-    if (call) {
-        if (timer->callback != NULL) {
-            timer->callback(timer, timer->arg);
-        }
+    if (callback != NULL) {
+        callback(timer, carg);
     }
 }
 
@@ -131,25 +131,29 @@ nOS_Error nOS_TimerCreate (nOS_Timer *timer, nOS_TimerCallback callback, void *a
 #if (NOS_CONFIG_SAFE > 0)
     if (timer == NULL) {
         err = NOS_E_INV_OBJ;
-    } else if (timer->state != NOS_TIMER_DELETED) {
-        err = NOS_E_INV_OBJ;
     } else if ((mode != NOS_TIMER_FREE_RUNNING) && (mode != NOS_TIMER_ONE_SHOT)) {
         err = NOS_E_INV_VAL;
     } else
 #endif
     {
-        timer->count = 0;
-        timer->reload = reload;
-        timer->state = (nOS_TimerState)(NOS_TIMER_CREATED | (nOS_TimerState)(mode & NOS_TIMER_MODE));
-        timer->callback = callback;
-        timer->arg = arg;
-        timer->node.payload = (void *)timer;
-
         nOS_EnterCritical(sr);
-        nOS_AppendToList(&_timerList, &timer->node);
-        nOS_LeaveCritical(sr);
+#if (NOS_CONFIG_SAFE > 0)
+        if (timer->state != NOS_TIMER_DELETED) {
+            err = NOS_E_INV_OBJ;
+        } else
+#endif
+        {
+            timer->count = 0;
+            timer->reload = reload;
+            timer->state = (nOS_TimerState)(NOS_TIMER_CREATED | (nOS_TimerState)(mode & NOS_TIMER_MODE));
+            timer->callback = callback;
+            timer->arg = arg;
+            timer->node.payload = (void *)timer;
+            nOS_AppendToList(&_timerList, &timer->node);
 
-        err = NOS_OK;
+            err = NOS_OK;
+        }
+        nOS_LeaveCritical(sr);
     }
 
     return err;
@@ -164,17 +168,22 @@ nOS_Error nOS_TimerDelete (nOS_Timer *timer)
 #if (NOS_CONFIG_SAFE > 0)
     if (timer == NULL) {
         err = NOS_E_INV_OBJ;
-    } else if (timer->state == NOS_TIMER_DELETED) {
-        err = NOS_E_DELETED;
     } else
 #endif
     {
         nOS_EnterCritical(sr);
-        timer->state = NOS_TIMER_DELETED;
-        nOS_RemoveFromList(&_timerList, &timer->node);
-        nOS_LeaveCritical(sr);
+#if (NOS_CONFIG_SAFE > 0)
+        if (timer->state == NOS_TIMER_DELETED) {
+            err = NOS_E_INV_OBJ;
+        } else
+#endif
+        {
+            timer->state = NOS_TIMER_DELETED;
+            nOS_RemoveFromList(&_timerList, &timer->node);
 
-        err = NOS_OK;
+            err = NOS_OK;
+        }
+        nOS_LeaveCritical(sr);
     }
 
     return err;
@@ -189,17 +198,22 @@ nOS_Error nOS_TimerStart (nOS_Timer *timer)
 #if (NOS_CONFIG_SAFE > 0)
     if (timer == NULL) {
         err = NOS_E_INV_OBJ;
-    } else if (timer->state == NOS_TIMER_DELETED) {
-        err = NOS_E_DELETED;
     } else
 #endif
     {
         nOS_EnterCritical(sr);
-        timer->count = timer->reload;
-        timer->state = (nOS_TimerState)(timer->state | NOS_TIMER_RUNNING);
-        nOS_LeaveCritical(sr);
+#if (NOS_CONFIG_SAFE > 0)
+        if (timer->state == NOS_TIMER_DELETED) {
+            err = NOS_E_INV_OBJ;
+        } else
+#endif
+        {
+            timer->count = timer->reload;
+            timer->state = (nOS_TimerState)(timer->state | NOS_TIMER_RUNNING);
 
-        err = NOS_OK;
+            err = NOS_OK;
+        }
+        nOS_LeaveCritical(sr);
     }
 
     return err;
@@ -213,16 +227,21 @@ nOS_Error nOS_TimerStop (nOS_Timer *timer)
 #if (NOS_CONFIG_SAFE > 0)
     if (timer == NULL) {
         err = NOS_E_INV_OBJ;
-    } else if (timer->state == NOS_TIMER_DELETED) {
-        err = NOS_E_DELETED;
     } else
 #endif
     {
         nOS_EnterCritical(sr);
-        timer->state = (nOS_TimerState)(timer->state &~ NOS_TIMER_RUNNING);
-        nOS_LeaveCritical(sr);
+#if (NOS_CONFIG_SAFE > 0)
+        if (timer->state == NOS_TIMER_DELETED) {
+            err = NOS_E_INV_OBJ;
+        } else
+#endif
+        {
+            timer->state = (nOS_TimerState)(timer->state &~ NOS_TIMER_RUNNING);
 
-        err = NOS_OK;
+            err = NOS_OK;
+        }
+        nOS_LeaveCritical(sr);
     }
 
     return err;
@@ -236,18 +255,23 @@ nOS_Error nOS_TimerRestart (nOS_Timer *timer, nOS_TimerCounter reload)
 #if (NOS_CONFIG_SAFE > 0)
     if (timer == NULL) {
         err = NOS_E_INV_OBJ;
-    } else if (timer->state == NOS_TIMER_DELETED) {
-        err = NOS_E_DELETED;
     } else
 #endif
     {
         nOS_EnterCritical(sr);
-        timer->reload = reload;
-        timer->count  = reload;
-        timer->state  = (nOS_TimerState)(timer->state | NOS_TIMER_RUNNING);
-        nOS_LeaveCritical(sr);
+#if (NOS_CONFIG_SAFE > 0)
+        if (timer->state == NOS_TIMER_DELETED) {
+            err = NOS_E_INV_OBJ;
+        } else
+#endif
+        {
+            timer->reload = reload;
+            timer->count  = reload;
+            timer->state  = (nOS_TimerState)(timer->state | NOS_TIMER_RUNNING);
 
-        err = NOS_OK;
+            err = NOS_OK;
+        }
+        nOS_LeaveCritical(sr);
     }
 
     return err;
@@ -261,16 +285,21 @@ nOS_Error nOS_TimerPause (nOS_Timer *timer)
 #if (NOS_CONFIG_SAFE > 0)
     if (timer == NULL) {
         err = NOS_E_INV_OBJ;
-    } else if (timer->state == NOS_TIMER_DELETED) {
-        err = NOS_E_DELETED;
     } else
 #endif
     {
         nOS_EnterCritical(sr);
-        timer->state = (nOS_TimerState)(timer->state | NOS_TIMER_PAUSED);
-        nOS_LeaveCritical(sr);
+#if (NOS_CONFIG_SAFE > 0)
+        if (timer->state == NOS_TIMER_DELETED) {
+            err = NOS_E_INV_OBJ;
+        } else
+#endif
+        {
+            timer->state = (nOS_TimerState)(timer->state | NOS_TIMER_PAUSED);
 
-        err = NOS_OK;
+            err = NOS_OK;
+        }
+        nOS_LeaveCritical(sr);
     }
 
     return err;
@@ -284,16 +313,21 @@ nOS_Error nOS_TimerResume (nOS_Timer *timer)
 #if (NOS_CONFIG_SAFE > 0)
     if (timer == NULL) {
         err = NOS_E_INV_OBJ;
-    } else if (timer->state == NOS_TIMER_DELETED) {
-        err = NOS_E_DELETED;
     } else
 #endif
     {
         nOS_EnterCritical(sr);
-        timer->state = (nOS_TimerState)(timer->state &~ NOS_TIMER_PAUSED);
-        nOS_LeaveCritical(sr);
+#if (NOS_CONFIG_SAFE > 0)
+        if (timer->state == NOS_TIMER_DELETED) {
+            err = NOS_E_INV_OBJ;
+        } else
+#endif
+        {
+            timer->state = (nOS_TimerState)(timer->state &~ NOS_TIMER_PAUSED);
 
-        err = NOS_OK;
+            err = NOS_OK;
+        }
+        nOS_LeaveCritical(sr);
     }
 
     return err;
@@ -307,16 +341,21 @@ nOS_Error nOS_TimerSetReload (nOS_Timer *timer, nOS_TimerCounter reload)
 #if (NOS_CONFIG_SAFE > 0)
     if (timer == NULL) {
         err = NOS_E_INV_OBJ;
-    } else if (timer->state == NOS_TIMER_DELETED) {
-        err = NOS_E_DELETED;
     } else
 #endif
     {
         nOS_EnterCritical(sr);
-        timer->reload = reload;
-        nOS_LeaveCritical(sr);
+#if (NOS_CONFIG_SAFE > 0)
+        if (timer->state == NOS_TIMER_DELETED) {
+            err = NOS_E_INV_OBJ;
+        } else
+#endif
+        {
+            timer->reload = reload;
 
-        err = NOS_OK;
+            err = NOS_OK;
+        }
+        nOS_LeaveCritical(sr);
     }
 
     return err;
@@ -330,17 +369,22 @@ nOS_Error nOS_TimerSetCallback (nOS_Timer *timer, nOS_TimerCallback callback, vo
 #if (NOS_CONFIG_SAFE > 0)
     if (timer == NULL) {
         err = NOS_E_INV_OBJ;
-    } else if (timer->state == NOS_TIMER_DELETED) {
-        err = NOS_E_DELETED;
     } else
 #endif
     {
         nOS_EnterCritical(sr);
-        timer->callback = callback;
-        timer->arg = arg;
-        nOS_LeaveCritical(sr);
+#if (NOS_CONFIG_SAFE > 0)
+        if (timer->state == NOS_TIMER_DELETED) {
+            err = NOS_E_INV_OBJ;
+        } else
+#endif
+        {
+            timer->callback = callback;
+            timer->arg = arg;
 
-        err = NOS_OK;
+            err = NOS_OK;
+        }
+        nOS_LeaveCritical(sr);
     }
 
     return err;
@@ -356,16 +400,21 @@ nOS_Error nOS_TimerSetMode (nOS_Timer *timer, nOS_TimerMode mode)
         err = NOS_E_INV_OBJ;
     } else if ((mode != NOS_TIMER_FREE_RUNNING) && (mode != NOS_TIMER_ONE_SHOT)) {
         err = NOS_E_INV_VAL;
-    } else if (timer->state == NOS_TIMER_DELETED) {
-        err = NOS_E_DELETED;
     } else
 #endif
     {
         nOS_EnterCritical(sr);
-        timer->state = (nOS_TimerState)(((nOS_TimerMode)timer->state &~ NOS_TIMER_MODE) | mode);
-        nOS_LeaveCritical(sr);
+#if (NOS_CONFIG_SAFE > 0)
+        if (timer->state == NOS_TIMER_DELETED) {
+            err = NOS_E_INV_OBJ;
+        } else
+#endif
+        {
+            timer->state = (nOS_TimerState)(((nOS_TimerMode)timer->state &~ NOS_TIMER_MODE) | mode);
 
-        err = NOS_OK;
+            err = NOS_OK;
+        }
+        nOS_LeaveCritical(sr);
     }
 
     return err;
@@ -379,13 +428,18 @@ bool nOS_TimerIsRunning (nOS_Timer *timer)
 #if (NOS_CONFIG_SAFE > 0)
     if (timer == NULL) {
         running = false;
-    } else if (timer->state == NOS_TIMER_DELETED) {
-        running = false;
     } else
 #endif
     {
         nOS_EnterCritical(sr);
-        running = (timer->state & NOS_TIMER_RUNNING) == NOS_TIMER_RUNNING;
+#if (NOS_CONFIG_SAFE > 0)
+        if (timer->state == NOS_TIMER_DELETED) {
+            running = false;
+        } else
+#endif
+        {
+            running = (timer->state & NOS_TIMER_RUNNING) == NOS_TIMER_RUNNING;
+        }
         nOS_LeaveCritical(sr);
     }
 

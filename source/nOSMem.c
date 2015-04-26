@@ -59,8 +59,6 @@ nOS_Error nOS_MemCreate (nOS_Mem *mem, void *buffer, nOS_MemSize bsize, nOS_MemC
 #if (NOS_CONFIG_SAFE > 0)
     if (mem == NULL) {
         err = NOS_E_INV_OBJ;
-    } else if (mem->e.type != NOS_EVENT_INVALID) {
-        err = NOS_E_INV_OBJ;
     } else if (buffer == NULL) {
         err = NOS_E_NULL;
     } else if (bsize < sizeof(void**)) {
@@ -85,27 +83,35 @@ nOS_Error nOS_MemCreate (nOS_Mem *mem, void *buffer, nOS_MemSize bsize, nOS_MemC
     {
         nOS_EnterCritical(sr);
 #if (NOS_CONFIG_SAFE > 0)
-        nOS_CreateEvent((nOS_Event*)mem, NOS_EVENT_MEM);
+        if (mem->e.type != NOS_EVENT_INVALID) {
+            err = NOS_E_INV_OBJ;
+        } else
+#endif
+        {
+#if (NOS_CONFIG_SAFE > 0)
+            nOS_CreateEvent((nOS_Event*)mem, NOS_EVENT_MEM);
 #else
-        nOS_CreateEvent((nOS_Event*)mem);
+            nOS_CreateEvent((nOS_Event*)mem);
 #endif
-        /* Initialize the single-link list */
-        blist = NULL;
-        for (i = 0; i < bmax-1; i++) {
+            /* Initialize the single-link list */
+            blist = NULL;
+            for (i = 0; i < bmax-1; i++) {
+                *(void**)buffer = blist;
+                blist = (void**)buffer;
+                buffer = (void*)((uint8_t*)buffer + bsize);
+            }
             *(void**)buffer = blist;
-            blist = (void**)buffer;
-            buffer = (void*)((uint8_t*)buffer + bsize);
-        }
-        *(void**)buffer = blist;
-        mem->blist  = (void**)buffer;
+            mem->blist  = (void**)buffer;
 #if (NOS_CONFIG_MEM_SANITY_CHECK_ENABLE > 0)
-        mem->buffer = buffer;
-        mem->bsize  = bsize;
-        mem->bcount = bmax;
-        mem->bmax   = bmax;
+            mem->buffer = buffer;
+            mem->bsize  = bsize;
+            mem->bcount = bmax;
+            mem->bmax   = bmax;
 #endif
+
+            err = NOS_OK;
+        }
         nOS_LeaveCritical(sr);
-        err = NOS_OK;
     }
 
     return err;
@@ -120,28 +126,34 @@ nOS_Error nOS_MemDelete (nOS_Mem *mem)
 #if (NOS_CONFIG_SAFE > 0)
     if (mem == NULL) {
         err = NOS_E_INV_OBJ;
-    } else if (mem->e.type != NOS_EVENT_MEM) {
-        err = NOS_E_INV_OBJ;
     } else
 #endif
     {
         nOS_EnterCritical(sr);
-        mem->blist  = NULL;
+#if (NOS_CONFIG_SAFE > 0)
+        if (mem->e.type != NOS_EVENT_MEM) {
+            err = NOS_E_INV_OBJ;
+        } else
+#endif
+        {
+            mem->blist  = NULL;
 #if (NOS_CONFIG_MEM_SANITY_CHECK_ENABLE > 0)
-        mem->buffer = NULL;
-        mem->bsize  = 0;
-        mem->bcount = 0;
-        mem->bmax   = 0;
+            mem->buffer = NULL;
+            mem->bsize  = 0;
+            mem->bcount = 0;
+            mem->bmax   = 0;
 #endif
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
-        if (nOS_DeleteEvent((nOS_Event*)mem)) {
-            nOS_Schedule();
-        }
+            if (nOS_DeleteEvent((nOS_Event*)mem)) {
+                nOS_Schedule();
+            }
 #else
-        nOS_DeleteEvent((nOS_Event*)mem);
+            nOS_DeleteEvent((nOS_Event*)mem);
 #endif
+
+            err = NOS_OK;
+        }
         nOS_LeaveCritical(sr);
-        err = NOS_OK;
     }
 
     return err;
@@ -151,43 +163,46 @@ nOS_Error nOS_MemDelete (nOS_Mem *mem)
 void *nOS_MemAlloc(nOS_Mem *mem, nOS_TickCounter tout)
 {
     nOS_StatusReg   sr;
-    void            *block;
+    void            *block = NULL;
 
 #if (NOS_CONFIG_SAFE > 0)
     if (mem == NULL) {
-        block = NULL;
-    } else if (mem->e.type != NOS_EVENT_MEM) {
         block = NULL;
     } else
 #endif
     {
         nOS_EnterCritical(sr);
-        if (mem->blist != NULL) {
-            block = (void*)mem->blist;
-            mem->blist = *(void***)block;
+#if (NOS_CONFIG_SAFE > 0)
+        if (mem->e.type != NOS_EVENT_MEM) {
+            block = NULL;
+        } else
+#endif
+        {
+            if (mem->blist != NULL) {
+                block = (void*)mem->blist;
+                mem->blist = *(void***)block;
 #if (NOS_CONFIG_MEM_SANITY_CHECK_ENABLE > 0)
-            mem->bcount--;
+                mem->bcount--;
 #endif
-        } else if (tout == NOS_NO_WAIT) {
-            /* Caller can't wait? Try again. */
-            block = NULL;
-        } else if (nOS_isrNestingCounter > 0) {
-            /* Can't wait from ISR */
-            block = NULL;
-        }
-#if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
-        else if (nOS_lockNestingCounter > 0) {
-            /* Can't switch context when scheduler is locked */
-            block = NULL;
-        }
-#endif
-        else if (nOS_runningThread == &nOS_idleHandle) {
-            /* Main thread can't wait */
-            block = NULL;
-        } else {
-            nOS_runningThread->ext = (void*)&block;
-            if (nOS_WaitForEvent((nOS_Event*)mem, NOS_THREAD_ALLOC_MEM, tout) != NOS_OK) {
+            } else if (tout == NOS_NO_WAIT) {
+                /* Caller can't wait? Try again. */
                 block = NULL;
+            } else if (nOS_isrNestingCounter > 0) {
+                /* Can't wait from ISR */
+                block = NULL;
+            }
+#if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
+            else if (nOS_lockNestingCounter > 0) {
+                /* Can't switch context when scheduler is locked */
+                block = NULL;
+            }
+#endif
+            else if (nOS_runningThread == &nOS_idleHandle) {
+                /* Main thread can't wait */
+                block = NULL;
+            } else {
+                nOS_runningThread->ext = (void*)&block;
+                nOS_WaitForEvent((nOS_Event*)mem, NOS_THREAD_ALLOC_MEM, tout);
             }
         }
         nOS_LeaveCritical(sr);
@@ -205,8 +220,6 @@ nOS_Error nOS_MemFree(nOS_Mem *mem, void *block)
 #if (NOS_CONFIG_SAFE > 0)
     if (mem == NULL) {
         err = NOS_E_INV_OBJ;
-    } else if (mem->e.type != NOS_EVENT_MEM) {
-        err = NOS_E_INV_OBJ;
     } else if (block == NULL) {
         err = NOS_E_NULL;
     } else
@@ -220,23 +233,31 @@ nOS_Error nOS_MemFree(nOS_Mem *mem, void *block)
 #endif
     {
         nOS_EnterCritical(sr);
-        thread = nOS_SignalEvent((nOS_Event*)mem, NOS_OK);
-        if (thread != NULL) {
-            *(void**)thread->ext = block;
-#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
-            if ((thread->state == NOS_THREAD_READY) && (thread->prio > nOS_runningThread->prio)) {
-                nOS_Schedule();
+#if (NOS_CONFIG_SAFE > 0)
+        if (mem->e.type != NOS_EVENT_MEM) {
+            err = NOS_E_INV_OBJ;
+        } else
+#endif
+        {
+            thread = nOS_SignalEvent((nOS_Event*)mem, NOS_OK);
+            if (thread != NULL) {
+                *(void**)thread->ext = block;
+    #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
+                if ((thread->state == NOS_THREAD_READY) && (thread->prio > nOS_runningThread->prio)) {
+                    nOS_Schedule();
+                }
+    #endif
+            } else {
+                *(void**)block = mem->blist;
+                mem->blist = (void**)block;
+    #if (NOS_CONFIG_MEM_SANITY_CHECK_ENABLE > 0)
+                mem->bcount++;
+    #endif
             }
-#endif
-        } else {
-            *(void**)block = mem->blist;
-            mem->blist = (void**)block;
-#if (NOS_CONFIG_MEM_SANITY_CHECK_ENABLE > 0)
-            mem->bcount++;
-#endif
+
+            err = NOS_OK;
         }
         nOS_LeaveCritical(sr);
-        err = NOS_OK;
     }
 
     return err;
@@ -256,7 +277,14 @@ bool nOS_MemIsAvailable (nOS_Mem *mem)
 #endif
     {
         nOS_EnterCritical(sr);
-        avail = (mem->blist != NULL);
+#if (NOS_CONFIG_SAFE > 0)
+        if (mem->e.type != NOS_EVENT_MEM) {
+            avail = false;
+        } else
+#endif
+        {
+            avail = (mem->blist != NULL);
+        }
         nOS_LeaveCritical(sr);
     }
 
