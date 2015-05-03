@@ -185,75 +185,47 @@ nOS_TimeDate nOS_TimeDateGet (void)
     return nOS_TimeConvert(nOS_TimeGet());
 }
 
-nOS_Error nOS_TimeDateSet (nOS_TimeDate *timedate)
+nOS_Error nOS_TimeDateSet (nOS_TimeDate timedate)
 {
-    nOS_Error   err;
-
-#if (NOS_CONFIG_SAFE > 0)
-    if (timedate == NULL) {
-        err = NOS_E_NULL;
-    } else
-#endif
-    {
-        err = nOS_TimeSet(nOS_TimeDateConvert(timedate));
-    }
-
-    return err;
+    return nOS_TimeSet(nOS_TimeDateConvert(timedate));;
 }
 
-nOS_Time nOS_TimeDateConvert (nOS_TimeDate *timedate)
+nOS_Time nOS_TimeDateConvert (nOS_TimeDate timedate)
 {
     nOS_Time    time = 0;
+    uint16_t    year;
+    uint8_t     month;
 
-#if (NOS_CONFIG_SAFE > 0)
-    if (timedate != NULL)
-#endif
-    {
-        uint16_t    year;
-        uint8_t     month;
+    /* Increment time variable until we reach timedate given by user */
 
-        /* Increment time variable until we reach timedate given by user */
+    /* Do not count half day */
+    time += ((timedate.day-1) * 86400UL); /* 86400 seconds per day */
 
-        /* Do not count half day */
-        time += ((timedate->day-1) * 86400UL); /* 86400 seconds per day */
-
-        /* Do not count on-going month */
-        month = 1;
-        while (month < timedate->month) {
-            time += (DAYS_PER_MONTH(month, timedate->year) * 86400UL);
-            month++;
-        }
-
-        /* Do not count on-going year */
-        year = 1970;
-        while (year < timedate->year) {
-            time += (DAYS_PER_YEAR(year) * 86400UL);
-            year++;
-        }
-
-        time += (timedate->hour * 3600UL);
-        time += (timedate->minute * 60UL);
-        time += timedate->second;
+    /* Do not count on-going month */
+    month = 1;
+    while (month < timedate.month) {
+        time += (DAYS_PER_MONTH(month, timedate.year) * 86400UL);
+        month++;
     }
+
+    /* Do not count on-going year */
+    year = 1970;
+    while (year < timedate.year) {
+        time += (DAYS_PER_YEAR(year) * 86400UL);
+        year++;
+    }
+
+    time += (timedate.hour * 3600UL);
+    time += (timedate.minute * 60UL);
+    time += timedate.second;
 
     return time;
 }
 
 #if (NOS_CONFIG_TIME_WAIT_ENABLE > 0)
-nOS_Error nOS_TimeDateWait (nOS_TimeDate *timedate)
+nOS_Error nOS_TimeDateWait (nOS_TimeDate timedate)
 {
-    nOS_Error   err;
-
-#if (NOS_CONFIG_SAFE > 0)
-    if (timedate == NULL) {
-        err = NOS_E_NULL;
-    } else
-#endif
-    {
-        err = nOS_TimeWait(nOS_TimeDateConvert(timedate));
-    }
-
-    return err;
+    return nOS_TimeWait(nOS_TimeDateConvert(timedate));;
 }
 #endif
 #endif  /* NOS_CONFIG_TIME_ENABLE */
