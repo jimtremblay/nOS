@@ -17,7 +17,6 @@ extern "C" {
 #if (NOS_CONFIG_SIGNAL_THREAD_ENABLE > 0)
  static void    _ThreadSignal   (void *arg);
 #endif
-static void     _ProcessSignal  (void *payload, void *arg);
 
 static nOS_List     _signalList;
 static nOS_Sem      _signalSem;
@@ -40,26 +39,6 @@ static void _ThreadSignal (void *arg)
     }
 }
 #endif
-
-void _ProcessSignal (void *payload, void *arg)
-{
-    nOS_StatusReg       sr;
-    nOS_Signal          *signal = (nOS_Signal *)payload;
-    nOS_SignalCallback  callback = NULL;
-
-    nOS_EnterCritical(sr);
-    if (signal->state & NOS_SIGNAL_RAISED) {
-        signal->state &=~ NOS_SIGNAL_RAISED;
-
-        callback = signal->callback;
-        arg      = signal->arg;
-    }
-    nOS_LeaveCritical(sr);
-
-    if (callback != NULL) {
-        callback(signal, arg);
-    }
-}
 
 void nOS_InitSignal (void)
 {
@@ -93,6 +72,12 @@ void nOS_InitSignal (void)
 
 void nOS_SignalProcess (void)
 {
+    nOS_StatusReg       sr;
+    nOS_Signal          *signal;
+    nOS_SignalCallback  callback = NULL;
+    void                *arg;
+
+    nOS_EnterCritical(sr);
     if (nOS_SemTake (&_signalSem,
 #if (NOS_CONFIG_SIGNAL_THREAD_ENABLE > 0)
                      NOS_WAIT_INFINITE
@@ -101,7 +86,21 @@ void nOS_SignalProcess (void)
 #endif
                      ) == NOS_OK)
     {
-        nOS_WalkInList(&_signalList, _ProcessSignal, NULL);
+        signal = (nOS_Signal *)nOS_GetHeadOfList(&_signalList);
+        if (signal != NULL) {
+            if (signal->state & NOS_SIGNAL_RAISED) {
+                signal->state &=~ NOS_SIGNAL_RAISED;
+                nOS_RemoveFromList(&_signalList, &signal->node);
+
+                callback = signal->callback;
+                arg      = signal->arg;
+            }
+        }
+    }
+    nOS_LeaveCritical(sr);
+
+    if (callback != NULL) {
+        callback(signal, arg);
     }
 }
 
@@ -128,7 +127,6 @@ nOS_Error nOS_SignalCreate (nOS_Signal *signal, nOS_SignalCallback callback)
             signal->state        = NOS_SIGNAL_CREATED;
             signal->callback     = callback;
             signal->node.payload = (void *)signal;
-            nOS_AppendToList(&_signalList, &signal->node);
 
             err = NOS_OK;
         }
@@ -157,9 +155,12 @@ nOS_Error nOS_SignalDelete (nOS_Signal *signal)
         } else
 #endif
         {
-            signal->state    = NOS_SIGNAL_DELETED;
-            signal->callback = NULL;
-            nOS_RemoveFromList(&_signalList, &signal->node);
+            if (signal->state & NOS_SIGNAL_RAISED) {
+                nOS_RemoveFromList(&_signalList, &signal->node);
+            }
+            signal->state           = NOS_SIGNAL_DELETED;
+            signal->callback        = NULL;
+            signal->node.payload    = NULL;
 
             err = NOS_OK;
         }
@@ -191,15 +192,46 @@ nOS_Error nOS_SignalRaise (nOS_Signal *signal, void *arg)
             if (signal->state & NOS_SIGNAL_RAISED) {
                 err = NOS_E_OVERFLOW;
             } else {
-                signal->arg    = arg;
                 signal->state |= NOS_SIGNAL_RAISED;
+                signal->arg    = arg;
+                nOS_AppendToList(&_signalList, &signal->node);
 
                 err = nOS_SemGive(&_signalSem);
-
                 if (err != NOS_OK) {
                     signal->state &=~ NOS_SIGNAL_RAISED;
+                    nOS_RemoveFromList(&_signalList, &signal->node);
                 }
             }
+        }
+        nOS_LeaveCritical(sr);
+    }
+
+    return err;
+}
+
+nOS_Error nOS_SignalSetCallback (nOS_Signal *signal, nOS_SignalCallback callback)
+{
+    nOS_Error       err;
+    nOS_StatusReg   sr;
+
+#if (NOS_CONFIG_SAFE > 0)
+    if (signal == NULL) {
+        err = NOS_E_INV_OBJ;
+    } else if (callback == NULL) {
+        err = NOS_E_INV_VAL;
+    } else
+#endif
+    {
+        nOS_EnterCritical(sr);
+#if (NOS_CONFIG_SAFE > 0)
+        if (signal->state == NOS_SIGNAL_DELETED) {
+            err = NOS_E_INV_OBJ;
+        } else
+#endif
+        {
+            signal->callback = callback;
+
+            err = NOS_OK;
         }
         nOS_LeaveCritical(sr);
     }
