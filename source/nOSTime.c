@@ -187,7 +187,7 @@ nOS_TimeDate nOS_TimeDateGet (void)
 
 nOS_Error nOS_TimeDateSet (nOS_TimeDate timedate)
 {
-    return nOS_TimeSet(nOS_TimeDateConvert(timedate));;
+    return nOS_TimeSet(nOS_TimeDateConvert(timedate));
 }
 
 nOS_Time nOS_TimeDateConvert (nOS_TimeDate timedate)
@@ -225,7 +225,7 @@ nOS_Time nOS_TimeDateConvert (nOS_TimeDate timedate)
 #if (NOS_CONFIG_TIME_WAIT_ENABLE > 0)
 nOS_Error nOS_TimeDateWait (nOS_TimeDate timedate)
 {
-    return nOS_TimeWait(nOS_TimeDateConvert(timedate));;
+    return nOS_TimeWait(nOS_TimeDateConvert(timedate));
 }
 #endif
 #endif  /* NOS_CONFIG_TIME_ENABLE */
