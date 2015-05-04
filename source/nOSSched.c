@@ -395,8 +395,8 @@ nOS_Error nOS_Schedule(void)
         err = NOS_E_ISR;
     }
 #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
-    /* Switch only from thread without scheduler locked */
     else if (nOS_lockNestingCounter > 0) {
+        /* Switch only from thread without scheduler locked */
         err = NOS_E_LOCKED;
     }
 #endif

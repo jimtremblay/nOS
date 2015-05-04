@@ -1638,7 +1638,7 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
  #if (NOS_CONFIG_SIGNAL_DELETE_ENABLE > 0)
   nOS_Error     nOS_SignalDelete                    (nOS_Signal *signal);
  #endif
- nOS_Error      nOS_SignalRaise                     (nOS_Signal *signal, void *arg);
+ nOS_Error      nOS_SignalSend                      (nOS_Signal *signal, void *arg);
  nOS_Error      nOS_SignalSetCallback               (nOS_Signal *signal, nOS_SignalCallback callback);
  bool           nOS_SignalIsRaised                  (nOS_Signal *signal);
 #endif

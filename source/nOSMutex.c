@@ -119,8 +119,8 @@ nOS_Error nOS_MutexLock (nOS_Mutex *mutex, nOS_TickCounter tout)
         } else
 #endif
         {
-            /* Mutex available? Reserve it for calling thread */
             if (mutex->owner == NULL) {
+                /* Mutex available? Reserve it for calling thread */
                 mutex->count++;
                 mutex->owner = nOS_runningThread;
     #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
@@ -148,10 +148,7 @@ nOS_Error nOS_MutexLock (nOS_Mutex *mutex, nOS_TickCounter tout)
             } else if (tout == NOS_NO_WAIT) {
                 /* Calling thread can't wait? Try again. */
     #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
-                /*
-                 * If current thread can ask to lock mutex,
-                 * maybe is prio is higher than mutex owner.
-                 */
+                /* If current thread can ask to lock mutex, maybe is prio is higher than mutex owner. */
                 if (mutex->prio == NOS_MUTEX_PRIO_INHERIT) {
                     if (mutex->owner->prio < nOS_runningThread->prio) {
                         nOS_SetThreadPrio(mutex->owner, nOS_runningThread->prio);
@@ -161,8 +158,8 @@ nOS_Error nOS_MutexLock (nOS_Mutex *mutex, nOS_TickCounter tout)
                 err = NOS_E_AGAIN;
             }
     #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
-            /* Can't switch context when scheduler is locked */
             else if (nOS_lockNestingCounter > 0) {
+                /* Can't switch context when scheduler is locked */
                 err = NOS_E_LOCKED;
             }
     #endif
@@ -172,8 +169,7 @@ nOS_Error nOS_MutexLock (nOS_Mutex *mutex, nOS_TickCounter tout)
             } else {
                 /* Calling thread must wait on mutex. */
     #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
-                /* If current thread can ask to lock mutex, maybe running
-                 * thread prio is higher than mutex owner prio. */
+                /* If current thread can ask to lock mutex, maybe running thread prio is higher than mutex owner prio. */
                 if (mutex->prio == NOS_MUTEX_PRIO_INHERIT) {
                     if (mutex->owner->prio < nOS_runningThread->prio) {
                         nOS_SetThreadPrio(mutex->owner, nOS_runningThread->prio);
@@ -200,8 +196,8 @@ nOS_Error nOS_MutexUnlock (nOS_Mutex *mutex)
         err = NOS_E_INV_OBJ;
     } else
 #endif
-    /* Can't unlock mutex from ISR */
     if (nOS_isrNestingCounter > 0) {
+        /* Can't unlock mutex from ISR */
         err = NOS_E_ISR;
     } else {
         nOS_EnterCritical(sr);

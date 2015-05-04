@@ -55,11 +55,13 @@ static void _TickTimer (void *payload, void *arg)
 
         if (timer->count == 0) {
             if (((nOS_TimerMode)timer->state & NOS_TIMER_MODE) == NOS_TIMER_FREE_RUNNING) {
+                /* Free running timer */
                 timer->count = timer->reload;
-            /* One-shot timer */
             } else {
+                /* One-shot timer */
                 timer->state = (nOS_TimerState)(timer->state &~ NOS_TIMER_RUNNING);
             }
+
             /* Call callback function outside of critical section */
             callback = timer->callback;
             arg      = timer->arg;
