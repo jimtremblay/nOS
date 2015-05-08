@@ -1106,6 +1106,17 @@ nOS_TickCounter nOS_GetTickCount                    (void);
 
 /**********************************************************************************************************************
  *                                                                                                                    *
+ * Name              : nOS_GetRunningThread                                                                           *
+ *                                                                                                                    *
+ * Description       : Return a pointer to nOS_Thread object of current running thread.                               *
+ *                                                                                                                    *
+ * Return            : Pointer to nOS_Thread.                                                                         *
+ *                                                                                                                    *
+ **********************************************************************************************************************/
+nOS_Thread *    nOS_GetRunningThread                (void);
+
+/**********************************************************************************************************************
+ *                                                                                                                    *
  * Name              : nOS_ThreadCreate                                                                               *
  *                                                                                                                    *
  * Description       : Create a new thread and add it to the list of threads managed by the scheduler.                *

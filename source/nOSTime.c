@@ -198,8 +198,12 @@ nOS_Time nOS_TimeDateConvert (nOS_TimeDate timedate)
 
     /* Increment time variable until we reach timedate given by user */
 
-    /* Do not count half day */
-    time += ((timedate.day-1) * 86400UL); /* 86400 seconds per day */
+    /* Do not count on-going year */
+    year = 1970;
+    while (year < timedate.year) {
+        time += (DAYS_PER_YEAR(year) * 86400UL);
+        year++;
+    }
 
     /* Do not count on-going month */
     month = 1;
@@ -208,12 +212,8 @@ nOS_Time nOS_TimeDateConvert (nOS_TimeDate timedate)
         month++;
     }
 
-    /* Do not count on-going year */
-    year = 1970;
-    while (year < timedate.year) {
-        time += (DAYS_PER_YEAR(year) * 86400UL);
-        year++;
-    }
+    /* Do not count half day */
+    time += ((timedate.day-1) * 86400UL); /* 86400 seconds per day */
 
     time += (timedate.hour * 3600UL);
     time += (timedate.minute * 60UL);

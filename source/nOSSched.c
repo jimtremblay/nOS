@@ -699,6 +699,11 @@ nOS_Error nOS_SchedUnlock(void)
 }
 #endif  /* NOS_CONFIG_SCHED_LOCK_ENABLE */
 
+nOS_Thread * nOS_GetRunningThread (void)
+{
+    return nOS_running ? nOS_runningThread : NULL;
+}
+
 #ifdef __cplusplus
 }
 #endif
