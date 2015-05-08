@@ -1644,7 +1644,7 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
  *   1. Never suppose to happen normally, can be a sign of corruption.                                                *
  *                                                                                                                    *
  **********************************************************************************************************************/
- nOS_Error nOS_MemSanityCheck (nOS_Mem *mem, void *block);
+ nOS_Error      nOS_MemSanityCheck                  (nOS_Mem *mem, void *block);
 #endif
 
 #if (NOS_CONFIG_TIMER_ENABLE > 0)
