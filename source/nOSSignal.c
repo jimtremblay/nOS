@@ -171,7 +171,7 @@ nOS_Error nOS_SignalDelete (nOS_Signal *signal)
 }
 #endif
 
-nOS_Error nOS_SignalRaise (nOS_Signal *signal, void *arg)
+nOS_Error nOS_SignalSend (nOS_Signal *signal, void *arg)
 {
     nOS_Error       err;
     nOS_StatusReg   sr;

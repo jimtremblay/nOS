@@ -84,7 +84,6 @@ void nOS_WalkInList (nOS_List *list, nOS_NodeHandler handler, void *arg)
         it = next;
     }
 }
-/*----------------------------------------------------------------------------*/
 
 #ifdef __cplusplus
 }
