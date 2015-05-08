@@ -1622,6 +1622,29 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
  *                                                                                                                    *
  **********************************************************************************************************************/
  bool           nOS_MemIsAvailable                  (nOS_Mem *mem);
+
+/**********************************************************************************************************************
+ *                                                                                                                    *
+ * Name             : nOS_MemSanityCheck                                                                              *
+ *                                                                                                                    *
+ * Description      : Check if pointer is valid for given memory block (useful before freeing block).                 *
+ *                                                                                                                    *
+ * Parameters                                                                                                         *
+ *   mem            : Pointer to mem object.                                                                          *
+ *   block          : Pointer to previously allocated block.                                                          *
+ *                                                                                                                    *
+ * Return           : Error code.                                                                                     *
+ *   NOS_OK         : Pointer is valid.                                                                               *
+ *   NOS_E_INV_VAL  : Pointer to block is outside mem defined range.                                                  *
+ *                      See note 1                                                                                    *
+ *   NOS_E_OVERFLOW : Too much block has been freed or block is already free.                                         *
+ *                      See note 1                                                                                    *
+ *                                                                                                                    *
+ * Notes                                                                                                              *
+ *   1. Never suppose to happen normally, can be a sign of corruption.                                                *
+ *                                                                                                                    *
+ **********************************************************************************************************************/
+ nOS_Error nOS_MemSanityCheck (nOS_Mem *mem, void *block)
 #endif
 
 #if (NOS_CONFIG_TIMER_ENABLE > 0)

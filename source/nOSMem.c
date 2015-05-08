@@ -14,41 +14,6 @@ extern "C" {
 #endif
 
 #if (NOS_CONFIG_MEM_ENABLE > 0)
-#if (NOS_CONFIG_MEM_SANITY_CHECK_ENABLE > 0)
-static nOS_Error _SanityCheck (nOS_Mem *mem, void *block)
-{
-    nOS_Error   err;
-    void        *p;
-
-    if (block < mem->buffer) {
-        /* Memory block pointer is out of range. */
-        err = NOS_E_INV_VAL;
-    } else if (block >= (void*)((uint8_t*)mem->buffer + (mem->bsize * mem->bmax))) {
-        /* Memory block pointer is out of range. */
-        err = NOS_E_INV_VAL;
-    } else if ((nOS_MemSize)((uint8_t*)block - (uint8_t*)mem->buffer) % mem->bsize != 0) {
-        /* Memory block pointer is not a multiple of block size. */
-        err = NOS_E_INV_VAL;
-    } else if (mem->bcount == mem->bmax) {
-        /* All blocks are already free. */
-        err = NOS_E_OVERFLOW;
-    } else {
-        /* Memory block is already free? */
-        p = (void*)mem->blist;
-        while ((p != NULL) && (p != block)) {
-            p = *(void**)p;
-        }
-        if (p == block) {
-            err = NOS_E_OVERFLOW;
-        } else {
-            err = NOS_OK;
-        }
-    }
-
-    return err;
-}
-#endif  /* NOS_CONFIG_MEM_SANITY_CHECK_ENABLE */
-
 nOS_Error nOS_MemCreate (nOS_Mem *mem, void *buffer, nOS_MemSize bsize, nOS_MemCounter bmax)
 {
     nOS_Error       err;
@@ -218,16 +183,17 @@ nOS_Error nOS_MemFree(nOS_Mem *mem, void *block)
     nOS_Thread      *thread;
 
 #if (NOS_CONFIG_SAFE > 0)
+    err = NOS_OK;
     if (mem == NULL) {
         err = NOS_E_INV_OBJ;
     } else if (block == NULL) {
-        err = NOS_E_NULL;
-    } else
-#endif
-#if (NOS_CONFIG_MEM_SANITY_CHECK_ENABLE > 0)
-    {
-        err = _SanityCheck(mem, block);
+        err = NOS_E_INV_VAL;
     }
+ #if (NOS_CONFIG_MEM_SANITY_CHECK_ENABLE > 0)
+    else {
+        err = nOS_MemSanityCheck(mem, block);
+    }
+ #endif
 
     if (err == NOS_OK)
 #endif
@@ -242,17 +208,17 @@ nOS_Error nOS_MemFree(nOS_Mem *mem, void *block)
             thread = nOS_SendEvent((nOS_Event*)mem, NOS_OK);
             if (thread != NULL) {
                 *(void**)thread->ext = block;
-    #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
                 if ((thread->state == NOS_THREAD_READY) && (thread->prio > nOS_runningThread->prio)) {
                     nOS_Schedule();
                 }
-    #endif
+#endif
             } else {
                 *(void**)block = mem->blist;
                 mem->blist = (void**)block;
-    #if (NOS_CONFIG_MEM_SANITY_CHECK_ENABLE > 0)
+#if (NOS_CONFIG_MEM_SANITY_CHECK_ENABLE > 0)
                 mem->bcount++;
-    #endif
+#endif
             }
 
             err = NOS_OK;
@@ -290,6 +256,41 @@ bool nOS_MemIsAvailable (nOS_Mem *mem)
 
     return avail;
 }
+
+ #if (NOS_CONFIG_MEM_SANITY_CHECK_ENABLE > 0)
+nOS_Error nOS_MemSanityCheck (nOS_Mem *mem, void *block)
+{
+    nOS_Error   err;
+    void        *p;
+
+    if (block < mem->buffer) {
+        /* Memory block pointer is out of range. */
+        err = NOS_E_INV_VAL;
+    } else if (block >= (void*)((uint8_t*)mem->buffer + (mem->bsize * mem->bmax))) {
+        /* Memory block pointer is out of range. */
+        err = NOS_E_INV_VAL;
+    } else if ((nOS_MemSize)((uint8_t*)block - (uint8_t*)mem->buffer) % mem->bsize != 0) {
+        /* Memory block pointer is not a multiple of block size. */
+        err = NOS_E_INV_VAL;
+    } else if (mem->bcount == mem->bmax) {
+        /* All blocks are already free. */
+        err = NOS_E_OVERFLOW;
+    } else {
+        /* Memory block is already free? */
+        p = (void*)mem->blist;
+        while ((p != NULL) && (p != block)) {
+            p = *(void**)p;
+        }
+        if (p == block) {
+            err = NOS_E_OVERFLOW;
+        } else {
+            err = NOS_OK;
+        }
+    }
+
+    return err;
+}
+ #endif
 #endif  /* NOS_CONFIG_MEM_ENABLE */
 
 #ifdef __cplusplus
