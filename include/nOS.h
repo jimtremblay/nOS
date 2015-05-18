@@ -25,6 +25,9 @@ extern "C" {
   #endif
  #endif
 #endif
+#ifdef ARDUINO
+ #define _C99_COMPLIANT_        1
+#endif
 
 #if (_C99_COMPLIANT_ > 0) || defined(__cplusplus)
  #include <stdint.h>
