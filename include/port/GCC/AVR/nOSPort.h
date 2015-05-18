@@ -74,19 +74,15 @@ typedef uint8_t                 nOS_StatusReg;
 #endif
 
 #define nOS_EnterCritical(sr)                                                   \
-    asm volatile (                                                              \
-        "in   %[SR], %[SREG_ADDR]           \n"                                 \
-        "cli                                \n"                                 \
-        : [SR] "=r" (sr)                                                        \
-        : [SREG_ADDR] "I" (_SFR_IO_ADDR(SREG))                                  \
-    )
+    do {                                                                        \
+        sr = SREG;                                                              \
+        asm volatile ("cli");                                                   \
+    } while (0)
 
 #define nOS_LeaveCritical(sr)                                                   \
-    asm volatile (                                                              \
-        "out  %[SREG_ADDR], %[SR]           \n"                                 \
-        : [SR] "=r" (sr)                                                        \
-        : [SREG_ADDR] "I" (_SFR_IO_ADDR(SREG))                                  \
-    )
+    do {                                                                        \
+        SREG = sr;                                                              \
+    } while (0)
 
 #define PUSH_CONTEXT()                                                          \
     asm volatile (                                                              \
