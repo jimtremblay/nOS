@@ -76,7 +76,7 @@ typedef uint8_t                 nOS_StatusReg;
 #define nOS_EnterCritical(sr)                                                   \
     do {                                                                        \
         sr = SREG;                                                              \
-        asm volatile ("cli");                                                   \
+        cli();                                                                  \
     } while (0)
 
 #define nOS_LeaveCritical(sr)                                                   \
@@ -179,14 +179,14 @@ inline void vect##_ISR_L2(void) __attribute__( ( always_inline ) );             
 ISR(vect, ISR_NAKED)                                                            \
 {                                                                               \
     vect##_ISR();                                                               \
-    asm volatile ("reti");                                                      \
+    reti();                                                                     \
 }                                                                               \
 void vect##_ISR(void)                                                           \
 {                                                                               \
     PUSH_CONTEXT();                                                             \
     SP = (int)nOS_EnterIsr((nOS_Stack*)SP);                                     \
     vect##_ISR_L2();                                                            \
-    asm volatile ("cli");                                                       \
+    cli();                                                                      \
     SP = (int)nOS_LeaveIsr((nOS_Stack*)SP);                                     \
     POP_CONTEXT();                                                              \
     asm volatile ("ret");                                                       \
