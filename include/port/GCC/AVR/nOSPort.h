@@ -80,9 +80,7 @@ typedef uint8_t                 nOS_StatusReg;
     } while (0)
 
 #define nOS_LeaveCritical(sr)                                                   \
-    do {                                                                        \
-        SREG = sr;                                                              \
-    } while (0)
+    SREG = sr
 
 #define PUSH_CONTEXT()                                                          \
     asm volatile (                                                              \
