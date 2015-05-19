@@ -89,7 +89,7 @@ void nOS_SignalProcess (void)
         signal = (nOS_Signal *)nOS_GetHeadOfList(&_signalList);
         if (signal != NULL) {
             if (signal->state & NOS_SIGNAL_RAISED) {
-                signal->state &=~ NOS_SIGNAL_RAISED;
+                signal->state = (nOS_SignalState)(signal->state &~ NOS_SIGNAL_RAISED);
                 nOS_RemoveFromList(&_signalList, &signal->node);
 
                 callback = signal->callback;
@@ -192,13 +192,13 @@ nOS_Error nOS_SignalSend (nOS_Signal *signal, void *arg)
             if (signal->state & NOS_SIGNAL_RAISED) {
                 err = NOS_E_OVERFLOW;
             } else {
-                signal->state |= NOS_SIGNAL_RAISED;
-                signal->arg    = arg;
+                signal->state = (nOS_SignalState)(signal->state | NOS_SIGNAL_RAISED);
+                signal->arg   = arg;
                 nOS_AppendToList(&_signalList, &signal->node);
 
                 err = nOS_SemGive(&_signalSem);
                 if (err != NOS_OK) {
-                    signal->state &=~ NOS_SIGNAL_RAISED;
+                    signal->state = (nOS_SignalState)(signal->state &~ NOS_SIGNAL_RAISED);
                     nOS_RemoveFromList(&_signalList, &signal->node);
                 }
             }
