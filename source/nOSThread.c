@@ -168,26 +168,26 @@ nOS_Error nOS_ThreadCreate (nOS_Thread *thread,
     } else if (stack == NULL) {
         err = NOS_E_INV_VAL;
     } else
-#ifndef NOS_SIMULATED_STACK
+ #ifndef NOS_SIMULATED_STACK
     if (ssize == 0) {
         err = NOS_E_INV_VAL;
     } else
-#endif
-#ifdef NOS_USE_SEPARATE_CALL_STACK
+ #endif
+ #ifdef NOS_USE_SEPARATE_CALL_STACK
     if (cssize == 0) {
         err = NOS_E_INV_VAL;
     } else
-#endif
-#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
+ #endif
+ #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
     if (prio > NOS_CONFIG_HIGHEST_THREAD_PRIO) {
         err = NOS_E_INV_PRIO;
     } else
-#endif
-#if (NOS_CONFIG_THREAD_SUSPEND_ENABLE > 0)
+ #endif
+ #if (NOS_CONFIG_THREAD_SUSPEND_ENABLE > 0)
     if ((state != NOS_THREAD_READY) && (state != NOS_THREAD_SUSPENDED)) {
         err = NOS_E_INV_STATE;
     } else
-#endif
+ #endif
 #endif
     {
         nOS_EnterCritical(sr);
@@ -375,13 +375,13 @@ nOS_Error nOS_ThreadSuspend (nOS_Thread *thread)
         {
             err = NOS_OK;
         }
-    } else
-#endif
-    {
+    } else {
         err = NOS_OK;
     }
 
-    if (err == NOS_OK) {
+    if (err == NOS_OK)
+#endif
+    {
         nOS_EnterCritical(sr);
 #if (NOS_CONFIG_SAFE > 0)
         if (thread->state == NOS_THREAD_STOPPED) {
@@ -397,6 +397,8 @@ nOS_Error nOS_ThreadSuspend (nOS_Thread *thread)
             }
         }
         nOS_LeaveCritical(sr);
+
+        err = NOS_OK;
     }
 
     return err;

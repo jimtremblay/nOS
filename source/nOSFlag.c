@@ -155,12 +155,12 @@ nOS_Error nOS_FlagWait (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits *res,
                 /* Can't wait from ISR */
                 err = NOS_E_ISR;
             }
-    #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
+#if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
             else if (nOS_lockNestingCounter > 0) {
                 /* Can't switch context when scheduler is locked */
                 err = NOS_E_LOCKED;
             }
-    #endif
+#endif
             else if (nOS_runningThread == &nOS_idleHandle) {
                 /* Main thread can't wait */
                 err = NOS_E_IDLE;

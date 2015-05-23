@@ -188,14 +188,7 @@ nOS_Error nOS_MemFree(nOS_Mem *mem, void *block)
         err = NOS_E_INV_OBJ;
     } else if (block == NULL) {
         err = NOS_E_INV_VAL;
-    }
- #if (NOS_CONFIG_MEM_SANITY_CHECK_ENABLE > 0)
-    else {
-        err = nOS_MemSanityCheck(mem, block);
-    }
- #endif
-
-    if (err == NOS_OK)
+    } else
 #endif
     {
         nOS_EnterCritical(sr);
@@ -203,6 +196,12 @@ nOS_Error nOS_MemFree(nOS_Mem *mem, void *block)
         if (mem->e.type != NOS_EVENT_MEM) {
             err = NOS_E_INV_OBJ;
         } else
+ #if (NOS_CONFIG_MEM_SANITY_CHECK_ENABLE > 0)
+        {
+            err = nOS_MemSanityCheck(mem, block);
+        }
+        if (err == NOS_OK)
+ #endif
 #endif
         {
             thread = nOS_SendEvent((nOS_Event*)mem, NOS_OK);
