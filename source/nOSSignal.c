@@ -73,9 +73,9 @@ void nOS_InitSignal (void)
 void nOS_SignalProcess (void)
 {
     nOS_StatusReg       sr;
-    nOS_Signal          *signal;
+    nOS_Signal          *signal  = NULL;
     nOS_SignalCallback  callback = NULL;
-    void                *arg;
+    void                *arg     = NULL;
 
     nOS_EnterCritical(sr);
     if (nOS_SemTake (&_signalSem,
