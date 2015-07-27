@@ -289,9 +289,6 @@ extern "C" {
 #elif (NOS_CONFIG_TIMER_ENABLE != 0) && (NOS_CONFIG_TIMER_ENABLE != 1)
  #error "nOSConfig.h: NOS_CONFIG_TIMER_ENABLE is set to invalid value: must be set to 0 or 1."
 #elif (NOS_CONFIG_TIMER_ENABLE > 0)
- #if (NOS_CONFIG_SEM_ENABLE == 0)
-  #error "nOSConfig.h: NOS_CONFIG_SEM_ENABLE need to be enable when NOS_CONFIG_TIMER_ENABLE is enable."
- #endif
  #ifndef NOS_CONFIG_TIMER_TICK_ENABLE
   #error "nOSConfig.h: NOS_CONFIG_TIMER_TICK_ENABLE is not defined: must be set to 0 or 1."
  #elif (NOS_CONFIG_TIMER_TICK_ENABLE != 0) && (NOS_CONFIG_TIMER_TICK_ENABLE != 1)
@@ -344,9 +341,6 @@ extern "C" {
 #elif (NOS_CONFIG_SIGNAL_ENABLE != 0) && (NOS_CONFIG_SIGNAL_ENABLE != 1)
  #error "nOSConfig.h: NOS_CONFIG_SIGNAL_ENABLE is set to invalid value: must be set to 0 or 1."
 #elif (NOS_CONFIG_SIGNAL_ENABLE > 0)
- #if (NOS_CONFIG_SEM_ENABLE == 0)
-  #error "nOSConfig.h: NOS_CONFIG_SEM_ENABLE need to be enable when NOS_CONFIG_SIGNAL_ENABLE is enable."
- #endif
  #ifndef NOS_CONFIG_SIGNAL_DELETE_ENABLE
   #error "nOSConfig.h: NOS_CONFIG_SIGNAL_DELETE_ENABLE is not defined: must be set to 0 or 1."
  #elif (NOS_CONFIG_SIGNAL_DELETE_ENABLE != 0) && (NOS_CONFIG_SIGNAL_DELETE_ENABLE != 1)
@@ -790,9 +784,11 @@ struct nOS_Timer
     nOS_TimerState      state;
     nOS_TimerCounter    count;
     nOS_TimerCounter    reload;
+    nOS_TimerCounter    overflow;
     nOS_TimerCallback   callback;
     void                *arg;
     nOS_Node            node;
+    nOS_Node            trig;
 };
 #endif
 
@@ -1659,10 +1655,10 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
   nOS_Error     nOS_TimerDelete                     (nOS_Timer *timer);
  #endif
  nOS_Error      nOS_TimerStart                      (nOS_Timer *timer);
- nOS_Error      nOS_TimerStop                       (nOS_Timer *timer);
+ nOS_Error      nOS_TimerStop                       (nOS_Timer *timer, bool instant);
  nOS_Error      nOS_TimerRestart                    (nOS_Timer *timer, nOS_TimerCounter reload);
  nOS_Error      nOS_TimerPause                      (nOS_Timer *timer);
- nOS_Error      nOS_TimerResume                     (nOS_Timer *timer);
+ nOS_Error      nOS_TimerContinue                   (nOS_Timer *timer);
  nOS_Error      nOS_TimerSetReload                  (nOS_Timer *timer, nOS_TimerCounter reload);
  nOS_Error      nOS_TimerSetCallback                (nOS_Timer *timer, nOS_TimerCallback callback, void *arg);
  nOS_Error      nOS_TimerSetMode                    (nOS_Timer *timer, nOS_TimerMode mode);

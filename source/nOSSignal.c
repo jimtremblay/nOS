@@ -32,10 +32,18 @@ static nOS_Sem      _signalSem;
 #if (NOS_CONFIG_SIGNAL_THREAD_ENABLE > 0)
 static void _ThreadSignal (void *arg)
 {
+    nOS_StatusReg   sr;
+
     NOS_UNUSED(arg);
 
     while (1) {
         nOS_SignalProcess();
+
+        nOS_EnterCritical(sr);
+        if (nOS_GetHeadOfList(&_signalList) == NULL) {
+            nOS_WaitForEvent(NULL, NOS_THREAD_WAITING_EVENT, 0);
+        }
+        nOS_LeaveCritical(sr);
     }
 }
 #endif
@@ -78,23 +86,14 @@ void nOS_SignalProcess (void)
     void                *arg     = NULL;
 
     nOS_EnterCritical(sr);
-    if (nOS_SemTake (&_signalSem,
-#if (NOS_CONFIG_SIGNAL_THREAD_ENABLE > 0)
-                     NOS_WAIT_INFINITE
-#else
-                     NOS_NO_WAIT
-#endif
-                     ) == NOS_OK)
-    {
-        signal = (nOS_Signal *)nOS_GetHeadOfList(&_signalList);
-        if (signal != NULL) {
-            if (signal->state & NOS_SIGNAL_RAISED) {
-                signal->state = (nOS_SignalState)(signal->state &~ NOS_SIGNAL_RAISED);
-                nOS_RemoveFromList(&_signalList, &signal->node);
+    signal = (nOS_Signal *)nOS_GetHeadOfList(&_signalList);
+    if (signal != NULL) {
+        if (signal->state & NOS_SIGNAL_RAISED) {
+            signal->state = (nOS_SignalState)(signal->state &~ NOS_SIGNAL_RAISED);
+            nOS_RemoveFromList(&_signalList, &signal->node);
 
-                callback = signal->callback;
-                arg      = signal->arg;
-            }
+            callback = signal->callback;
+            arg      = signal->arg;
         }
     }
     nOS_LeaveCritical(sr);
@@ -159,8 +158,6 @@ nOS_Error nOS_SignalDelete (nOS_Signal *signal)
                 nOS_RemoveFromList(&_signalList, &signal->node);
             }
             signal->state           = NOS_SIGNAL_DELETED;
-            signal->callback        = NULL;
-            signal->node.payload    = NULL;
 
             err = NOS_OK;
         }
@@ -196,11 +193,11 @@ nOS_Error nOS_SignalSend (nOS_Signal *signal, void *arg)
                 signal->arg   = arg;
                 nOS_AppendToList(&_signalList, &signal->node);
 
-                err = nOS_SemGive(&_signalSem);
-                if (err != NOS_OK) {
-                    signal->state = (nOS_SignalState)(signal->state &~ NOS_SIGNAL_RAISED);
-                    nOS_RemoveFromList(&_signalList, &signal->node);
+                if (_signalHandle.state & NOS_THREAD_WAITING_EVENT) {
+                    nOS_WakeUpThread(&_signalHandle, NOS_OK);
                 }
+
+                err = NOS_OK;
             }
         }
         nOS_LeaveCritical(sr);
