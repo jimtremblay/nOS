@@ -68,8 +68,10 @@ static void _Tick (void *payload, void *arg)
                 /* One-shot timer */
                 timer->state = (nOS_TimerState)(timer->state &~ NOS_TIMER_RUNNING);
             }
+            if (timer->overflow == 0) {
+                nOS_AppendToList(&_triggeredList, &timer->trig);
+            }
             timer->overflow++;
-            nOS_AppendToList(&_triggeredList, &timer->trig);
             *overflow = true;
         }
     }
