@@ -15,23 +15,23 @@ extern "C" {
 
 #if (NOS_CONFIG_TIMER_ENABLE > 0)
 #if (NOS_CONFIG_TIMER_THREAD_ENABLE > 0)
- static void    _ThreadTimer    (void *arg);
+ static void    _Thread     (void *arg);
 #endif
-static void     _TickTimer      (void *payload, void *arg);
+static void     _Tick       (void *payload, void *arg);
 
-static nOS_List     _timerList;
-static nOS_List     _timerTrigList;
+static nOS_List     _mainList;
+static nOS_List     _triggeredList;
 #if (NOS_CONFIG_TIMER_THREAD_ENABLE > 0)
- static nOS_Thread  _timerHandle;
+ static nOS_Thread  _handle;
  #ifdef NOS_SIMULATED_STACK
-  static nOS_Stack  _timerStack;
+  static nOS_Stack  _stack;
  #else
-  static nOS_Stack  _timerStack[NOS_CONFIG_TIMER_THREAD_STACK_SIZE];
+  static nOS_Stack  _stack[NOS_CONFIG_TIMER_THREAD_STACK_SIZE];
  #endif
 #endif
 
 #if (NOS_CONFIG_TIMER_THREAD_ENABLE > 0)
-static void _ThreadTimer (void *arg)
+static void _Thread (void *arg)
 {
     nOS_StatusReg   sr;
 
@@ -41,7 +41,7 @@ static void _ThreadTimer (void *arg)
         nOS_TimerProcess();
 
         nOS_EnterCritical(sr);
-        if (nOS_GetHeadOfList(&_timerTrigList) == NULL) {
+        if (nOS_GetHeadOfList(&_triggeredList) == NULL) {
             nOS_WaitForEvent(NULL, NOS_THREAD_WAITING_EVENT, 0);
         }
         nOS_LeaveCritical(sr);
@@ -50,10 +50,10 @@ static void _ThreadTimer (void *arg)
 #endif
 
 /* Called from critical section */
-static void _TickTimer (void *payload, void *arg)
+static void _Tick (void *payload, void *arg)
 {
-    nOS_Timer           *timer = (nOS_Timer *)payload;
-    bool                *overflow = (bool*)arg;
+    nOS_Timer   *timer      = (nOS_Timer *)payload;
+    bool        *overflow   = (bool*)arg;
 
     if ((timer->state & (NOS_TIMER_RUNNING | NOS_TIMER_PAUSED)) == NOS_TIMER_RUNNING) {
         if (timer->count > 0) {
@@ -69,7 +69,7 @@ static void _TickTimer (void *payload, void *arg)
                 timer->state = (nOS_TimerState)(timer->state &~ NOS_TIMER_RUNNING);
             }
             timer->overflow++;
-            nOS_AppendToList(&_timerTrigList, &timer->trig);
+            nOS_AppendToList(&_triggeredList, &timer->trig);
             *overflow = true;
         }
     }
@@ -77,16 +77,16 @@ static void _TickTimer (void *payload, void *arg)
 
 void nOS_InitTimer(void)
 {
-    nOS_InitList(&_timerList);
-    nOS_InitList(&_timerTrigList);
+    nOS_InitList(&_mainList);
+    nOS_InitList(&_triggeredList);
 #if (NOS_CONFIG_TIMER_THREAD_ENABLE > 0)
-    nOS_ThreadCreate(&_timerHandle,
-                     _ThreadTimer,
+    nOS_ThreadCreate(&_handle,
+                     _Thread,
                      NULL
  #ifdef NOS_SIMULATED_STACK
-                     ,&_timerStack
+                     ,&_stack
  #else
-                     ,_timerStack
+                     ,_stack
  #endif
                      ,NOS_CONFIG_TIMER_THREAD_STACK_SIZE
  #ifdef NOS_USE_SEPARATE_CALL_STACK
@@ -107,16 +107,16 @@ void nOS_InitTimer(void)
 
 void nOS_TimerTick (void)
 {
-    nOS_StatusReg       sr;
+    nOS_StatusReg   sr;
 #if (NOS_CONFIG_TIMER_THREAD_ENABLE > 0)
-    bool overflow = false;
+    bool            overflow = false;
 #endif
 
     nOS_EnterCritical(sr);
-    nOS_WalkInList(&_timerList, _TickTimer, &overflow);
+    nOS_WalkInList(&_mainList, _Tick, &overflow);
 #if (NOS_CONFIG_TIMER_THREAD_ENABLE > 0)
-    if (overflow && (_timerHandle.state & NOS_THREAD_WAITING_EVENT)) {
-        nOS_WakeUpThread(&_timerHandle, NOS_OK);
+    if (overflow && (_handle.state & NOS_THREAD_WAITING_EVENT)) {
+        nOS_WakeUpThread(&_handle, NOS_OK);
     }
 #endif
     nOS_LeaveCritical(sr);
@@ -130,13 +130,13 @@ void nOS_TimerProcess (void)
     void                *arg;
 
     nOS_EnterCritical(sr);
-    timer = nOS_GetHeadOfList(&_timerTrigList);
+    timer = nOS_GetHeadOfList(&_triggeredList);
     if (timer != NULL) {
         timer->overflow--;
         if (timer->overflow == 0) {
-            nOS_RemoveFromList(&_timerTrigList, &timer->trig);
+            nOS_RemoveFromList(&_triggeredList, &timer->trig);
         } else {
-            nOS_RotateList(&_timerTrigList);
+            nOS_RotateList(&_triggeredList);
         }
 
         /* Call callback function outside of critical section */
@@ -178,7 +178,7 @@ nOS_Error nOS_TimerCreate (nOS_Timer *timer, nOS_TimerCallback callback, void *a
             timer->arg          = arg;
             timer->node.payload = (void *)timer;
             timer->trig.payload = (void *)timer;
-            nOS_AppendToList(&_timerList, &timer->node);
+            nOS_AppendToList(&_mainList, &timer->node);
 
             err = NOS_OK;
         }
@@ -208,10 +208,10 @@ nOS_Error nOS_TimerDelete (nOS_Timer *timer)
 #endif
         {
             timer->state = NOS_TIMER_DELETED;
-            nOS_RemoveFromList(&_timerList, &timer->node);
+            nOS_RemoveFromList(&_mainList, &timer->node);
             if (timer->overflow > 0) {
                 timer->overflow = 0;
-                nOS_RemoveFromList(&_timerTrigList, &timer->trig);
+                nOS_RemoveFromList(&_triggeredList, &timer->trig);
             }
 
             err = NOS_OK;
@@ -273,7 +273,7 @@ nOS_Error nOS_TimerStop (nOS_Timer *timer, bool instant)
             timer->state = (nOS_TimerState)(timer->state &~ NOS_TIMER_RUNNING);
             if ((timer->overflow > 0) && instant) {
                 timer->overflow = 0;
-                nOS_RemoveFromList(&_timerTrigList, &timer->trig);
+                nOS_RemoveFromList(&_triggeredList, &timer->trig);
             }
 
             err = NOS_OK;

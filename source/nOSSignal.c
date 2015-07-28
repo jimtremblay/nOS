@@ -15,22 +15,21 @@ extern "C" {
 
 #if (NOS_CONFIG_SIGNAL_ENABLE > 0)
 #if (NOS_CONFIG_SIGNAL_THREAD_ENABLE > 0)
- static void    _ThreadSignal   (void *arg);
+ static void    _Thread     (void *arg);
 #endif
 
-static nOS_List     _signalList;
-static nOS_Sem      _signalSem;
+static nOS_List     _list;
 #if (NOS_CONFIG_SIGNAL_THREAD_ENABLE > 0)
- static nOS_Thread  _signalHandle;
+ static nOS_Thread  _thread;
  #ifdef NOS_SIMULATED_STACK
-  static nOS_Stack  _signalStack;
+  static nOS_Stack  _stack;
  #else
-  static nOS_Stack  _signalStack[NOS_CONFIG_SIGNAL_THREAD_STACK_SIZE];
+  static nOS_Stack  _stack[NOS_CONFIG_SIGNAL_THREAD_STACK_SIZE];
  #endif
 #endif
 
 #if (NOS_CONFIG_SIGNAL_THREAD_ENABLE > 0)
-static void _ThreadSignal (void *arg)
+static void _Thread (void *arg)
 {
     nOS_StatusReg   sr;
 
@@ -40,7 +39,7 @@ static void _ThreadSignal (void *arg)
         nOS_SignalProcess();
 
         nOS_EnterCritical(sr);
-        if (nOS_GetHeadOfList(&_signalList) == NULL) {
+        if (nOS_GetHeadOfList(&_list) == NULL) {
             nOS_WaitForEvent(NULL, NOS_THREAD_WAITING_EVENT, 0);
         }
         nOS_LeaveCritical(sr);
@@ -50,16 +49,15 @@ static void _ThreadSignal (void *arg)
 
 void nOS_InitSignal (void)
 {
-    nOS_InitList(&_signalList);
-    nOS_SemCreate(&_signalSem, 0, NOS_SEM_COUNT_MAX);
+    nOS_InitList(&_list);
 #if (NOS_CONFIG_SIGNAL_THREAD_ENABLE > 0)
-    nOS_ThreadCreate(&_signalHandle,
-                     _ThreadSignal,
+    nOS_ThreadCreate(&_thread,
+                     _Thread,
                      NULL
  #ifdef NOS_SIMULATED_STACK
-                     ,&_signalStack
+                     ,&_stack
  #else
-                     ,_signalStack
+                     ,_stack
  #endif
                      ,NOS_CONFIG_SIGNAL_THREAD_STACK_SIZE
  #ifdef NOS_USE_SEPARATE_CALL_STACK
@@ -86,11 +84,11 @@ void nOS_SignalProcess (void)
     void                *arg     = NULL;
 
     nOS_EnterCritical(sr);
-    signal = (nOS_Signal *)nOS_GetHeadOfList(&_signalList);
+    signal = (nOS_Signal *)nOS_GetHeadOfList(&_list);
     if (signal != NULL) {
         if (signal->state & NOS_SIGNAL_RAISED) {
             signal->state = (nOS_SignalState)(signal->state &~ NOS_SIGNAL_RAISED);
-            nOS_RemoveFromList(&_signalList, &signal->node);
+            nOS_RemoveFromList(&_list, &signal->node);
 
             callback = signal->callback;
             arg      = signal->arg;
@@ -155,7 +153,7 @@ nOS_Error nOS_SignalDelete (nOS_Signal *signal)
 #endif
         {
             if (signal->state & NOS_SIGNAL_RAISED) {
-                nOS_RemoveFromList(&_signalList, &signal->node);
+                nOS_RemoveFromList(&_list, &signal->node);
             }
             signal->state           = NOS_SIGNAL_DELETED;
 
@@ -168,7 +166,7 @@ nOS_Error nOS_SignalDelete (nOS_Signal *signal)
 }
 #endif
 
-nOS_Error nOS_SignalSend (nOS_Signal *signal, void *arg)
+nOS_Error nOS_SignalEmit (nOS_Signal *signal, void *arg)
 {
     nOS_Error       err;
     nOS_StatusReg   sr;
@@ -191,10 +189,10 @@ nOS_Error nOS_SignalSend (nOS_Signal *signal, void *arg)
             } else {
                 signal->state = (nOS_SignalState)(signal->state | NOS_SIGNAL_RAISED);
                 signal->arg   = arg;
-                nOS_AppendToList(&_signalList, &signal->node);
+                nOS_AppendToList(&_list, &signal->node);
 
-                if (_signalHandle.state & NOS_THREAD_WAITING_EVENT) {
-                    nOS_WakeUpThread(&_signalHandle, NOS_OK);
+                if (_thread.state & NOS_THREAD_WAITING_EVENT) {
+                    nOS_WakeUpThread(&_thread, NOS_OK);
                 }
 
                 err = NOS_OK;

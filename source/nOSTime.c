@@ -20,11 +20,11 @@ extern "C" {
 #define DAYS_PER_MONTH(m,y) ((IS_LEAP_YEAR(y)&&((m)==2))?29:_daysPerMonth[(m)-1])
 
 #if (NOS_CONFIG_TIME_TICKS_PER_SECOND > 1)
- static uint16_t            _timePrescaler;
+ static uint16_t            _prescaler;
 #endif
-static nOS_Time             _timeCounter;
+static nOS_Time             _counter;
 #if (NOS_CONFIG_TIME_WAIT_ENABLE > 0)
- static nOS_Event           _timeEvent;
+ static nOS_Event           _event;
 #endif
 static NOS_CONST uint8_t    _daysPerMonth[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
@@ -37,7 +37,7 @@ static void _TickTime(void *payload, void *arg)
     /* Avoid warning */
     NOS_UNUSED(arg);
 
-    if (_timeCounter == time) {
+    if (_counter == time) {
         nOS_WakeUpThread(thread, NOS_OK);
     }
 }
@@ -46,14 +46,14 @@ static void _TickTime(void *payload, void *arg)
 void nOS_InitTime (void)
 {
 #if (NOS_CONFIG_TIME_TICKS_PER_SECOND > 1)
-    _timePrescaler = 0;
+    _prescaler = 0;
 #endif
-    _timeCounter = 0;
+    _counter = 0;
 #if (NOS_CONFIG_TIME_WAIT_ENABLE > 0)
  #if (NOS_CONFIG_SAFE > 0)
-    nOS_CreateEvent(&_timeEvent, NOS_EVENT_BASE);
+    nOS_CreateEvent(&_event, NOS_EVENT_BASE);
  #else
-    nOS_CreateEvent(&_timeEvent);
+    nOS_CreateEvent(&_event);
  #endif
 #endif
 }
@@ -64,14 +64,14 @@ void nOS_TimeTick (void)
 
     nOS_EnterCritical(sr);
 #if (NOS_CONFIG_TIME_TICKS_PER_SECOND > 1)
-    _timePrescaler++;
-    _timePrescaler %= NOS_CONFIG_TIME_TICKS_PER_SECOND;
-    if (_timePrescaler == 0)
+    _prescaler++;
+    _prescaler %= NOS_CONFIG_TIME_TICKS_PER_SECOND;
+    if (_prescaler == 0)
 #endif
     {
-        _timeCounter++;
+        _counter++;
 #if (NOS_CONFIG_TIME_WAIT_ENABLE > 0)
-        nOS_WalkInList(&_timeEvent.waitList, _TickTime, NULL);
+        nOS_WalkInList(&_event.waitList, _TickTime, NULL);
 #endif
     }
     nOS_LeaveCritical(sr);
@@ -83,7 +83,7 @@ nOS_Time nOS_TimeGet (void)
     nOS_Time        time;
 
     nOS_EnterCritical(sr);
-    time = _timeCounter;
+    time = _counter;
     nOS_LeaveCritical(sr);
 
     return time;
@@ -94,9 +94,9 @@ nOS_Error nOS_TimeSet (nOS_Time time)
     nOS_StatusReg   sr;
 
     nOS_EnterCritical(sr);
-    _timeCounter = time;
+    _counter = time;
 #if (NOS_CONFIG_TIME_TICKS_PER_SECOND > 1)
-    _timePrescaler = 0;
+    _prescaler = 0;
 #endif
     nOS_LeaveCritical(sr);
 
@@ -108,7 +108,7 @@ nOS_TimeDate nOS_TimeConvert (nOS_Time time)
     nOS_TimeDate    timedate;
     uint16_t        days;
 
-    /* First extract HH:MM:SS from _timeCounter */
+    /* First extract HH:MM:SS from _counter */
     timedate.second = time % 60;
     time /= 60;
     timedate.minute = time % 60;
@@ -165,13 +165,13 @@ nOS_Error nOS_TimeWait (nOS_Time time)
         err = NOS_E_IDLE;
     } else {
         nOS_EnterCritical(sr);
-        if (_timeCounter < time) {
+        if (_counter < time) {
             err = NOS_E_ELAPSED;
-        } else if (_timeCounter == time) {
+        } else if (_counter == time) {
             err = NOS_OK;
         } else {
             nOS_runningThread->ext = (void*)&time;
-            err = nOS_WaitForEvent(&_timeEvent, NOS_THREAD_WAITING_TIME, NOS_WAIT_INFINITE);
+            err = nOS_WaitForEvent(&_event, NOS_THREAD_WAITING_TIME, NOS_WAIT_INFINITE);
         }
         nOS_LeaveCritical(sr);
     }
