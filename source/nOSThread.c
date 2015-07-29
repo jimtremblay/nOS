@@ -64,32 +64,34 @@ void nOS_TickThread (void *payload, void *arg)
     /* Avoid warning */
     NOS_UNUSED(arg);
 
+    switch (thread->state & NOS_THREAD_WAITING_MASK) {
+        /* Do nothing in case of thread not waiting on anything (ready or suspended from running state) */
+        case NOS_THREAD_STOPPED:
+            break;
+
 #if (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
-    if (thread->state & NOS_THREAD_SLEEPING_UNTIL) {
-        if (nOS_tickCounter == thread->timeout) {
-            nOS_WakeUpThread(thread, NOS_OK);
-        }
-    } else
+        case NOS_THREAD_SLEEPING_UNTIL:
+            if (nOS_tickCounter == thread->timeout) {
+                nOS_WakeUpThread(thread, NOS_OK);
+            }
+            break;
 #endif
-    if (thread->state & (NOS_THREAD_WAITING_EVENT
+
+        default:
+            if (thread->timeout > 0) {
+                thread->timeout--;
+                if (thread->timeout == 0) {
 #if (NOS_CONFIG_SLEEP_ENABLE > 0)
-                         | NOS_THREAD_SLEEPING
+                    if ((thread->state & NOS_THREAD_WAITING_MASK) == NOS_THREAD_SLEEPING) {
+                        nOS_WakeUpThread(thread, NOS_OK);
+                    } else
 #endif
-                        ))
-    {
-        if (thread->timeout > 0) {
-            thread->timeout--;
-            if (thread->timeout == 0) {
-#if (NOS_CONFIG_SLEEP_ENABLE > 0)
-                if (thread->state & NOS_THREAD_SLEEPING) {
-                    nOS_WakeUpThread(thread, NOS_OK);
-                } else
-#endif
-                {
-                    nOS_WakeUpThread(thread, NOS_E_TIMEOUT);
+                    {
+                        nOS_WakeUpThread(thread, NOS_E_TIMEOUT);
+                    }
                 }
             }
-        }
+            break;
     }
 }
 
@@ -99,17 +101,7 @@ void nOS_WakeUpThread (nOS_Thread *thread, nOS_Error err)
         nOS_RemoveFromList(&thread->event->waitList, &thread->readyWait);
     }
     thread->error = err;
-    thread->state = (nOS_ThreadState)(thread->state &~ ( NOS_THREAD_WAITING_EVENT
-#if (NOS_CONFIG_SLEEP_ENABLE > 0)
-                                                       | NOS_THREAD_SLEEPING
-#endif
-#if (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
-                                                       | NOS_THREAD_SLEEPING_UNTIL
-#endif
-#if (NOS_CONFIG_TIME_ENABLE > 0) && (NOS_CONFIG_TIME_WAIT_ENABLE > 0)
-                                                       | NOS_THREAD_WAITING_TIME
-#endif
-                                                       ));
+    thread->state = (nOS_ThreadState)(thread->state &~ NOS_THREAD_WAITING_MASK);
     thread->timeout = 0;
     if (thread->state == NOS_THREAD_READY) {
         nOS_AppendThreadToReadyList(thread);
@@ -280,8 +272,10 @@ nOS_Error nOS_ThreadDelete (nOS_Thread *thread)
         {
             if (thread->state == NOS_THREAD_READY) {
                 nOS_RemoveThreadFromReadyList(thread);
-            } else if (thread->state & NOS_THREAD_WAITING_EVENT) {
-                nOS_RemoveFromList(&thread->event->waitList, &thread->readyWait);
+            } else if (thread->state & NOS_THREAD_WAITING_MASK) {
+                if (thread->event != NULL) {
+                    nOS_RemoveFromList(&thread->event->waitList, &thread->readyWait);
+                }
             }
             thread->state   = NOS_THREAD_STOPPED;
             thread->event   = NULL;
@@ -321,18 +315,7 @@ nOS_Error nOS_ThreadAbort (nOS_Thread *thread)
             err = NOS_E_INV_OBJ;
         } else if (thread->state & NOS_THREAD_SUSPENDED) {
             err = NOS_E_INV_STATE;
-        } else if ( !(thread->state & ( NOS_THREAD_WAITING_EVENT
- #if (NOS_CONFIG_SLEEP_ENABLE > 0)
-                                      | NOS_THREAD_SLEEPING
- #endif
- #if (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
-                                      | NOS_THREAD_SLEEPING_UNTIL
- #endif
- #if (NOS_CONFIG_TIME_ENABLE > 0) && (NOS_CONFIG_TIME_WAIT_ENABLE > 0)
-                                      | NOS_THREAD_WAITING_TIME
- #endif
-                                      )) )
-        {
+        } else if ( !(thread->state & NOS_THREAD_WAITING_MASK) ) {
             err = NOS_E_INV_STATE;
         } else
 #endif

@@ -58,14 +58,7 @@ void nOS_DeleteEvent (nOS_Event *event)
 nOS_Error nOS_WaitForEvent (nOS_Event *event, nOS_ThreadState state, nOS_TickCounter tout)
 {
     nOS_RemoveThreadFromReadyList(nOS_runningThread);
-    nOS_runningThread->state = (nOS_ThreadState)(nOS_runningThread->state | (state & (NOS_THREAD_WAITING_EVENT
-#if (NOS_CONFIG_SLEEP_ENABLE > 0)
-                                                                                      | NOS_THREAD_SLEEPING
-#endif
-#if (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
-                                                                                      | NOS_THREAD_SLEEPING_UNTIL
-#endif
-                                                                                     )));
+    nOS_runningThread->state = (nOS_ThreadState)(nOS_runningThread->state | (state & NOS_THREAD_WAITING_MASK));
     nOS_runningThread->event = event;
     nOS_runningThread->timeout = (tout == NOS_WAIT_INFINITE) ? 0 : tout;
     if (event != NULL) {

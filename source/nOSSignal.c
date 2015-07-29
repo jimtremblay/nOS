@@ -40,7 +40,7 @@ static void _Thread (void *arg)
 
         nOS_EnterCritical(sr);
         if (nOS_GetHeadOfList(&_list) == NULL) {
-            nOS_WaitForEvent(NULL, NOS_THREAD_WAITING_EVENT, 0);
+            nOS_WaitForEvent(NULL, NOS_THREAD_ON_HOLD, 0);
         }
         nOS_LeaveCritical(sr);
     }
@@ -191,7 +191,7 @@ nOS_Error nOS_SignalSend (nOS_Signal *signal, void *arg)
                 signal->arg   = arg;
                 nOS_AppendToList(&_list, &signal->node);
 
-                if (_thread.state & NOS_THREAD_WAITING_EVENT) {
+                if (_thread.state == (NOS_THREAD_READY | NOS_THREAD_ON_HOLD)) {
                     nOS_WakeUpThread(&_thread, NOS_OK);
                 }
 

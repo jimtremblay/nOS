@@ -22,7 +22,7 @@ static void     _Tick       (void *payload, void *arg);
 static nOS_List     _mainList;
 static nOS_List     _triggeredList;
 #if (NOS_CONFIG_TIMER_THREAD_ENABLE > 0)
- static nOS_Thread  _handle;
+ static nOS_Thread  _thread;
  #ifdef NOS_SIMULATED_STACK
   static nOS_Stack  _stack;
  #else
@@ -42,7 +42,7 @@ static void _Thread (void *arg)
 
         nOS_EnterCritical(sr);
         if (nOS_GetHeadOfList(&_triggeredList) == NULL) {
-            nOS_WaitForEvent(NULL, NOS_THREAD_WAITING_EVENT, 0);
+            nOS_WaitForEvent(NULL, NOS_THREAD_ON_HOLD, 0);
         }
         nOS_LeaveCritical(sr);
     }
@@ -82,7 +82,7 @@ void nOS_InitTimer(void)
     nOS_InitList(&_mainList);
     nOS_InitList(&_triggeredList);
 #if (NOS_CONFIG_TIMER_THREAD_ENABLE > 0)
-    nOS_ThreadCreate(&_handle,
+    nOS_ThreadCreate(&_thread,
                      _Thread,
                      NULL
  #ifdef NOS_SIMULATED_STACK
@@ -117,8 +117,8 @@ void nOS_TimerTick (void)
     nOS_EnterCritical(sr);
     nOS_WalkInList(&_mainList, _Tick, &overflow);
 #if (NOS_CONFIG_TIMER_THREAD_ENABLE > 0)
-    if (overflow && (_handle.state & NOS_THREAD_WAITING_EVENT)) {
-        nOS_WakeUpThread(&_handle, NOS_OK);
+    if (overflow && (_thread.state == (NOS_THREAD_READY | NOS_THREAD_ON_HOLD))) {
+        nOS_WakeUpThread(&_thread, NOS_OK);
     }
 #endif
     nOS_LeaveCritical(sr);
