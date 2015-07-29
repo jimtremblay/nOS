@@ -19,7 +19,7 @@ extern "C" {
 #endif
 static void     _Tick       (void *payload, void *arg);
 
-static nOS_List     _mainList;
+static nOS_List     _activeList;
 static nOS_List     _triggeredList;
 #if (NOS_CONFIG_TIMER_THREAD_ENABLE > 0)
  static nOS_Thread  _thread;
@@ -55,31 +55,30 @@ static void _Tick (void *payload, void *arg)
     nOS_Timer   *timer      = (nOS_Timer *)payload;
     bool        *overflow   = (bool*)arg;
 
-    if ((timer->state & (NOS_TIMER_RUNNING | NOS_TIMER_PAUSED)) == NOS_TIMER_RUNNING) {
-        if (timer->count > 0) {
-            timer->count--;
-        }
+    if (timer->count > 0) {
+        timer->count--;
+    }
 
-        if (timer->count == 0) {
-            if (((nOS_TimerMode)timer->state & NOS_TIMER_MODE) == NOS_TIMER_FREE_RUNNING) {
-                /* Free running timer */
-                timer->count = timer->reload;
-            } else {
-                /* One-shot timer */
-                timer->state = (nOS_TimerState)(timer->state &~ NOS_TIMER_RUNNING);
-            }
-            if (timer->overflow == 0) {
-                nOS_AppendToList(&_triggeredList, &timer->trig);
-            }
-            timer->overflow++;
-            *overflow = true;
+    if (timer->count == 0) {
+        if (((nOS_TimerMode)timer->state & NOS_TIMER_MODE) == NOS_TIMER_FREE_RUNNING) {
+            /* Free running timer */
+            timer->count = timer->reload;
+        } else {
+            /* One-shot timer */
+            timer->state = (nOS_TimerState)(timer->state &~ NOS_TIMER_RUNNING);
+            nOS_RemoveFromList(&_activeList, &timer->node);
         }
+        if (timer->overflow == 0) {
+            nOS_AppendToList(&_triggeredList, &timer->trig);
+        }
+        timer->overflow++;
+        *overflow = true;
     }
 }
 
 void nOS_InitTimer(void)
 {
-    nOS_InitList(&_mainList);
+    nOS_InitList(&_activeList);
     nOS_InitList(&_triggeredList);
 #if (NOS_CONFIG_TIMER_THREAD_ENABLE > 0)
     nOS_ThreadCreate(&_thread,
@@ -115,7 +114,7 @@ void nOS_TimerTick (void)
 #endif
 
     nOS_EnterCritical(sr);
-    nOS_WalkInList(&_mainList, _Tick, &overflow);
+    nOS_WalkInList(&_activeList, _Tick, &overflow);
 #if (NOS_CONFIG_TIMER_THREAD_ENABLE > 0)
     if (overflow && (_thread.state == (NOS_THREAD_READY | NOS_THREAD_ON_HOLD))) {
         nOS_WakeUpThread(&_thread, NOS_OK);
@@ -180,7 +179,6 @@ nOS_Error nOS_TimerCreate (nOS_Timer *timer, nOS_TimerCallback callback, void *a
             timer->arg          = arg;
             timer->node.payload = (void *)timer;
             timer->trig.payload = (void *)timer;
-            nOS_AppendToList(&_mainList, &timer->node);
 
             err = NOS_OK;
         }
@@ -209,8 +207,10 @@ nOS_Error nOS_TimerDelete (nOS_Timer *timer)
         } else
 #endif
         {
+            if ((timer->state & (NOS_TIMER_RUNNING | NOS_TIMER_PAUSED)) == NOS_TIMER_RUNNING) {
+                nOS_RemoveFromList(&_activeList, &timer->node);
+            }
             timer->state = NOS_TIMER_DELETED;
-            nOS_RemoveFromList(&_mainList, &timer->node);
             if (timer->overflow > 0) {
                 timer->overflow = 0;
                 nOS_RemoveFromList(&_triggeredList, &timer->trig);
@@ -243,8 +243,11 @@ nOS_Error nOS_TimerStart (nOS_Timer *timer)
         } else
 #endif
         {
+            if ( !(timer->state & NOS_TIMER_RUNNING) ) {
+                timer->state = (nOS_TimerState)(timer->state | NOS_TIMER_RUNNING);
+                nOS_AppendToList(&_activeList, &timer->node);
+            }
             timer->count = timer->reload;
-            timer->state = (nOS_TimerState)(timer->state | NOS_TIMER_RUNNING);
 
             err = NOS_OK;
         }
@@ -272,7 +275,10 @@ nOS_Error nOS_TimerStop (nOS_Timer *timer, bool instant)
         } else
 #endif
         {
-            timer->state = (nOS_TimerState)(timer->state &~ NOS_TIMER_RUNNING);
+            if ((timer->state & (NOS_TIMER_RUNNING | NOS_TIMER_PAUSED)) == NOS_TIMER_RUNNING) {
+                nOS_RemoveFromList(&_activeList, &timer->node);
+            }
+            timer->state = (nOS_TimerState)(timer->state &~ (NOS_TIMER_RUNNING | NOS_TIMER_PAUSED));
             if ((timer->overflow > 0) && instant) {
                 timer->overflow = 0;
                 nOS_RemoveFromList(&_triggeredList, &timer->trig);
@@ -304,9 +310,12 @@ nOS_Error nOS_TimerRestart (nOS_Timer *timer, nOS_TimerCounter reload)
         } else
 #endif
         {
+            if ( !(timer->state & NOS_TIMER_RUNNING) ) {
+                timer->state  = (nOS_TimerState)(timer->state | NOS_TIMER_RUNNING);
+                nOS_AppendToList(&_activeList, &timer->node);
+            }
             timer->reload = reload;
             timer->count  = reload;
-            timer->state  = (nOS_TimerState)(timer->state | NOS_TIMER_RUNNING);
 
             err = NOS_OK;
         }
@@ -333,11 +342,11 @@ nOS_Error nOS_TimerPause (nOS_Timer *timer)
             err = NOS_E_INV_OBJ;
         } else
 #endif
-        {
+        if ((timer->state & (NOS_TIMER_RUNNING | NOS_TIMER_PAUSED)) == NOS_TIMER_RUNNING) {
             timer->state = (nOS_TimerState)(timer->state | NOS_TIMER_PAUSED);
-
-            err = NOS_OK;
+            nOS_RemoveFromList(&_activeList, &timer->node);
         }
+        err = NOS_OK;
         nOS_LeaveCritical(sr);
     }
 
@@ -361,11 +370,11 @@ nOS_Error nOS_TimerContinue (nOS_Timer *timer)
             err = NOS_E_INV_OBJ;
         } else
 #endif
-        {
+        if (timer->state & NOS_TIMER_PAUSED) {
             timer->state = (nOS_TimerState)(timer->state &~ NOS_TIMER_PAUSED);
-
-            err = NOS_OK;
+            nOS_AppendToList(&_activeList, &timer->node);
         }
+        err = NOS_OK;
         nOS_LeaveCritical(sr);
     }
 
@@ -477,7 +486,7 @@ bool nOS_TimerIsRunning (nOS_Timer *timer)
         } else
 #endif
         {
-            running = (timer->state & NOS_TIMER_RUNNING) == NOS_TIMER_RUNNING;
+            running = (timer->state & (NOS_TIMER_RUNNING | NOS_TIMER_PAUSED)) == NOS_TIMER_RUNNING;
         }
         nOS_LeaveCritical(sr);
     }
