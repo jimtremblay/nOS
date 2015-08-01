@@ -87,7 +87,7 @@ nOS_Error nOS_SemDelete (nOS_Sem *sem)
 }
 #endif
 
-nOS_Error nOS_SemTake (nOS_Sem *sem, nOS_TickCounter tout)
+nOS_Error nOS_SemTake (nOS_Sem *sem, nOS_TickCounter timeout)
 {
     nOS_Error       err;
     nOS_StatusReg   sr;
@@ -109,7 +109,7 @@ nOS_Error nOS_SemTake (nOS_Sem *sem, nOS_TickCounter tout)
                 /* Sem available. */
                 sem->count--;
                 err = NOS_OK;
-            } else if (tout == NOS_NO_WAIT) {
+            } else if (timeout == NOS_NO_WAIT) {
                 /* Calling thread can't wait. */
                 err = NOS_E_AGAIN;
             } else if (nOS_isrNestingCounter > 0) {
@@ -127,7 +127,7 @@ nOS_Error nOS_SemTake (nOS_Sem *sem, nOS_TickCounter tout)
                 err = NOS_E_IDLE;
             } else {
                 /* Calling thread must wait on sem. */
-                err = nOS_WaitForEvent((nOS_Event*)sem, NOS_THREAD_TAKING_SEM, tout);
+                err = nOS_WaitForEvent((nOS_Event*)sem, NOS_THREAD_TAKING_SEM, timeout);
             }
         }
         nOS_LeaveCritical(sr);

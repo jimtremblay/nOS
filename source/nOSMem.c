@@ -125,7 +125,7 @@ nOS_Error nOS_MemDelete (nOS_Mem *mem)
 }
 #endif
 
-void *nOS_MemAlloc(nOS_Mem *mem, nOS_TickCounter tout)
+void *nOS_MemAlloc(nOS_Mem *mem, nOS_TickCounter timeout)
 {
     nOS_StatusReg   sr;
     void            *block = NULL;
@@ -149,7 +149,7 @@ void *nOS_MemAlloc(nOS_Mem *mem, nOS_TickCounter tout)
 #if (NOS_CONFIG_MEM_SANITY_CHECK_ENABLE > 0)
                 mem->bcount--;
 #endif
-            } else if (tout == NOS_NO_WAIT) {
+            } else if (timeout == NOS_NO_WAIT) {
                 /* Caller can't wait? Try again. */
                 block = NULL;
             } else if (nOS_isrNestingCounter > 0) {
@@ -167,7 +167,7 @@ void *nOS_MemAlloc(nOS_Mem *mem, nOS_TickCounter tout)
                 block = NULL;
             } else {
                 nOS_runningThread->ext = (void*)&block;
-                nOS_WaitForEvent((nOS_Event*)mem, NOS_THREAD_ALLOC_MEM, tout);
+                nOS_WaitForEvent((nOS_Event*)mem, NOS_THREAD_ALLOC_MEM, timeout);
             }
         }
         nOS_LeaveCritical(sr);

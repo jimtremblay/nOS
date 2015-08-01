@@ -37,7 +37,7 @@ static void _TickTime(void *payload, void *arg)
     /* Avoid warning */
     NOS_UNUSED(arg);
 
-    if (_counter == time) {
+    if (time == _counter) {
         nOS_WakeUpThread(thread, NOS_OK);
     }
 }

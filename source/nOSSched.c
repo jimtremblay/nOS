@@ -75,7 +75,7 @@ extern "C" {
 
         prio = (31 - _CLZ(_readyThreadByPrio));
 
-        return (nOS_Thread*)nOS_readyThreadList[prio].head->payload;
+        return (nOS_Thread*)nOS_readyThreadsList[prio].head->payload;
     }
    #elif (NOS_CONFIG_HIGHEST_THREAD_PRIO < 256)
     nOS_Thread* nOS_FindHighPrioThread(void)
@@ -86,7 +86,7 @@ extern "C" {
         group   = (31 - _CLZ(_readyThreadByGroup));
         prio    = (31 - _CLZ(_readyThreadByPrio[group]));
 
-        return (nOS_Thread*)nOS_readyThreadList[(group << 5) | prio].head->payload;
+        return (nOS_Thread*)nOS_readyThreadsList[(group << 5) | prio].head->payload;
     }
    #endif
   #else
@@ -103,7 +103,7 @@ extern "C" {
         prio |= prio >> 16;
         prio = (uint32_t)_tableDeBruijn[(uint32_t)(prio * 0x07c4acddUL) >> 27];
 
-        return (nOS_Thread*)nOS_readyThreadList[prio].head->payload;
+        return (nOS_Thread*)nOS_readyThreadsList[prio].head->payload;
     }
    #elif (NOS_CONFIG_HIGHEST_THREAD_PRIO < 256)
     nOS_Thread* nOS_FindHighPrioThread(void)
@@ -127,7 +127,7 @@ extern "C" {
         prio |= prio >> 16;
         prio = (uint32_t)_tableDeBruijn[(uint32_t)(prio * 0x07c4acddUL) >> 27];
 
-        return (nOS_Thread*)nOS_readyThreadList[(group << 5) | prio].head->payload;
+        return (nOS_Thread*)nOS_readyThreadsList[(group << 5) | prio].head->payload;
     }
    #endif
   #endif
@@ -144,7 +144,7 @@ extern "C" {
        prio |= prio >> 8;
        prio = (uint16_t)_tableDeBruijn[(uint16_t)(prio * 0xf2d) >> 12];
 
-       return (nOS_Thread*)nOS_readyThreadList[prio].head->payload;
+       return (nOS_Thread*)nOS_readyThreadsList[prio].head->payload;
    }
   #elif (NOS_CONFIG_HIGHEST_THREAD_PRIO < 256)
    nOS_Thread* nOS_FindHighPrioThread(void)
@@ -166,7 +166,7 @@ extern "C" {
        prio |= prio >> 8;
        prio = (uint16_t)_tableDeBruijn[(uint16_t)(prio * 0xf2d) >> 12];
 
-       return (nOS_Thread*)nOS_readyThreadList[(group << 4) | prio].head->payload;
+       return (nOS_Thread*)nOS_readyThreadsList[(group << 4) | prio].head->payload;
    }
   #endif
  #else
@@ -181,7 +181,7 @@ extern "C" {
        prio |= prio >> 4;
        prio = (uint8_t)_tableDeBruijn[(uint8_t)(prio * 0x1d) >> 5];
 
-       return (nOS_Thread*)nOS_readyThreadList[prio].head->payload;
+       return (nOS_Thread*)nOS_readyThreadsList[prio].head->payload;
    }
   #elif (NOS_CONFIG_HIGHEST_THREAD_PRIO < 16)
    nOS_Thread* nOS_FindHighPrioThread(void)
@@ -195,7 +195,7 @@ extern "C" {
        prio |= prio >> 8;
        prio = (uint16_t)_tableDeBruijn[(uint16_t)(prio * 0xf2d) >> 12];
 
-       return (nOS_Thread*)nOS_readyThreadList[prio].head->payload;
+       return (nOS_Thread*)nOS_readyThreadsList[prio].head->payload;
    }
   #elif (NOS_CONFIG_HIGHEST_THREAD_PRIO < 64)
    nOS_Thread* nOS_FindHighPrioThread(void)
@@ -215,7 +215,7 @@ extern "C" {
        prio |= prio >> 4;
        prio = (uint8_t)_tableDeBruijn[(uint8_t)(prio * 0x1d) >> 5];
 
-       return (nOS_Thread*)nOS_readyThreadList[(group << 3) | prio].head->payload;
+       return (nOS_Thread*)nOS_readyThreadsList[(group << 3) | prio].head->payload;
    }
   #elif (NOS_CONFIG_HIGHEST_THREAD_PRIO < 256)
    nOS_Thread* nOS_FindHighPrioThread(void)
@@ -237,7 +237,7 @@ extern "C" {
        prio |= prio >> 8;
        prio = (uint16_t)_tableDeBruijn[(uint16_t)(prio * 0xf2d) >> 12];
 
-       return (nOS_Thread*)nOS_readyThreadList[(group << 4) | prio].head->payload;
+       return (nOS_Thread*)nOS_readyThreadsList[(group << 4) | prio].head->payload;
    }
   #endif
  #endif
@@ -249,12 +249,12 @@ extern "C" {
       uint32_t    prio = (uint32_t)thread->prio;
 
   #if (NOS_CONFIG_HIGHEST_THREAD_PRIO < 32)
-      nOS_AppendToList(&nOS_readyThreadList[prio], &thread->readyWait);
+      nOS_AppendToList(&nOS_readyThreadsList[prio], &thread->readyWait);
       _readyThreadByPrio |= (0x00000001UL << prio);
   #elif (NOS_CONFIG_HIGHEST_THREAD_PRIO < 256)
       uint32_t    group = (prio >> 5UL) & 0x00000007UL;
 
-      nOS_AppendToList(&nOS_readyThreadList[prio], &thread->readyWait);
+      nOS_AppendToList(&nOS_readyThreadsList[prio], &thread->readyWait);
       _readyThreadByPrio[group] |= (0x00000001UL << (prio & 0x0000001fUL));
       _readyThreadByGroup |= (0x00000001UL << group);
   #endif
@@ -265,15 +265,15 @@ extern "C" {
       uint32_t    prio = (uint32_t)thread->prio;
 
   #if (NOS_CONFIG_HIGHEST_THREAD_PRIO < 32)
-      nOS_RemoveFromList(&nOS_readyThreadList[prio], &thread->readyWait);
-      if (nOS_readyThreadList[prio].head == NULL) {
+      nOS_RemoveFromList(&nOS_readyThreadsList[prio], &thread->readyWait);
+      if (nOS_readyThreadsList[prio].head == NULL) {
           _readyThreadByPrio &=~ (0x00000001UL << prio);
       }
   #elif (NOS_CONFIG_HIGHEST_THREAD_PRIO < 256)
       uint32_t    group = (prio >> 5UL) & 0x00000007UL;
 
-      nOS_RemoveFromList(&nOS_readyThreadList[prio], &thread->readyWait);
-      if (nOS_readyThreadList[prio].head == NULL) {
+      nOS_RemoveFromList(&nOS_readyThreadsList[prio], &thread->readyWait);
+      if (nOS_readyThreadsList[prio].head == NULL) {
           _readyThreadByPrio[group] &=~ (0x00000001UL << (prio & 0x0000001fUL));
           if (_readyThreadByPrio[group] == 0x00000000UL) {
               _readyThreadByGroup &=~ (0x00000001UL << group);
@@ -288,12 +288,12 @@ extern "C" {
       uint16_t    prio = (uint16_t)thread->prio;
 
   #if (NOS_CONFIG_HIGHEST_THREAD_PRIO < 16)
-      nOS_AppendToList(&nOS_readyThreadList[prio], &thread->readyWait);
+      nOS_AppendToList(&nOS_readyThreadsList[prio], &thread->readyWait);
       _readyThreadByPrio |= (0x0001 << prio);
   #elif (NOS_CONFIG_HIGHEST_THREAD_PRIO < 256)
       uint16_t    group = (prio >> 4) & 0x000F;
 
-      nOS_AppendToList(&nOS_readyThreadList[prio], &thread->readyWait);
+      nOS_AppendToList(&nOS_readyThreadsList[prio], &thread->readyWait);
       _readyThreadByPrio[group] |= (0x0001 << (prio & 0x0f));
       _readyThreadByGroup |= (0x0001 << group);
   #endif
@@ -304,15 +304,15 @@ extern "C" {
       uint16_t    prio = (uint16_t)thread->prio;
 
   #if (NOS_CONFIG_HIGHEST_THREAD_PRIO < 16)
-      nOS_RemoveFromList(&nOS_readyThreadList[prio], &thread->readyWait);
-      if (nOS_readyThreadList[prio].head == NULL) {
+      nOS_RemoveFromList(&nOS_readyThreadsList[prio], &thread->readyWait);
+      if (nOS_readyThreadsList[prio].head == NULL) {
           _readyThreadByPrio &=~ (0x0001 << prio);
       }
   #elif (NOS_CONFIG_HIGHEST_THREAD_PRIO < 256)
       uint16_t    group = (prio >> 4) & 0x000F;
 
-      nOS_RemoveFromList(&nOS_readyThreadList[prio], &thread->readyWait);
-      if (nOS_readyThreadList[prio].head == NULL) {
+      nOS_RemoveFromList(&nOS_readyThreadsList[prio], &thread->readyWait);
+      if (nOS_readyThreadsList[prio].head == NULL) {
           _readyThreadByPrio[group] &=~ (0x0001 << (prio & 0x0f));
           if (_readyThreadByPrio[group] == 0x0000) {
               _readyThreadByGroup &=~ (0x0001 << group);
@@ -326,21 +326,21 @@ extern "C" {
       uint8_t prio = thread->prio;
 
   #if (NOS_CONFIG_HIGHEST_THREAD_PRIO < 8)
-      nOS_AppendToList(&nOS_readyThreadList[prio], &thread->readyWait);
+      nOS_AppendToList(&nOS_readyThreadsList[prio], &thread->readyWait);
       _readyThreadByPrio |= (0x01 << prio);
   #elif (NOS_CONFIG_HIGHEST_THREAD_PRIO < 16)
-      nOS_AppendToList(&nOS_readyThreadList[prio], &thread->readyWait);
+      nOS_AppendToList(&nOS_readyThreadsList[prio], &thread->readyWait);
       _readyThreadByPrio |= (0x0001 << prio);
   #elif (NOS_CONFIG_HIGHEST_THREAD_PRIO < 64)
       uint8_t     group = (prio >> 3) & 0x07;
 
-      nOS_AppendToList(&nOS_readyThreadList[prio], &thread->readyWait);
+      nOS_AppendToList(&nOS_readyThreadsList[prio], &thread->readyWait);
       _readyThreadByPrio[group] |= (0x01 << (prio & 0x07));
       _readyThreadByGroup |= (0x01 << group);
   #elif (NOS_CONFIG_HIGHEST_THREAD_PRIO < 256)
       uint8_t     group = (prio >> 4) & 0x0F;
 
-      nOS_AppendToList(&nOS_readyThreadList[prio], &thread->readyWait);
+      nOS_AppendToList(&nOS_readyThreadsList[prio], &thread->readyWait);
       _readyThreadByPrio[group] |= (0x0001 << (prio & 0x0f));
       _readyThreadByGroup |= (0x0001 << group);
   #endif
@@ -350,20 +350,20 @@ extern "C" {
       uint8_t prio = thread->prio;
 
   #if (NOS_CONFIG_HIGHEST_THREAD_PRIO < 8)
-      nOS_RemoveFromList(&nOS_readyThreadList[prio], &thread->readyWait);
-      if (nOS_readyThreadList[prio].head == NULL) {
+      nOS_RemoveFromList(&nOS_readyThreadsList[prio], &thread->readyWait);
+      if (nOS_readyThreadsList[prio].head == NULL) {
           _readyThreadByPrio &=~ (0x01 << prio);
       }
   #elif (NOS_CONFIG_HIGHEST_THREAD_PRIO < 16)
-      nOS_RemoveFromList(&nOS_readyThreadList[prio], &thread->readyWait);
-      if (nOS_readyThreadList[prio].head == NULL) {
+      nOS_RemoveFromList(&nOS_readyThreadsList[prio], &thread->readyWait);
+      if (nOS_readyThreadsList[prio].head == NULL) {
           _readyThreadByPrio &=~ (0x0001 << prio);
       }
   #elif (NOS_CONFIG_HIGHEST_THREAD_PRIO < 64)
       uint8_t     group = (prio >> 3) & 0x07;
 
-      nOS_RemoveFromList(&nOS_readyThreadList[prio], &thread->readyWait);
-      if (nOS_readyThreadList[prio].head == NULL) {
+      nOS_RemoveFromList(&nOS_readyThreadsList[prio], &thread->readyWait);
+      if (nOS_readyThreadsList[prio].head == NULL) {
           _readyThreadByPrio[group] &=~ (0x01 << (prio & 0x07));
           if (_readyThreadByPrio[group] == 0x00) {
               _readyThreadByGroup &=~ (0x01 << group);
@@ -372,8 +372,8 @@ extern "C" {
   #elif (NOS_CONFIG_HIGHEST_THREAD_PRIO < 256)
       uint8_t     group = (prio >> 4) & 0x0F;
 
-      nOS_RemoveFromList(&nOS_readyThreadList[prio], &thread->readyWait);
-      if (nOS_readyThreadList[prio].head == NULL) {
+      nOS_RemoveFromList(&nOS_readyThreadsList[prio], &thread->readyWait);
+      if (nOS_readyThreadsList[prio].head == NULL) {
           _readyThreadByPrio[group] &=~ (0x0001 << (prio & 0x0f));
           if (_readyThreadByPrio[group] == 0x0000) {
               _readyThreadByGroup &=~ (0x0001 << group);
@@ -425,26 +425,24 @@ nOS_Error nOS_Init(void)
         nOS_lockNestingCounter = 0;
 #endif
 
-        nOS_InitList(&nOS_mainList);
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
         for (i = 0; i <= NOS_CONFIG_HIGHEST_THREAD_PRIO; i++) {
-            nOS_InitList(&nOS_readyThreadList[i]);
+            nOS_InitList(&nOS_readyThreadsList[i]);
         }
 #else
-        nOS_InitList(&nOS_readyThreadList);
+        nOS_InitList(&nOS_readyThreadsList);
+#endif
+        nOS_InitList(&nOS_timeoutThreadsList);
+#if (NOS_CONFIG_THREAD_SUSPEND_ALL_ENABLE > 0)
+        nOS_InitList(&nOS_allThreadsList);
 #endif
 
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
         nOS_idleHandle.prio = NOS_THREAD_PRIO_IDLE;
 #endif
         nOS_idleHandle.state = NOS_THREAD_READY;
-        nOS_idleHandle.error = NOS_OK;
         nOS_idleHandle.timeout = 0;
-        nOS_idleHandle.event = NULL;
-        nOS_idleHandle.ext = NULL;
-        nOS_idleHandle.node.payload = &nOS_idleHandle;
         nOS_idleHandle.readyWait.payload = &nOS_idleHandle;
-        nOS_AppendToList(&nOS_mainList, &nOS_idleHandle.node);
         nOS_AppendThreadToReadyList(&nOS_idleHandle);
         nOS_runningThread = &nOS_idleHandle;
         nOS_highPrioThread = &nOS_idleHandle;
@@ -487,9 +485,9 @@ nOS_Error nOS_Yield(void)
     else {
         nOS_EnterCritical(sr);
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
-        nOS_RotateList(&nOS_readyThreadList[nOS_runningThread->prio]);
+        nOS_RotateList(&nOS_readyThreadsList[nOS_runningThread->prio]);
 #else
-        nOS_RotateList(&nOS_readyThreadList);
+        nOS_RotateList(&nOS_readyThreadsList);
 #endif
         nOS_Schedule();
         nOS_LeaveCritical(sr);
@@ -505,12 +503,12 @@ void nOS_Tick(void)
 
     nOS_EnterCritical(sr);
     nOS_tickCounter++;
-    nOS_WalkInList(&nOS_mainList, nOS_TickThread, NULL);
+    nOS_WalkInList(&nOS_timeoutThreadsList, nOS_TickThread, NULL);
 #if (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0) && (NOS_CONFIG_SCHED_ROUND_ROBIN_ENABLE > 0)
  #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
-    nOS_RotateList(&nOS_readyThreadList[nOS_runningThread->prio]);
+    nOS_RotateList(&nOS_readyThreadsList[nOS_runningThread->prio]);
  #else
-    nOS_RotateList(&nOS_readyThreadList);
+    nOS_RotateList(&nOS_readyThreadsList);
  #endif
 #endif
 #if (NOS_CONFIG_TIMER_ENABLE > 0) && (NOS_CONFIG_TIMER_TICK_ENABLE > 0)
@@ -643,7 +641,8 @@ nOS_Error nOS_SleepUntil (nOS_TickCounter tick)
         if (tick == nOS_tickCounter) {
             err = NOS_OK;
         } else {
-            err = nOS_WaitForEvent(NULL, NOS_THREAD_SLEEPING_UNTIL, tick);
+            /* Always give number of ticks to wait to this function */
+            err = nOS_WaitForEvent(NULL, NOS_THREAD_SLEEPING_UNTIL, tick - nOS_tickCounter);
         }
         nOS_LeaveCritical(sr);
     }

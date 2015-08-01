@@ -98,7 +98,7 @@ nOS_Error nOS_MutexDelete (nOS_Mutex *mutex)
 }
 #endif
 
-nOS_Error nOS_MutexLock (nOS_Mutex *mutex, nOS_TickCounter tout)
+nOS_Error nOS_MutexLock (nOS_Mutex *mutex, nOS_TickCounter timeout)
 {
     nOS_Error       err;
     nOS_StatusReg   sr;
@@ -145,7 +145,7 @@ nOS_Error nOS_MutexLock (nOS_Mutex *mutex, nOS_TickCounter tout)
                     /* Binary mutex: can't relock */
                     err = NOS_E_OVERFLOW;
                 }
-            } else if (tout == NOS_NO_WAIT) {
+            } else if (timeout == NOS_NO_WAIT) {
                 /* Calling thread can't wait? Try again. */
     #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
                 /* If current thread can ask to lock mutex, maybe is prio is higher than mutex owner. */
@@ -176,7 +176,7 @@ nOS_Error nOS_MutexLock (nOS_Mutex *mutex, nOS_TickCounter tout)
                     }
                 }
     #endif
-                err = nOS_WaitForEvent((nOS_Event*)mutex, NOS_THREAD_LOCKING_MUTEX, tout);
+                err = nOS_WaitForEvent((nOS_Event*)mutex, NOS_THREAD_LOCKING_MUTEX, timeout);
             }
         }
         nOS_LeaveCritical(sr);

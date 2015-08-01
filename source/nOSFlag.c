@@ -115,7 +115,7 @@ nOS_Error nOS_FlagDelete (nOS_Flag *flag)
 #endif
 
 nOS_Error nOS_FlagWait (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits *res,
-                        nOS_FlagOption opt, nOS_TickCounter tout)
+                        nOS_FlagOption opt, nOS_TickCounter timeout)
 {
     nOS_Error       err;
     nOS_StatusReg   sr;
@@ -148,7 +148,7 @@ nOS_Error nOS_FlagWait (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits *res,
                 }
 
                 err = NOS_OK;
-            } else if (tout == NOS_NO_WAIT) {
+            } else if (timeout == NOS_NO_WAIT) {
                 /* Caller can't wait? Try again. */
                 err = NOS_E_AGAIN;
             } else if (nOS_isrNestingCounter > 0) {
@@ -171,7 +171,7 @@ nOS_Error nOS_FlagWait (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits *res,
                 ctx.rflags  = &r;
                 nOS_runningThread->ext = &ctx;
 
-                err = nOS_WaitForEvent((nOS_Event*)flag, NOS_THREAD_WAITING_FLAG, tout);
+                err = nOS_WaitForEvent((nOS_Event*)flag, NOS_THREAD_WAITING_FLAG, timeout);
             }
         }
         nOS_LeaveCritical(sr);

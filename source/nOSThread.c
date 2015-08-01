@@ -21,14 +21,12 @@ static void _SuspendThread (void *payload, void *arg)
     /* Avoid warning */
     NOS_UNUSED(arg);
 
-    if (thread != &nOS_idleHandle) {
-        /* If thread not already suspended */
-        if ( !(thread->state & NOS_THREAD_SUSPENDED) ) {
-            if (thread->state == NOS_THREAD_READY) {
-                nOS_RemoveThreadFromReadyList(thread);
-            }
-            thread->state = (nOS_ThreadState)(thread->state | NOS_THREAD_SUSPENDED);
+    /* If thread not already suspended */
+    if ( !(thread->state & NOS_THREAD_SUSPENDED) ) {
+        if (thread->state == NOS_THREAD_READY) {
+            nOS_RemoveThreadFromReadyList(thread);
         }
+        thread->state = (nOS_ThreadState)(thread->state | NOS_THREAD_SUSPENDED);
     }
 }
 
@@ -59,39 +57,22 @@ static void _ResumeThread (void *payload, void *arg)
 
 void nOS_TickThread (void *payload, void *arg)
 {
-    nOS_Thread *thread = (nOS_Thread*)payload;
+    nOS_Thread      *thread = (nOS_Thread*)payload;
+    nOS_ThreadState state = (thread->state & NOS_THREAD_WAITING_MASK);
 
     /* Avoid warning */
     NOS_UNUSED(arg);
 
-    switch (thread->state & NOS_THREAD_WAITING_MASK) {
-        /* Do nothing in case of thread not waiting on anything (ready or suspended from running state) */
-        case NOS_THREAD_STOPPED:
-            break;
-
+    if (thread->timeout == nOS_tickCounter) {
+        if ((state == NOS_THREAD_SLEEPING)
 #if (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
-        case NOS_THREAD_SLEEPING_UNTIL:
-            if (nOS_tickCounter == thread->timeout) {
-                nOS_WakeUpThread(thread, NOS_OK);
-            }
-            break;
+            || (state == NOS_THREAD_SLEEPING_UNTIL)
 #endif
-
-        default:
-            if (thread->timeout > 0) {
-                thread->timeout--;
-                if (thread->timeout == 0) {
-#if (NOS_CONFIG_SLEEP_ENABLE > 0)
-                    if ((thread->state & NOS_THREAD_WAITING_MASK) == NOS_THREAD_SLEEPING) {
-                        nOS_WakeUpThread(thread, NOS_OK);
-                    } else
-#endif
-                    {
-                        nOS_WakeUpThread(thread, NOS_E_TIMEOUT);
-                    }
-                }
-            }
-            break;
+        ) {
+            nOS_WakeUpThread(thread, NOS_OK);
+        } else {
+            nOS_WakeUpThread(thread, NOS_E_TIMEOUT);
+        }
     }
 }
 
@@ -102,7 +83,10 @@ void nOS_WakeUpThread (nOS_Thread *thread, nOS_Error err)
     }
     thread->error = err;
     thread->state = (nOS_ThreadState)(thread->state &~ NOS_THREAD_WAITING_MASK);
-    thread->timeout = 0;
+    if (thread->state & NOS_THREAD_WAIT_TIMEOUT) {
+        thread->state = (nOS_ThreadState)(thread->state &~ NOS_THREAD_WAIT_TIMEOUT);
+        nOS_RemoveFromList(&nOS_timeoutThreadsList, &thread->tout);
+    }
     if (thread->state == NOS_THREAD_READY) {
         nOS_AppendThreadToReadyList(thread);
     }
@@ -205,14 +189,17 @@ nOS_Error nOS_ThreadCreate (nOS_Thread *thread,
             thread->name = name;
 #endif
             thread->error = NOS_OK;
-            thread->node.payload = thread;
             thread->readyWait.payload = thread;
+            thread->tout.payload = thread;
+#if (NOS_CONFIG_THREAD_SUSPEND_ALL_ENABLE > 0)
+            thread->node.payload = thread;
+            nOS_AppendToList(&nOS_allThreadsList, &thread->node);
+#endif
             nOS_InitContext(thread, stack, ssize
 #ifdef NOS_USE_SEPARATE_CALL_STACK
                             ,cssize
 #endif
                             ,entry, arg);
-            nOS_AppendToList(&nOS_mainList, &thread->node);
 #if (NOS_CONFIG_THREAD_SUSPEND_ENABLE > 0)
             if (thread->state == NOS_THREAD_READY)
 #endif
@@ -270,11 +257,17 @@ nOS_Error nOS_ThreadDelete (nOS_Thread *thread)
         } else
 #endif
         {
+#if (NOS_CONFIG_THREAD_SUSPEND_ALL_ENABLE > 0)
+            nOS_RemoveFromList(&nOS_allThreadsList, &thread->node);
+#endif
             if (thread->state == NOS_THREAD_READY) {
                 nOS_RemoveThreadFromReadyList(thread);
             } else if (thread->state & NOS_THREAD_WAITING_MASK) {
                 if (thread->event != NULL) {
                     nOS_RemoveFromList(&thread->event->waitList, &thread->readyWait);
+                }
+                if (thread->state & NOS_THREAD_WAIT_TIMEOUT) {
+                    nOS_RemoveFromList(&nOS_timeoutThreadsList, &thread->tout);
                 }
             }
             thread->state   = NOS_THREAD_STOPPED;
@@ -387,33 +380,6 @@ nOS_Error nOS_ThreadSuspend (nOS_Thread *thread)
     return err;
 }
 
-nOS_Error nOS_ThreadSuspendAll (void)
-{
-    nOS_Error       err;
-    nOS_StatusReg   sr;
-
-#if (NOS_CONFIG_SAFE > 0)
- #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
-    /* Can't suspend all threads from any thread (except idle) when scheduler is locked */
-    if ((nOS_lockNestingCounter > 0) && (nOS_runningThread != &nOS_idleHandle))
-    {
-        err = NOS_E_LOCKED;
-    } else
- #endif
-#endif
-    {
-        nOS_EnterCritical(sr);
-        nOS_WalkInList(&nOS_mainList, _SuspendThread, NULL);
-        if (nOS_runningThread != &nOS_idleHandle) {
-            nOS_Schedule();
-        }
-        nOS_LeaveCritical(sr);
-        err = NOS_OK;
-    }
-
-    return err;
-}
-
 nOS_Error nOS_ThreadResume (nOS_Thread *thread)
 {
     nOS_Error       err;
@@ -459,6 +425,34 @@ nOS_Error nOS_ThreadResume (nOS_Thread *thread)
     return err;
 }
 
+#if (NOS_CONFIG_THREAD_SUSPEND_ALL_ENABLE > 0)
+nOS_Error nOS_ThreadSuspendAll (void)
+{
+    nOS_Error       err;
+    nOS_StatusReg   sr;
+
+#if (NOS_CONFIG_SAFE > 0)
+ #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
+    /* Can't suspend all threads from any thread (except idle) when scheduler is locked */
+    if ((nOS_lockNestingCounter > 0) && (nOS_runningThread != &nOS_idleHandle))
+    {
+        err = NOS_E_LOCKED;
+    } else
+ #endif
+#endif
+    {
+        nOS_EnterCritical(sr);
+        nOS_WalkInList(&nOS_allThreadsList, _SuspendThread, NULL);
+        if (nOS_runningThread != &nOS_idleHandle) {
+            nOS_Schedule();
+        }
+        nOS_LeaveCritical(sr);
+        err = NOS_OK;
+    }
+
+    return err;
+}
+
 nOS_Error nOS_ThreadResumeAll (void)
 {
     nOS_StatusReg   sr;
@@ -468,9 +462,9 @@ nOS_Error nOS_ThreadResumeAll (void)
 
     nOS_EnterCritical(sr);
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
-    nOS_WalkInList(&nOS_mainList, _ResumeThread, &sched);
+    nOS_WalkInList(&nOS_allThreadsList, _ResumeThread, &sched);
 #else
-    nOS_WalkInList(&nOS_mainList, _ResumeThread, NULL);
+    nOS_WalkInList(&nOS_allThreadsList, _ResumeThread, NULL);
 #endif
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
     if (sched) {
@@ -481,6 +475,7 @@ nOS_Error nOS_ThreadResumeAll (void)
 
     return NOS_OK;
 }
+#endif
 #endif
 
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_THREAD_SET_PRIO_ENABLE > 0)

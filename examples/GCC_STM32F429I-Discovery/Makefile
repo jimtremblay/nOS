@@ -5,7 +5,7 @@ EXEC=GCC_STM32F429I-Discovery
 ASMS:=$(wildcard src/*.S)
 SRCS:=$(wildcard src/*.c) $(wildcard SPL/src/*.c) $(wildcard ../../source/*.c) $(wildcard ../../source/port/GCC/ARM_Cortex_M4/*.c)
 INCS=-Iinc -Icmsis -Iconfig -ISPL/inc -I../../include -I../../include/port/GCC/ARM_Cortex_M4
-LIBS=-L/usr/lib/arm-none-eabi/newlib/armv7-m -lc -L/usr/lib/gcc/arm-none-eabi/4.8.2/armv7-m -lgcc
+LIBS=-L/usr/arm-none-eabi/lib/armv7-m -lc -L/usr/lib/gcc/arm-none-eabi/4.9.3/armv7-m -lgcc
 
 # Normally you shouldn't need to change anything below this line!
 #######################################################################################

@@ -19,16 +19,17 @@ extern "C" {
 #endif
 static void     _Tick       (void *payload, void *arg);
 
-static nOS_List     _activeList;
-static nOS_List     _triggeredList;
+static nOS_List         _activeList;
+static nOS_List         _triggeredList;
 #if (NOS_CONFIG_TIMER_THREAD_ENABLE > 0)
- static nOS_Thread  _thread;
+ static nOS_Thread      _thread;
  #ifdef NOS_SIMULATED_STACK
-  static nOS_Stack  _stack;
+  static nOS_Stack      _stack;
  #else
-  static nOS_Stack  _stack[NOS_CONFIG_TIMER_THREAD_STACK_SIZE];
+  static nOS_Stack      _stack[NOS_CONFIG_TIMER_THREAD_STACK_SIZE];
  #endif
 #endif
+static nOS_TimerCounter _tickCounter;
 
 #if (NOS_CONFIG_TIMER_THREAD_ENABLE > 0)
 static void _Thread (void *arg)
@@ -42,7 +43,7 @@ static void _Thread (void *arg)
 
         nOS_EnterCritical(sr);
         if (nOS_GetHeadOfList(&_triggeredList) == NULL) {
-            nOS_WaitForEvent(NULL, NOS_THREAD_ON_HOLD, 0);
+            nOS_WaitForEvent(NULL, NOS_THREAD_ON_HOLD, NOS_WAIT_INFINITE);
         }
         nOS_LeaveCritical(sr);
     }
@@ -53,16 +54,12 @@ static void _Thread (void *arg)
 static void _Tick (void *payload, void *arg)
 {
     nOS_Timer   *timer      = (nOS_Timer *)payload;
-    bool        *overflow   = (bool*)arg;
+    bool        *triggered  = (bool*)arg;
 
-    if (timer->count > 0) {
-        timer->count--;
-    }
-
-    if (timer->count == 0) {
+    if (timer->count == _tickCounter) {
         if (((nOS_TimerMode)timer->state & NOS_TIMER_MODE) == NOS_TIMER_FREE_RUNNING) {
             /* Free running timer */
-            timer->count = timer->reload;
+            timer->count = _tickCounter + timer->reload;
         } else {
             /* One-shot timer */
             timer->state = (nOS_TimerState)(timer->state &~ NOS_TIMER_RUNNING);
@@ -72,12 +69,13 @@ static void _Tick (void *payload, void *arg)
             nOS_AppendToList(&_triggeredList, &timer->trig);
         }
         timer->overflow++;
-        *overflow = true;
+        *triggered = true;
     }
 }
 
 void nOS_InitTimer(void)
 {
+    _tickCounter = 0;
     nOS_InitList(&_activeList);
     nOS_InitList(&_triggeredList);
 #if (NOS_CONFIG_TIMER_THREAD_ENABLE > 0)
@@ -110,13 +108,14 @@ void nOS_TimerTick (void)
 {
     nOS_StatusReg   sr;
 #if (NOS_CONFIG_TIMER_THREAD_ENABLE > 0)
-    bool            overflow = false;
+    bool            triggered = false;
 #endif
 
     nOS_EnterCritical(sr);
-    nOS_WalkInList(&_activeList, _Tick, &overflow);
+    _tickCounter++;
+    nOS_WalkInList(&_activeList, _Tick, &triggered);
 #if (NOS_CONFIG_TIMER_THREAD_ENABLE > 0)
-    if (overflow && (_thread.state == (NOS_THREAD_READY | NOS_THREAD_ON_HOLD))) {
+    if (triggered && (_thread.state == (NOS_THREAD_READY | NOS_THREAD_ON_HOLD))) {
         nOS_WakeUpThread(&_thread, NOS_OK);
     }
 #endif
@@ -161,7 +160,9 @@ nOS_Error nOS_TimerCreate (nOS_Timer *timer, nOS_TimerCallback callback, void *a
         err = NOS_E_INV_OBJ;
     } else if ((mode != NOS_TIMER_FREE_RUNNING) && (mode != NOS_TIMER_ONE_SHOT)) {
         err = NOS_E_INV_VAL;
-    } else
+    } else if (reload == 0) {
+        err = NOS_E_INV_VAL;
+    }
 #endif
     {
         nOS_EnterCritical(sr);
@@ -247,7 +248,7 @@ nOS_Error nOS_TimerStart (nOS_Timer *timer)
                 timer->state = (nOS_TimerState)(timer->state | NOS_TIMER_RUNNING);
                 nOS_AppendToList(&_activeList, &timer->node);
             }
-            timer->count = timer->reload;
+            timer->count = _tickCounter + timer->reload;
 
             err = NOS_OK;
         }
@@ -300,7 +301,9 @@ nOS_Error nOS_TimerRestart (nOS_Timer *timer, nOS_TimerCounter reload)
 #if (NOS_CONFIG_SAFE > 0)
     if (timer == NULL) {
         err = NOS_E_INV_OBJ;
-    } else
+    } else if (reload == 0) {
+        err = NOS_E_INV_VAL;
+    }
 #endif
     {
         nOS_EnterCritical(sr);
@@ -315,7 +318,7 @@ nOS_Error nOS_TimerRestart (nOS_Timer *timer, nOS_TimerCounter reload)
                 nOS_AppendToList(&_activeList, &timer->node);
             }
             timer->reload = reload;
-            timer->count  = reload;
+            timer->count  = _tickCounter + reload;
 
             err = NOS_OK;
         }
@@ -389,7 +392,9 @@ nOS_Error nOS_TimerSetReload (nOS_Timer *timer, nOS_TimerCounter reload)
 #if (NOS_CONFIG_SAFE > 0)
     if (timer == NULL) {
         err = NOS_E_INV_OBJ;
-    } else
+    } else if (reload == 0) {
+        err = NOS_E_INV_VAL;
+    }
 #endif
     {
         nOS_EnterCritical(sr);

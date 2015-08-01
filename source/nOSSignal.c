@@ -40,7 +40,7 @@ static void _Thread (void *arg)
 
         nOS_EnterCritical(sr);
         if (nOS_GetHeadOfList(&_list) == NULL) {
-            nOS_WaitForEvent(NULL, NOS_THREAD_ON_HOLD, 0);
+            nOS_WaitForEvent(NULL, NOS_THREAD_ON_HOLD, NOS_WAIT_INFINITE);
         }
         nOS_LeaveCritical(sr);
     }

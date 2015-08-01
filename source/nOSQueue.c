@@ -114,7 +114,7 @@ nOS_Error nOS_QueueDelete (nOS_Queue *queue)
 }
 #endif
 
-nOS_Error nOS_QueueRead (nOS_Queue *queue, void *block, nOS_TickCounter tout)
+nOS_Error nOS_QueueRead (nOS_Queue *queue, void *block, nOS_TickCounter timeout)
 {
     nOS_Error       err;
     nOS_StatusReg   sr;
@@ -150,7 +150,7 @@ nOS_Error nOS_QueueRead (nOS_Queue *queue, void *block, nOS_TickCounter tout)
 #endif
                 }
                 err = NOS_OK;
-            } else if (tout == NOS_NO_WAIT) {
+            } else if (timeout == NOS_NO_WAIT) {
                 err = NOS_E_EMPTY;
             } else if (nOS_isrNestingCounter > 0) {
                 err = NOS_E_ISR;
@@ -165,7 +165,7 @@ nOS_Error nOS_QueueRead (nOS_Queue *queue, void *block, nOS_TickCounter tout)
             }
             else {
                 nOS_runningThread->ext = block;
-                err = nOS_WaitForEvent((nOS_Event*)queue, NOS_THREAD_READING_QUEUE, tout);
+                err = nOS_WaitForEvent((nOS_Event*)queue, NOS_THREAD_READING_QUEUE, timeout);
             }
         }
         nOS_LeaveCritical(sr);
@@ -174,7 +174,7 @@ nOS_Error nOS_QueueRead (nOS_Queue *queue, void *block, nOS_TickCounter tout)
     return err;
 }
 
-nOS_Error nOS_QueueWrite (nOS_Queue *queue, void *block, nOS_TickCounter tout)
+nOS_Error nOS_QueueWrite (nOS_Queue *queue, void *block, nOS_TickCounter timeout)
 {
     nOS_Error       err;
     nOS_StatusReg   sr;
@@ -220,7 +220,7 @@ nOS_Error nOS_QueueWrite (nOS_Queue *queue, void *block, nOS_TickCounter tout)
                 /* No chance a thread waiting to read from queue if count is higher than 0 */
                 _Write(queue, block);
                 err = NOS_OK;
-            } else if (tout == NOS_NO_WAIT) {
+            } else if (timeout == NOS_NO_WAIT) {
                 err = NOS_E_FULL;
             } else if (nOS_isrNestingCounter > 0) {
                 err = NOS_E_ISR;
@@ -235,7 +235,7 @@ nOS_Error nOS_QueueWrite (nOS_Queue *queue, void *block, nOS_TickCounter tout)
                 err = NOS_E_IDLE;
             } else {
                 nOS_runningThread->ext = block;
-                err = nOS_WaitForEvent((nOS_Event*)queue, NOS_THREAD_WRITING_QUEUE, tout);
+                err = nOS_WaitForEvent((nOS_Event*)queue, NOS_THREAD_WRITING_QUEUE, timeout);
             }
         }
         nOS_LeaveCritical(sr);

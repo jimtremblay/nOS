@@ -146,6 +146,15 @@ extern "C" {
  #error "nOSConfig.h: NOS_CONFIG_THREAD_SUSPEND_ENABLE is not defined: must be set to 0 or 1."
 #elif (NOS_CONFIG_THREAD_SUSPEND_ENABLE != 0) && (NOS_CONFIG_THREAD_SUSPEND_ENABLE != 1)
  #error "nOSConfig.h: NOS_CONFIG_THREAD_SUSPEND_ENABLE is set to invalid value: must be set to 0 or 1."
+#elif (NOS_CONFIG_THREAD_SUSPEND_ENABLE > 0)
+ #ifndef NOS_CONFIG_THREAD_SUSPEND_ALL_ENABLE
+  #error "nOSConfig.h: NOS_CONFIG_THREAD_SUSPEND_ALL_ENABLE is not defined: must be set to 0 or 1."
+ #elif (NOS_CONFIG_THREAD_SUSPEND_ALL_ENABLE != 0) && (NOS_CONFIG_THREAD_SUSPEND_ALL_ENABLE != 1)
+  #error "nOSConfig.h: NOS_CONFIG_THREAD_SUSPEND_ALL_ENABLE is set to invalid value: must be set to 0 or 1."
+ #endif
+#else
+ #undef NOS_CONFIG_THREAD_SUSPEND_ALL_ENABLE
+ #define NOS_CONFIG_THREAD_SUSPEND_ALL_ENABLE   0
 #endif
 
 #ifndef NOS_CONFIG_THREAD_DELETE_ENABLE
@@ -560,6 +569,7 @@ typedef enum nOS_ThreadState
     NOS_THREAD_WAITING_TIME     = 0x09,
     NOS_THREAD_ON_HOLD          = 0x0F,
     NOS_THREAD_WAITING_MASK     = 0x0F,
+    NOS_THREAD_WAIT_TIMEOUT     = 0x20,
     NOS_THREAD_SUSPENDED        = 0x40,
     NOS_THREAD_READY            = 0x80
 } nOS_ThreadState;
@@ -694,8 +704,11 @@ struct nOS_Thread
     const char          *name;
 #endif
 
-    nOS_Node            node;
     nOS_Node            readyWait;
+    nOS_Node            tout;
+#if (NOS_CONFIG_THREAD_SUSPEND_ALL_ENABLE > 0)
+    nOS_Node            node;
+#endif
 };
 
 struct nOS_Event
@@ -871,11 +884,14 @@ struct nOS_TimeDate
  #endif
  NOS_EXTERN nOS_Thread      *nOS_runningThread;
  NOS_EXTERN nOS_Thread      *nOS_highPrioThread;
- NOS_EXTERN nOS_List        nOS_mainList;
  #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
-  NOS_EXTERN nOS_List       nOS_readyThreadList[NOS_CONFIG_HIGHEST_THREAD_PRIO+1];
+  NOS_EXTERN nOS_List       nOS_readyThreadsList[NOS_CONFIG_HIGHEST_THREAD_PRIO+1];
  #else
-  NOS_EXTERN nOS_List       nOS_readyThreadList;
+  NOS_EXTERN nOS_List       nOS_readyThreadsList;
+ #endif
+ NOS_EXTERN nOS_List        nOS_timeoutThreadsList;
+ #if (NOS_CONFIG_THREAD_SUSPEND_ALL_ENABLE > 0)
+  NOS_EXTERN nOS_List       nOS_allThreadsList;
  #endif
 
  #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
@@ -883,9 +899,9 @@ struct nOS_TimeDate
   void          nOS_AppendThreadToReadyList         (nOS_Thread *thread);
   void          nOS_RemoveThreadFromReadyList       (nOS_Thread *thread);
  #else
-  #define       nOS_FindHighPrioThread()            nOS_GetHeadOfList(&nOS_readyThreadList)
-  #define       nOS_AppendThreadToReadyList(t)      nOS_AppendToList(&nOS_readyThreadList, &(t)->readyWait)
-  #define       nOS_RemoveThreadFromReadyList(t)    nOS_RemoveFromList(&nOS_readyThreadList, &(t)->readyWait)
+  #define       nOS_FindHighPrioThread()            nOS_GetHeadOfList(&nOS_readyThreadsList)
+  #define       nOS_AppendThreadToReadyList(t)      nOS_AppendToList(&nOS_readyThreadsList, &(t)->readyWait)
+  #define       nOS_RemoveThreadFromReadyList(t)    nOS_RemoveFromList(&nOS_readyThreadsList, &(t)->readyWait)
  #endif
  nOS_Error      nOS_Schedule                        (void);
 
@@ -912,7 +928,7 @@ struct nOS_TimeDate
  #else
   void          nOS_DeleteEvent                     (nOS_Event *event);
  #endif
- nOS_Error      nOS_WaitForEvent                    (nOS_Event *event, nOS_ThreadState state, nOS_TickCounter tout);
+ nOS_Error      nOS_WaitForEvent                    (nOS_Event *event, nOS_ThreadState state, nOS_TickCounter timeout);
  nOS_Thread*    nOS_SendEvent                       (nOS_Event *event, nOS_Error err);
 
  #if (NOS_CONFIG_TIMER_ENABLE > 0)
@@ -1228,19 +1244,6 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
 
 /**********************************************************************************************************************
  *                                                                                                                    *
- * Name           : nOS_ThreadSuspendAll                                                                              *
- *                                                                                                                    *
- * Description    : Suspend all threads (except main thread) and remove them from ready ro run list.                  *
- *                                                                                                                    *
- * Return         : Error code.                                                                                       *
- *   NOS_OK       : All threads successfully suspended.                                                               *
- *   NOS_E_LOCKED : Can't lock all threads from scheduler locked section if not called from main thread.              *
- *                                                                                                                    *
- **********************************************************************************************************************/
- nOS_Error      nOS_ThreadSuspendAll                (void);
-
-/**********************************************************************************************************************
- *                                                                                                                    *
  * Name              : nOS_ThreadResume                                                                               *
  *                                                                                                                    *
  * Description       : Resume previously suspended thread and add it to ready to run list if applicable.              *
@@ -1256,6 +1259,20 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
  **********************************************************************************************************************/
  nOS_Error      nOS_ThreadResume                    (nOS_Thread *thread);
 
+#if (NOS_CONFIG_THREAD_SUSPEND_ALL_ENABLE > 0)
+/**********************************************************************************************************************
+ *                                                                                                                    *
+ * Name           : nOS_ThreadSuspendAll                                                                              *
+ *                                                                                                                    *
+ * Description    : Suspend all threads (except main thread) and remove them from ready ro run list.                  *
+ *                                                                                                                    *
+ * Return         : Error code.                                                                                       *
+ *   NOS_OK       : All threads successfully suspended.                                                               *
+ *   NOS_E_LOCKED : Can't lock all threads from scheduler locked section if not called from main thread.              *
+ *                                                                                                                    *
+ **********************************************************************************************************************/
+ nOS_Error      nOS_ThreadSuspendAll                (void);
+
 /**********************************************************************************************************************
  *                                                                                                                    *
  * Name        : nOS_ThreadResumeAll                                                                                  *
@@ -1267,6 +1284,7 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
  *                                                                                                                    *
  **********************************************************************************************************************/
  nOS_Error      nOS_ThreadResumeAll                 (void);
+#endif
 
 #endif
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_THREAD_SET_PRIO_ENABLE > 0)
@@ -1347,7 +1365,7 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
  *   NOS_E_DELETED : Semaphore object has been deleted.                                                               *
  *                                                                                                                    *
  **********************************************************************************************************************/
- nOS_Error      nOS_SemTake                         (nOS_Sem *sem, nOS_TickCounter tout);
+ nOS_Error      nOS_SemTake                         (nOS_Sem *sem, nOS_TickCounter timeout);
 
  nOS_Error      nOS_SemGive                         (nOS_Sem *sem);
 
@@ -1391,7 +1409,7 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
  #if (NOS_CONFIG_MUTEX_DELETE_ENABLE > 0)
   nOS_Error     nOS_MutexDelete                     (nOS_Mutex *mutex);
  #endif
- nOS_Error      nOS_MutexLock                       (nOS_Mutex *mutex, nOS_TickCounter tout);
+ nOS_Error      nOS_MutexLock                       (nOS_Mutex *mutex, nOS_TickCounter timeout);
  nOS_Error      nOS_MutexUnlock                     (nOS_Mutex *mutex);
  bool           nOS_MutexIsLocked                   (nOS_Mutex *mutex);
  nOS_Thread*    nOS_MutexGetOwner                   (nOS_Mutex *mutex);
@@ -1402,8 +1420,8 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
  #if (NOS_CONFIG_QUEUE_DELETE_ENABLE > 0)
   nOS_Error     nOS_QueueDelete                     (nOS_Queue *queue);
  #endif
- nOS_Error      nOS_QueueRead                       (nOS_Queue *queue, void *block, nOS_TickCounter tout);
- nOS_Error      nOS_QueueWrite                      (nOS_Queue *queue, void *block, nOS_TickCounter tout);
+ nOS_Error      nOS_QueueRead                       (nOS_Queue *queue, void *block, nOS_TickCounter timeout);
+ nOS_Error      nOS_QueueWrite                      (nOS_Queue *queue, void *block, nOS_TickCounter timeout);
  bool           nOS_QueueIsEmpty                    (nOS_Queue *queue);
  bool           nOS_QueueIsFull                     (nOS_Queue *queue);
 #endif
@@ -1493,7 +1511,7 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
  *                                                                                                                    *
  **********************************************************************************************************************/
  nOS_Error      nOS_FlagWait                        (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits *res,
-                                                     nOS_FlagOption opt, nOS_TickCounter tout);
+                                                     nOS_FlagOption opt, nOS_TickCounter timeout);
 
 /**********************************************************************************************************************
  *                                                                                                                    *
@@ -1579,7 +1597,7 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
  *   2. Caller is responsible to free the block when memory is no longer needed.                                      *
  *                                                                                                                    *
  **********************************************************************************************************************/
- void*          nOS_MemAlloc                        (nOS_Mem *mem, nOS_TickCounter tout);
+ void*          nOS_MemAlloc                        (nOS_Mem *mem, nOS_TickCounter timeout);
 
 /**********************************************************************************************************************
  *                                                                                                                    *

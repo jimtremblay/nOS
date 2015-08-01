@@ -55,12 +55,16 @@ void nOS_DeleteEvent (nOS_Event *event)
 #endif
 }
 
-nOS_Error nOS_WaitForEvent (nOS_Event *event, nOS_ThreadState state, nOS_TickCounter tout)
+nOS_Error nOS_WaitForEvent (nOS_Event *event, nOS_ThreadState state, nOS_TickCounter timeout)
 {
     nOS_RemoveThreadFromReadyList(nOS_runningThread);
     nOS_runningThread->state = (nOS_ThreadState)(nOS_runningThread->state | (state & NOS_THREAD_WAITING_MASK));
     nOS_runningThread->event = event;
-    nOS_runningThread->timeout = (tout == NOS_WAIT_INFINITE) ? 0 : tout;
+    if ((timeout > 0) && (timeout < NOS_WAIT_INFINITE)) {
+        nOS_runningThread->timeout = nOS_tickCounter + timeout;
+        nOS_runningThread->state = (nOS_ThreadState)(nOS_runningThread->state | NOS_THREAD_WAIT_TIMEOUT);
+        nOS_AppendToList(&nOS_timeoutThreadsList, &nOS_runningThread->tout);
+    }
     if (event != NULL) {
         nOS_AppendToList(&event->waitList, &nOS_runningThread->readyWait);
     }
