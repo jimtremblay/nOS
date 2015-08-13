@@ -52,9 +52,14 @@ void nOS_EnterIsr (void)
 {
     nOS_StatusReg   sr;
 
-    nOS_EnterCritical(sr);
-    nOS_isrNestingCounter++;
-    nOS_LeaveCritical(sr);
+#if (NOS_CONFIG_SAFE > 0)
+    if (nOS_running)
+#endif
+    {
+        nOS_EnterCritical(sr);
+        nOS_isrNestingCounter++;
+        nOS_LeaveCritical(sr);
+    }
 }
 
 bool nOS_LeaveIsr (void)
@@ -62,22 +67,27 @@ bool nOS_LeaveIsr (void)
     nOS_StatusReg   sr;
     bool            swctx = false;
 
-    nOS_EnterCritical(sr);
-    nOS_isrNestingCounter--;
+#if (NOS_CONFIG_SAFE > 0)
+    if (nOS_running)
+#endif
+    {
+        nOS_EnterCritical(sr);
+        nOS_isrNestingCounter--;
 #if (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
-    if (nOS_isrNestingCounter == 0) {
+        if (nOS_isrNestingCounter == 0) {
  #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
-        if (nOS_lockNestingCounter == 0)
+            if (nOS_lockNestingCounter == 0)
  #endif
-        {
-            nOS_highPrioThread = nOS_FindHighPrioThread();
-            if (nOS_runningThread != nOS_highPrioThread) {
-                swctx = true;
+            {
+                nOS_highPrioThread = nOS_FindHighPrioThread();
+                if (nOS_runningThread != nOS_highPrioThread) {
+                    swctx = true;
+                }
             }
         }
-    }
 #endif
-    nOS_LeaveCritical(sr);
+        nOS_LeaveCritical(sr);
+    }
 
     return swctx;
 }

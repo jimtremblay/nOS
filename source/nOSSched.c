@@ -414,11 +414,17 @@ nOS_Error nOS_Schedule(void)
 
 nOS_Error nOS_Init(void)
 {
+    nOS_Error   err;
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
     uint16_t    i;
 #endif
 
-    if (!nOS_running) {
+#if (NOS_CONFIG_SAFE > 0)
+    if (nOS_running) {
+        err = NOS_E_RUNNING;
+    } else
+#endif
+    {
         nOS_tickCounter = 0;
         nOS_isrNestingCounter = 0;
 #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
@@ -464,9 +470,11 @@ nOS_Error nOS_Init(void)
 
         /* Context switching is possible after this point */
         nOS_running = true;
+
+        err = NOS_OK;
     }
 
-    return NOS_OK;
+    return err;
 }
 
 nOS_Error nOS_Yield(void)

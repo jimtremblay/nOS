@@ -552,7 +552,8 @@ typedef enum nOS_Error
     NOS_E_INV_STATE             = -18,
     NOS_E_NO_CONSUMER           = -19,
     NOS_E_INV_PRIO              = -20,
-    NOS_E_ABORT                 = -21
+    NOS_E_ABORT                 = -21,
+    NOS_E_RUNNING               = -22
 } nOS_Error;
 
 typedef enum nOS_ThreadState

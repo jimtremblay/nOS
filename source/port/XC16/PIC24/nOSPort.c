@@ -117,35 +117,45 @@ void __attribute__((naked)) nOS_SwitchContext (void)
 
 nOS_Stack *nOS_EnterIsr (nOS_Stack *sp)
 {
-    // Enter critical here is not needed, interrupts are already disabled
-    if (nOS_isrNestingCounter == 0) {
-        nOS_runningThread->stackPtr = sp;
-#if (NOS_CONFIG_ISR_STACK_SIZE > 0)
-        sp = &_isrStack[0];
-#else
-        sp = nOS_idleHandle.stackPtr;
+#if (NOS_CONFIG_SAFE > 0)
+    if (nOS_running)
 #endif
+    {
+        // Enter critical here is not needed, interrupts are already disabled
+        if (nOS_isrNestingCounter == 0) {
+            nOS_runningThread->stackPtr = sp;
+#if (NOS_CONFIG_ISR_STACK_SIZE > 0)
+            sp = &_isrStack[0];
+#else
+            sp = nOS_idleHandle.stackPtr;
+#endif
+        }
+        nOS_isrNestingCounter++;
     }
-    nOS_isrNestingCounter++;
 
     return sp;
 }
 
 nOS_Stack *nOS_LeaveIsr (nOS_Stack *sp)
 {
-    // Enter critical here is not needed, interrupts are already disabled
-    nOS_isrNestingCounter--;
-    if (nOS_isrNestingCounter == 0) {
+#if (NOS_CONFIG_SAFE > 0)
+    if (nOS_running)
+#endif
+    {
+        // Enter critical here is not needed, interrupts are already disabled
+        nOS_isrNestingCounter--;
+        if (nOS_isrNestingCounter == 0) {
 #if (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
  #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
-        if (nOS_lockNestingCounter == 0)
+            if (nOS_lockNestingCounter == 0)
  #endif
-        {
-            nOS_highPrioThread = nOS_FindHighPrioThread();
-            nOS_runningThread = nOS_highPrioThread;
-        }
+            {
+                nOS_highPrioThread = nOS_FindHighPrioThread();
+                nOS_runningThread = nOS_highPrioThread;
+            }
 #endif
-        sp = nOS_runningThread->stackPtr;
+            sp = nOS_runningThread->stackPtr;
+        }
     }
 
     return sp;

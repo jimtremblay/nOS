@@ -74,32 +74,42 @@ void nOS_EnterIsr (void)
 {
     nOS_StatusReg   sr;
 
-    nOS_EnterCritical(sr);
-    nOS_isrNestingCounter++;
-    nOS_LeaveCritical(sr);
+#if (NOS_CONFIG_SAFE > 0)
+    if (nOS_running)
+#endif
+    {
+        nOS_EnterCritical(sr);
+        nOS_isrNestingCounter++;
+        nOS_LeaveCritical(sr);
+    }
 }
 
 void nOS_LeaveIsr (void)
 {
     nOS_StatusReg   sr;
 
-    nOS_EnterCritical(sr);
-    nOS_isrNestingCounter--;
+#if (NOS_CONFIG_SAFE > 0)
+    if (nOS_running)
+#endif
+    {
+        nOS_EnterCritical(sr);
+        nOS_isrNestingCounter--;
 #if (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
-    if (nOS_isrNestingCounter == 0) {
+        if (nOS_isrNestingCounter == 0) {
  #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
-        if (nOS_lockNestingCounter == 0)
+            if (nOS_lockNestingCounter == 0)
  #endif
-        {
-            nOS_highPrioThread = nOS_FindHighPrioThread();
-            if (nOS_runningThread != nOS_highPrioThread) {
-                /* Request a software interrupt when going out of ISR */
-                *(uint8_t*)0x000872E0UL = (uint8_t)1;
+            {
+                nOS_highPrioThread = nOS_FindHighPrioThread();
+                if (nOS_runningThread != nOS_highPrioThread) {
+                    /* Request a software interrupt when going out of ISR */
+                    *(uint8_t*)0x000872E0UL = (uint8_t)1;
+                }
             }
         }
-    }
 #endif
-    nOS_LeaveCritical(sr);
+        nOS_LeaveCritical(sr);
+    }
 }
 
 void INT_Excep_ICU_SWINT(void)

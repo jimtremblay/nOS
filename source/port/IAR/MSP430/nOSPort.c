@@ -98,17 +98,22 @@ nOS_Stack* nOS_EnterIsr (nOS_Stack *sp)
 {
     nOS_StatusReg   sr;
 
-    nOS_EnterCritical(sr);
-    if (nOS_isrNestingCounter == 0) {
-        nOS_runningThread->stackPtr = sp;
-#ifdef NOS_CONFIG_ISR_STACK_SIZE
-        sp = &_isrStack[NOS_CONFIG_ISR_STACK_SIZE-1];
-#else
-        sp = nOS_idleHandle.stackPtr;
+#if (NOS_CONFIG_SAFE > 0)
+    if (nOS_running)
 #endif
+    {
+        nOS_EnterCritical(sr);
+        if (nOS_isrNestingCounter == 0) {
+            nOS_runningThread->stackPtr = sp;
+#ifdef NOS_CONFIG_ISR_STACK_SIZE
+            sp = &_isrStack[NOS_CONFIG_ISR_STACK_SIZE-1];
+#else
+            sp = nOS_idleHandle.stackPtr;
+#endif
+        }
+        nOS_isrNestingCounter++;
+        nOS_LeaveCritical(sr);
     }
-    nOS_isrNestingCounter++;
-    nOS_LeaveCritical(sr);
 
     return sp;
 }
@@ -117,21 +122,26 @@ nOS_Stack* nOS_LeaveIsr (nOS_Stack *sp)
 {
     nOS_StatusReg   sr;
 
-    nOS_EnterCritical(sr);
-    nOS_isrNestingCounter--;
-    if (nOS_isrNestingCounter == 0) {
+#if (NOS_CONFIG_SAFE > 0)
+    if (nOS_running)
+#endif
+    {
+        nOS_EnterCritical(sr);
+        nOS_isrNestingCounter--;
+        if (nOS_isrNestingCounter == 0) {
 #if (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
  #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
-        if (nOS_lockNestingCounter == 0)
+            if (nOS_lockNestingCounter == 0)
  #endif
-        {
-            nOS_highPrioThread = nOS_FindHighPrioThread();
-            nOS_runningThread = nOS_highPrioThread;
-        }
+            {
+                nOS_highPrioThread = nOS_FindHighPrioThread();
+                nOS_runningThread = nOS_highPrioThread;
+            }
 #endif
-        sp = nOS_runningThread->stackPtr;
+            sp = nOS_runningThread->stackPtr;
+        }
+        nOS_LeaveCritical(sr);
     }
-    nOS_LeaveCritical(sr);
 
     return sp;
 }
