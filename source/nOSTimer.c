@@ -17,7 +17,7 @@ extern "C" {
 #if (NOS_CONFIG_TIMER_THREAD_ENABLE > 0)
  static void    _Thread     (void *arg);
 #endif
-static void     _Tick       (void *payload, void *arg);
+static  void    _Tick       (void *payload, void *arg);
 
 static nOS_List         _activeList;
 static nOS_List         _triggeredList;
@@ -433,7 +433,7 @@ nOS_Error nOS_TimerSetCallback (nOS_Timer *timer, nOS_TimerCallback callback, vo
 #endif
         {
             timer->callback = callback;
-            timer->arg = arg;
+            timer->arg      = arg;
 
             err = NOS_OK;
         }

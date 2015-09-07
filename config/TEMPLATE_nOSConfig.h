@@ -509,6 +509,75 @@
 
 /**********************************************************************************************************************
  *                                                                                                                    *
+ * Enable or disable alarm management.                                                                                *
+ *                                                                                                                    *
+ * Notes                                                                                                              *
+ *   1. Can be disabled if not needed by the application to decrease flash space used.                                *
+ *   2. Alarm management is dependant from Time module.                                                               *
+ *                                                                                                                    *
+ **********************************************************************************************************************/
+#define NOS_CONFIG_ALARM_ENABLE                     1
+
+/**********************************************************************************************************************
+ *                                                                                                                    *
+ * Enable or disable deleting alarm at run-time.                                                                      *
+ *                                                                                                                    *
+ **********************************************************************************************************************/
+#define NOS_CONFIG_ALARM_DELETE_ENABLE              1
+
+/**********************************************************************************************************************
+ *                                                                                                                    *
+ * Enable or disable alarm tick from nOS_Tick.                                                                        *
+ *                                                                                                                    *
+ * Notes                                                                                                              *
+ *   1. If disabled, application is responsible to call nOS_AlarmTick.                                                *
+ *                                                                                                                    *
+ **********************************************************************************************************************/
+#define NOS_CONFIG_ALARM_TICK_ENABLE                1
+
+/**********************************************************************************************************************
+ *                                                                                                                    *
+ * Enable or disable alarm thread that will take care of callback.                                                    *
+ *                                                                                                                    *
+ * Notes                                                                                                              *
+ *   1. If disabled, application is responsible to call nOS_AlarmProcess.                                             *
+ *                                                                                                                    *
+ **********************************************************************************************************************/
+#define NOS_CONFIG_ALARM_THREAD_ENABLE              1
+
+/**********************************************************************************************************************
+ *                                                                                                                    *
+ * Priority of alarm thread.                                                                                          *
+ *                                                                                                                    *
+ * Notes                                                                                                              *
+ *   1. Not used if alarm thread is disabled.                                                                         *
+ *                                                                                                                    *
+ **********************************************************************************************************************/
+#define NOS_CONFIG_ALARM_THREAD_PRIO                1
+
+/**********************************************************************************************************************
+ *                                                                                                                    *
+ * Stack size of alarm thread.                                                                                        *
+ *                                                                                                                    *
+ * Notes                                                                                                              *
+ *   1. Not used if alarm thread is disabled.                                                                         *
+ *                                                                                                                    *
+ **********************************************************************************************************************/
+#define NOS_CONFIG_ALARM_THREAD_STACK_SIZE          128
+
+/**********************************************************************************************************************
+ *                                                                                                                    *
+ * Call stack size of alarm thread.                                                                                   *
+ *                                                                                                                    *
+ * Notes                                                                                                              *
+ *   1. Only available on AVR platform with IAR compiler.                                                             *
+ *   2. Not used if alarm thread is disabled.                                                                         *
+ *                                                                                                                    *
+ **********************************************************************************************************************/
+#define NOS_CONFIG_ALARM_THREAD_CALL_STACK_SIZE     16
+
+/**********************************************************************************************************************
+ *                                                                                                                    *
  * Stack size to use from interrupt service routines in number of nOS_Stack entries.                                  *
  *                                                                                                                    *
  * Notes                                                                                                              *

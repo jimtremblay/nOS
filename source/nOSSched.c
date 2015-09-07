@@ -459,13 +459,14 @@ nOS_Error nOS_Init(void)
 #if (NOS_CONFIG_TIMER_ENABLE > 0)
         nOS_InitTimer();
 #endif
-
 #if (NOS_CONFIG_SIGNAL_ENABLE > 0)
         nOS_InitSignal();
 #endif
-
 #if (NOS_CONFIG_TIME_ENABLE > 0)
         nOS_InitTime();
+#endif
+#if (NOS_CONFIG_ALARM_ENABLE > 0)
+        nOS_InitAlarm();
 #endif
 
         /* Context switching is possible after this point */
@@ -524,6 +525,9 @@ void nOS_Tick(void)
 #endif
 #if (NOS_CONFIG_TIME_ENABLE > 0) && (NOS_CONFIG_TIME_TICK_ENABLE > 0)
     nOS_TimeTick();
+#endif
+#if (NOS_CONFIG_ALARM_ENABLE > 0) && (NOS_CONFIG_ALARM_TICK_ENABLE > 0)
+    nOS_AlarmTick();
 #endif
     nOS_LeaveCritical(sr);
 }

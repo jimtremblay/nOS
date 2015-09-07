@@ -22,7 +22,7 @@ extern "C" {
 #if (NOS_CONFIG_TIME_TICKS_PER_SECOND > 1)
  static uint16_t            _prescaler;
 #endif
-static nOS_Time             _counter;
+static nOS_Time             _time;
 #if (NOS_CONFIG_TIME_WAIT_ENABLE > 0)
  static nOS_Event           _event;
 #endif
@@ -37,7 +37,7 @@ static void _TickTime(void *payload, void *arg)
     /* Avoid warning */
     NOS_UNUSED(arg);
 
-    if (time == _counter) {
+    if (time == _time) {
         nOS_WakeUpThread(thread, NOS_OK);
     }
 }
@@ -46,9 +46,9 @@ static void _TickTime(void *payload, void *arg)
 void nOS_InitTime (void)
 {
 #if (NOS_CONFIG_TIME_TICKS_PER_SECOND > 1)
-    _prescaler = 0;
+    _prescaler  = 0;
 #endif
-    _counter = 0;
+    _time       = 0;
 #if (NOS_CONFIG_TIME_WAIT_ENABLE > 0)
  #if (NOS_CONFIG_SAFE > 0)
     nOS_CreateEvent(&_event, NOS_EVENT_BASE);
@@ -69,7 +69,7 @@ void nOS_TimeTick (void)
     if (_prescaler == 0)
 #endif
     {
-        _counter++;
+        _time++;
 #if (NOS_CONFIG_TIME_WAIT_ENABLE > 0)
         nOS_WalkInList(&_event.waitList, _TickTime, NULL);
 #endif
@@ -83,7 +83,7 @@ nOS_Time nOS_TimeGet (void)
     nOS_Time        time;
 
     nOS_EnterCritical(sr);
-    time = _counter;
+    time = _time;
     nOS_LeaveCritical(sr);
 
     return time;
@@ -94,7 +94,7 @@ nOS_Error nOS_TimeSet (nOS_Time time)
     nOS_StatusReg   sr;
 
     nOS_EnterCritical(sr);
-    _counter = time;
+    _time = time;
 #if (NOS_CONFIG_TIME_TICKS_PER_SECOND > 1)
     _prescaler = 0;
 #endif
@@ -108,7 +108,7 @@ nOS_TimeDate nOS_TimeConvert (nOS_Time time)
     nOS_TimeDate    timedate;
     uint16_t        days;
 
-    /* First extract HH:MM:SS from _counter */
+    /* First extract HH:MM:SS from _time */
     timedate.second = time % 60;
     time /= 60;
     timedate.minute = time % 60;
@@ -165,9 +165,9 @@ nOS_Error nOS_TimeWait (nOS_Time time)
         err = NOS_E_IDLE;
     } else {
         nOS_EnterCritical(sr);
-        if (_counter < time) {
+        if (_time < time) {
             err = NOS_E_ELAPSED;
-        } else if (_counter == time) {
+        } else if (_time == time) {
             err = NOS_OK;
         } else {
             nOS_runningThread->ext = (void*)&time;

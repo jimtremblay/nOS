@@ -417,6 +417,55 @@ extern "C" {
  #undef NOS_CONFIG_TIME_COUNT_WIDTH
 #endif
 
+#ifndef NOS_CONFIG_ALARM_ENABLE
+ #error "nOSConfig.h: NOS_CONFIG_ALARM_ENABLE is not defined: must be set to 0 or 1."
+#elif (NOS_CONFIG_ALARM_ENABLE != 0) && (NOS_CONFIG_ALARM_ENABLE != 1)
+ #error "nOSConfig.h: NOS_CONFIG_ALARM_ENABLE is set to invalid value: must be set to 0 or 1."
+#elif (NOS_CONFIG_ALARM_ENABLE > 0)
+ #if (NOS_CONFIG_TIME_ENABLE == 0)
+  #error "nOSConfig.h: Time module is not enabled: Alarm module is dependant from Time module."
+ #endif
+ #ifndef NOS_CONFIG_ALARM_TICK_ENABLE
+  #error "nOSConfig.h: NOS_CONFIG_ALARM_TICK_ENABLE is not defined: must be set to 0 or 1."
+ #elif (NOS_CONFIG_ALARM_TICK_ENABLE != 0) && (NOS_CONFIG_ALARM_TICK_ENABLE != 1)
+  #error "nOSConfig.h: NOS_CONFIG_ALARM_TICK_ENABLE is set to invalid value: must be set to 0 or 1."
+ #endif
+ #ifndef NOS_CONFIG_ALARM_DELETE_ENABLE
+  #error "nOSConfig.h: NOS_CONFIG_ALARM_DELETE_ENABLE is not defined: must be set to 0 or 1."
+ #elif (NOS_CONFIG_ALARM_DELETE_ENABLE != 0) && (NOS_CONFIG_ALARM_DELETE_ENABLE != 1)
+  #error "nOSConfig.h: NOS_CONFIG_ALARM_DELETE_ENABLE is set to invalid value: must be set to 0 or 1."
+ #endif
+ #ifndef NOS_CONFIG_ALARM_THREAD_ENABLE
+  #error "nOSConfig.h: NOS_CONFIG_ALARM_THREAD_ENABLE is not defined: must be set to 0 or 1."
+ #elif (NOS_CONFIG_ALARM_THREAD_ENABLE != 0) && (NOS_CONFIG_ALARM_THREAD_ENABLE != 1)
+  #error "nOSConfig.h: NOS_CONFIG_ALARM_THREAD_ENABLE is set to invalid value: must be set to 0 or 1."
+ #elif (NOS_CONFIG_ALARM_THREAD_ENABLE > 0)
+  #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
+   #ifndef NOS_CONFIG_ALARM_THREAD_PRIO
+    #error "nOSConfig.h: NOS_CONFIG_ALARM_THREAD_PRIO is not defined: must be set between 0 and NOS_CONFIG_HIGHEST_THREAD_PRIO inclusively."
+   #elif (NOS_CONFIG_ALARM_THREAD_PRIO < 0)
+    #error "nOSConfig.h: NOS_CONFIG_ALARM_THREAD_PRIO is set to invalid value: must be set between 0 and NOS_CONFIG_HIGHEST_THREAD_PRIO inclusively."
+   #elif (NOS_CONFIG_ALARM_THREAD_PRIO > NOS_CONFIG_HIGHEST_THREAD_PRIO)
+    #error "nOSConfig.h: NOS_CONFIG_ALARM_THREAD_PRIO is higher than NOS_CONFIG_HIGHEST_THREAD_PRIO: must be set between 0 and NOS_CONFIG_HIGHEST_THREAD_PRIO inclusively."
+   #endif
+  #else
+   #undef NOS_CONFIG_ALARM_THREAD_PRIO
+  #endif
+  #ifndef NOS_CONFIG_ALARM_THREAD_STACK_SIZE
+   #error "nOSConfig.h: NOS_CONFIG_ALARM_THREAD_STACK_SIZE is not defined."
+  #endif
+ #else
+  #undef NOS_CONFIG_ALARM_THREAD_PRIO
+  #undef NOS_CONFIG_ALARM_THREAD_STACK_SIZE
+ #endif
+#else
+ #undef NOS_CONFIG_ALARM_TICK_ENABLE
+ #undef NOS_CONFIG_ALARM_DELETE_ENABLE
+ #undef NOS_CONFIG_ALARM_THREAD_ENABLE
+ #undef NOS_CONFIG_ALARM_THREAD_PRIO
+ #undef NOS_CONFIG_ALARM_THREAD_STACK_SIZE
+#endif
+
 typedef struct nOS_List             nOS_List;
 typedef struct nOS_Node             nOS_Node;
 typedef void(*nOS_NodeHandler)(void*,void*);
@@ -528,6 +577,10 @@ typedef struct nOS_Event            nOS_Event;
  #endif
  typedef struct nOS_TimeDate        nOS_TimeDate;
 #endif
+#if (NOS_CONFIG_ALARM_ENABLE > 0)
+ typedef struct nOS_Alarm           nOS_Alarm;
+ typedef void(*nOS_AlarmCallback)(nOS_Alarm*,void*);
+#endif
 
 typedef enum nOS_Error
 {
@@ -630,6 +683,16 @@ typedef enum nOS_SignalState
     NOS_SIGNAL_RAISED           = 0x01,
     NOS_SIGNAL_CREATED          = 0x80
 } nOS_SignalState;
+#endif
+
+#if (NOS_CONFIG_ALARM_ENABLE > 0)
+typedef enum nOS_AlarmState
+{
+    NOS_ALARM_DELETED           = 0x00,
+    NOS_ALARM_WAITING           = 0x01,
+    NOS_ALARM_TRIGGERED         = 0x02,
+    NOS_ALARM_CREATED           = 0x80
+} nOS_AlarmState;
 #endif
 
 #include "nOSPort.h"
@@ -830,6 +893,17 @@ struct nOS_TimeDate
 };
 #endif
 
+#if (NOS_CONFIG_ALARM_ENABLE > 0)
+struct nOS_Alarm
+{
+    nOS_AlarmState      state;
+    nOS_Time            time;
+    nOS_AlarmCallback   callback;
+    void                *arg;
+    nOS_Node            node;
+};
+#endif
+
 #define NOS_NO_WAIT                 0
 #if (NOS_CONFIG_TICK_COUNT_WIDTH == 8)
  #define NOS_TICK_COUNT_MAX         UINT8_MAX
@@ -942,6 +1016,10 @@ struct nOS_TimeDate
 
  #if (NOS_CONFIG_TIME_ENABLE > 0)
   void          nOS_InitTime                        (void);
+ #endif
+
+ #if (NOS_CONFIG_ALARM_ENABLE > 0)
+  void          nOS_InitAlarm                       (void);
  #endif
 #endif
 
@@ -1710,6 +1788,17 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
  #if (NOS_CONFIG_TIME_WAIT_ENABLE > 0)
   nOS_Error     nOS_TimeDateWait                    (nOS_TimeDate timedate);
  #endif
+#endif
+
+#if (NOS_CONFIG_ALARM_ENABLE > 0)
+ void           nOS_AlarmTick                       (void);
+ void           nOS_AlarmProcess                    (void);
+ nOS_Error      nOS_AlarmCreate                     (nOS_Alarm *alarm, nOS_AlarmCallback callback, void *arg, nOS_Time time);
+ #if (NOS_CONFIG_ALARM_DELETE_ENABLE > 0)
+  nOS_Error     nOS_AlarmDelete                     (nOS_Alarm *alarm);
+ #endif
+ nOS_Error      nOS_AlarmSetTime                    (nOS_Alarm *alarm, nOS_Time time);
+ nOS_Error      nOS_AlarmSetCallback                (nOS_Alarm *alarm, nOS_AlarmCallback callback, void *arg);
 #endif
 
 #ifdef __cplusplus
