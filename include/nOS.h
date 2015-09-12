@@ -606,7 +606,8 @@ typedef enum nOS_Error
     NOS_E_NO_CONSUMER           = -19,
     NOS_E_INV_PRIO              = -20,
     NOS_E_ABORT                 = -21,
-    NOS_E_RUNNING               = -22
+    NOS_E_RUNNING               = -22,
+    NOS_E_NOT_RUNNING           = -23
 } nOS_Error;
 
 typedef enum nOS_ThreadState
@@ -947,9 +948,11 @@ struct nOS_Alarm
 
 #ifdef NOS_PRIVATE
  #ifdef NOS_GLOBALS
-  bool                      nOS_running = false;
+  bool                      nOS_initialized = false;
+  volatile bool             nOS_running = false;
  #else
-  extern bool               nOS_running;
+  extern bool               nOS_initialized;
+  extern volatile bool      nOS_running;
  #endif
  NOS_EXTERN nOS_Thread      nOS_idleHandle;
  NOS_EXTERN nOS_TickCounter nOS_tickCounter;
@@ -1025,18 +1028,35 @@ struct nOS_Alarm
 
 /**********************************************************************************************************************
  *                                                                                                                    *
- * Name        : nOS_Init                                                                                             *
+ * Name         : nOS_Init                                                                                            *
  *                                                                                                                    *
- * Description : Initialize nOS scheduler and enabled services.                                                       *
+ * Description  : Initialize nOS scheduler and enabled services.                                                      *
  *                                                                                                                    *
- * Return      : Error code.                                                                                          *
- *   NOS_OK    : Initialization successfully completed.                                                               *
+ * Return       : Error code.                                                                                         *
+ *   NOS_OK     : Initialization successfully completed.                                                              *
+ *   NOS_E_INIT : Scheduler already initialized.                                                                      *
  *                                                                                                                    *
  * Notes                                                                                                              *
  *   1. This is the first nOS function that the application should call, else the behaviour is undefined.             *
  *                                                                                                                    *
  **********************************************************************************************************************/
 nOS_Error       nOS_Init                            (void);
+
+/**********************************************************************************************************************
+ *                                                                                                                    *
+ * Name            : nOS_Start                                                                                        *
+ *                                                                                                                    *
+ * Description     : Enable context switching.                                                                        *
+ *                                                                                                                    *
+ * Return          : Error code.                                                                                      *
+ *   NOS_OK        : Initialization successfully completed.                                                           *
+ *   NOS_E_RUNNING : Context switching is already enabled.                                                            *
+ *                                                                                                                    *
+ * Notes                                                                                                              *
+ *   1. Call this function when you are ready to enable interrupts and allow context switching.                       *
+ *                                                                                                                    *
+ **********************************************************************************************************************/
+nOS_Error       nOS_Start                           (void);
 
 /**********************************************************************************************************************
  *                                                                                                                    *

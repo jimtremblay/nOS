@@ -390,7 +390,7 @@ nOS_Error nOS_Schedule(void)
 
     /* Switch only if initialization is completed */
     if (!nOS_running) {
-        err = NOS_E_INIT;
+        err = NOS_E_NOT_RUNNING;
     } else if (nOS_isrNestingCounter > 0) {
         err = NOS_E_ISR;
     }
@@ -420,8 +420,8 @@ nOS_Error nOS_Init(void)
 #endif
 
 #if (NOS_CONFIG_SAFE > 0)
-    if (nOS_running) {
-        err = NOS_E_RUNNING;
+    if (nOS_initialized) {
+        err = NOS_E_INIT;
     } else
 #endif
     {
@@ -469,12 +469,39 @@ nOS_Error nOS_Init(void)
         nOS_InitAlarm();
 #endif
 
-        /* Context switching is possible after this point */
-        nOS_running = true;
+        nOS_initialized = true;
 
         err = NOS_OK;
     }
 
+    return err;
+}
+
+nOS_Error nOS_Start(void)
+{
+    nOS_Error       err;
+    nOS_StatusReg   sr;
+
+#if (NOS_CONFIG_SAFE > 0)
+    if (!nOS_initialized) {
+        nOS_Init();
+    }
+
+    if (nOS_running) {
+        err = NOS_E_RUNNING;
+    } else
+#endif
+    {
+        /* Context switching is possible after this point */
+        nOS_running = true;
+
+        nOS_EnterCritical(sr);
+        nOS_Schedule();
+        nOS_LeaveCritical(sr);
+
+        err = NOS_OK;
+    }
+    
     return err;
 }
 

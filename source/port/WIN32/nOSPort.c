@@ -37,6 +37,10 @@ static DWORD WINAPI _Entry (LPVOID lpParameter)
 
 static DWORD WINAPI _Scheduler (LPVOID lpParameter)
 {
+    while (!nOS_running) {
+        Sleep(1);
+    }
+
     while (true) {
         /* Wait until a thread requesting a context switch */
         while (WaitForSingleObject(_hSchedRequest, INFINITE) != WAIT_OBJECT_0);
@@ -70,6 +74,10 @@ static DWORD WINAPI _Scheduler (LPVOID lpParameter)
 
 static DWORD WINAPI _SysTick (LPVOID lpParameter)
 {
+    while (!nOS_running) {
+        Sleep(1);
+    }
+
     while (true) {
         Sleep(1000/NOS_CONFIG_TICKS_PER_SECOND);
 

@@ -62,6 +62,12 @@ static void* _Scheduler (void *arg)
     _schedStarted = true;
     pthread_cond_signal(&_schedCond);
 
+    /* Wait until scheduler is started */
+    while (!nOS_running) {
+        pthread_cond_wait(&_schedCond, &nOS_criticalSection);
+    }
+    /* Don't reset _schedRequest, it will be needed in loop */
+
     while (true) {
         /* Wait until a thread send a scheduling request */
         while (!_schedRequest) {
@@ -83,6 +89,10 @@ static void* _Scheduler (void *arg)
 
 static void* _SysTick (void *arg)
 {
+    while (!nOS_running) {
+        usleep(1000);
+    }
+
     while (true) {
         usleep(1000000/NOS_CONFIG_TICKS_PER_SECOND);
 
