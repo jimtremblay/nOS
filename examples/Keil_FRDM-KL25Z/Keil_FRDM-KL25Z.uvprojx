@@ -409,6 +409,11 @@
           <GroupName>nOS</GroupName>
           <Files>
             <File>
+              <FileName>nOSAlarm.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\source\nOSAlarm.c</FilePath>
+            </File>
+            <File>
               <FileName>nOSEvent.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\source\nOSEvent.c</FilePath>

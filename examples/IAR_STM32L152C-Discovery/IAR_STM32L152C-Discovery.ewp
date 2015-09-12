@@ -1893,6 +1893,9 @@
   <group>
     <name>nOS</name>
     <file>
+      <name>$PROJ_DIR$\..\..\source\nOSAlarm.c</name>
+    </file>
+    <file>
       <name>$PROJ_DIR$\..\..\source\nOSEvent.c</name>
     </file>
     <file>

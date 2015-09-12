@@ -91,8 +91,6 @@ int main(int argc, char** argv)
 
     nOS_ThreadSetName(NULL, "main");
 
-    TimerInit();
-
     nOS_SemCreate(&semA, 0, 1);
     nOS_SemCreate(&semB, 0, 1);
     nOS_SemCreate(&semC, 0, 1);
@@ -100,6 +98,10 @@ int main(int argc, char** argv)
     nOS_ThreadCreate(&threadA, ThreadA, (void*)300, threadAStack, THREAD_STACK_SIZE, 5, NOS_THREAD_READY, "ThreadA");
     nOS_ThreadCreate(&threadB, ThreadB, (void*)200, threadBStack, THREAD_STACK_SIZE, 4, NOS_THREAD_READY, "ThreadB");
     nOS_ThreadCreate(&threadC, ThreadC, (void*)100, threadCStack, THREAD_STACK_SIZE, 3, NOS_THREAD_READY, "ThreadC");
+
+    nOS_Start();
+
+    TimerInit();
 
     while (1) {
         nOS_SemGive(&semC);

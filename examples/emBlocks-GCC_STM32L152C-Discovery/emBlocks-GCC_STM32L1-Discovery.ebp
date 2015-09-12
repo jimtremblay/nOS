@@ -14,11 +14,12 @@
 				<Option compiler="armgcc_eb" />
 				<Option projectDeviceOptionsRelation="0" />
 				<Compiler>
-					<Add option="-g3" />
-					<Add option="-O0" />
+					<Add option="-std=c99" />
 					<Add option="-Wall" />
 					<Add option="-fdata-sections" />
 					<Add option="-ffunction-sections" />
+					<Add option="-O0" />
+					<Add option="-g3" />
 				</Compiler>
 				<Assembler>
 					<Add option="-Wa,--gdwarf-2" />
@@ -200,6 +201,9 @@
 		<Unit filename="stm32l152rc_sram.ld" />
 		<Unit filename="..\..\include\nOS.h" />
 		<Unit filename="..\..\include\port\GCC\ARM_Cortex_M3\nOSPort.h" />
+		<Unit filename="..\..\source\nOSAlarm.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="..\..\source\nOSEvent.c">
 			<Option compilerVar="CC" />
 		</Unit>

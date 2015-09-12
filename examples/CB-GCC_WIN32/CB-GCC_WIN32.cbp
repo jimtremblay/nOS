@@ -36,6 +36,9 @@
 		</Compiler>
 		<Unit filename="../../include/nOS.h" />
 		<Unit filename="../../include/port/WIN32/nOSPort.h" />
+		<Unit filename="../../source/nOSAlarm.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="../../source/nOSEvent.c">
 			<Option compilerVar="CC" />
 		</Unit>

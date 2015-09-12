@@ -14,12 +14,14 @@
 				<Option compiler="armgcc_eb" />
 				<Option projectDeviceOptionsRelation="0" />
 				<Compiler>
+					<Add option="-std=c99" />
 					<Add option="-Wextra" />
 					<Add option="-Wall" />
 					<Add option="-fdata-sections" />
 					<Add option="-ffunction-sections" />
 					<Add option="-O0" />
 					<Add option="-g3" />
+					<Add symbol="HSE_VALUE=8000000" />
 				</Compiler>
 				<Assembler>
 					<Add option="-Wa,--gdwarf-2" />
@@ -219,6 +221,9 @@
 		<Unit filename="stm32f429zi_sram.ld" />
 		<Unit filename="..\..\include\nOS.h" />
 		<Unit filename="..\..\include\port\GCC\ARM_Cortex_M4\nOSPort.h" />
+		<Unit filename="..\..\source\nOSAlarm.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="..\..\source\nOSEvent.c">
 			<Option compilerVar="CC" />
 		</Unit>

@@ -184,6 +184,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\nOSAlarm.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\nOSEvent.c"
 				>
 			</File>

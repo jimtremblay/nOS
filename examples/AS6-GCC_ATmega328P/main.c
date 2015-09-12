@@ -94,11 +94,6 @@ int main (void)
     nOS_Init();
 	
 	nOS_ThreadSetName(NULL, "main");
-	
-	Timer2Init();
-	
-	/* enable all interrupts */
-	sei();
 
     nOS_SemCreate(&semA, 0, 1);
     nOS_SemCreate(&semB, 0, 1);
@@ -107,6 +102,13 @@ int main (void)
     nOS_ThreadCreate(&threadA, ThreadA, (void*)300, threadAStack, THREAD_STACK_SIZE, NOS_CONFIG_HIGHEST_THREAD_PRIO,   NOS_THREAD_READY, "ThreadA");
     nOS_ThreadCreate(&threadB, ThreadB, (void*)200, threadBStack, THREAD_STACK_SIZE, NOS_CONFIG_HIGHEST_THREAD_PRIO-1, NOS_THREAD_READY, "ThreadB");
     nOS_ThreadCreate(&threadC, ThreadC, (void*)100, threadCStack, THREAD_STACK_SIZE, NOS_CONFIG_HIGHEST_THREAD_PRIO-2, NOS_THREAD_READY, "ThreadC");
+
+    nOS_Start();
+
+    Timer2Init();
+
+    /* enable all interrupts */
+    sei();
 
     while (1)
     {

@@ -24,6 +24,7 @@
       <itemPath>../../source/nOSTimer.c</itemPath>
       <itemPath>../../source/port/XC16/PIC24/nOSPort.c</itemPath>
       <itemPath>../../source/nOSSignal.c</itemPath>
+      <itemPath>../../source/nOSAlarm.c</itemPath>
     </logicalFolder>
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
@@ -49,7 +50,7 @@
         <targetPluginBoard></targetPluginBoard>
         <platformTool>PICkit3PlatformTool</platformTool>
         <languageToolchain>XC16</languageToolchain>
-        <languageToolchainVersion>1.23</languageToolchainVersion>
+        <languageToolchainVersion>1.24</languageToolchainVersion>
         <platform>3</platform>
       </toolsSet>
       <compileType>

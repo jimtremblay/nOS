@@ -17,8 +17,6 @@ struct Config {
 NOS_ISR(TIMER2_COMPA_vect)
 {
   nOS_Tick();
-  nOS_TimerTick();
-  nOS_TimeTick();
 }
 
 static void Timer2Init(void)
@@ -50,11 +48,6 @@ void Thread (void *arg)
 void setup() {
   nOS_Init();
 
-  Timer2Init();
-
-  pinMode(13, OUTPUT);
-  digitalWrite(13, LOW);
-
   nOS_SemCreate(&semLow, 0, 1);
   configLow.pin = 13;
   configLow.level = LOW;
@@ -67,6 +60,13 @@ void setup() {
 
   nOS_ThreadCreate(&threadLow,  Thread, (void*)&configLow,  stackLow,  128, 7, NOS_THREAD_READY);
   nOS_ThreadCreate(&threadHigh, Thread, (void*)&configHigh, stackHigh, 128, 7, NOS_THREAD_READY);
+
+  pinMode(13, OUTPUT);
+  digitalWrite(13, LOW);
+
+  nOS_Start();
+
+  Timer2Init();
 }
 
 void loop() {
