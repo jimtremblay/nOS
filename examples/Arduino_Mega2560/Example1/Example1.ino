@@ -50,9 +50,7 @@ void setup() {
   pinMode(13, OUTPUT);
   digitalWrite(13, LOW);
 
-  nOS_Start();
-
-  Timer2Init();
+  nOS_Start(Timer2Init);
 
   nOS_TimerCreate(&timer, Callback, (void *)13, 500, NOS_TIMER_FREE_RUNNING);
   nOS_TimerStart(&timer);

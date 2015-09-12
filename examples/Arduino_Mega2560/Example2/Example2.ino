@@ -64,9 +64,7 @@ void setup() {
   pinMode(13, OUTPUT);
   digitalWrite(13, LOW);
 
-  nOS_Start();
-
-  Timer2Init();
+  nOS_Start(Timer2Init);
 }
 
 void loop() {

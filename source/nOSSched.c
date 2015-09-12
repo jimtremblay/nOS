@@ -477,7 +477,7 @@ nOS_Error nOS_Init(void)
     return err;
 }
 
-nOS_Error nOS_Start(void)
+nOS_Error nOS_Start(nOS_Callback callback)
 {
     nOS_Error       err;
     nOS_StatusReg   sr;
@@ -492,10 +492,12 @@ nOS_Error nOS_Start(void)
     } else
 #endif
     {
+        nOS_EnterCritical(sr);
         /* Context switching is possible after this point */
         nOS_running = true;
-
-        nOS_EnterCritical(sr);
+        if (callback != NULL) {
+            callback();
+        }
         nOS_Schedule();
         nOS_LeaveCritical(sr);
 

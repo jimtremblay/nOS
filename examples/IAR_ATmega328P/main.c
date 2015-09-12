@@ -73,6 +73,9 @@ static void Timer2Init(void)
     TCNT2 = 200;
     TCCR2B = 0x02;
     TIMSK2_TOIE2 = 1;
+
+    /* enable all interrupts */
+    __enable_interrupt();
 }
 
 int main (void)
@@ -89,12 +92,7 @@ int main (void)
     nOS_ThreadCreate(&threadB, ThreadB, (void*)200, threadBStack, THREAD_STACK_SIZE, THREAD_CALL_STACK_SIZE, NOS_CONFIG_HIGHEST_THREAD_PRIO-1, NOS_THREAD_READY, "ThreadB");
     nOS_ThreadCreate(&threadC, ThreadC, (void*)100, threadCStack, THREAD_STACK_SIZE, THREAD_CALL_STACK_SIZE, NOS_CONFIG_HIGHEST_THREAD_PRIO-2, NOS_THREAD_READY, "ThreadC");
 
-    nOS_Start();
-
-    Timer2Init();
-
-    /* enable all interrupts */
-    __enable_interrupt();
+    nOS_Start(Timer2Init);
 
     while (1) {
         nOS_SemGive(&semC);

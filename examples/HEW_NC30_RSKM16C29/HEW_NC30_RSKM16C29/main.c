@@ -50,7 +50,7 @@ void ThreadC (void *arg)
 	}
 }
 
-void TimerA0_Init(void)
+static void TimerA0_Init(void)
 {
     ta0mr = 0x80;
 	ta0 = 0xFFFFU;
@@ -59,6 +59,9 @@ void TimerA0_Init(void)
     ir_ta0ic = 0;
     
     ta0s = 1;
+
+    asm("FSET I");
+    asm("NOP");
 }
 
 int main (void)
@@ -75,12 +78,7 @@ int main (void)
     nOS_ThreadCreate(&threadB, ThreadB, NULL, stackB, 64, NOS_CONFIG_HIGHEST_THREAD_PRIO-1, NOS_THREAD_READY, "ThreadB");
     nOS_ThreadCreate(&threadC, ThreadC, NULL, stackC, 64, NOS_CONFIG_HIGHEST_THREAD_PRIO-2, NOS_THREAD_READY, "ThreadC");
 
-    nOS_Start();
-
-    TimerA0_Init();
-
-    asm("FSET I");
-    asm("NOP");
+    nOS_Start(TimerA0_Init);
 
     while (1){
         nOS_SemGive(&semC);

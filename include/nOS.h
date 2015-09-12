@@ -466,6 +466,7 @@ extern "C" {
  #undef NOS_CONFIG_ALARM_THREAD_STACK_SIZE
 #endif
 
+typedef void(*nOS_Callback)(void);
 typedef struct nOS_List             nOS_List;
 typedef struct nOS_Node             nOS_Node;
 typedef void(*nOS_NodeHandler)(void*,void*);
@@ -1048,6 +1049,9 @@ nOS_Error       nOS_Init                            (void);
  *                                                                                                                    *
  * Description     : Enable context switching.                                                                        *
  *                                                                                                                    *
+ * Parameters                                                                                                         *
+ *   callback      : Pointer to function to call before starting scheduler.                                           *
+ *                                                                                                                    *
  * Return          : Error code.                                                                                      *
  *   NOS_OK        : Initialization successfully completed.                                                           *
  *   NOS_E_RUNNING : Context switching is already enabled.                                                            *
@@ -1056,7 +1060,7 @@ nOS_Error       nOS_Init                            (void);
  *   1. Call this function when you are ready to enable interrupts and allow context switching.                       *
  *                                                                                                                    *
  **********************************************************************************************************************/
-nOS_Error       nOS_Start                           (void);
+nOS_Error       nOS_Start                           (nOS_Callback callback);
 
 /**********************************************************************************************************************
  *                                                                                                                    *

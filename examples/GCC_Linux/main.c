@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
     nOS_ThreadCreate(&threadB, ThreadB, NULL, &stackB, 0, NOS_CONFIG_HIGHEST_THREAD_PRIO-1, NOS_THREAD_READY, "ThreadB");
     nOS_ThreadCreate(&threadC, ThreadC, NULL, &stackC, 0, NOS_CONFIG_HIGHEST_THREAD_PRIO-2, NOS_THREAD_READY, "ThreadC");
 
-    nOS_Start();
+    nOS_Start(NULL);
 
     while (1) {
         nOS_Print("%s running\n", nOS_ThreadGetName(NULL));

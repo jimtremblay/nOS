@@ -52,7 +52,7 @@ void ThreadC(void *arg)
     }
 }
 
-void TimerInit(void)
+static void TimerInit(void)
 {
     T2CON = 0;
     TMR2 = 0;
@@ -99,9 +99,7 @@ int main(int argc, char** argv)
     nOS_ThreadCreate(&threadB, ThreadB, (void*)200, threadBStack, THREAD_STACK_SIZE, 4, NOS_THREAD_READY, "ThreadB");
     nOS_ThreadCreate(&threadC, ThreadC, (void*)100, threadCStack, THREAD_STACK_SIZE, 3, NOS_THREAD_READY, "ThreadC");
 
-    nOS_Start();
-
-    TimerInit();
+    nOS_Start(TimerInit);
 
     while (1) {
         nOS_SemGive(&semC);

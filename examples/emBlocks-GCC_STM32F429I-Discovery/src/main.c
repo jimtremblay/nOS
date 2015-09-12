@@ -55,6 +55,12 @@ void ThreadC (void *arg)
     }
 }
 
+static void SysTick_Init (void)
+{
+    SystemCoreClockUpdate();
+    SysTick_Config(SystemCoreClock / NOS_CONFIG_TICKS_PER_SECOND);
+}
+
 int main(void)
 {
     // No interrupt should occurs before nOS_Init
@@ -70,10 +76,7 @@ int main(void)
     nOS_ThreadCreate(&threadB, ThreadB, 0, stackB, THREAD_STACK_SIZE, NOS_CONFIG_HIGHEST_THREAD_PRIO-1, NOS_THREAD_READY, "ThreadB");
     nOS_ThreadCreate(&threadC, ThreadC, 0, stackC, THREAD_STACK_SIZE, NOS_CONFIG_HIGHEST_THREAD_PRIO-2, NOS_THREAD_READY, "ThreadC");
 
-    nOS_Start();
-
-    SystemCoreClockUpdate();
-    SysTick_Config(SystemCoreClock / NOS_CONFIG_TICKS_PER_SECOND);
+    nOS_Start(SysTick_Init);
 
     while (1) {
         nOS_SemGive(&semC);

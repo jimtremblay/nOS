@@ -63,10 +63,11 @@ static void* _Scheduler (void *arg)
     pthread_cond_signal(&_schedCond);
 
     /* Wait until scheduler is started */
+    pthread_mutex_unlock(&nOS_criticalSection);
     while (!nOS_running) {
-        pthread_cond_wait(&_schedCond, &nOS_criticalSection);
+        usleep(1000);
     }
-    /* Don't reset _schedRequest, it will be needed in loop */
+    pthread_mutex_lock(&nOS_criticalSection);
 
     while (true) {
         /* Wait until a thread send a scheduling request */

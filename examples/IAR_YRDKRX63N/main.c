@@ -79,6 +79,8 @@ void Timer_Init( void )
 
     /* Start timer */
     CMT.CMSTR0.BIT.STR0 = 1;
+
+    __enable_interrupt();
 }
 
 int main()
@@ -95,11 +97,7 @@ int main()
     nOS_ThreadCreate(&threadB, ThreadB, 0, stackB, THREAD_STACK_SIZE, NOS_CONFIG_HIGHEST_THREAD_PRIO-1, NOS_THREAD_READY, "ThreadB");
     nOS_ThreadCreate(&threadC, ThreadC, 0, stackC, THREAD_STACK_SIZE, NOS_CONFIG_HIGHEST_THREAD_PRIO-2, NOS_THREAD_READY, "ThreadC");
 
-    nOS_Start();
-
-    Timer_Init();
-
-    __enable_interrupt();
+    nOS_Start(Timer_Init);
 
     while (1) {
         nOS_SemGive(&semC);

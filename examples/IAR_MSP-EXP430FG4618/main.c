@@ -48,6 +48,17 @@ void ThreadC (void *arg)
     }
 }
 
+static void Timer_Init (void)
+{
+    BTCTL = BTHOLD|BTDIV|BT_fCLK2_DIV128;
+    BTCNT1 = 0;
+    BTCNT2 = 0;
+    IE2_bit.BTIE = 1;
+    BTCTL &=~ BTHOLD;
+
+    __enable_interrupt();
+}
+
 int main( void )
 {
     // Stop watchdog timer to prevent time out reset
@@ -65,15 +76,7 @@ int main( void )
     nOS_ThreadCreate(&threadB, ThreadB, 0, stackB, THREAD_STACK_SIZE, NOS_CONFIG_HIGHEST_THREAD_PRIO-1, NOS_THREAD_READY, "ThreadB");
     nOS_ThreadCreate(&threadC, ThreadC, 0, stackC, THREAD_STACK_SIZE, NOS_CONFIG_HIGHEST_THREAD_PRIO-2, NOS_THREAD_READY, "ThreadC");
 
-    nOS_Start();
-
-    BTCTL = BTHOLD|BTDIV|BT_fCLK2_DIV128;
-    BTCNT1 = 0;
-    BTCNT2 = 0;
-    IE2_bit.BTIE = 1;
-    BTCTL &=~ BTHOLD;
-
-    __enable_interrupt();
+    nOS_Start(Timer_Init);
 
     while (1) {
         nOS_SemGive(&semC);
