@@ -54,7 +54,7 @@ __attribute__( ( always_inline ) ) static inline uint32_t _GetMSP (void)
 
 __attribute__( ( always_inline ) ) static inline void _SetMSP (uint32_t r)
 {
-    __asm volatile ("MSR MSP, %" :: "r" (r));
+    __asm volatile ("MSR MSP, %0" :: "r" (r));
 }
 
 __attribute__( ( always_inline ) ) static inline uint32_t _GetPSP (void)
