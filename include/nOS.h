@@ -308,6 +308,11 @@ extern "C" {
  #elif (NOS_CONFIG_TIMER_DELETE_ENABLE != 0) && (NOS_CONFIG_TIMER_DELETE_ENABLE != 1)
   #error "nOSConfig.h: NOS_CONFIG_TIMER_DELETE_ENABLE is set to invalid value: must be set to 0 or 1."
  #endif
+ #ifndef NOS_CONFIG_TIMER_HIGHEST_PRIO
+  #error "nOSConfig.h: NOS_CONFIG_TIMER_HIGHEST_PRIO is not defined: must be set between 0 and 7 inclusively."
+ #elif (NOS_CONFIG_TIMER_HIGHEST_PRIO < 0) || (NOS_CONFIG_TIMER_HIGHEST_PRIO > 7)
+  #error "nOSConfig.h: NOS_CONFIG_TIMER_HIGHEST_PRIO is set to invalid value: must be set between 0 and 7 inclusively."
+ #endif
  #ifndef NOS_CONFIG_TIMER_THREAD_ENABLE
   #error "nOSConfig.h: NOS_CONFIG_TIMER_THREAD_ENABLE is not defined: must be set to 0 or 1."
  #elif (NOS_CONFIG_TIMER_THREAD_ENABLE != 0) && (NOS_CONFIG_TIMER_THREAD_ENABLE != 1)
@@ -339,6 +344,7 @@ extern "C" {
 #else
  #undef NOS_CONFIG_TIMER_TICK_ENABLE
  #undef NOS_CONFIG_TIMER_DELETE_ENABLE
+ #undef NOS_CONFIG_TIMER_HIGHEST_PRIO
  #undef NOS_CONFIG_TIMER_THREAD_ENABLE
  #undef NOS_CONFIG_TIMER_THREAD_PRIO
  #undef NOS_CONFIG_TIMER_THREAD_STACK_SIZE
@@ -354,6 +360,11 @@ extern "C" {
   #error "nOSConfig.h: NOS_CONFIG_SIGNAL_DELETE_ENABLE is not defined: must be set to 0 or 1."
  #elif (NOS_CONFIG_SIGNAL_DELETE_ENABLE != 0) && (NOS_CONFIG_SIGNAL_DELETE_ENABLE != 1)
   #error "nOSConfig.h: NOS_CONFIG_SIGNAL_DELETE_ENABLE is set to invalid value: must be set to 0 or 1."
+ #endif
+ #ifndef NOS_CONFIG_SIGNAL_HIGHEST_PRIO
+  #error "nOSConfig.h: NOS_CONFIG_SIGNAL_HIGHEST_PRIO is not defined: must be set between 0 and 7 inclusively."
+ #elif (NOS_CONFIG_SIGNAL_HIGHEST_PRIO < 0) || (NOS_CONFIG_SIGNAL_HIGHEST_PRIO > 7)
+  #error "nOSConfig.h: NOS_CONFIG_SIGNAL_HIGHEST_PRIO is set to invalid value: must be set between 0 and 7 inclusively."
  #endif
  #ifndef NOS_CONFIG_SIGNAL_THREAD_ENABLE
   #error "nOSConfig.h: NOS_CONFIG_SIGNAL_THREAD_ENABLE is not defined: must be set to 0 or 1."
@@ -380,6 +391,7 @@ extern "C" {
  #endif
 #else
  #undef NOS_CONFIG_SIGNAL_DELETE_ENABLE
+ #undef NOS_CONFIG_SIGNAL_HIGHEST_PRIO
  #undef NOS_CONFIG_SIGNAL_THREAD_ENABLE
  #undef NOS_CONFIG_SIGNAL_THREAD_PRIO
  #undef NOS_CONFIG_SIGNAL_THREAD_STACK_SIZE
@@ -867,6 +879,9 @@ struct nOS_Timer
     nOS_TimerCounter    overflow;
     nOS_TimerCallback   callback;
     void                *arg;
+ #if (NOS_CONFIG_TIMER_HIGHEST_PRIO > 0)
+    uint8_t             prio;
+ #endif
     nOS_Node            node;
     nOS_Node            trig;
 };
@@ -878,6 +893,9 @@ struct nOS_Signal
     nOS_SignalState     state;
     nOS_SignalCallback  callback;
     void                *arg;
+#if (NOS_CONFIG_SIGNAL_HIGHEST_PRIO > 0)
+    uint8_t             prio;
+#endif
     nOS_Node            node;
 };
 #endif
@@ -1771,8 +1789,15 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
 #if (NOS_CONFIG_TIMER_ENABLE > 0)
  void           nOS_TimerTick                       (void);
  void           nOS_TimerProcess                    (void);
- nOS_Error      nOS_TimerCreate                     (nOS_Timer *timer, nOS_TimerCallback callback, void *arg,
-                                                     nOS_TimerCounter reload, nOS_TimerMode mode);
+ nOS_Error      nOS_TimerCreate                     (nOS_Timer *timer,
+                                                     nOS_TimerCallback callback,
+                                                     void *arg,
+                                                     nOS_TimerCounter reload,
+                                                     nOS_TimerMode mode
+ #if (NOS_CONFIG_TIMER_HIGHEST_PRIO > 0)
+                                                    ,uint8_t prio
+ #endif
+                                                    );
  #if (NOS_CONFIG_TIMER_DELETE_ENABLE > 0)
   nOS_Error     nOS_TimerDelete                     (nOS_Timer *timer);
  #endif
@@ -1784,12 +1809,20 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
  nOS_Error      nOS_TimerSetReload                  (nOS_Timer *timer, nOS_TimerCounter reload);
  nOS_Error      nOS_TimerSetCallback                (nOS_Timer *timer, nOS_TimerCallback callback, void *arg);
  nOS_Error      nOS_TimerSetMode                    (nOS_Timer *timer, nOS_TimerMode mode);
+ #if (NOS_CONFIG_TIMER_HIGHEST_PRIO > 0)
+  nOS_Error     nOS_TimerSetPrio                    (nOS_Timer *timer, uint8_t prio);
+ #endif
  bool           nOS_TimerIsRunning                  (nOS_Timer *timer);
 #endif
 
 #if (NOS_CONFIG_SIGNAL_ENABLE > 0)
  void           nOS_SignalProcess                   (void);
- nOS_Error      nOS_SignalCreate                    (nOS_Signal *signal, nOS_SignalCallback callback);
+ nOS_Error      nOS_SignalCreate                    (nOS_Signal *signal,
+                                                     nOS_SignalCallback callback
+ #if (NOS_CONFIG_SIGNAL_HIGHEST_PRIO > 0)
+                                                    ,uint8_t prio
+ #endif
+                                                    );
  #if (NOS_CONFIG_SIGNAL_DELETE_ENABLE > 0)
   nOS_Error     nOS_SignalDelete                    (nOS_Signal *signal);
  #endif

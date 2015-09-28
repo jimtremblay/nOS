@@ -339,6 +339,21 @@
 
 /**********************************************************************************************************************
  *                                                                                                                    *
+ * Highest priority a timer can take (0 to 7 inclusively). Set to 0 to disable timer priority with all timers at      *
+ * the same priority.                                                                                                 *
+ *                                                                                                                    *
+ * 0 = Lowest priority                                                                                                *
+ * 7 = Highest priority                                                                                               *
+ *                                                                                                                    *
+ * Notes                                                                                                              *
+ *   1. It is recommenced to set the timer highest priority adjusted to the minimum required by the application to    *
+ *      minimize memory consumed.                                                                                     *
+ *                                                                                                                    *
+ **********************************************************************************************************************/
+#define NOS_CONFIG_TIMER_HIGHEST_PRIO               0
+
+/**********************************************************************************************************************
+ *                                                                                                                    *
  * Enable or disable timer tick from nOS_Tick.                                                                        *
  *                                                                                                                    *
  * Notes                                                                                                              *
@@ -404,6 +419,21 @@
  *                                                                                                                    *
  **********************************************************************************************************************/
 #define NOS_CONFIG_SIGNAL_DELETE_ENABLE             1
+
+/**********************************************************************************************************************
+ *                                                                                                                    *
+ * Highest priority a signal can take (0 to 7 inclusively). Set to 0 to disable signal priority with all signals at   *
+ * the same priority.                                                                                                 *
+ *                                                                                                                    *
+ * 0 = Lowest priority                                                                                                *
+ * 7 = Highest priority                                                                                               *
+ *                                                                                                                    *
+ * Notes                                                                                                              *
+ *   1. It is recommenced to set the signal highest priority adjusted to the minimum required by the application to   *
+ *      minimize memory consumed.                                                                                     *
+ *                                                                                                                    *
+ **********************************************************************************************************************/
+#define NOS_CONFIG_SIGNAL_HIGHEST_PRIO              0
 
 /**********************************************************************************************************************
  *                                                                                                                    *

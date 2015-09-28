@@ -229,7 +229,7 @@ nOS_Error nOS_AlarmSetTime (nOS_Alarm *alarm, nOS_Time time)
 #if (NOS_CONFIG_SAFE > 0)
     if (alarm == NULL) {
         err = NOS_E_INV_OBJ;
-    }
+    } else
 #endif
     {
         nOS_EnterCritical(sr);

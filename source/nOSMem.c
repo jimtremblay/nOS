@@ -28,20 +28,20 @@ nOS_Error nOS_MemCreate (nOS_Mem *mem, void *buffer, nOS_MemSize bsize, nOS_MemC
         err = NOS_E_NULL;
     } else if (bsize < sizeof(void**)) {
         err = NOS_E_INV_VAL;
-    }
+    } else
  #if (NOS_MEM_ALIGNMENT > 1)
   #if (NOS_MEM_POINTER_WIDTH == 8)
-    else if ((uint64_t)buffer % NOS_MEM_ALIGNMENT != 0)
+    if ((uint64_t)buffer % NOS_MEM_ALIGNMENT != 0)
   #elif (NOS_MEM_POINTER_WIDTH == 4)
-    else if ((uint32_t)buffer % NOS_MEM_ALIGNMENT != 0)
+    if ((uint32_t)buffer % NOS_MEM_ALIGNMENT != 0)
   #elif (NOS_MEM_POINTER_WIDTH == 2)
-    else if ((uint16_t)buffer % NOS_MEM_ALIGNMENT != 0)
+    if ((uint16_t)buffer % NOS_MEM_ALIGNMENT != 0)
   #endif
     {
         err = NOS_E_INV_VAL;
-    }
+    } else
  #endif
-    else if (bmax == 0) {
+    if (bmax == 0) {
         err = NOS_E_INV_VAL;
     } else
 #endif
