@@ -238,28 +238,29 @@ nOS_Error nOS_AlarmSetTime (nOS_Alarm *alarm, nOS_Time time)
             err = NOS_E_INV_OBJ;
         } else
 #endif
-        if (time != alarm->time)
         {
-            if (alarm->state & NOS_ALARM_WAITING) {
-                nOS_RemoveFromList(&_waitingList, &alarm->node);
-                alarm->state = (nOS_AlarmState)(alarm->state &~ NOS_ALARM_WAITING);
-            } else if (alarm->state & NOS_ALARM_TRIGGERED) {
-                nOS_RemoveFromList(&_triggeredList, &alarm->node);
-                alarm->state = (nOS_AlarmState)(alarm->state &~ NOS_ALARM_TRIGGERED);
+            if (time != alarm->time) {
+                if (alarm->state & NOS_ALARM_WAITING) {
+                    nOS_RemoveFromList(&_waitingList, &alarm->node);
+                    alarm->state = (nOS_AlarmState)(alarm->state &~ NOS_ALARM_WAITING);
+                } else if (alarm->state & NOS_ALARM_TRIGGERED) {
+                    nOS_RemoveFromList(&_triggeredList, &alarm->node);
+                    alarm->state = (nOS_AlarmState)(alarm->state &~ NOS_ALARM_TRIGGERED);
+                }
+
+                alarm->time     = time;
+
+                if (time <= nOS_TimeGet()) {
+                    alarm->state = (nOS_AlarmState)(alarm->state | NOS_ALARM_TRIGGERED);
+                    nOS_AppendToList(&_triggeredList, &alarm->node);
+                } else {
+                    alarm->state = (nOS_AlarmState)(alarm->state | NOS_ALARM_WAITING);
+                    nOS_AppendToList(&_waitingList, &alarm->node);
+                }
             }
-
-            alarm->time     = time;
-
-            if (time <= nOS_TimeGet()) {
-                alarm->state = (nOS_AlarmState)(alarm->state | NOS_ALARM_TRIGGERED);
-                nOS_AppendToList(&_triggeredList, &alarm->node);
-            } else {
-                alarm->state = (nOS_AlarmState)(alarm->state | NOS_ALARM_WAITING);
-                nOS_AppendToList(&_waitingList, &alarm->node);
-            }
-
             err = NOS_OK;
         }
+
         nOS_LeaveCritical(sr);
     }
 
