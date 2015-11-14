@@ -18,4 +18,4 @@
  * Open source, royalty free
  * Win32 and Linux simulator available
 
-[Documentation](https://github.com/jimtremblay/nOS/blob/master/doc/index.md)
+[Documentation](https://github.com/jimtremblay/nOS/wiki)
