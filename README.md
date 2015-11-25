@@ -1,5 +1,7 @@
 # nOS
 
+[![Join the chat at https://gitter.im/jimtremblay/nOS](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/jimtremblay/nOS?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 ### Features:
  * Preemptive or cooperative scheduling (depending on your configuration)
  * Can be tickless for battery-powered application
