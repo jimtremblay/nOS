@@ -175,11 +175,13 @@ void nOS_TimerTick (void)
 
     nOS_EnterCritical(sr);
     _tickCounter++;
+ #if (NOS_CONFIG_TIMER_THREAD_ENABLE > 0)
     nOS_WalkInList(&_activeList, _Tick, &triggered);
-#if (NOS_CONFIG_TIMER_THREAD_ENABLE > 0)
     if (triggered && (_thread.state == (NOS_THREAD_READY | NOS_THREAD_ON_HOLD))) {
         nOS_WakeUpThread(&_thread, NOS_OK);
     }
+#else
+    nOS_WalkInList(&_activeList, _Tick, NULL);
 #endif
     nOS_LeaveCritical(sr);
 }
