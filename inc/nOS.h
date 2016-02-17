@@ -1056,7 +1056,7 @@ struct nOS_Alarm
  *   NOS_E_INIT : Scheduler already initialized.                                                                      *
  *                                                                                                                    *
  * Notes                                                                                                              *
- *   1. This is the first nOS function that the application should call, else the behaviour is undefined.             *
+ *   1. This is the first nOS function that the application should call, else the behavior is undefined.              *
  *                                                                                                                    *
  **********************************************************************************************************************/
 nOS_Error       nOS_Init                            (void);
@@ -1344,8 +1344,8 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
  * Name              : nOS_ThreadSuspend                                                                              *
  *                                                                                                                    *
  * Description       : Suspend thread and remove it from ready to run list if applicable. Use this function with high *
- *                     care, if thread is holding ressources, it can produce a deadlock if other threads need these   *
- *                     ressources.                                                                                    *
+ *                     care, if thread is holding resources, it can produce a deadlock if other threads need these    *
+ *                     resources.                                                                                     *
  *                                                                                                                    *
  * Parameters                                                                                                         *
  *   thread          : Pointer to nOS_Thread object.                                                                  *
@@ -1431,11 +1431,11 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
  *                                                                                                                    *
  * Return          : Error code.                                                                                      *
  *   NOS_OK        : Semaphore successfully created.                                                                  *
- *   NOS_E_INV_OBJ : Pointer to sempahore object is invalid.                                                          *
+ *   NOS_E_INV_OBJ : Pointer to semaphore object is invalid.                                                          *
  *   NOS_E_INV_VAL : Initial count is higher than defined maximum.                                                    *
  *                                                                                                                    *
  * Notes                                                                                                              *
- *   1. Semaphore object must be created before using it, else the behaviour is undefined.                            *
+ *   1. Semaphore object must be created before using it, else the behavior is undefined.                             *
  *   2. Must be called one time only for each semaphore object.                                                       *
  *                                                                                                                    *
  **********************************************************************************************************************/
@@ -1473,7 +1473,7 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
  *                     NOS_NO_WAIT                 : Don't wait if the semaphore is not available.                    *
  *                     0 > tout < NOS_WAIT_INIFITE : Maximum number of ticks to wait for the semaphore to become      *
  *                                                   available.                                                       *
- *                     NOS_WAIT_INIFINE            : Wait indefinitly until the semaphore become available.           *
+ *                     NOS_WAIT_INIFINE            : Wait indefinitely until the semaphore become available.          *
  *                                                                                                                    *
  * Return          : Error code.                                                                                      *
  *   NOS_OK        : Requested semaphore have been successfully taken.                                                *
@@ -1517,7 +1517,7 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
  *   NOS_E_INV_VAL : Type of mutex is invalid.                                                                        *
  *                                                                                                                    *
  * Notes                                                                                                              *
- *   1. Mutex object must be created before using it, else the behaviour is undefined.                                *
+ *   1. Mutex object must be created before using it, else the behavior is undefined.                                 *
  *   2. Must be called one time only for each mutex object.                                                           *
  *                                                                                                                    *
  **********************************************************************************************************************/
@@ -1563,7 +1563,7 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
  *   NOS_E_INV_OBJ : Pointer to flag object is invalid.                                                               *
  *                                                                                                                    *
  * Notes                                                                                                              *
- *   1. Flag object must be created before using it, else the behaviour is undefined.                                 *
+ *   1. Flag object must be created before using it, else the behavior is undefined.                                  *
  *   2. Must be called one time only for each flag object.                                                            *
  *                                                                                                                    *
  **********************************************************************************************************************/
@@ -1584,8 +1584,8 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
  *   NOS_E_INV_OBJ : Pointer to flag object is invalid.                                                               *
  *                                                                                                                    *
  * Notes                                                                                                              *
- *   1. Flag object must be created before, else the behaviour is undefined.                                          *
- *   2. Flag object must not be used after deletion, else the behaviour is undefined.                                 *
+ *   1. Flag object must be created before, else the behavior is undefined.                                           *
+ *   2. Flag object must not be used after deletion, else the behavior is undefined.                                  *
  *                                                                                                                    *
  **********************************************************************************************************************/
   nOS_Error     nOS_FlagDelete                      (nOS_Flag *flag);
@@ -1614,7 +1614,7 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
  *   tout          : Timeout value.                                                                                   *
  *                     NOS_NO_WAIT                 : Don't wait if flags are not set.                                 *
  *                     0 > tout < NOS_WAIT_INIFITE : Maximum number of ticks to wait for flags to be set.             *
- *                     NOS_WAIT_INIFINE            : Wait indefinitly until flags are set.                            *
+ *                     NOS_WAIT_INIFINE            : Wait indefinitely until flags are set.                           *
  *                                                                                                                    *
  * Return          : Error code.                                                                                      *
  *   NOS_OK        : Requested flags have been set in required time.                                                  *
@@ -1638,7 +1638,7 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
  *                                                                                                                    *
  * Name            : nOS_FlagSend                                                                                     *
  *                                                                                                                    *
- * Description     : Set/clear given flags in flag object. Many flags can be set/clear atomically. Just sended flags  *
+ * Description     : Set/clear given flags in flag object. Many flags can be set/clear atomically. Just sent flags    *
  *                   can be clear immediately if waiting threads had requested NOS_FLAG_CLEAR_ON_EXIT.                *
  *                                                                                                                    *
  * Parameters                                                                                                         *
@@ -1648,7 +1648,7 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
  *                   cleared. If corresponding bit in flags is 1, this bit will be set.                               *
  *                                                                                                                    *
  * Return          : Error code.                                                                                      *
- *   NOS_OK        : Flags successfully sended.                                                                       *
+ *   NOS_OK        : Flags successfully sent.                                                                         *
  *   NOS_E_INV_OBJ : Pointer to flag object is invalid.                                                               *
  *                                                                                                                    *
  **********************************************************************************************************************/
@@ -1683,7 +1683,7 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
  *   2. buffer can't be shared between different mem object.                                                          *
  *   3. Shall be large enough to keep a generic pointer (void*) on target platform.                                   *
  *   4. Shall be higher than 0.                                                                                       *
- *   5. Mem object must be created before using it, otherwise the behaviour is undefined.                             *
+ *   5. Mem object must be created before using it, otherwise the behavior is undefined.                              *
  *   6. Must be called one time only for each mem object.                                                             *
  *                                                                                                                    *
  **********************************************************************************************************************/
@@ -1704,10 +1704,10 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
  *                                                                                                                    *
  * Parameters                                                                                                         *
  *   mem       : Pointer to mem object.                                                                               *
- *   tout      : Timeout value.                                                                                       *
+ *   timeout   : Timeout value.                                                                                       *
  *                 NOS_NO_WAIT                 : Don't wait if no blocks available.                                   *
  *                 0 > tout < NOS_WAIT_INIFITE : Maximum number of ticks to wait until a block became available.      *
- *                 NOS_WAIT_INIFINE            : Wait indefinitly until a block became available.                     *
+ *                 NOS_WAIT_INIFINE            : Wait indefinitely until a block became available.                    *
  *                                                                                                                    *
  * Return      : Pointer to allocated block of memory.                                                                *
  *   == NULL   : No block available.                                                                                  *
