@@ -1470,10 +1470,10 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
  * Parameters                                                                                                         *
  *   sem           : Pointer to semaphore object.                                                                     *
  *   tout          : Timeout value.                                                                                   *
- *                     NOS_NO_WAIT                 : Don't wait if the semaphore is not available.                    *
- *                     0 > tout < NOS_WAIT_INIFITE : Maximum number of ticks to wait for the semaphore to become      *
- *                                                   available.                                                       *
- *                     NOS_WAIT_INIFINE            : Wait indefinitely until the semaphore become available.          *
+ *                     NOS_NO_WAIT                  : Don't wait if the semaphore is not available.                   *
+ *                     0 > tout < NOS_WAIT_INFINITE : Maximum number of ticks to wait for the semaphore to become     *
+ *                                                    available.                                                      *
+ *                     NOS_WAIT_INFINITE            : Wait indefinitely until the semaphore become available.         *
  *                                                                                                                    *
  * Return          : Error code.                                                                                      *
  *   NOS_OK        : Requested semaphore have been successfully taken.                                                *
@@ -1612,9 +1612,9 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
  *                     NOS_FLAG_CLEAR_ON_EXIT : Clear awoken flags.                                                   *
  *                       See note 2                                                                                   *
  *   tout          : Timeout value.                                                                                   *
- *                     NOS_NO_WAIT                 : Don't wait if flags are not set.                                 *
- *                     0 > tout < NOS_WAIT_INIFITE : Maximum number of ticks to wait for flags to be set.             *
- *                     NOS_WAIT_INIFINE            : Wait indefinitely until flags are set.                           *
+ *                     NOS_NO_WAIT                  : Don't wait if flags are not set.                                *
+ *                     0 > tout < NOS_WAIT_INFINITE : Maximum number of ticks to wait for flags to be set.            *
+ *                     NOS_WAIT_INFINITE            : Wait indefinitely until flags are set.                          *
  *                                                                                                                    *
  * Return          : Error code.                                                                                      *
  *   NOS_OK        : Requested flags have been set in required time.                                                  *
@@ -1705,9 +1705,9 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
  * Parameters                                                                                                         *
  *   mem       : Pointer to mem object.                                                                               *
  *   timeout   : Timeout value.                                                                                       *
- *                 NOS_NO_WAIT                 : Don't wait if no blocks available.                                   *
- *                 0 > tout < NOS_WAIT_INIFITE : Maximum number of ticks to wait until a block became available.      *
- *                 NOS_WAIT_INIFINE            : Wait indefinitely until a block became available.                    *
+ *                 NOS_NO_WAIT                  : Don't wait if no blocks available.                                  *
+ *                 0 > tout < NOS_WAIT_INFINITE : Maximum number of ticks to wait until a block became available.     *
+ *                 NOS_WAIT_INFINITE            : Wait indefinitely until a block became available.                   *
  *                                                                                                                    *
  * Return      : Pointer to allocated block of memory.                                                                *
  *   == NULL   : No block available.                                                                                  *
