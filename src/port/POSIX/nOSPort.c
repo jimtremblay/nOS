@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2015 Jim Tremblay
+ * Copyright (c) 2014-2016 Jim Tremblay
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -77,7 +77,13 @@ static void* _Scheduler (void *arg)
         _schedRequest = false;
 
         /* Find next high prio thread and give him permission to run */
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO == 0)
+        nOS_highPrioThread = nOS_GetHeadOfList(&nOS_readyThreadsList);
+#elif (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
         nOS_highPrioThread = nOS_FindHighPrioThread();
+#else
+        nOS_highPrioThread = nOS_GetHeadOfList(&nOS_readyThreadsList[nOS_runningThread->prio]);
+#endif
         nOS_runningThread = nOS_highPrioThread;
         nOS_highPrioThread->stackPtr->running = true;
         pthread_cond_signal(&nOS_highPrioThread->stackPtr->cond);

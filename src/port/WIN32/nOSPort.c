@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2015 Jim Tremblay
+ * Copyright (c) 2014-2016 Jim Tremblay
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -90,8 +90,14 @@ static DWORD WINAPI _SysTick (LPVOID lpParameter)
 
         nOS_Tick();
 
-#if (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
+#if (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0) || (NOS_CONFIG_SCHED_ROUND_ROBIN_ENABLE > 0)
+ #if (NOS_CONFIG_HIGHEST_THREAD_PRIO == 0)
+        nOS_highPrioThread = nOS_GetHeadOfList(&nOS_readyThreadsList);
+ #elif (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
         nOS_highPrioThread = nOS_FindHighPrioThread();
+ #else
+        nOS_highPrioThread = nOS_GetHeadOfList(&nOS_readyThreadsList[nOS_runningThread->prio]);
+ #endif
         if (nOS_runningThread != nOS_highPrioThread) {
             SetEvent(_hSchedRequest);
         }

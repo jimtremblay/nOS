@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2015 Jim Tremblay
+ * Copyright (c) 2014-2016 Jim Tremblay
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -503,7 +503,7 @@ nOS_Error nOS_Start(nOS_Callback callback)
 
         err = NOS_OK;
     }
-    
+
     return err;
 }
 
@@ -542,7 +542,7 @@ void nOS_Tick(void)
     nOS_EnterCritical(sr);
     nOS_tickCounter++;
     nOS_WalkInList(&nOS_timeoutThreadsList, nOS_TickThread, NULL);
-#if (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0) && (NOS_CONFIG_SCHED_ROUND_ROBIN_ENABLE > 0)
+#if (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0) || (NOS_CONFIG_SCHED_ROUND_ROBIN_ENABLE > 0)
  #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
     nOS_RotateList(&nOS_readyThreadsList[nOS_runningThread->prio]);
  #else

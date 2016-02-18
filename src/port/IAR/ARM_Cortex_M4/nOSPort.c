@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2015 Jim Tremblay
+ * Copyright (c) 2014-2016 Jim Tremblay
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -123,13 +123,19 @@ void nOS_LeaveIsr (void)
     {
         nOS_EnterCritical(sr);
         nOS_isrNestingCounter--;
-#if (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
+#if (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0) || (NOS_CONFIG_SCHED_ROUND_ROBIN_ENABLE > 0)
         if (nOS_isrNestingCounter == 0) {
  #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
             if (nOS_lockNestingCounter == 0)
  #endif
             {
+ #if (NOS_CONFIG_HIGHEST_THREAD_PRIO == 0)
+                nOS_highPrioThread = nOS_GetHeadOfList(&nOS_readyThreadsList);
+ #elif (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
                 nOS_highPrioThread = nOS_FindHighPrioThread();
+ #else
+                nOS_highPrioThread = nOS_GetHeadOfList(&nOS_readyThreadsList[nOS_runningThread->prio]);
+ #endif
                 if (nOS_runningThread != nOS_highPrioThread) {
                     *(volatile uint32_t *)0xE000ED04UL = 0x10000000UL;
                 }
