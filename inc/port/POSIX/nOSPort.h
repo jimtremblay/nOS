@@ -50,9 +50,10 @@ typedef uint32_t                            nOS_StatusReg;
 #define nOS_EnterCritical(sr)                                                   \
     do {                                                                        \
         NOS_UNUSED(sr);                                                         \
-        if (nOS_criticalNestingCounter == 0) {                                  \
+        pthread_mutex_lock(&nOS_criticalSection);                               \
+        if (nOS_criticalNestingCounter > 0) {                                   \
             /* Lock mutex only one time */                                      \
-            pthread_mutex_lock(&nOS_criticalSection);                           \
+            pthread_mutex_unlock(&nOS_criticalSection);                         \
         }                                                                       \
         nOS_criticalNestingCounter++;                                           \
     } while (0)
