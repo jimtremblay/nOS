@@ -542,7 +542,7 @@ void nOS_Tick(void)
     nOS_EnterCritical(sr);
     nOS_tickCounter++;
     nOS_WalkInList(&nOS_timeoutThreadsList, nOS_TickThread, NULL);
-#if (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0) || (NOS_CONFIG_SCHED_ROUND_ROBIN_ENABLE > 0)
+#if (NOS_CONFIG_SCHED_ROUND_ROBIN_ENABLE > 0)
  #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
     nOS_RotateList(&nOS_readyThreadsList[nOS_runningThread->prio]);
  #else
