@@ -287,6 +287,7 @@ nOS_Error nOS_ThreadDelete (nOS_Thread *thread)
 }
 #endif
 
+#if (NOS_CONFIG_THREAD_ABORT_ENABLE > 0)
 nOS_Error nOS_ThreadAbort (nOS_Thread *thread)
 {
     nOS_Error       err;
@@ -327,6 +328,7 @@ nOS_Error nOS_ThreadAbort (nOS_Thread *thread)
 
     return err;
 }
+#endif
 
 #if (NOS_CONFIG_THREAD_SUSPEND_ENABLE > 0)
 nOS_Error nOS_ThreadSuspend (nOS_Thread *thread)

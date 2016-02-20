@@ -1469,7 +1469,7 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
  *                                                                                                                    *
  * Parameters                                                                                                         *
  *   sem           : Pointer to semaphore object.                                                                     *
- *   tout          : Timeout value.                                                                                   *
+ *   timeout       : Timeout value.                                                                                   *
  *                     NOS_NO_WAIT                  : Don't wait if the semaphore is not available.                   *
  *                     0 > tout < NOS_WAIT_INFINITE : Maximum number of ticks to wait for the semaphore to become     *
  *                                                    available.                                                      *
@@ -1611,7 +1611,7 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
  *                   Altering options.                                                                                *
  *                     NOS_FLAG_CLEAR_ON_EXIT : Clear awoken flags.                                                   *
  *                       See note 2                                                                                   *
- *   tout          : Timeout value.                                                                                   *
+ *   timeout       : Timeout value.                                                                                   *
  *                     NOS_NO_WAIT                  : Don't wait if flags are not set.                                *
  *                     0 > tout < NOS_WAIT_INFINITE : Maximum number of ticks to wait for flags to be set.            *
  *                     NOS_WAIT_INFINITE            : Wait indefinitely until flags are set.                          *
