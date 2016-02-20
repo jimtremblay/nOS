@@ -438,7 +438,9 @@ nOS_Error nOS_Init(void)
 #else
         nOS_InitList(&nOS_readyThreadsList);
 #endif
+#if (NOS_CONFIG_WAITING_TIMEOUT_ENABLE > 0) || (NOS_CONFIG_SLEEP_ENABLE > 0) || (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
         nOS_InitList(&nOS_timeoutThreadsList);
+#endif
 #if (NOS_CONFIG_THREAD_SUSPEND_ALL_ENABLE > 0)
         nOS_InitList(&nOS_allThreadsList);
 #endif
@@ -447,7 +449,9 @@ nOS_Error nOS_Init(void)
         nOS_idleHandle.prio = NOS_THREAD_PRIO_IDLE;
 #endif
         nOS_idleHandle.state = NOS_THREAD_READY;
+#if (NOS_CONFIG_WAITING_TIMEOUT_ENABLE > 0) || (NOS_CONFIG_SLEEP_ENABLE > 0) || (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
         nOS_idleHandle.timeout = 0;
+#endif
         nOS_idleHandle.readyWait.payload = &nOS_idleHandle;
         nOS_AppendThreadToReadyList(&nOS_idleHandle);
         nOS_runningThread = &nOS_idleHandle;
@@ -541,7 +545,9 @@ void nOS_Tick(void)
 
     nOS_EnterCritical(sr);
     nOS_tickCounter++;
+#if (NOS_CONFIG_WAITING_TIMEOUT_ENABLE > 0) || (NOS_CONFIG_SLEEP_ENABLE > 0) || (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
     nOS_WalkInList(&nOS_timeoutThreadsList, nOS_TickThread, NULL);
+#endif
 #if (NOS_CONFIG_SCHED_ROUND_ROBIN_ENABLE > 0)
  #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
     nOS_RotateList(&nOS_readyThreadsList[nOS_runningThread->prio]);

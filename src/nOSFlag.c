@@ -171,7 +171,16 @@ nOS_Error nOS_FlagWait (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits *res,
                 ctx.rflags  = &r;
                 nOS_runningThread->ext = &ctx;
 
-                err = nOS_WaitForEvent((nOS_Event*)flag, NOS_THREAD_WAITING_FLAG, timeout);
+                err = nOS_WaitForEvent((nOS_Event*)flag,
+                                       NOS_THREAD_WAITING_FLAG
+#if (NOS_CONFIG_WAITING_TIMEOUT_ENABLE > 0) || (NOS_CONFIG_SLEEP_ENABLE > 0) || (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
+ #if (NOS_CONFIG_WAITING_TIMEOUT_ENABLE > 0)
+                                      ,timeout
+ #else
+                                      ,NOS_WAIT_INFINITE
+ #endif
+#endif
+                                      );
             }
         }
         nOS_LeaveCritical(sr);

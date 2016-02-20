@@ -127,7 +127,16 @@ nOS_Error nOS_SemTake (nOS_Sem *sem, nOS_TickCounter timeout)
                 err = NOS_E_IDLE;
             } else {
                 /* Calling thread must wait on sem. */
-                err = nOS_WaitForEvent((nOS_Event*)sem, NOS_THREAD_TAKING_SEM, timeout);
+                err = nOS_WaitForEvent((nOS_Event*)sem,
+                                       NOS_THREAD_TAKING_SEM
+#if (NOS_CONFIG_WAITING_TIMEOUT_ENABLE > 0) || (NOS_CONFIG_SLEEP_ENABLE > 0) || (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
+ #if (NOS_CONFIG_WAITING_TIMEOUT_ENABLE > 0)
+                                      ,timeout
+ #else
+                                      ,NOS_WAIT_INFINITE
+ #endif
+#endif
+                                      );
             }
         }
         nOS_LeaveCritical(sr);

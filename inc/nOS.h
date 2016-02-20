@@ -775,7 +775,9 @@ struct nOS_Thread
 #endif
     nOS_Error           error;
     nOS_ThreadState     state;
+#if (NOS_CONFIG_WAITING_TIMEOUT_ENABLE > 0) || (NOS_CONFIG_SLEEP_ENABLE > 0) || (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
     nOS_TickCounter     timeout;
+#endif
     nOS_Event           *event;
     void                *ext;
 #if (NOS_CONFIG_THREAD_NAME_ENABLE > 0)
@@ -783,7 +785,9 @@ struct nOS_Thread
 #endif
 
     nOS_Node            readyWait;
+#if (NOS_CONFIG_WAITING_TIMEOUT_ENABLE > 0) || (NOS_CONFIG_SLEEP_ENABLE > 0) || (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
     nOS_Node            tout;
+#endif
 #if (NOS_CONFIG_THREAD_SUSPEND_ALL_ENABLE > 0)
     nOS_Node            node;
 #endif
@@ -986,7 +990,9 @@ struct nOS_Alarm
  #else
   NOS_EXTERN nOS_List       nOS_readyThreadsList;
  #endif
- NOS_EXTERN nOS_List        nOS_timeoutThreadsList;
+ #if (NOS_CONFIG_WAITING_TIMEOUT_ENABLE > 0) || (NOS_CONFIG_SLEEP_ENABLE > 0) || (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
+  NOS_EXTERN nOS_List        nOS_timeoutThreadsList;
+ #endif
  #if (NOS_CONFIG_THREAD_SUSPEND_ALL_ENABLE > 0)
   NOS_EXTERN nOS_List       nOS_allThreadsList;
  #endif
@@ -1025,7 +1031,12 @@ struct nOS_Alarm
  #else
   void          nOS_DeleteEvent                     (nOS_Event *event);
  #endif
- nOS_Error      nOS_WaitForEvent                    (nOS_Event *event, nOS_ThreadState state, nOS_TickCounter timeout);
+ nOS_Error      nOS_WaitForEvent                    (nOS_Event *event,
+                                                     nOS_ThreadState state
+ #if (NOS_CONFIG_WAITING_TIMEOUT_ENABLE > 0) || (NOS_CONFIG_SLEEP_ENABLE > 0) || (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
+                                                    ,nOS_TickCounter timeout
+ #endif
+                                                    );
  nOS_Thread*    nOS_SendEvent                       (nOS_Event *event, nOS_Error err);
 
  #if (NOS_CONFIG_TIMER_ENABLE > 0)
@@ -1464,16 +1475,16 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
  * Name            : nOS_SemTake                                                                                      *
  *                                                                                                                    *
  * Description     : Take semaphore pointed by object pointer. If not available, calling thread will be placed        *
- *                   event's waiting list for number of ticks specified by tout. If semaphore is not available in     *
+ *                   event's waiting list for number of ticks specified by timeout. If semaphore is not available in  *
  *                   required time, an error will be returned and semaphore will be left unchanged.                   *
  *                                                                                                                    *
  * Parameters                                                                                                         *
  *   sem           : Pointer to semaphore object.                                                                     *
  *   timeout       : Timeout value.                                                                                   *
- *                     NOS_NO_WAIT                  : Don't wait if the semaphore is not available.                   *
- *                     0 > tout < NOS_WAIT_INFINITE : Maximum number of ticks to wait for the semaphore to become     *
- *                                                    available.                                                      *
- *                     NOS_WAIT_INFINITE            : Wait indefinitely until the semaphore become available.         *
+ *                     NOS_NO_WAIT                     : Don't wait if the semaphore is not available.                *
+ *                     0 > timeout < NOS_WAIT_INFINITE : Maximum number of ticks to wait for the semaphore to become  *
+ *                                                       available.                                                   *
+ *                     NOS_WAIT_INFINITE               : Wait indefinitely until the semaphore become available.      *
  *                                                                                                                    *
  * Return          : Error code.                                                                                      *
  *   NOS_OK        : Requested semaphore have been successfully taken.                                                *
@@ -1596,7 +1607,7 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
  * Name            : nOS_FlagWait                                                                                     *
  *                                                                                                                    *
  * Description     : Wait on flag object for given flags. If flags are NOT set, calling thread will be placed in      *
- *                   event's waiting list for number of ticks specified by tout. If flags are set before end of       *
+ *                   event's waiting list for number of ticks specified by timeout. If flags are set before end of    *
  *                   timeout, res will contain flags that have awoken the thread. If caller specify                   *
  *                   NOS_FLAG_CLEAR_ON_EXIT, only awoken flags will be cleared.                                       *
  *                                                                                                                    *
@@ -1612,9 +1623,9 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
  *                     NOS_FLAG_CLEAR_ON_EXIT : Clear awoken flags.                                                   *
  *                       See note 2                                                                                   *
  *   timeout       : Timeout value.                                                                                   *
- *                     NOS_NO_WAIT                  : Don't wait if flags are not set.                                *
- *                     0 > tout < NOS_WAIT_INFINITE : Maximum number of ticks to wait for flags to be set.            *
- *                     NOS_WAIT_INFINITE            : Wait indefinitely until flags are set.                          *
+ *                     NOS_NO_WAIT                     : Don't wait if flags are not set.                             *
+ *                     0 > timeout < NOS_WAIT_INFINITE : Maximum number of ticks to wait for flags to be set.         *
+ *                     NOS_WAIT_INFINITE               : Wait indefinitely until flags are set.                       *
  *                                                                                                                    *
  * Return          : Error code.                                                                                      *
  *   NOS_OK        : Requested flags have been set in required time.                                                  *
@@ -1699,15 +1710,15 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
  *                                                                                                                    *
  * Description : Try to take one block from memory array of mem. If no block available, calling thread will be        *
  *               removed from list of ready to run threads and be placed in list of waiting threads for number of     *
- *               ticks specified by tout. If a block of memory is freed before end of timeout, thread will be awoken  *
- *               and pointer to memory block will be returned.                                                        *
+ *               ticks specified by timeout. If a block of memory is freed before end of timeout, thread will be      *
+ *               awoken and pointer to memory block will be returned.                                                 *
  *                                                                                                                    *
  * Parameters                                                                                                         *
  *   mem       : Pointer to mem object.                                                                               *
  *   timeout   : Timeout value.                                                                                       *
- *                 NOS_NO_WAIT                  : Don't wait if no blocks available.                                  *
- *                 0 > tout < NOS_WAIT_INFINITE : Maximum number of ticks to wait until a block became available.     *
- *                 NOS_WAIT_INFINITE            : Wait indefinitely until a block became available.                   *
+ *                 NOS_NO_WAIT                     : Don't wait if no blocks available.                               *
+ *                 0 > timeout < NOS_WAIT_INFINITE : Maximum number of ticks to wait until a block became available.  *
+ *                 NOS_WAIT_INFINITE               : Wait indefinitely until a block became available.                *
  *                                                                                                                    *
  * Return      : Pointer to allocated block of memory.                                                                *
  *   == NULL   : No block available.                                                                                  *

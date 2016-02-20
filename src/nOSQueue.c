@@ -165,7 +165,16 @@ nOS_Error nOS_QueueRead (nOS_Queue *queue, void *block, nOS_TickCounter timeout)
             }
             else {
                 nOS_runningThread->ext = block;
-                err = nOS_WaitForEvent((nOS_Event*)queue, NOS_THREAD_READING_QUEUE, timeout);
+                err = nOS_WaitForEvent((nOS_Event*)queue,
+                                       NOS_THREAD_READING_QUEUE
+#if (NOS_CONFIG_WAITING_TIMEOUT_ENABLE > 0) || (NOS_CONFIG_SLEEP_ENABLE > 0) || (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
+ #if (NOS_CONFIG_WAITING_TIMEOUT_ENABLE > 0)
+                                      ,timeout
+ #else
+                                      ,NOS_WAIT_INFINITE
+ #endif
+#endif
+                                      );
             }
         }
         nOS_LeaveCritical(sr);
@@ -235,7 +244,16 @@ nOS_Error nOS_QueueWrite (nOS_Queue *queue, void *block, nOS_TickCounter timeout
                 err = NOS_E_IDLE;
             } else {
                 nOS_runningThread->ext = block;
-                err = nOS_WaitForEvent((nOS_Event*)queue, NOS_THREAD_WRITING_QUEUE, timeout);
+                err = nOS_WaitForEvent((nOS_Event*)queue,
+                                       NOS_THREAD_WRITING_QUEUE
+#if (NOS_CONFIG_WAITING_TIMEOUT_ENABLE > 0) || (NOS_CONFIG_SLEEP_ENABLE > 0) || (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
+ #if (NOS_CONFIG_WAITING_TIMEOUT_ENABLE > 0)
+                                      ,timeout
+ #else
+                                      ,NOS_WAIT_INFINITE
+ #endif
+#endif
+                                      );
             }
         }
         nOS_LeaveCritical(sr);

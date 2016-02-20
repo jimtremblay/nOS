@@ -93,7 +93,12 @@ static void _Thread (void *arg)
 
         nOS_EnterCritical(sr);
         if (_FindHighestPrio() == NULL) {
-            nOS_WaitForEvent(NULL, NOS_THREAD_ON_HOLD, NOS_WAIT_INFINITE);
+            nOS_WaitForEvent(NULL,
+                             NOS_THREAD_ON_HOLD
+#if (NOS_CONFIG_WAITING_TIMEOUT_ENABLE > 0) || (NOS_CONFIG_SLEEP_ENABLE > 0) || (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
+                            ,NOS_WAIT_INFINITE
+#endif
+                            );
         }
         nOS_LeaveCritical(sr);
     }

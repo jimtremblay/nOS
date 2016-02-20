@@ -161,6 +161,16 @@
 
 /**********************************************************************************************************************
  *                                                                                                                    *
+ * Enable or disable variable timeout when thread trying to take sem, lock mutex, wait on flags, ...                  *
+ *                                                                                                                    *
+ * Notes                                                                                                              *
+ *   1. If disabled, everything other than NOS_NO_WAIT for timeout is equivalent to NOS_WAIT_INFINITE.                *
+ *                                                                                                                    *
+ **********************************************************************************************************************/
+#define NOS_CONFIG_WAITING_TIMEOUT_ENABLE           1
+
+/**********************************************************************************************************************
+ *                                                                                                                    *
  * Enable or disable semaphore.                                                                                       *
  *                                                                                                                    *
  * Notes                                                                                                              *

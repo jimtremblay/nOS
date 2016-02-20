@@ -55,26 +55,31 @@ static void _ResumeThread (void *payload, void *arg)
 }
 #endif
 
+#if (NOS_CONFIG_WAITING_TIMEOUT_ENABLE > 0) || (NOS_CONFIG_SLEEP_ENABLE > 0) || (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
 void nOS_TickThread (void *payload, void *arg)
 {
     nOS_Thread      *thread = (nOS_Thread*)payload;
     nOS_ThreadState state = (thread->state & NOS_THREAD_WAITING_MASK);
+    nOS_Error       err = NOS_E_TIMEOUT;
 
     /* Avoid warning */
     NOS_UNUSED(arg);
 
     if (thread->timeout == nOS_tickCounter) {
-        if ((state == NOS_THREAD_SLEEPING)
-#if (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
-            || (state == NOS_THREAD_SLEEPING_UNTIL)
-#endif
-        ) {
-            nOS_WakeUpThread(thread, NOS_OK);
-        } else {
-            nOS_WakeUpThread(thread, NOS_E_TIMEOUT);
+#if (NOS_CONFIG_SLEEP_ENABLE > 0)
+        if (state == NOS_THREAD_SLEEPING) {
+            err = NOS_OK;
         }
+#endif
+#if (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
+        if (state == NOS_THREAD_SLEEPING_UNTIL) {
+            err = NOS_OK;
+        }
+#endif
+        nOS_WakeUpThread(thread, err);
     }
 }
+#endif
 
 void nOS_WakeUpThread (nOS_Thread *thread, nOS_Error err)
 {
@@ -83,10 +88,12 @@ void nOS_WakeUpThread (nOS_Thread *thread, nOS_Error err)
     }
     thread->error = err;
     thread->state = (nOS_ThreadState)(thread->state &~ NOS_THREAD_WAITING_MASK);
+#if (NOS_CONFIG_WAITING_TIMEOUT_ENABLE > 0) || (NOS_CONFIG_SLEEP_ENABLE > 0) || (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
     if (thread->state & NOS_THREAD_WAIT_TIMEOUT) {
         thread->state = (nOS_ThreadState)(thread->state &~ NOS_THREAD_WAIT_TIMEOUT);
         nOS_RemoveFromList(&nOS_timeoutThreadsList, &thread->tout);
     }
+#endif
     if (thread->state == NOS_THREAD_READY) {
         nOS_AppendThreadToReadyList(thread);
     }
@@ -182,7 +189,6 @@ nOS_Error nOS_ThreadCreate (nOS_Thread *thread,
                 thread->state = (nOS_ThreadState)(thread->state | NOS_THREAD_SUSPENDED);
             }
 #endif
-            thread->timeout = 0;
             thread->event = NULL;
             thread->ext = NULL;
 #if (NOS_CONFIG_THREAD_NAME_ENABLE > 0)
@@ -190,7 +196,10 @@ nOS_Error nOS_ThreadCreate (nOS_Thread *thread,
 #endif
             thread->error = NOS_OK;
             thread->readyWait.payload = thread;
+#if (NOS_CONFIG_WAITING_TIMEOUT_ENABLE > 0) || (NOS_CONFIG_SLEEP_ENABLE > 0) || (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
             thread->tout.payload = thread;
+            thread->timeout = 0;
+#endif
 #if (NOS_CONFIG_THREAD_SUSPEND_ALL_ENABLE > 0)
             thread->node.payload = thread;
             nOS_AppendToList(&nOS_allThreadsList, &thread->node);
@@ -266,14 +275,18 @@ nOS_Error nOS_ThreadDelete (nOS_Thread *thread)
                 if (thread->event != NULL) {
                     nOS_RemoveFromList(&thread->event->waitList, &thread->readyWait);
                 }
+#if (NOS_CONFIG_WAITING_TIMEOUT_ENABLE > 0) || (NOS_CONFIG_SLEEP_ENABLE > 0) || (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
                 if (thread->state & NOS_THREAD_WAIT_TIMEOUT) {
                     nOS_RemoveFromList(&nOS_timeoutThreadsList, &thread->tout);
                 }
+#endif
             }
             thread->state   = NOS_THREAD_STOPPED;
             thread->event   = NULL;
             thread->ext     = NULL;
+#if (NOS_CONFIG_WAITING_TIMEOUT_ENABLE > 0) || (NOS_CONFIG_SLEEP_ENABLE > 0) || (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
             thread->timeout = 0;
+#endif
             thread->error   = NOS_OK;
             if (thread == nOS_runningThread) {
                 /* Will never return */

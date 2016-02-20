@@ -171,7 +171,12 @@ nOS_Error nOS_TimeWait (nOS_Time time)
             err = NOS_OK;
         } else {
             nOS_runningThread->ext = (void*)&time;
-            err = nOS_WaitForEvent(&_event, NOS_THREAD_WAITING_TIME, NOS_WAIT_INFINITE);
+            err = nOS_WaitForEvent(&_event,
+                                   NOS_THREAD_WAITING_TIME
+#if (NOS_CONFIG_WAITING_TIMEOUT_ENABLE > 0) || (NOS_CONFIG_SLEEP_ENABLE > 0) || (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
+                                  ,NOS_WAIT_INFINITE
+#endif
+                                  );
         }
         nOS_LeaveCritical(sr);
     }

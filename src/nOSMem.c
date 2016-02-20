@@ -167,7 +167,16 @@ void *nOS_MemAlloc(nOS_Mem *mem, nOS_TickCounter timeout)
                 block = NULL;
             } else {
                 nOS_runningThread->ext = (void*)&block;
-                nOS_WaitForEvent((nOS_Event*)mem, NOS_THREAD_ALLOC_MEM, timeout);
+                nOS_WaitForEvent((nOS_Event*)mem,
+                                 NOS_THREAD_ALLOC_MEM
+#if (NOS_CONFIG_WAITING_TIMEOUT_ENABLE > 0) || (NOS_CONFIG_SLEEP_ENABLE > 0) || (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
+ #if (NOS_CONFIG_WAITING_TIMEOUT_ENABLE > 0)
+                                ,timeout
+ #else
+                                ,NOS_WAIT_INFINITE
+ #endif
+#endif
+                                );
             }
         }
         nOS_LeaveCritical(sr);

@@ -176,7 +176,16 @@ nOS_Error nOS_MutexLock (nOS_Mutex *mutex, nOS_TickCounter timeout)
                     }
                 }
     #endif
-                err = nOS_WaitForEvent((nOS_Event*)mutex, NOS_THREAD_LOCKING_MUTEX, timeout);
+                err = nOS_WaitForEvent((nOS_Event*)mutex,
+                                       NOS_THREAD_LOCKING_MUTEX
+#if (NOS_CONFIG_WAITING_TIMEOUT_ENABLE > 0) || (NOS_CONFIG_SLEEP_ENABLE > 0) || (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
+ #if (NOS_CONFIG_WAITING_TIMEOUT_ENABLE > 0)
+                                      ,timeout
+ #else
+                                      ,NOS_WAIT_INFINITE
+ #endif
+#endif
+                                      );
             }
         }
         nOS_LeaveCritical(sr);
