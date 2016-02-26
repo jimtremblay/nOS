@@ -114,7 +114,11 @@ static void _Thread (void *arg)
 static void _Tick (void *payload, void *arg)
 {
     nOS_Timer   *timer      = (nOS_Timer *)payload;
+#if (NOS_CONFIG_TIMER_THREAD_ENABLE > 0)
     bool        *triggered  = (bool*)arg;
+#else
+    NOS_UNUSED(arg);
+#endif
 
     if (timer->count == _tickCounter) {
         if (((nOS_TimerMode)timer->state & NOS_TIMER_MODE) == NOS_TIMER_FREE_RUNNING) {
@@ -129,7 +133,9 @@ static void _Tick (void *payload, void *arg)
             _AppendToTriggeredList(timer);
         }
         timer->overflow++;
+#if (NOS_CONFIG_TIMER_THREAD_ENABLE > 0)
         *triggered = true;
+#endif
     }
 }
 
