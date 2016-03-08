@@ -269,9 +269,11 @@ nOS_Error nOS_SignalSend (nOS_Signal *signal, void *arg)
                 signal->arg   = arg;
                 _AppendToList(signal);
 
+#if (NOS_CONFIG_SIGNAL_THREAD_ENABLE > 0)
                 if (_thread.state == (NOS_THREAD_READY | NOS_THREAD_ON_HOLD)) {
                     nOS_WakeUpThread(&_thread, NOS_OK);
                 }
+#endif
 
                 err = NOS_OK;
             }

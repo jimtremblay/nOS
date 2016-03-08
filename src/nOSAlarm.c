@@ -75,7 +75,9 @@ static void _Tick (void *payload, void *arg)
         alarm->state = (nOS_AlarmState)(alarm->state | NOS_ALARM_TRIGGERED);
         nOS_AppendToList(&_triggeredList, &alarm->node);
 
+#if (NOS_CONFIG_ALARM_THREAD_ENABLE > 0)
         ctx->triggered = true;
+#endif
     }
 }
 
