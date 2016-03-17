@@ -37,6 +37,8 @@ static DWORD WINAPI _Entry (LPVOID lpParameter)
 
 static DWORD WINAPI _Scheduler (LPVOID lpParameter)
 {
+    NOS_UNUSED(lpParameter);
+
     while (!nOS_running) {
         Sleep(1);
     }
@@ -74,6 +76,8 @@ static DWORD WINAPI _Scheduler (LPVOID lpParameter)
 
 static DWORD WINAPI _SysTick (LPVOID lpParameter)
 {
+    NOS_UNUSED(lpParameter);
+
     while (!nOS_running) {
         Sleep(1);
     }
@@ -162,6 +166,8 @@ void nOS_InitSpecific (void)
 
 void nOS_InitContext (nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg)
 {
+    NOS_UNUSED(ssize);
+
     thread->stackPtr = stack;
     stack->entry = entry;
     stack->arg = arg;
