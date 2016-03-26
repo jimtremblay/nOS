@@ -21,36 +21,46 @@ void nOS_InitContext(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_Thr
 {
     /* Stack grow from high to low address */
     nOS_Stack   *tos    = stack + (ssize - 1);
+    uint16_t    *tos16;
 #if (NOS_CONFIG_DEBUG > 0)
     size_t i;
 
     for (i = 0; i < ssize; i++) {
-        stack[i] = 0xFFFF;
+        stack[i] = (nOS_Stack)0xFFFFFFFF;
     }
 #endif
 
-    *tos-- = (uint16_t)entry;           /* PC */
-    *tos-- = 0x0008;                    /* Interrupts enabled */
+     tos16   = (uint16_t*)tos;
+#if (__MSP430X_LARGE__ > 0)
+    *tos16-- = (uint16_t)((nOS_Stack)entry >> 16);  /* PC MSB */
+#endif
+    *tos16-- = (uint16_t)((nOS_Stack)entry);        /* PC LSB */
+    *tos16-- = 0x0008;                              /* SR */
+#if (__MSP430X_LARGE__ > 0)
+     tos16  -= 1;
+#endif
+     tos     = (nOS_Stack*)tos16;
 
 #if (NOS_CONFIG_DEBUG > 0)
-    *tos-- = 0x1515;                    /* R15 */
-    *tos-- = 0x1414;                    /* R14 */
-    *tos-- = 0x1313;                    /* R13 */
+    *tos-- = (nOS_Stack)0x15151515;                 /* R15 */
+    *tos-- = (nOS_Stack)0x14141414;                 /* R14 */
+    *tos-- = (nOS_Stack)0x13131313;                 /* R13 */
 #else
-     tos  -= 3;                         /* R15 to R13 */
+     tos  -= 3;                                     /* R15 to R13 */
 #endif
-    *tos-- = (nOS_Stack)arg;            /* R12 */
+
+    *tos-- = (nOS_Stack)arg;                        /* R12 */
 #if (NOS_CONFIG_DEBUG > 0)
-    *tos-- = 0x1111;                    /* R11 */
-    *tos-- = 0x1010;                    /* R10 */
-    *tos-- = 0x0909;                    /* R9 */
-    *tos-- = 0x0808;                    /* R8 */
-    *tos-- = 0x0707;                    /* R7 */
-    *tos-- = 0x0606;                    /* R6 */
-    *tos-- = 0x0505;                    /* R5 */
-    *tos   = 0x0404;                    /* R4 */
+    *tos-- = (nOS_Stack)0x11111111;                 /* R11 */
+    *tos-- = (nOS_Stack)0x10101010;                 /* R10 */
+    *tos-- = (nOS_Stack)0x09090909;                 /* R9 */
+    *tos-- = (nOS_Stack)0x08080808;                 /* R8 */
+    *tos-- = (nOS_Stack)0x07070707;                 /* R7 */
+    *tos-- = (nOS_Stack)0x06060606;                 /* R6 */
+    *tos-- = (nOS_Stack)0x05050505;                 /* R5 */
+    *tos   = (nOS_Stack)0x04040404;                 /* R4 */
 #else
-     tos  -= 7;                         /* R11 to R4 */
+     tos  -= 7;                                     /* R11 to R4 */
 #endif
 
     thread->stackPtr = tos;
@@ -58,10 +68,31 @@ void nOS_InitContext(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_Thr
 
 void nOS_SwitchContext(void)
 {
-    SAVE_CONTEXT();
-    nOS_runningThread = nOS_highPrioThread;
-    RESTORE_CONTEXT();
-    asm volatile ("ret");
+    asm volatile (
+        /* Simulate an interrupt by pushing SR */
+         PUSH_SR"                                   \n"
+        "                                           \n"
+        /* Push all registers to running thread stack */
+         PUSH_CONTEXT"                              \n"
+        "                                           \n"
+        /* Save stack pointer to running thread structure */
+         MOV_X"     &nOS_runningThread,     r12     \n"
+         MOV_X"     sp,                     0(r12)  \n"
+        "                                           \n"
+        /* Copy nOS_highPrioThread to nOS_runningThread */
+         MOV_X"     &nOS_highPrioThread,    r12     \n"
+         MOV_X"     #nOS_runningThread,     r11     \n"
+         MOV_X"     r12,                    0(r11)  \n"
+        "                                           \n"
+        /* Restore stack pointer from high prio thread structure */
+         MOV_X"     @r12,                   sp      \n"
+        "                                           \n"
+        /* Pop all registers from high prio thread stack */
+         POP_CONTEXT
+        "                                           \n"
+         POP_SR"                                    \n"
+         RET_X"                                     \n"
+    );
 }
 
 nOS_Stack* nOS_EnterIsr (nOS_Stack *sp)
