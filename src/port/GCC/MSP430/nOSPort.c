@@ -88,7 +88,7 @@ void nOS_SwitchContext(void)
          MOV_X"     @r12,                   sp      \n"
         "                                           \n"
         /* Pop all registers from high prio thread stack */
-         POP_CONTEXT
+         POP_CONTEXT"                               \n"
         "                                           \n"
          POP_SR"                                    \n"
          RET_X"                                     \n"
