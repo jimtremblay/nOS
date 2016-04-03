@@ -111,9 +111,9 @@ inline void vect##_ISR_L3(void) __attribute__ ((always_inline));                
 void __attribute__ ((__interrupt__(vect), naked)) vect##_ISR(void)              \
 {                                                                               \
     asm volatile (                                                              \
-    	 CALL_X"    #"NOS_STR(vect##_ISR_L2)"   \n"                             \
-		"reti                                   \n"                             \
-	);					                                                        \
+         CALL_X"    #"NOS_STR(vect##_ISR_L2)"   \n"                             \
+        "reti                                   \n"                             \
+    );                                                                          \
 }                                                                               \
 void vect##_ISR_L2(void)                                                        \
 {                                                                               \
@@ -141,8 +141,8 @@ void vect##_ISR_L2(void)                                                        
          POP_CONTEXT"                           \n"                             \
         "                                       \n"                             \
          POP_SR"                                \n"                             \
-		"                                       \n"                             \
-		 RET_X"                                 \n"                             \
+        "                                       \n"                             \
+         RET_X"                                 \n"                             \
     );                                                                          \
 }                                                                               \
 inline void vect##_ISR_L3(void)
@@ -150,11 +150,11 @@ inline void vect##_ISR_L3(void)
 /* Unused function for this port */
 #define     nOS_InitSpecific()
 
-#define     nOS_SwitchContext()			asm volatile (CALL_X" #nOS_SwitchContextHandler")
-void       	nOS_SwitchContextHandler   	(void) __attribute__ ((naked));
+#define     nOS_SwitchContext()         asm volatile (CALL_X" #nOS_SwitchContextHandler")
+void        nOS_SwitchContextHandler    (void) __attribute__ ((naked));
 
 #ifdef NOS_PRIVATE
- void       nOS_InitContext     		(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg);
+ void       nOS_InitContext             (nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg);
 #endif
 
 #ifdef __cplusplus

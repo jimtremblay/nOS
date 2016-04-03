@@ -91,7 +91,7 @@ void nOS_SwitchContextHandler(void)
          POP_CONTEXT"                               \n"
         "                                           \n"
          POP_SR"                                    \n"
-		"                                           \n"
+        "                                           \n"
          RET_X"                                     \n"
     );
 }
