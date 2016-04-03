@@ -59,7 +59,7 @@ typedef uint16_t                    nOS_StatusReg;
 #define PUSH_SR                 "push.w     sr"
 #define POP_SR                  "pop.w      sr"
 
-#if defined(__MSP430X__) && (__MSP430X__ == 1)
+#if (__MSP430X__ > 0)
  #define PUSH_CONTEXT            PUSHM_X"   #12,    r15"
  #define POP_CONTEXT             POPM_X"    #12,    r15"
 #else
