@@ -66,7 +66,7 @@ void nOS_InitContext(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_Thr
     thread->stackPtr = tos;
 }
 
-void nOS_SwitchContext(void)
+void nOS_SwitchContextHandler(void)
 {
     asm volatile (
         /* Simulate an interrupt by pushing SR */
@@ -91,6 +91,7 @@ void nOS_SwitchContext(void)
          POP_CONTEXT"                               \n"
         "                                           \n"
          POP_SR"                                    \n"
+		"                                           \n"
          RET_X"                                     \n"
     );
 }
