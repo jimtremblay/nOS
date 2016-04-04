@@ -19,11 +19,10 @@ extern "C" {
 
 #if (__MSP430X_LARGE__ > 0)
  typedef uint32_t                   nOS_Stack;
- #define NOS_32_BITS_SCHEDULER
 #else
  typedef uint16_t                   nOS_Stack;
- #define NOS_16_BITS_SCHEDULER
 #endif
+#define NOS_16_BITS_SCHEDULER
 #define NOS_MEM_ALIGNMENT           __SIZEOF_POINTER__
 #define NOS_MEM_POINTER_WIDTH       __SIZEOF_POINTER__
 typedef uint16_t                    nOS_StatusReg;
