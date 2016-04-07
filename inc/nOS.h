@@ -181,6 +181,12 @@ extern "C" {
  #error "nOSConfig.h: NOS_CONFIG_THREAD_NAME_ENABLE is set to invalid value: must be set to 0 or 1."
 #endif
 
+#ifndef NOS_CONFIG_WAITING_TIMEOUT_ENABLE
+ #error "nOSConfig.h: NOS_CONFIG_WAITING_TIMEOUT_ENABLE is not defined: must be set to 0 or 1."
+#elif (NOS_CONFIG_WAITING_TIMEOUT_ENABLE != 0) && (NOS_CONFIG_WAITING_TIMEOUT_ENABLE != 1)
+ #error "nOSConfig.h: NOS_CONFIG_WAITING_TIMEOUT_ENABLE is set to invalid value: must be set to 0 or 1."
+#endif
+
 #ifndef NOS_CONFIG_SEM_ENABLE
  #error "nOSConfig.h: NOS_CONFIG_SEM_ENABLE is not defined: must be set to 0 or 1."
 #elif (NOS_CONFIG_SEM_ENABLE != 0) && (NOS_CONFIG_SEM_ENABLE != 1)
@@ -478,6 +484,20 @@ extern "C" {
  #undef NOS_CONFIG_ALARM_THREAD_STACK_SIZE
 #endif
 
+#ifndef NOS_CONFIG_BARRIER_ENABLE
+ #error "nOSConfig.h: NOS_CONFIG_BARRIER_ENABLE is not defined: must be set to 0 or 1."
+#elif (NOS_CONFIG_BARRIER_ENABLE != 0) && (NOS_CONFIG_BARRIER_ENABLE != 1)
+ #error "nOSConfig.h: NOS_CONFIG_BARRIER_ENABLE is set to invalid value: must be set to 0 or 1."
+#elif (NOS_CONFIG_BARRIER_ENABLE > 0)
+ #ifndef NOS_CONFIG_BARRIER_DELETE_ENABLE
+  #error "nOSConfig.h: NOS_CONFIG_BARRIER_DELETE_ENABLE is not defined: must be set to 0 or 1."
+ #elif (NOS_CONFIG_BARRIER_DELETE_ENABLE != 0) && (NOS_CONFIG_BARRIER_DELETE_ENABLE != 1)
+  #error "nOSConfig.h: NOS_CONFIG_BARRIER_DELETE_ENABLE is set to invalid value: must be set to 0 or 1."
+ #endif
+#else
+ #undef NOS_CONFIG_BARRIER_DELETE_ENABLE
+#endif
+
 typedef void(*nOS_Callback)(void);
 typedef struct nOS_List             nOS_List;
 typedef struct nOS_Node             nOS_Node;
@@ -594,6 +614,9 @@ typedef struct nOS_Event            nOS_Event;
  typedef struct nOS_Alarm           nOS_Alarm;
  typedef void(*nOS_AlarmCallback)(nOS_Alarm*,void*);
 #endif
+#if (NOS_CONFIG_BARRIER_ENABLE > 0)
+ typedef struct nOS_Barrier         nOS_Barrier;
+#endif
 
 typedef enum nOS_Error
 {
@@ -635,6 +658,7 @@ typedef enum nOS_ThreadState
     NOS_THREAD_SLEEPING         = 0x07,
     NOS_THREAD_SLEEPING_UNTIL   = 0x08,
     NOS_THREAD_WAITING_TIME     = 0x09,
+    NOS_THREAD_ON_BARRIER       = 0x0A,
     NOS_THREAD_ON_HOLD          = 0x0F,
     NOS_THREAD_WAITING_MASK     = 0x0F,
     NOS_THREAD_WAIT_TIMEOUT     = 0x20,
@@ -651,7 +675,8 @@ typedef enum nOS_EventType
     NOS_EVENT_MUTEX             = 0x03,
     NOS_EVENT_QUEUE             = 0x04,
     NOS_EVENT_FLAG              = 0x05,
-    NOS_EVENT_MEM               = 0x06
+    NOS_EVENT_MEM               = 0x06,
+    NOS_EVENT_BARRIER           = 0x07
 } nOS_EventType;
 #endif
 
@@ -928,6 +953,15 @@ struct nOS_Alarm
 };
 #endif
 
+#if (NOS_CONFIG_BARRIER_ENABLE > 0)
+struct nOS_Barrier
+{
+    nOS_Event           e;
+    uint8_t             count;
+    uint8_t             max;
+};
+#endif
+
 #define NOS_NO_WAIT                 0
 #if (NOS_CONFIG_TICK_COUNT_WIDTH == 8)
  #define NOS_TICK_COUNT_MAX         UINT8_MAX
@@ -1028,8 +1062,10 @@ struct nOS_Alarm
  #endif
  #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
   bool          nOS_DeleteEvent                     (nOS_Event *event);
+  bool          nOS_BroadcastEvent                  (nOS_Event *event, nOS_Error err);
  #else
   void          nOS_DeleteEvent                     (nOS_Event *event);
+  void          nOS_BroadcastEvent                  (nOS_Event *event, nOS_Error err);
  #endif
  nOS_Error      nOS_WaitForEvent                    (nOS_Event *event,
                                                      nOS_ThreadState state
@@ -1867,6 +1903,14 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
  #endif
  nOS_Error      nOS_AlarmSetTime                    (nOS_Alarm *alarm, nOS_Time time);
  nOS_Error      nOS_AlarmSetCallback                (nOS_Alarm *alarm, nOS_AlarmCallback callback, void *arg);
+#endif
+
+#if (NOS_CONFIG_BARRIER_ENABLE > 0)
+ nOS_Error      nOS_BarrierCreate                   (nOS_Barrier *barrier, uint8_t max);
+ #if (NOS_CONFIG_BARRIER_DELETE_ENABLE > 0)
+  nOS_Error     nOS_BarrierDelete                   (nOS_Barrier *barrier);
+ #endif
+ nOS_Error      nOS_BarrierWait                     (nOS_Barrier *barrier);
 #endif
 
 #ifdef __cplusplus

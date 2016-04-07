@@ -32,26 +32,42 @@ void nOS_DeleteEvent (nOS_Event *event)
 #endif
 {
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
-    nOS_Thread  *thread;
-    bool        sched = false;
-
-    do {
-        thread = nOS_SendEvent(event, NOS_E_DELETED);
-        if (thread != NULL) {
-            if ((thread->state == NOS_THREAD_READY) && (thread->prio > nOS_runningThread->prio)) {
-                sched = true;
-            }
-        }
-    } while (thread != NULL);
+    bool sched = nOS_BroadcastEvent(event, NOS_E_DELETED);
 #else
-    while (nOS_SendEvent(event, NOS_E_DELETED) != NULL);
+    nOS_BroadcastEvent(event, NOS_E_DELETED);
 #endif
+
 #if (NOS_CONFIG_SAFE > 0)
     event->type = NOS_EVENT_INVALID;
 #endif
 
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
     return sched;
+#endif
+}
+
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
+bool nOS_BroadcastEvent (nOS_Event *event, nOS_Error err)
+#else
+void nOS_BroadcastEvent (nOS_Event *event, nOS_Error err)
+#endif
+{
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
+    nOS_Thread  *thread;
+    bool        sched = false;
+
+    do {
+        thread = nOS_SendEvent(event, err);
+        if (thread != NULL) {
+            if ((thread->state == NOS_THREAD_READY) && (thread->prio > nOS_runningThread->prio)) {
+                sched = true;
+            }
+        }
+    } while (thread != NULL);
+
+    return sched;
+#else
+    while (nOS_SendEvent(event, err) != NULL);
 #endif
 }
 
