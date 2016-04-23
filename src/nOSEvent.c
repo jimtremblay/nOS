@@ -94,7 +94,7 @@ nOS_Error nOS_WaitForEvent (nOS_Event *event,
 
     nOS_Schedule();
 
-    return nOS_runningThread->error;
+    return (nOS_Error)nOS_runningThread->error;
 }
 
 nOS_Thread* nOS_SendEvent (nOS_Event *event, nOS_Error err)

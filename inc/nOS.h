@@ -181,6 +181,12 @@ extern "C" {
  #error "nOSConfig.h: NOS_CONFIG_THREAD_NAME_ENABLE is set to invalid value: must be set to 0 or 1."
 #endif
 
+#ifndef NOS_CONFIG_THREAD_JOIN_ENABLE
+ #error "nOSConfig.h: NOS_CONFIG_THREAD_JOIN_ENABLE is not defined: must be set to 0 or 1."
+#elif (NOS_CONFIG_THREAD_JOIN_ENABLE != 0) && (NOS_CONFIG_THREAD_JOIN_ENABLE != 1)
+ #error "nOSConfig.h: NOS_CONFIG_THREAD_JOIN_ENABLE is set to invalid value: must be set to 0 or 1."
+#endif
+
 #ifndef NOS_CONFIG_WAITING_TIMEOUT_ENABLE
  #error "nOSConfig.h: NOS_CONFIG_WAITING_TIMEOUT_ENABLE is not defined: must be set to 0 or 1."
 #elif (NOS_CONFIG_WAITING_TIMEOUT_ENABLE != 0) && (NOS_CONFIG_WAITING_TIMEOUT_ENABLE != 1)
@@ -503,7 +509,11 @@ typedef struct nOS_List             nOS_List;
 typedef struct nOS_Node             nOS_Node;
 typedef void(*nOS_NodeHandler)(void*,void*);
 typedef struct nOS_Thread           nOS_Thread;
-typedef void(*nOS_ThreadEntry)(void*);
+#if (NOS_CONFIG_THREAD_JOIN_ENABLE > 0)
+ typedef int(*nOS_ThreadEntry)(void*);
+#else
+ typedef void(*nOS_ThreadEntry)(void*);
+#endif
 typedef struct nOS_Event            nOS_Event;
 #if (NOS_CONFIG_TICK_COUNT_WIDTH == 8)
  typedef uint8_t                    nOS_TickCounter;
@@ -659,8 +669,10 @@ typedef enum nOS_ThreadState
     NOS_THREAD_SLEEPING_UNTIL   = 0x08,
     NOS_THREAD_WAITING_TIME     = 0x09,
     NOS_THREAD_ON_BARRIER       = 0x0A,
+    NOS_THREAD_JOINING          = 0x0B,
     NOS_THREAD_ON_HOLD          = 0x0F,
     NOS_THREAD_WAITING_MASK     = 0x0F,
+    NOS_THREAD_FINISHED         = 0x10,
     NOS_THREAD_WAIT_TIMEOUT     = 0x20,
     NOS_THREAD_SUSPENDED        = 0x40,
     NOS_THREAD_READY            = 0x80
@@ -792,13 +804,21 @@ struct nOS_Node
     void                *payload;
 };
 
+struct nOS_Event
+{
+#if (NOS_CONFIG_SAFE > 0)
+    nOS_EventType       type;
+#endif
+    nOS_List            waitList;
+};
+
 struct nOS_Thread
 {
     nOS_Stack           *stackPtr;
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
     uint8_t             prio;
 #endif
-    nOS_Error           error;
+    int                 error;
     nOS_ThreadState     state;
 #if (NOS_CONFIG_WAITING_TIMEOUT_ENABLE > 0) || (NOS_CONFIG_SLEEP_ENABLE > 0) || (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
     nOS_TickCounter     timeout;
@@ -808,6 +828,9 @@ struct nOS_Thread
 #if (NOS_CONFIG_THREAD_NAME_ENABLE > 0)
     const char          *name;
 #endif
+#if (NOS_CONFIG_THREAD_JOIN_ENABLE > 0)
+    nOS_Event           joined;
+#endif
 
     nOS_Node            readyWait;
 #if (NOS_CONFIG_WAITING_TIMEOUT_ENABLE > 0) || (NOS_CONFIG_SLEEP_ENABLE > 0) || (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
@@ -816,14 +839,6 @@ struct nOS_Thread
 #if (NOS_CONFIG_THREAD_SUSPEND_ALL_ENABLE > 0)
     nOS_Node            node;
 #endif
-};
-
-struct nOS_Event
-{
-#if (NOS_CONFIG_SAFE > 0)
-    nOS_EventType       type;
-#endif
-    nOS_List            waitList;
 };
 
 #if (NOS_CONFIG_SEM_ENABLE > 0)
@@ -1054,6 +1069,9 @@ struct nOS_Barrier
  #endif
  void           nOS_TickThread                      (void *payload, void *arg);
  void           nOS_WakeUpThread                    (nOS_Thread *thread, nOS_Error err);
+ #if (NOS_CONFIG_THREAD_JOIN_ENABLE > 0)
+  int           nOS_ThreadWrapper                   (void *arg);
+ #endif
 
  #if (NOS_CONFIG_SAFE > 0)
   void          nOS_CreateEvent                     (nOS_Event *event, nOS_EventType type);
@@ -1462,6 +1480,9 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
 #if (NOS_CONFIG_THREAD_NAME_ENABLE > 0)
  const char*    nOS_ThreadGetName                   (nOS_Thread *thread);
  void           nOS_ThreadSetName                   (nOS_Thread *thread, const char *name);
+#endif
+#if (NOS_CONFIG_THREAD_JOIN_ENABLE > 0)
+ nOS_Error      nOS_ThreadJoin                      (nOS_Thread *thread, int *ret, nOS_TickCounter timeout);
 #endif
 
 #if (NOS_CONFIG_SEM_ENABLE > 0)

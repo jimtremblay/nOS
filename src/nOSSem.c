@@ -112,20 +112,24 @@ nOS_Error nOS_SemTake (nOS_Sem *sem, nOS_TickCounter timeout)
             } else if (timeout == NOS_NO_WAIT) {
                 /* Calling thread can't wait. */
                 err = NOS_E_AGAIN;
-            } else if (nOS_isrNestingCounter > 0) {
+            }
+#if (NOS_CONFIG_SAFE > 0)
+            else if (nOS_isrNestingCounter > 0) {
                 /* Can't wait from ISR */
                 err = NOS_E_ISR;
             }
-    #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
+ #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
             else if (nOS_lockNestingCounter > 0) {
                 /* Can't switch context when scheduler is locked */
                 err = NOS_E_LOCKED;
             }
-    #endif
+ #endif
             else if (nOS_runningThread == &nOS_idleHandle) {
                 /* Main thread can't wait */
                 err = NOS_E_IDLE;
-            } else {
+            }
+#endif
+            else {
                 /* Calling thread must wait on sem. */
                 err = nOS_WaitForEvent((nOS_Event*)sem,
                                        NOS_THREAD_TAKING_SEM

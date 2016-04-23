@@ -101,46 +101,48 @@ nOS_Error nOS_BarrierWait (nOS_Barrier *barrier)
         nOS_EnterCritical(sr);
 #if (NOS_CONFIG_SAFE > 0)
         if (barrier->e.type != NOS_EVENT_BARRIER) {
+            /* Not a barrier event object */
             err = NOS_E_INV_OBJ;
-        } else
+        } else if (nOS_isrNestingCounter > 0) {
+            /* Can't wait from ISR */
+            err = NOS_E_ISR;
+        }
+ #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
+        else if (nOS_lockNestingCounter > 0) {
+            /* Can't switch context when scheduler is locked */
+            err = NOS_E_LOCKED;
+        }
+ #endif
 #endif
-        {
-            if (nOS_isrNestingCounter > 0) {
-                /* Can't wait from ISR */
-                err = NOS_E_ISR;
+        else {
+            barrier->count--;
+            if (barrier->count == 0) {
+                barrier->count = barrier->max;
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
+                /* Wake up all threads waiting on barrier */
+                if (nOS_BroadcastEvent((nOS_Event*)barrier, NOS_OK)) {
+                    nOS_Schedule();
+                }
+#else
+                nOS_BroadcastEvent((nOS_Event*)barrier, NOS_OK);
+#endif
+                err = NOS_OK;
             }
-#if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
-            else if (nOS_lockNestingCounter > 0) {
-                /* Can't switch context when scheduler is locked */
-                err = NOS_E_LOCKED;
+#if (NOS_CONFIG_SAFE > 0)
+            else if (nOS_runningThread == &nOS_idleHandle) {
+                barrier->count++;
+                /* Main thread can't wait */
+                err = NOS_E_IDLE;
             }
 #endif
             else {
-                barrier->count--;
-                if (barrier->count == 0) {
-                    barrier->count = barrier->max;
-#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
-                    /* Wake up all threads waiting on barrier */
-                    if (nOS_BroadcastEvent((nOS_Event*)barrier, NOS_OK)) {
-                        nOS_Schedule();
-                    }
-#else
-                    nOS_BroadcastEvent((nOS_Event*)barrier, NOS_OK);
-#endif
-                    err = NOS_OK;
-                } else if (nOS_runningThread == &nOS_idleHandle) {
-                    barrier->count++;
-                    /* Main thread can't wait */
-                    err = NOS_E_IDLE;
-                } else {
-                    /* Calling thread must wait for other threads. */
-                    err = nOS_WaitForEvent((nOS_Event*)barrier,
-                                           NOS_THREAD_ON_BARRIER
+                /* Calling thread must wait for other threads. */
+                err = nOS_WaitForEvent((nOS_Event*)barrier,
+                                       NOS_THREAD_ON_BARRIER
 #if (NOS_CONFIG_WAITING_TIMEOUT_ENABLE > 0) || (NOS_CONFIG_SLEEP_ENABLE > 0) || (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
-                                           ,NOS_WAIT_INFINITE
+                                       ,NOS_WAIT_INFINITE
 #endif
-                                           );
-                }
+                                       );
             }
         }
         nOS_LeaveCritical(sr);

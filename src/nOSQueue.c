@@ -152,17 +152,20 @@ nOS_Error nOS_QueueRead (nOS_Queue *queue, void *block, nOS_TickCounter timeout)
                 err = NOS_OK;
             } else if (timeout == NOS_NO_WAIT) {
                 err = NOS_E_EMPTY;
-            } else if (nOS_isrNestingCounter > 0) {
+            }
+#if (NOS_CONFIG_SAFE > 0)
+            else if (nOS_isrNestingCounter > 0) {
                 err = NOS_E_ISR;
             }
-#if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
+ #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
             else if (nOS_lockNestingCounter > 0) {
                 err = NOS_E_LOCKED;
             }
-#endif
+ #endif
             else if (nOS_runningThread == &nOS_idleHandle) {
                 err = NOS_E_IDLE;
             }
+#endif
             else {
                 nOS_runningThread->ext = block;
                 err = nOS_WaitForEvent((nOS_Event*)queue,
@@ -231,18 +234,22 @@ nOS_Error nOS_QueueWrite (nOS_Queue *queue, void *block, nOS_TickCounter timeout
                 err = NOS_OK;
             } else if (timeout == NOS_NO_WAIT) {
                 err = NOS_E_FULL;
-            } else if (nOS_isrNestingCounter > 0) {
+            }
+#if (NOS_CONFIG_SAFE > 0)
+            else if (nOS_isrNestingCounter > 0) {
                 err = NOS_E_ISR;
             }
-#if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
+ #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
             else if (nOS_lockNestingCounter > 0) {
                 err = NOS_E_LOCKED;
             }
-#endif
+ #endif
             else if (nOS_runningThread == &nOS_idleHandle) {
                 /* Main threadv can't wait. */
                 err = NOS_E_IDLE;
-            } else {
+            }
+#endif
+            else {
                 nOS_runningThread->ext = block;
                 err = nOS_WaitForEvent((nOS_Event*)queue,
                                        NOS_THREAD_WRITING_QUEUE

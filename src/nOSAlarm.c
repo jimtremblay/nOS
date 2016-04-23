@@ -23,7 +23,11 @@ typedef struct _Context
 } _Context;
 
 #if (NOS_CONFIG_ALARM_THREAD_ENABLE > 0)
- static void    _Thread     (void *arg);
+ #if (NOS_CONFIG_THREAD_JOIN_ENABLE > 0)
+  static int _Thread (void *arg);
+ #else
+  static void _Thread (void *arg);
+ #endif
 #endif
 static  void    _Tick       (void *payload, void *arg);
 
@@ -39,7 +43,11 @@ static nOS_List         _triggeredList;
 #endif
 
 #if (NOS_CONFIG_ALARM_THREAD_ENABLE > 0)
+#if (NOS_CONFIG_THREAD_JOIN_ENABLE > 0)
+static int _Thread (void *arg)
+#else
 static void _Thread (void *arg)
+#endif
 {
     nOS_StatusReg   sr;
 
@@ -59,6 +67,10 @@ static void _Thread (void *arg)
         }
         nOS_LeaveCritical(sr);
     }
+
+#if (NOS_CONFIG_THREAD_JOIN_ENABLE > 0)
+    return 0;
+#endif
 }
 #endif
 
@@ -138,7 +150,7 @@ void nOS_AlarmProcess (void)
     void                *arg;
 
     nOS_EnterCritical(sr);
-    alarm = nOS_GetHeadOfList(&_triggeredList);
+    alarm = (nOS_Alarm*)nOS_GetHeadOfList(&_triggeredList);
     if (alarm != NULL) {
         nOS_RemoveFromList(&_triggeredList, &alarm->node);
         alarm->state = (nOS_AlarmState)(alarm->state &~ NOS_ALARM_TRIGGERED);

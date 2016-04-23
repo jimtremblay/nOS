@@ -59,7 +59,7 @@ static void _ResumeThread (void *payload, void *arg)
 void nOS_TickThread (void *payload, void *arg)
 {
     nOS_Thread      *thread = (nOS_Thread*)payload;
-    nOS_ThreadState state = (thread->state & NOS_THREAD_WAITING_MASK);
+    nOS_ThreadState state = (nOS_ThreadState)(thread->state & NOS_THREAD_WAITING_MASK);
     nOS_Error       err = NOS_E_TIMEOUT;
 
     /* Avoid warning */
@@ -86,7 +86,7 @@ void nOS_WakeUpThread (nOS_Thread *thread, nOS_Error err)
     if (thread->event != NULL) {
         nOS_RemoveFromList(&thread->event->waitList, &thread->readyWait);
     }
-    thread->error = err;
+    thread->error = (int)err;
     thread->state = (nOS_ThreadState)(thread->state &~ NOS_THREAD_WAITING_MASK);
 #if (NOS_CONFIG_WAITING_TIMEOUT_ENABLE > 0) || (NOS_CONFIG_SLEEP_ENABLE > 0) || (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
     if (thread->state & NOS_THREAD_WAIT_TIMEOUT) {
@@ -98,6 +98,37 @@ void nOS_WakeUpThread (nOS_Thread *thread, nOS_Error err)
         nOS_AppendThreadToReadyList(thread);
     }
 }
+
+#if (NOS_CONFIG_THREAD_JOIN_ENABLE > 0)
+int nOS_ThreadWrapper (void *arg)
+{
+    nOS_StatusReg   sr;
+    nOS_ThreadEntry entry = (nOS_ThreadEntry)nOS_runningThread->ext;
+    int             ret;
+    nOS_Thread      *thread;
+
+    ret = entry(arg);
+
+    nOS_EnterCritical(sr);
+    nOS_runningThread->error = ret;
+    nOS_runningThread->state = NOS_THREAD_FINISHED;
+    do {
+        thread = nOS_SendEvent((nOS_Event*)&nOS_runningThread->joined, NOS_OK);
+        if (thread != NULL) {
+            if (thread->ext != NULL) {
+                *(int*)thread->ext = ret;
+            }
+        }
+    } while (thread != NULL);
+    nOS_RemoveThreadFromReadyList(nOS_runningThread);
+    nOS_LeaveCritical(sr);
+
+    nOS_Schedule();
+
+    /* will never go here */
+    return 0;
+}
+#endif
 
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
  #if (NOS_CONFIG_THREAD_SET_PRIO_ENABLE > 0) || (NOS_CONFIG_MUTEX_ENABLE > 0)
@@ -194,7 +225,7 @@ nOS_Error nOS_ThreadCreate (nOS_Thread *thread,
 #if (NOS_CONFIG_THREAD_NAME_ENABLE > 0)
             thread->name = name;
 #endif
-            thread->error = NOS_OK;
+            thread->error = (int)NOS_OK;
             thread->readyWait.payload = thread;
 #if (NOS_CONFIG_WAITING_TIMEOUT_ENABLE > 0) || (NOS_CONFIG_SLEEP_ENABLE > 0) || (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
             thread->tout.payload = thread;
@@ -203,6 +234,10 @@ nOS_Error nOS_ThreadCreate (nOS_Thread *thread,
 #if (NOS_CONFIG_THREAD_SUSPEND_ALL_ENABLE > 0)
             thread->node.payload = thread;
             nOS_AppendToList(&nOS_allThreadsList, &thread->node);
+#endif
+#if (NOS_CONFIG_THREAD_JOIN_ENABLE > 0)
+            thread->ext = (void*)entry;
+            entry       = nOS_ThreadWrapper;
 #endif
             nOS_InitContext(thread, stack, ssize
 #ifdef NOS_USE_SEPARATE_CALL_STACK
@@ -287,13 +322,14 @@ nOS_Error nOS_ThreadDelete (nOS_Thread *thread)
 #if (NOS_CONFIG_WAITING_TIMEOUT_ENABLE > 0) || (NOS_CONFIG_SLEEP_ENABLE > 0) || (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
             thread->timeout = 0;
 #endif
-            thread->error   = NOS_OK;
-            if (thread == nOS_runningThread) {
-                /* Will never return */
-                nOS_Schedule();
-            }
+            thread->error   = (int)NOS_OK;
         }
         nOS_LeaveCritical(sr);
+
+        if (thread == nOS_runningThread) {
+            /* Will never return */
+            nOS_Schedule();
+        }
     }
 
     return err;
@@ -595,6 +631,66 @@ void nOS_ThreadSetName (nOS_Thread *thread, const char *name)
         thread->name = name;
     }
     nOS_LeaveCritical(sr);
+}
+#endif
+
+#if (NOS_CONFIG_THREAD_JOIN_ENABLE > 0)
+nOS_Error nOS_ThreadJoin (nOS_Thread *thread, int *ret, nOS_TickCounter timeout)
+{
+    nOS_Error       err;
+    nOS_StatusReg   sr;
+
+#if (NOS_CONFIG_SAFE > 0)
+    if (thread == NULL) {
+        err = NOS_E_INV_OBJ;
+    } else
+#endif
+    {
+        nOS_EnterCritical(sr);
+        if (thread->state & NOS_THREAD_FINISHED) {
+            /* Thread already complete, return exit code */
+            if (ret != NULL) {
+                *ret = thread->error;
+            }
+            err = NOS_OK;
+        } else if (timeout == NOS_NO_WAIT) {
+            /* Calling thread can't wait. */
+            err = NOS_E_AGAIN;
+        }
+#if (NOS_CONFIG_SAFE > 0)
+        else if (nOS_isrNestingCounter > 0) {
+            /* Can't wait from ISR */
+            err = NOS_E_ISR;
+        }
+ #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
+        else if (nOS_lockNestingCounter > 0) {
+            /* Can't switch context when scheduler is locked */
+            err = NOS_E_LOCKED;
+        }
+ #endif
+        else if (nOS_runningThread == &nOS_idleHandle) {
+            /* Main thread can't wait */
+            err = NOS_E_IDLE;
+        }
+#endif
+        else {
+            nOS_runningThread->ext = ret;
+            /* Calling thread must wait for other thread to complete. */
+            err = nOS_WaitForEvent((nOS_Event*)&thread->joined,
+                                   NOS_THREAD_JOINING
+#if (NOS_CONFIG_WAITING_TIMEOUT_ENABLE > 0) || (NOS_CONFIG_SLEEP_ENABLE > 0) || (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
+ #if (NOS_CONFIG_WAITING_TIMEOUT_ENABLE > 0)
+                                  ,timeout
+ #else
+                                  ,NOS_WAIT_INFINITE
+ #endif
+#endif
+                                  );
+        }
+        nOS_LeaveCritical(sr);
+    }
+
+    return err;
 }
 #endif
 

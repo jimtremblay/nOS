@@ -15,7 +15,11 @@ extern "C" {
 
 #if (NOS_CONFIG_TIMER_ENABLE > 0)
 #if (NOS_CONFIG_TIMER_THREAD_ENABLE > 0)
- static void    _Thread     (void *arg);
+ #if (NOS_CONFIG_THREAD_JOIN_ENABLE > 0)
+  static int _Thread (void *arg);
+ #else
+  static void _Thread (void *arg);
+ #endif
 #endif
 static  void    _Tick       (void *payload, void *arg);
 
@@ -87,7 +91,11 @@ static nOS_TimerCounter         _tickCounter;
 #endif
 
 #if (NOS_CONFIG_TIMER_THREAD_ENABLE > 0)
+#if (NOS_CONFIG_THREAD_JOIN_ENABLE > 0)
+static int _Thread (void *arg)
+#else
 static void _Thread (void *arg)
+#endif
 {
     nOS_StatusReg   sr;
 
@@ -107,6 +115,10 @@ static void _Thread (void *arg)
         }
         nOS_LeaveCritical(sr);
     }
+
+#if (NOS_CONFIG_THREAD_JOIN_ENABLE > 0)
+    return 0;
+#endif
 }
 #endif
 
@@ -205,7 +217,7 @@ void nOS_TimerProcess (void)
     void                *arg;
 
     nOS_EnterCritical(sr);
-    timer = _FindTriggeredHighestPrio();
+    timer = (nOS_Timer*)_FindTriggeredHighestPrio();
     if (timer != NULL) {
         timer->overflow--;
         if (timer->overflow == 0) {

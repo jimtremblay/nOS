@@ -15,7 +15,11 @@ extern "C" {
 
 #if (NOS_CONFIG_SIGNAL_ENABLE > 0)
 #if (NOS_CONFIG_SIGNAL_THREAD_ENABLE > 0)
- static void    _Thread     (void *arg);
+ #if (NOS_CONFIG_THREAD_JOIN_ENABLE > 0)
+  static int _Thread (void *arg);
+ #else
+  static void _Thread (void *arg);
+ #endif
 #endif
 
 #if (NOS_CONFIG_SIGNAL_HIGHEST_PRIO > 0)
@@ -82,7 +86,11 @@ extern "C" {
 #endif
 
 #if (NOS_CONFIG_SIGNAL_THREAD_ENABLE > 0)
+#if (NOS_CONFIG_THREAD_JOIN_ENABLE > 0)
+static int _Thread (void *arg)
+#else
 static void _Thread (void *arg)
+#endif
 {
     nOS_StatusReg   sr;
 
@@ -102,6 +110,10 @@ static void _Thread (void *arg)
         }
         nOS_LeaveCritical(sr);
     }
+
+#if (NOS_CONFIG_THREAD_JOIN_ENABLE > 0)
+    return 0;
+#endif
 }
 #endif
 

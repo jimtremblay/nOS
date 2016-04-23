@@ -388,19 +388,21 @@ nOS_Error nOS_Schedule(void)
 {
     nOS_Error   err;
 
+#if (NOS_CONFIG_SAFE > 0)
     /* Switch only if initialization is completed */
     if (!nOS_running) {
         err = NOS_E_NOT_RUNNING;
     } else if (nOS_isrNestingCounter > 0) {
         err = NOS_E_ISR;
-    }
-#if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
-    else if (nOS_lockNestingCounter > 0) {
+    } else
+ #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
+    if (nOS_lockNestingCounter > 0) {
         /* Switch only from thread without scheduler locked */
         err = NOS_E_LOCKED;
-    }
+    } else
+ #endif
 #endif
-    else {
+    {
         /* Recheck if current running thread is the highest prio thread */
         nOS_highPrioThread = nOS_FindHighPrioThread();
         if (nOS_runningThread != nOS_highPrioThread) {
@@ -516,15 +518,17 @@ nOS_Error nOS_Yield(void)
     nOS_Error       err;
     nOS_StatusReg   sr;
 
+#if (NOS_CONFIG_SAFE > 0)
     if (nOS_isrNestingCounter > 0) {
         err = NOS_E_ISR;
-    }
-#if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
-    else if (nOS_lockNestingCounter > 0) {
+    } else
+ #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
+    if (nOS_lockNestingCounter > 0) {
         err = NOS_E_LOCKED;
-    }
+    } else
+ #endif
 #endif
-    else {
+    {
         nOS_EnterCritical(sr);
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
         nOS_RotateList(&nOS_readyThreadsList[nOS_runningThread->prio]);
@@ -602,18 +606,21 @@ nOS_Error nOS_Sleep (nOS_TickCounter ticks)
     nOS_Error       err;
     nOS_StatusReg   sr;
 
+#if (NOS_CONFIG_SAFE > 0)
     if (nOS_isrNestingCounter > 0) {
         err = NOS_E_ISR;
     }
-#if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
+ #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
     /* Can't switch context when scheduler is locked */
     else if (nOS_lockNestingCounter > 0) {
         err = NOS_E_LOCKED;
     }
-#endif
+ #endif
     else if (nOS_runningThread == &nOS_idleHandle) {
         err = NOS_E_IDLE;
-    } else if (ticks == 0) {
+    } else
+#endif
+    if (ticks == 0) {
         nOS_Yield();
         err = NOS_OK;
     } else {
@@ -632,18 +639,21 @@ nOS_Error nOS_SleepMs (uint16_t ms)
     nOS_StatusReg   sr;
     uint32_t        ticks;
 
+#if (NOS_CONFIG_SAFE > 0)
     if (nOS_isrNestingCounter > 0) {
         err = NOS_E_ISR;
     }
-#if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
+ #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
     /* Can't switch context when scheduler is locked */
     else if (nOS_lockNestingCounter > 0) {
         err = NOS_E_LOCKED;
     }
-#endif
+ #endif
     else if (nOS_runningThread == &nOS_idleHandle) {
         err = NOS_E_IDLE;
-    } else if (ms == 0) {
+    } else
+#endif
+    if (ms == 0) {
         nOS_Yield();
         err = NOS_OK;
     } else {
@@ -672,18 +682,21 @@ nOS_Error nOS_SleepUntil (nOS_TickCounter tick)
     nOS_Error       err;
     nOS_StatusReg   sr;
 
+#if (NOS_CONFIG_SAFE > 0)
     if (nOS_isrNestingCounter > 0) {
         err = NOS_E_ISR;
     }
-#if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
+ #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
     /* Can't switch context when scheduler is locked */
     else if (nOS_lockNestingCounter > 0) {
         err = NOS_E_LOCKED;
     }
-#endif
+ #endif
     else if (nOS_runningThread == &nOS_idleHandle) {
         err = NOS_E_IDLE;
-    } else {
+    } else
+#endif
+    {
         nOS_EnterCritical(sr);
         if (tick == nOS_tickCounter) {
             err = NOS_OK;
@@ -704,9 +717,12 @@ nOS_Error nOS_SchedLock(void)
     nOS_Error       err;
     nOS_StatusReg   sr;
 
+#if (NOS_CONFIG_SAFE > 0)
     if (nOS_isrNestingCounter > 0) {
         err = NOS_E_ISR;
-    } else {
+    } else
+#endif
+    {
         nOS_EnterCritical(sr);
         if (nOS_lockNestingCounter < UINT8_MAX) {
             nOS_lockNestingCounter++;
@@ -725,9 +741,12 @@ nOS_Error nOS_SchedUnlock(void)
     nOS_Error       err;
     nOS_StatusReg   sr;
 
+#if (NOS_CONFIG_SAFE > 0)
     if (nOS_isrNestingCounter > 0) {
         err = NOS_E_ISR;
-    } else {
+    } else
+#endif
+    {
         nOS_EnterCritical(sr);
         if (nOS_lockNestingCounter > 0) {
             nOS_lockNestingCounter--;

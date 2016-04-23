@@ -152,20 +152,24 @@ void *nOS_MemAlloc(nOS_Mem *mem, nOS_TickCounter timeout)
             } else if (timeout == NOS_NO_WAIT) {
                 /* Caller can't wait? Try again. */
                 block = NULL;
-            } else if (nOS_isrNestingCounter > 0) {
+            }
+#if (NOS_CONFIG_SAFE > 0)
+            else if (nOS_isrNestingCounter > 0) {
                 /* Can't wait from ISR */
                 block = NULL;
             }
-#if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
+ #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
             else if (nOS_lockNestingCounter > 0) {
                 /* Can't switch context when scheduler is locked */
                 block = NULL;
             }
-#endif
+ #endif
             else if (nOS_runningThread == &nOS_idleHandle) {
                 /* Main thread can't wait */
                 block = NULL;
-            } else {
+            }
+#endif
+            else {
                 nOS_runningThread->ext = (void*)&block;
                 nOS_WaitForEvent((nOS_Event*)mem,
                                  NOS_THREAD_ALLOC_MEM
