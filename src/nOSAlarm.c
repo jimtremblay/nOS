@@ -66,7 +66,15 @@ static void _Thread (void *arg)
                             );
         }
         nOS_LeaveCritical(sr);
+
+#if (NOS_CONFIG_THREAD_JOIN_ENABLE > 0)
+        if (false) break; /* Remove "statement is unreachable" warning */
     }
+
+    return 0;
+#else
+    }
+#endif
 }
 #endif
 
