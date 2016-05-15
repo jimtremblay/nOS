@@ -67,10 +67,6 @@ static void _Thread (void *arg)
         }
         nOS_LeaveCritical(sr);
     }
-
-#if (NOS_CONFIG_THREAD_JOIN_ENABLE > 0)
-    return 0;
-#endif
 }
 #endif
 
