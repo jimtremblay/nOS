@@ -43,8 +43,16 @@ void nOS_InitContext(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_Thr
 #endif
 
     /* Simulate a call to thread function */
+#if (__CODE_MODEL__ != __SMALL_CODE_MODEL__)
+    /* Function pointers size is 3 bytes */
+    *tos-- = (nOS_Stack)((uint32_t)entry);
+    *tos-- = (nOS_Stack)((uint32_t)entry >> 8);
+    *tos-- = (nOS_Stack)((uint32_t)entry >> 16);
+#else
+    /* Function pointers size is 2 bytes */
     *tos-- = (nOS_Stack)((uint16_t)entry);
     *tos-- = (nOS_Stack)((uint16_t)entry >> 8);
+#endif
 
     /* Simulate a call of nOS_PushContext */
 #if (NOS_CONFIG_DEBUG > 0)
