@@ -61,8 +61,18 @@ void nOS_InitContext(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_Thr
 #else
      tos -= 2;                                     /* Y */
 #endif
+#if (__DATA_MODEL__ == __MEDIUM_DATA_MODEL__)
+    /* Pointers size is 2 bytes */
     *tos-- = (nOS_Stack)((uint16_t)arg);           /* XL: arg LSB */
     *tos-- = (nOS_Stack)((uint16_t)arg >> 8);      /* XH: arg MSB */
+#else
+ #if (NOS_CONFIG_DEBUG > 0)
+    *tos-- = 'x';                                  /* XL */
+    *tos-- = 'X';                                  /* XH */
+ #else
+     tos -= 2;                                     /* X */
+ #endif
+#endif
 #if (NOS_CONFIG_DEBUG > 0)
     *tos-- = 'A';                                  /* A */
 #else
@@ -71,9 +81,24 @@ void nOS_InitContext(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_Thr
     *tos-- = 0x20;                                 /* CC: Interrupt enabled */
 #if (NOS_CONFIG_DEBUG > 0)
     *tos-- = 0x00;                                 /* ?b0  */
+#else
+     tos -= 1;                                     /* ?b0  */
+#endif
+#if (__DATA_MODEL__ == __LARGE_DATA_MODEL__)
+    /* Pointers size is 3 bytes */
+    *tos-- = (nOS_Stack)((uint32_t)arg >> 16);     /* ?b1 arg MSB */
+    *tos-- = (nOS_Stack)((uint32_t)arg >> 8);      /* ?b2   ...   */
+    *tos-- = (nOS_Stack)((uint32_t)arg);           /* ?b3 arg LSB */
+#else
+ #if (NOS_CONFIG_DEBUG > 0)
     *tos-- = 0x01;                                 /* ?b1  */
     *tos-- = 0x02;                                 /* ?b2  */
     *tos-- = 0x03;                                 /* ?b3  */
+ #else
+     tos -= 3;                                     /* ?b1 to ?b3 */
+ #endif
+#endif
+#if (NOS_CONFIG_DEBUG > 0)
     *tos-- = 0x04;                                 /* ?b4  */
     *tos-- = 0x05;                                 /* ?b5  */
     *tos-- = 0x06;                                 /* ?b6  */
@@ -87,7 +112,7 @@ void nOS_InitContext(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_Thr
     *tos-- = 0x14;                                 /* ?b14 */
     *tos-- = 0x15;                                 /* ?b15 */
 #else
-     tos -= 16;                                    /* ?b0 to ?b15 */
+     tos -= 12;                                    /* ?b4 to ?b15 */
 #endif
 
     thread->stackPtr = tos;
@@ -99,7 +124,11 @@ __task void nOS_SwitchContext(void)
     PUSH_CONTEXT();
     nOS_runningThread->stackPtr = (nOS_Stack*)__get_cpu_sp();
     nOS_runningThread = nOS_highPrioThread;
+#if   (__DATA_MODEL__ == __MEDIUM_DATA_MODEL__)
     __set_cpu_sp((int)nOS_highPrioThread->stackPtr);
+#elif (__DATA_MODEL__ == __LARGE_DATA_MODEL__)
+    __set_cpu_sp((int)((long)nOS_highPrioThread->stackPtr));
+#endif
     POP_CONTEXT();
 }
 

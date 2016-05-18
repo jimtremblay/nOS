@@ -25,6 +25,16 @@ typedef uint8_t                 nOS_StatusReg;
 
 #define NOS_MEM_ALIGNMENT       1
 
+#if   (__DATA_MODEL__ == __SMALL_DATA_MODEL__)
+ #error "nOSConfig.h: Small data model is not supported: must use Medium or Large."
+#elif (__DATA_MODEL__ == __MEDIUM_DATA_MODEL__)
+ #define SET_CPU_SP_ON_ISR_ENTRY() __set_cpu_sp((int)nOS_EnterIsr((nOS_Stack*)__get_cpu_sp()))
+ #define SET_CPU_SP_ON_ISR_EXIT()  __set_cpu_sp((int)nOS_LeaveIsr((nOS_Stack*)__get_cpu_sp()))
+#elif (__DATA_MODEL__ == __LARGE_DATA_MODEL__)
+ #define SET_CPU_SP_ON_ISR_ENTRY() __set_cpu_sp((int)((long)nOS_EnterIsr((nOS_Stack*)__get_cpu_sp())))
+ #define SET_CPU_SP_ON_ISR_EXIT()  __set_cpu_sp((int)((long)nOS_LeaveIsr((nOS_Stack*)__get_cpu_sp())))
+#endif
+
 #ifdef NOS_CONFIG_ISR_STACK_SIZE
  #if (NOS_CONFIG_ISR_STACK_SIZE == 0)
   #error "nOSConfig.h: NOS_CONFIG_ISR_STACK_SIZE is set to invalid value: must be higher than 0."
@@ -102,10 +112,10 @@ __interrupt void vect##_ISR(void)                                               
 __task void vect##_ISR_L2(void)                                                 \
 {                                                                               \
     PUSH_CONTEXT();                                                             \
-    __set_cpu_sp((int)nOS_EnterIsr((nOS_Stack*)__get_cpu_sp()));                \
+    SET_CPU_SP_ON_ISR_ENTRY();                                                  \
     vect##_ISR_L3();                                                            \
     __disable_interrupt();                                                      \
-    __set_cpu_sp((int)nOS_LeaveIsr((nOS_Stack*)__get_cpu_sp()));                \
+    SET_CPU_SP_ON_ISR_EXIT();                                                   \
     POP_CONTEXT();                                                              \
 }                                                                               \
 __task void vect##_ISR_L3(void)
