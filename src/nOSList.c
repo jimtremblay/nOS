@@ -13,21 +13,6 @@
 extern "C" {
 #endif
 
-void nOS_InitList (nOS_List *list)
-{
-    list->head = NULL;
-    list->tail = NULL;
-}
-
-void* nOS_GetHeadOfList (nOS_List *list)
-{
-    if (list->head != NULL) {
-        return list->head->payload;
-    } else {
-        return NULL;
-    }
-}
-
 void nOS_AppendToList (nOS_List *list, nOS_Node *node)
 {
     node->prev = list->tail;

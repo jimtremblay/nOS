@@ -64,7 +64,8 @@ static nOS_TimerCounter         _tickCounter;
  #endif
 
          return (nOS_Timer*)_triggeredList[prio].head->payload;
-     } else {
+     }
+     else {
          return (nOS_Timer*)NULL;
      }
  }
@@ -140,7 +141,8 @@ static void _Tick (void *payload, void *arg)
         if (((nOS_TimerMode)timer->state & NOS_TIMER_MODE) == NOS_TIMER_FREE_RUNNING) {
             /* Free running timer */
             timer->count = _tickCounter + timer->reload;
-        } else {
+        }
+        else {
             /* One-shot timer */
             timer->state = (nOS_TimerState)(timer->state &~ NOS_TIMER_RUNNING);
             _RemoveFromActiveList(timer);
@@ -172,24 +174,24 @@ void nOS_InitTimer(void)
                      _Thread,
                      NULL
  #ifdef NOS_SIMULATED_STACK
-                     ,&_stack
+                    ,&_stack
  #else
-                     ,_stack
+                    ,_stack
  #endif
-                     ,NOS_CONFIG_TIMER_THREAD_STACK_SIZE
+                    ,NOS_CONFIG_TIMER_THREAD_STACK_SIZE
  #ifdef NOS_USE_SEPARATE_CALL_STACK
-                     ,NOS_CONFIG_TIMER_THREAD_CALL_STACK_SIZE
+                    ,NOS_CONFIG_TIMER_THREAD_CALL_STACK_SIZE
  #endif
  #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
-                     ,NOS_CONFIG_TIMER_THREAD_PRIO
+                    ,NOS_CONFIG_TIMER_THREAD_PRIO
  #endif
  #if (NOS_CONFIG_THREAD_SUSPEND_ENABLE > 0)
-                     ,NOS_THREAD_READY
+                    ,NOS_THREAD_READY
  #endif
  #if (NOS_CONFIG_THREAD_NAME_ENABLE > 0)
-                     ,"nOS_Timer"
+                    ,"nOS_Timer"
  #endif
-                     );
+                    );
 #endif
 }
 
@@ -202,7 +204,7 @@ void nOS_TimerTick (void)
 
     nOS_EnterCritical(sr);
     _tickCounter++;
- #if (NOS_CONFIG_TIMER_THREAD_ENABLE > 0)
+#if (NOS_CONFIG_TIMER_THREAD_ENABLE > 0)
     nOS_WalkInList(&_activeList, _Tick, &triggered);
     if (triggered && (_thread.state == (NOS_THREAD_READY | NOS_THREAD_ON_HOLD))) {
         nOS_WakeUpThread(&_thread, NOS_OK);
@@ -226,7 +228,8 @@ void nOS_TimerProcess (void)
         timer->overflow--;
         if (timer->overflow == 0) {
             _RemoveFromTriggeredList(timer);
-        } else {
+        }
+        else {
 #if (NOS_CONFIG_TIMER_HIGHEST_PRIO > 0)
             nOS_RotateList(&_triggeredList[timer->prio]);
 #else
@@ -261,9 +264,8 @@ nOS_Error nOS_TimerCreate (nOS_Timer *timer,
 #if (NOS_CONFIG_SAFE > 0)
     if (timer == NULL) {
         err = NOS_E_INV_OBJ;
-    } else if ((mode != NOS_TIMER_FREE_RUNNING) && (mode != NOS_TIMER_ONE_SHOT)) {
-        err = NOS_E_INV_VAL;
-    } else if (reload == 0) {
+    }
+    else if ((mode != NOS_TIMER_FREE_RUNNING) && (mode != NOS_TIMER_ONE_SHOT)) {
         err = NOS_E_INV_VAL;
     } else
  #if (NOS_CONFIG_TIMER_HIGHEST_PRIO > 0)
@@ -327,7 +329,6 @@ nOS_Error nOS_TimerDelete (nOS_Timer *timer)
                 timer->overflow = 0;
                 _RemoveFromTriggeredList(timer);
             }
-
             err = NOS_OK;
         }
         nOS_LeaveCritical(sr);
@@ -335,7 +336,7 @@ nOS_Error nOS_TimerDelete (nOS_Timer *timer)
 
     return err;
 }
-#endif
+#endif  /* NOS_CONFIG_TIMER_DELETE_ENABLE */
 
 nOS_Error nOS_TimerStart (nOS_Timer *timer)
 {
@@ -352,6 +353,9 @@ nOS_Error nOS_TimerStart (nOS_Timer *timer)
 #if (NOS_CONFIG_SAFE > 0)
         if (timer->state == NOS_TIMER_DELETED) {
             err = NOS_E_INV_OBJ;
+        }
+        else if (timer->reload == 0) {
+            err = NOS_E_INV_VAL;
         } else
 #endif
         {
@@ -395,7 +399,6 @@ nOS_Error nOS_TimerStop (nOS_Timer *timer, bool instant)
                 timer->overflow = 0;
                 _RemoveFromTriggeredList(timer);
             }
-
             err = NOS_OK;
         }
         nOS_LeaveCritical(sr);
@@ -412,7 +415,8 @@ nOS_Error nOS_TimerRestart (nOS_Timer *timer, nOS_TimerCounter reload)
 #if (NOS_CONFIG_SAFE > 0)
     if (timer == NULL) {
         err = NOS_E_INV_OBJ;
-    } else if (reload == 0) {
+    }
+    else if (reload == 0) {
         err = NOS_E_INV_VAL;
     } else
 #endif
@@ -456,11 +460,13 @@ nOS_Error nOS_TimerPause (nOS_Timer *timer)
             err = NOS_E_INV_OBJ;
         } else
 #endif
-        if ((timer->state & (NOS_TIMER_RUNNING | NOS_TIMER_PAUSED)) == NOS_TIMER_RUNNING) {
-            timer->state = (nOS_TimerState)(timer->state | NOS_TIMER_PAUSED);
-            _RemoveFromActiveList(timer);
+        {
+            if ((timer->state & (NOS_TIMER_RUNNING | NOS_TIMER_PAUSED)) == NOS_TIMER_RUNNING) {
+                timer->state = (nOS_TimerState)(timer->state | NOS_TIMER_PAUSED);
+                _RemoveFromActiveList(timer);
+            }
+            err = NOS_OK;
         }
-        err = NOS_OK;
         nOS_LeaveCritical(sr);
     }
 
@@ -484,11 +490,13 @@ nOS_Error nOS_TimerContinue (nOS_Timer *timer)
             err = NOS_E_INV_OBJ;
         } else
 #endif
-        if (timer->state & NOS_TIMER_PAUSED) {
-            timer->state = (nOS_TimerState)(timer->state &~ NOS_TIMER_PAUSED);
-            _AppendToActiveList(timer);
+        {
+            if (timer->state & NOS_TIMER_PAUSED) {
+                timer->state = (nOS_TimerState)(timer->state &~ NOS_TIMER_PAUSED);
+                _AppendToActiveList(timer);
+            }
+            err = NOS_OK;
         }
-        err = NOS_OK;
         nOS_LeaveCritical(sr);
     }
 
@@ -503,7 +511,8 @@ nOS_Error nOS_TimerSetReload (nOS_Timer *timer, nOS_TimerCounter reload)
 #if (NOS_CONFIG_SAFE > 0)
     if (timer == NULL) {
         err = NOS_E_INV_OBJ;
-    } else if (reload == 0) {
+    }
+    else if (reload == 0) {
         err = NOS_E_INV_VAL;
     } else
 #endif
@@ -562,7 +571,8 @@ nOS_Error nOS_TimerSetMode (nOS_Timer *timer, nOS_TimerMode mode)
 #if (NOS_CONFIG_SAFE > 0)
     if (timer == NULL) {
         err = NOS_E_INV_OBJ;
-    } else if ((mode != NOS_TIMER_FREE_RUNNING) && (mode != NOS_TIMER_ONE_SHOT)) {
+    }
+    else if ((mode != NOS_TIMER_FREE_RUNNING) && (mode != NOS_TIMER_ONE_SHOT)) {
         err = NOS_E_INV_VAL;
     } else
 #endif
@@ -593,7 +603,8 @@ nOS_Error nOS_TimerSetPrio (nOS_Timer *timer, uint8_t prio)
 #if (NOS_CONFIG_SAFE > 0)
     if (timer == NULL) {
         err = NOS_E_INV_OBJ;
-    } else if (prio > NOS_CONFIG_TIMER_HIGHEST_PRIO) {
+    }
+    else if (prio > NOS_CONFIG_TIMER_HIGHEST_PRIO) {
         err = NOS_E_INV_PRIO;
     } else
 #endif
@@ -612,7 +623,6 @@ nOS_Error nOS_TimerSetPrio (nOS_Timer *timer, uint8_t prio)
             if (timer->overflow > 0) {
                 _AppendToTriggeredList(timer);
             }
-
             err = NOS_OK;
         }
         nOS_LeaveCritical(sr);

@@ -59,7 +59,8 @@ extern "C" {
  #endif
 
          return (nOS_Signal*)_list[prio].head->payload;
-     } else {
+     }
+     else {
          return (nOS_Signal*)NULL;
      }
  }
@@ -119,7 +120,7 @@ static void _Thread (void *arg)
     }
 #endif
 }
-#endif
+#endif  /* NOS_CONFIG_SIGNAL_THREAD_ENABLE */
 
 void nOS_InitSignal (void)
 {
@@ -136,24 +137,24 @@ void nOS_InitSignal (void)
                      _Thread,
                      NULL
  #ifdef NOS_SIMULATED_STACK
-                     ,&_stack
+                    ,&_stack
  #else
-                     ,_stack
+                    ,_stack
  #endif
-                     ,NOS_CONFIG_SIGNAL_THREAD_STACK_SIZE
+                    ,NOS_CONFIG_SIGNAL_THREAD_STACK_SIZE
  #ifdef NOS_USE_SEPARATE_CALL_STACK
-                     ,NOS_CONFIG_SIGNAL_THREAD_CALL_STACK_SIZE
+                    ,NOS_CONFIG_SIGNAL_THREAD_CALL_STACK_SIZE
  #endif
  #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
-                     ,NOS_CONFIG_SIGNAL_THREAD_PRIO
+                    ,NOS_CONFIG_SIGNAL_THREAD_PRIO
  #endif
  #if (NOS_CONFIG_THREAD_SUSPEND_ENABLE > 0)
-                     ,NOS_THREAD_READY
+                    ,NOS_THREAD_READY
  #endif
  #if (NOS_CONFIG_THREAD_NAME_ENABLE > 0)
-                     ,"nOS_Signal"
+                    ,"nOS_Signal"
  #endif
-                     );
+                    );
 #endif
 }
 
@@ -195,7 +196,8 @@ nOS_Error nOS_SignalCreate (nOS_Signal *signal,
 #if (NOS_CONFIG_SAFE > 0)
     if (signal == NULL) {
         err = NOS_E_INV_OBJ;
-    } else if (callback == NULL) {
+    }
+    else if (callback == NULL) {
         err = NOS_E_INV_VAL;
     } else
  #if (NOS_CONFIG_SIGNAL_HIGHEST_PRIO > 0)
@@ -258,7 +260,7 @@ nOS_Error nOS_SignalDelete (nOS_Signal *signal)
 
     return err;
 }
-#endif
+#endif /* NOS_CONFIG_SIGNAL_DELETE_ENABLE */
 
 nOS_Error nOS_SignalSend (nOS_Signal *signal, void *arg)
 {
@@ -277,22 +279,20 @@ nOS_Error nOS_SignalSend (nOS_Signal *signal, void *arg)
             err = NOS_E_INV_OBJ;
         } else
 #endif
-        {
-            if (signal->state & NOS_SIGNAL_RAISED) {
-                err = NOS_E_OVERFLOW;
-            } else {
-                signal->state = (nOS_SignalState)(signal->state | NOS_SIGNAL_RAISED);
-                signal->arg   = arg;
-                _AppendToList(signal);
+        if (signal->state & NOS_SIGNAL_RAISED) {
+            err = NOS_E_OVERFLOW;
+        }
+        else {
+            signal->state = (nOS_SignalState)(signal->state | NOS_SIGNAL_RAISED);
+            signal->arg   = arg;
+            _AppendToList(signal);
 
 #if (NOS_CONFIG_SIGNAL_THREAD_ENABLE > 0)
-                if (_thread.state == (NOS_THREAD_READY | NOS_THREAD_ON_HOLD)) {
-                    nOS_WakeUpThread(&_thread, NOS_OK);
-                }
-#endif
-
-                err = NOS_OK;
+            if (_thread.state == (NOS_THREAD_READY | NOS_THREAD_ON_HOLD)) {
+                nOS_WakeUpThread(&_thread, NOS_OK);
             }
+#endif
+            err = NOS_OK;
         }
         nOS_LeaveCritical(sr);
     }
@@ -308,7 +308,8 @@ nOS_Error nOS_SignalSetCallback (nOS_Signal *signal, nOS_SignalCallback callback
 #if (NOS_CONFIG_SAFE > 0)
     if (signal == NULL) {
         err = NOS_E_INV_OBJ;
-    } else if (callback == NULL) {
+    }
+    else if (callback == NULL) {
         err = NOS_E_INV_VAL;
     } else
 #endif
@@ -339,7 +340,8 @@ nOS_Error nOS_SignalSetPrio (nOS_Signal *signal, uint8_t prio)
 #if (NOS_CONFIG_SAFE > 0)
     if (signal == NULL) {
         err = NOS_E_INV_OBJ;
-    } else if (prio > NOS_CONFIG_SIGNAL_HIGHEST_PRIO) {
+    }
+    else if (prio > NOS_CONFIG_SIGNAL_HIGHEST_PRIO) {
         err = NOS_E_INV_PRIO;
     } else
 #endif
@@ -366,7 +368,7 @@ nOS_Error nOS_SignalSetPrio (nOS_Signal *signal, uint8_t prio)
 
     return err;
 }
-#endif
+#endif  /* NOS_CONFIG_SIGNAL_HIGHEST_PRIO */
 
 bool nOS_SignalIsRaised (nOS_Signal *signal)
 {

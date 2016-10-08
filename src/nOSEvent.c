@@ -13,11 +13,12 @@
 extern "C" {
 #endif
 
+void nOS_CreateEvent (nOS_Event *event
 #if (NOS_CONFIG_SAFE > 0)
-void nOS_CreateEvent (nOS_Event *event, nOS_EventType type)
-#else
-void nOS_CreateEvent (nOS_Event *event)
+
+                     ,nOS_EventType type
 #endif
+                     )
 {
 #if (NOS_CONFIG_SAFE > 0)
     event->type = type;
@@ -25,49 +26,20 @@ void nOS_CreateEvent (nOS_Event *event)
     nOS_InitList(&event->waitList);
 }
 
-#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
-bool nOS_DeleteEvent (nOS_Event *event)
-#else
 void nOS_DeleteEvent (nOS_Event *event)
-#endif
 {
-#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
-    bool sched = nOS_BroadcastEvent(event, NOS_E_DELETED);
-#else
-    nOS_BroadcastEvent(event, NOS_E_DELETED);
-#endif
-
 #if (NOS_CONFIG_SAFE > 0)
     event->type = NOS_EVENT_INVALID;
 #endif
-
-#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
-    return sched;
-#endif
+    nOS_BroadcastEvent(event, NOS_E_DELETED);
 }
 
-#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
-bool nOS_BroadcastEvent (nOS_Event *event, nOS_Error err)
-#else
 void nOS_BroadcastEvent (nOS_Event *event, nOS_Error err)
-#endif
 {
-#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
-    nOS_Thread  *thread;
-    bool        sched = false;
-
-    do {
-        thread = nOS_SendEvent(event, err);
-        if (thread != NULL) {
-            if ((thread->state == NOS_THREAD_READY) && (thread->prio > nOS_runningThread->prio)) {
-                sched = true;
-            }
-        }
-    } while (thread != NULL);
-
-    return sched;
-#else
     while (nOS_SendEvent(event, err) != NULL);
+#if (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
+    /* Verify if a highest prio thread is ready to run */
+    nOS_Schedule();
 #endif
 }
 
@@ -78,23 +50,47 @@ nOS_Error nOS_WaitForEvent (nOS_Event *event,
 #endif
                            )
 {
-    nOS_RemoveThreadFromReadyList(nOS_runningThread);
-    nOS_runningThread->state = (nOS_ThreadState)(nOS_runningThread->state | (state & NOS_THREAD_WAITING_MASK));
-    nOS_runningThread->event = event;
-#if (NOS_CONFIG_WAITING_TIMEOUT_ENABLE > 0) || (NOS_CONFIG_SLEEP_ENABLE > 0) || (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
-    if ((timeout > 0) && (timeout < NOS_WAIT_INFINITE)) {
-        nOS_runningThread->timeout = nOS_tickCounter + timeout;
-        nOS_runningThread->state = (nOS_ThreadState)(nOS_runningThread->state | NOS_THREAD_WAIT_TIMEOUT);
-        nOS_AppendToList(&nOS_timeoutThreadsList, &nOS_runningThread->tout);
-    }
+    nOS_Error   err;
+
+#if (NOS_CONFIG_SAFE > 0)
+    if (nOS_isrNestingCounter > 0) {
+        /* Can't wait from ISR */
+        err = NOS_E_ISR;
+    } else
+ #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
+    if (nOS_lockNestingCounter > 0) {
+        /* Can't switch context when scheduler is locked */
+        err = NOS_E_LOCKED;
+    } else
+ #endif
+    if (nOS_runningThread == &nOS_idleHandle) {
+        /* Main thread can't wait */
+        err = NOS_E_IDLE;
+    } else
 #endif
-    if (event != NULL) {
-        nOS_AppendToList(&event->waitList, &nOS_runningThread->readyWait);
+    {
+        nOS_RemoveThreadFromReadyList(nOS_runningThread);
+
+        nOS_runningThread->state = (nOS_ThreadState)(nOS_runningThread->state | (state & NOS_THREAD_WAITING_MASK));
+        nOS_runningThread->event = event;
+        if (event != NULL) {
+            nOS_AppendToList(&event->waitList, &nOS_runningThread->readyWait);
+        }
+
+#if (NOS_CONFIG_WAITING_TIMEOUT_ENABLE > 0) || (NOS_CONFIG_SLEEP_ENABLE > 0) || (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
+        if ((timeout > 0) && (timeout < NOS_WAIT_INFINITE)) {
+            nOS_runningThread->timeout = nOS_tickCounter + timeout;
+            nOS_runningThread->state = (nOS_ThreadState)(nOS_runningThread->state | NOS_THREAD_WAIT_TIMEOUT);
+            nOS_AppendToList(&nOS_timeoutThreadsList, &nOS_runningThread->tout);
+        }
+#endif
+
+        nOS_Schedule();
+
+        err = (nOS_Error)nOS_runningThread->error;
     }
 
-    nOS_Schedule();
-
-    return (nOS_Error)nOS_runningThread->error;
+    return err;
 }
 
 nOS_Thread* nOS_SendEvent (nOS_Event *event, nOS_Error err)

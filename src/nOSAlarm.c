@@ -106,33 +106,38 @@ void nOS_InitAlarm(void)
                      _Thread,
                      NULL
  #ifdef NOS_SIMULATED_STACK
-                     ,&_stack
+                    ,&_stack
  #else
-                     ,_stack
+                    ,_stack
  #endif
-                     ,NOS_CONFIG_ALARM_THREAD_STACK_SIZE
+                    ,NOS_CONFIG_ALARM_THREAD_STACK_SIZE
  #ifdef NOS_USE_SEPARATE_CALL_STACK
-                     ,NOS_CONFIG_ALARM_THREAD_CALL_STACK_SIZE
+                    ,NOS_CONFIG_ALARM_THREAD_CALL_STACK_SIZE
  #endif
  #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
-                     ,NOS_CONFIG_ALARM_THREAD_PRIO
+                    ,NOS_CONFIG_ALARM_THREAD_PRIO
  #endif
  #if (NOS_CONFIG_THREAD_SUSPEND_ENABLE > 0)
-                     ,NOS_THREAD_READY
+                    ,NOS_THREAD_READY
  #endif
  #if (NOS_CONFIG_THREAD_NAME_ENABLE > 0)
-                     ,"nOS_Alarm"
+                    ,"nOS_Alarm"
  #endif
-                     );
+                    );
 #endif
 }
 
+/* Called from critical section if NOS_CONFIG_ALARM_TICK_ENABLE is enabled */
 void nOS_AlarmTick (void)
 {
+#if (NOS_CONFIG_ALARM_TICK_ENABLE == 0)
     nOS_StatusReg   sr;
+#endif
     _Context        ctx;
 
+#if (NOS_CONFIG_ALARM_TICK_ENABLE == 0)
     nOS_EnterCritical(sr);
+#endif
     ctx.time = nOS_TimeGet();
 #if (NOS_CONFIG_ALARM_THREAD_ENABLE > 0)
     ctx.triggered = false;
@@ -143,7 +148,9 @@ void nOS_AlarmTick (void)
         nOS_WakeUpThread(&_thread, NOS_OK);
     }
 #endif
+#if (NOS_CONFIG_ALARM_TICK_ENABLE == 0)
     nOS_LeaveCritical(sr);
+#endif
 }
 
 void nOS_AlarmProcess (void)
@@ -196,7 +203,8 @@ nOS_Error nOS_AlarmCreate (nOS_Alarm *alarm, nOS_AlarmCallback callback, void *a
             if (time <= nOS_TimeGet()) {
                 alarm->state = (nOS_AlarmState)(alarm->state | NOS_ALARM_TRIGGERED);
                 nOS_AppendToList(&_triggeredList, &alarm->node);
-            } else {
+            }
+            else {
                 alarm->state = (nOS_AlarmState)(alarm->state | NOS_ALARM_WAITING);
                 nOS_AppendToList(&_waitingList, &alarm->node);
             }
@@ -230,7 +238,8 @@ nOS_Error nOS_AlarmDelete (nOS_Alarm *alarm)
         {
             if (alarm->state & NOS_ALARM_WAITING) {
                 nOS_RemoveFromList(&_waitingList, &alarm->node);
-            } else if (alarm->state & NOS_ALARM_TRIGGERED) {
+            }
+            else if (alarm->state & NOS_ALARM_TRIGGERED) {
                 nOS_RemoveFromList(&_triggeredList, &alarm->node);
             }
             alarm->state = NOS_ALARM_DELETED;
@@ -266,7 +275,8 @@ nOS_Error nOS_AlarmSetTime (nOS_Alarm *alarm, nOS_Time time)
                 if (alarm->state & NOS_ALARM_WAITING) {
                     nOS_RemoveFromList(&_waitingList, &alarm->node);
                     alarm->state = (nOS_AlarmState)(alarm->state &~ NOS_ALARM_WAITING);
-                } else if (alarm->state & NOS_ALARM_TRIGGERED) {
+                }
+                else if (alarm->state & NOS_ALARM_TRIGGERED) {
                     nOS_RemoveFromList(&_triggeredList, &alarm->node);
                     alarm->state = (nOS_AlarmState)(alarm->state &~ NOS_ALARM_TRIGGERED);
                 }
@@ -276,14 +286,14 @@ nOS_Error nOS_AlarmSetTime (nOS_Alarm *alarm, nOS_Time time)
                 if (time <= nOS_TimeGet()) {
                     alarm->state = (nOS_AlarmState)(alarm->state | NOS_ALARM_TRIGGERED);
                     nOS_AppendToList(&_triggeredList, &alarm->node);
-                } else {
+                }
+                else {
                     alarm->state = (nOS_AlarmState)(alarm->state | NOS_ALARM_WAITING);
                     nOS_AppendToList(&_waitingList, &alarm->node);
                 }
             }
             err = NOS_OK;
         }
-
         nOS_LeaveCritical(sr);
     }
 

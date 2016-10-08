@@ -15,20 +15,17 @@ extern "C" {
 
 void PendSV_Handler(void) __attribute__( ( naked ) );
 
-#ifdef NOS_CONFIG_ISR_STACK_SIZE
- static nOS_Stack _isrStack[NOS_CONFIG_ISR_STACK_SIZE] __attribute__ ( ( section(".noinit") ) );
-#endif
+static nOS_Stack _isrStack[NOS_CONFIG_ISR_STACK_SIZE] __attribute__ ( ( section(".noinit") ) );
 
 void nOS_InitSpecific(void)
 {
-#ifdef NOS_CONFIG_ISR_STACK_SIZE
- #if (NOS_CONFIG_DEBUG > 0)
+#if (NOS_CONFIG_DEBUG > 0)
     size_t i;
 
     for (i = 0; i < NOS_CONFIG_ISR_STACK_SIZE; i++) {
         _isrStack[i] = 0xFFFFFFFFUL;
     }
- #endif
+#endif
 
     /* Copy MSP to PSP */
     _SetPSP(_GetMSP());
@@ -36,7 +33,6 @@ void nOS_InitSpecific(void)
     _SetMSP((uint32_t)&_isrStack[NOS_CONFIG_ISR_STACK_SIZE] & 0xFFFFFFF8UL);
     /* Set current stack to PSP and priviledge mode */
     _SetCONTROL(_GetCONTROL() | 0x00000002UL);
-#endif
     /* Set PendSV exception to lowest priority */
     *(volatile uint32_t *)0xE000ED20UL |= 0x00FF0000UL;
 }

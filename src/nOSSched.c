@@ -392,12 +392,14 @@ nOS_Error nOS_Schedule(void)
     /* Switch only if initialization is completed */
     if (!nOS_running) {
         err = NOS_E_NOT_RUNNING;
-    } else if (nOS_isrNestingCounter > 0) {
+    }
+    else if (nOS_isrNestingCounter > 0) {
+        /* Can't switch context from ISR */
         err = NOS_E_ISR;
     } else
  #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
     if (nOS_lockNestingCounter > 0) {
-        /* Switch only from thread without scheduler locked */
+        /* Can't switch context when scheduler is locked */
         err = NOS_E_LOCKED;
     } else
  #endif
@@ -504,10 +506,8 @@ nOS_Error nOS_Start(nOS_Callback callback)
         if (callback != NULL) {
             callback();
         }
-        nOS_Schedule();
+        err = nOS_Schedule();
         nOS_LeaveCritical(sr);
-
-        err = NOS_OK;
     }
 
     return err;
@@ -535,9 +535,8 @@ nOS_Error nOS_Yield(void)
 #else
         nOS_RotateList(&nOS_readyThreadsList);
 #endif
-        nOS_Schedule();
+        err = nOS_Schedule();
         nOS_LeaveCritical(sr);
-        err = NOS_OK;
     }
 
     return err;
@@ -609,21 +608,21 @@ nOS_Error nOS_Sleep (nOS_TickCounter ticks)
 #if (NOS_CONFIG_SAFE > 0)
     if (nOS_isrNestingCounter > 0) {
         err = NOS_E_ISR;
-    }
+    } else
  #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
     /* Can't switch context when scheduler is locked */
-    else if (nOS_lockNestingCounter > 0) {
+    if (nOS_lockNestingCounter > 0) {
         err = NOS_E_LOCKED;
-    }
+    } else
  #endif
-    else if (nOS_runningThread == &nOS_idleHandle) {
+    if (nOS_runningThread == &nOS_idleHandle) {
         err = NOS_E_IDLE;
     } else
 #endif
     if (ticks == 0) {
-        nOS_Yield();
-        err = NOS_OK;
-    } else {
+        err = nOS_Yield();
+    }
+    else {
         nOS_EnterCritical(sr);
         err = nOS_WaitForEvent(NULL, NOS_THREAD_SLEEPING, ticks);
         nOS_LeaveCritical(sr);
@@ -642,21 +641,21 @@ nOS_Error nOS_SleepMs (uint16_t ms)
 #if (NOS_CONFIG_SAFE > 0)
     if (nOS_isrNestingCounter > 0) {
         err = NOS_E_ISR;
-    }
+    } else
  #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
     /* Can't switch context when scheduler is locked */
-    else if (nOS_lockNestingCounter > 0) {
+    if (nOS_lockNestingCounter > 0) {
         err = NOS_E_LOCKED;
-    }
+    } else
  #endif
-    else if (nOS_runningThread == &nOS_idleHandle) {
+    if (nOS_runningThread == &nOS_idleHandle) {
         err = NOS_E_IDLE;
     } else
 #endif
     if (ms == 0) {
-        nOS_Yield();
-        err = NOS_OK;
-    } else {
+        err = nOS_Yield();
+    }
+    else {
         ticks = nOS_MsToTicks(ms);
 
         nOS_EnterCritical(sr);
@@ -673,8 +672,8 @@ nOS_Error nOS_SleepMs (uint16_t ms)
 
     return err;
 }
-#endif
-#endif
+#endif  /* NOS_CONFIG_TICKS_PER_SECOND & NOS_CONFIG_TICKS_PER_SECOND */
+#endif  /* NOS_CONFIG_SLEEP_ENABLE */
 
 #if (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
 nOS_Error nOS_SleepUntil (nOS_TickCounter tick)
@@ -685,22 +684,21 @@ nOS_Error nOS_SleepUntil (nOS_TickCounter tick)
 #if (NOS_CONFIG_SAFE > 0)
     if (nOS_isrNestingCounter > 0) {
         err = NOS_E_ISR;
-    }
+    } else
  #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
     /* Can't switch context when scheduler is locked */
-    else if (nOS_lockNestingCounter > 0) {
+    if (nOS_lockNestingCounter > 0) {
         err = NOS_E_LOCKED;
-    }
+    } else
  #endif
-    else if (nOS_runningThread == &nOS_idleHandle) {
+    if (nOS_runningThread == &nOS_idleHandle) {
         err = NOS_E_IDLE;
     } else
 #endif
     {
         nOS_EnterCritical(sr);
-        if (tick == nOS_tickCounter) {
-            err = NOS_OK;
-        } else {
+        err = NOS_OK;
+        if (tick != nOS_tickCounter) {
             /* Always give number of ticks to wait to this function */
             err = nOS_WaitForEvent(NULL, NOS_THREAD_SLEEPING_UNTIL, tick - nOS_tickCounter);
         }
@@ -724,11 +722,14 @@ nOS_Error nOS_SchedLock(void)
 #endif
     {
         nOS_EnterCritical(sr);
-        if (nOS_lockNestingCounter < UINT8_MAX) {
+#if (NOS_CONFIG_SAFE > 0)
+        if (nOS_lockNestingCounter == UINT8_MAX) {
+            err = NOS_E_OVERFLOW;
+        } else
+#endif
+        {
             nOS_lockNestingCounter++;
             err = NOS_OK;
-        } else {
-            err = NOS_E_OVERFLOW;
         }
         nOS_LeaveCritical(sr);
     }
@@ -748,14 +749,20 @@ nOS_Error nOS_SchedUnlock(void)
 #endif
     {
         nOS_EnterCritical(sr);
-        if (nOS_lockNestingCounter > 0) {
+#if (NOS_CONFIG_SAFE > 0)
+        if (nOS_lockNestingCounter == 0) {
+            err = NOS_E_UNDERFLOW;
+        } else
+#endif
+        {
             nOS_lockNestingCounter--;
+#if (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
             if (nOS_lockNestingCounter == 0) {
+                /* Verify if a highest prio thread is ready to run */
                 nOS_Schedule();
             }
+#endif
             err = NOS_OK;
-        } else {
-            err = NOS_E_UNDERFLOW;
         }
         nOS_LeaveCritical(sr);
     }
@@ -766,7 +773,18 @@ nOS_Error nOS_SchedUnlock(void)
 
 nOS_Thread * nOS_GetRunningThread (void)
 {
-    return nOS_running ? nOS_runningThread : NULL;
+    nOS_Thread *thread;
+
+#if (NOS_CONFIG_SAFE > 0)
+    if (!nOS_running) {
+        thread = NULL;
+    } else
+#endif
+    {
+        thread = nOS_runningThread;
+    }
+
+    return thread;
 }
 
 #ifdef __cplusplus

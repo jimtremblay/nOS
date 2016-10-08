@@ -50,11 +50,11 @@ void nOS_InitTime (void)
 #endif
     _time       = 0;
 #if (NOS_CONFIG_TIME_WAIT_ENABLE > 0)
+    nOS_CreateEvent(&_event
  #if (NOS_CONFIG_SAFE > 0)
-    nOS_CreateEvent(&_event, NOS_EVENT_BASE);
- #else
-    nOS_CreateEvent(&_event);
+                   ,NOS_EVENT_BASE
  #endif
+                   );
 #endif
 }
 
@@ -155,24 +155,26 @@ nOS_Error nOS_TimeWait (nOS_Time time)
 #if (NOS_CONFIG_SAFE > 0)
     if (nOS_isrNestingCounter > 0) {
         err = NOS_E_ISR;
-    }
+    } else
  #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
-    else if (nOS_lockNestingCounter > 0) {
+    if (nOS_lockNestingCounter > 0) {
         /* Can't switch context when scheduler is locked */
         err = NOS_E_LOCKED;
-    }
+    } else
  #endif
-    else if (nOS_runningThread == &nOS_idleHandle) {
+    if (nOS_runningThread == &nOS_idleHandle) {
         err = NOS_E_IDLE;
     } else
 #endif
     {
         nOS_EnterCritical(sr);
-        if (_time < time) {
+        if (time < _time) {
             err = NOS_E_ELAPSED;
-        } else if (_time == time) {
+        }
+        else if (time == _time) {
             err = NOS_OK;
-        } else {
+        }
+        else {
             nOS_runningThread->ext = (void*)&time;
             err = nOS_WaitForEvent(&_event,
                                    NOS_THREAD_WAITING_TIME
@@ -186,7 +188,7 @@ nOS_Error nOS_TimeWait (nOS_Time time)
 
     return err;
 }
-#endif
+#endif  /* NOS_CONFIG_TIME_WAIT_ENABLE */
 
 nOS_TimeDate nOS_TimeDateGet (void)
 {

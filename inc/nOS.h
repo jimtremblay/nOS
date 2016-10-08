@@ -559,11 +559,11 @@ typedef struct nOS_Event            nOS_Event;
  #elif (NOS_CONFIG_QUEUE_BLOCK_COUNT_WIDTH == 64)
   typedef uint64_t                  nOS_QueueCounter;
  #endif
+ typedef void(*nOS_QueueCallback)(nOS_Queue*,void*);
 #endif
 #if (NOS_CONFIG_FLAG_ENABLE > 0)
  typedef struct nOS_Flag            nOS_Flag;
  typedef struct nOS_FlagContext     nOS_FlagContext;
- typedef struct nOS_FlagResult      nOS_FlagResult;
  #if (NOS_CONFIG_FLAG_NB_BITS == 8)
   typedef uint8_t                   nOS_FlagBits;
  #elif (NOS_CONFIG_FLAG_NB_BITS == 16)
@@ -653,7 +653,8 @@ typedef enum nOS_Error
     NOS_E_INV_PRIO              = -20,
     NOS_E_ABORT                 = -21,
     NOS_E_RUNNING               = -22,
-    NOS_E_NOT_RUNNING           = -23
+    NOS_E_NOT_RUNNING           = -23,
+    NOS_E_FLUSHED               = -24
 } nOS_Error;
 
 typedef enum nOS_ThreadState
@@ -890,14 +891,6 @@ struct nOS_FlagContext
     nOS_FlagBits        flags;
     nOS_FlagBits        *rflags;
 };
-
-struct nOS_FlagResult
-{
- #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
-    bool                sched;
- #endif
-    nOS_FlagBits        rflags;
-};
 #endif
 
 #if (NOS_CONFIG_MEM_ENABLE > 0)
@@ -1057,8 +1050,12 @@ struct nOS_Barrier
  #endif
  nOS_Error      nOS_Schedule                        (void);
 
- void           nOS_InitList                        (nOS_List *list);
- void*          nOS_GetHeadOfList                   (nOS_List *list);
+ #define        nOS_InitList(list)                                              \
+ do {                                                                           \
+     (list)->head = NULL;                                                       \
+     (list)->tail = NULL;                                                       \
+ } while(0)
+ #define        nOS_GetHeadOfList(list)             ((list)->head != NULL ? (list)->head->payload : NULL)
  void           nOS_AppendToList                    (nOS_List *list, nOS_Node *node);
  void           nOS_RemoveFromList                  (nOS_List *list, nOS_Node *node);
  void           nOS_RotateList                      (nOS_List *list);
@@ -1073,18 +1070,13 @@ struct nOS_Barrier
   int           nOS_ThreadWrapper                   (void *arg);
  #endif
 
+ void           nOS_CreateEvent                     (nOS_Event *event
  #if (NOS_CONFIG_SAFE > 0)
-  void          nOS_CreateEvent                     (nOS_Event *event, nOS_EventType type);
- #else
-  void          nOS_CreateEvent                     (nOS_Event *event);
+                                                    ,nOS_EventType type
  #endif
- #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
-  bool          nOS_DeleteEvent                     (nOS_Event *event);
-  bool          nOS_BroadcastEvent                  (nOS_Event *event, nOS_Error err);
- #else
-  void          nOS_DeleteEvent                     (nOS_Event *event);
-  void          nOS_BroadcastEvent                  (nOS_Event *event, nOS_Error err);
- #endif
+                                                    );
+ void           nOS_DeleteEvent                     (nOS_Event *event);
+ void           nOS_BroadcastEvent                  (nOS_Event *event, nOS_Error err);
  nOS_Error      nOS_WaitForEvent                    (nOS_Event *event,
                                                      nOS_ThreadState state
  #if (NOS_CONFIG_WAITING_TIMEOUT_ENABLE > 0) || (NOS_CONFIG_SLEEP_ENABLE > 0) || (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
@@ -1479,7 +1471,7 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
 #endif
 #if (NOS_CONFIG_THREAD_NAME_ENABLE > 0)
  const char*    nOS_ThreadGetName                   (nOS_Thread *thread);
- void           nOS_ThreadSetName                   (nOS_Thread *thread, const char *name);
+ nOS_Error      nOS_ThreadSetName                   (nOS_Thread *thread, const char *name);
 #endif
 #if (NOS_CONFIG_THREAD_JOIN_ENABLE > 0)
  nOS_Error      nOS_ThreadJoin                      (nOS_Thread *thread, int *ret, nOS_TickCounter timeout);
@@ -1531,7 +1523,7 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
  *                                                                                                                    *
  * Name            : nOS_SemTake                                                                                      *
  *                                                                                                                    *
- * Description     : Take semaphore pointed by object pointer. If not available, calling thread will be placed        *
+ * Description     : Take semaphore pointed by object pointer. If not available, calling thread will be placed in     *
  *                   event's waiting list for number of ticks specified by timeout. If semaphore is not available in  *
  *                   required time, an error will be returned and semaphore will be left unchanged.                   *
  *                                                                                                                    *
@@ -1556,8 +1548,36 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
  **********************************************************************************************************************/
  nOS_Error      nOS_SemTake                         (nOS_Sem *sem, nOS_TickCounter timeout);
 
+/**********************************************************************************************************************
+ *                                                                                                                    *
+ * Name            : nOS_SemGive                                                                                      *
+ *                                                                                                                    *
+ * Description     : Give semaphore pointed by object pointer. If a thread is waiting, replace it in ready list with  *
+ *                   operation successfull code. If no thread is waiting, increment semaphore count if lower than     *
+ *                   maximum available count, else return an overflow error.                                          *
+ *                                                                                                                    *
+ * Parameters                                                                                                         *
+ *   sem           : Pointer to semaphore object.                                                                     *
+ *                                                                                                                    *
+ * Return          : Error code.                                                                                      *
+ *   NOS_OK        : Requested semaphore have been successfully taken.                                                *
+ *   NOS_E_INV_OBJ : Pointer to semaphore object is invalid.                                                          *
+ *                                                                                                                    *
+ **********************************************************************************************************************/
  nOS_Error      nOS_SemGive                         (nOS_Sem *sem);
 
+/**********************************************************************************************************************
+ *                                                                                                                    *
+ * Name            : nOS_SemIsAvailable                                                                               *
+ *                                                                                                                    *
+ * Description     : Return availability of semaphore.                                                                *
+ *                                                                                                                    *
+ * Parameters                                                                                                         *
+ *   sem           : Pointer to semaphore object.                                                                     *
+ *                                                                                                                    *
+ * Return          : TRUE if semaphore count is higher than 0, else FALSE.                                            *
+ *                                                                                                                    *
+ **********************************************************************************************************************/
  bool           nOS_SemIsAvailable                  (nOS_Sem *sem);
 #endif
 
@@ -1611,6 +1631,7 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
  #endif
  nOS_Error      nOS_QueueRead                       (nOS_Queue *queue, void *block, nOS_TickCounter timeout);
  nOS_Error      nOS_QueueWrite                      (nOS_Queue *queue, void *block, nOS_TickCounter timeout);
+ nOS_Error      nOS_QueueFlush                      (nOS_Queue *queue, nOS_QueueCallback callback);
  bool           nOS_QueueIsEmpty                    (nOS_Queue *queue);
  bool           nOS_QueueIsFull                     (nOS_Queue *queue);
 #endif

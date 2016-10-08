@@ -28,6 +28,14 @@ static void _Read (nOS_Queue *queue, void *block)
     queue->bcount--;
 }
 
+static void _Flush (nOS_Queue *queue)
+{
+    queue->r = 0;
+    queue->w = 0;
+    queue->bcount = 0;
+}
+
+/* Can create queue with block count at 0 to use it as pipe object (no buffer needed). */
 nOS_Error nOS_QueueCreate (nOS_Queue *queue, void *buffer, uint8_t bsize, nOS_QueueCounter bmax)
 {
     nOS_Error       err;
@@ -36,11 +44,14 @@ nOS_Error nOS_QueueCreate (nOS_Queue *queue, void *buffer, uint8_t bsize, nOS_Qu
 #if (NOS_CONFIG_SAFE > 0)
     if (queue == NULL) {
         err = NOS_E_INV_OBJ;
-    } else if (bsize == 0) {
+    }
+    else if (bsize == 0) {
         err = NOS_E_INV_VAL;
-    } else if ((buffer != NULL) && (bmax == 0)) {
+    }
+    else if ((buffer != NULL) && (bmax == 0)) {
         err = NOS_E_INV_VAL;
-    } else if ((buffer == NULL) && (bmax > 0)) {
+    }
+    else if ((buffer == NULL) && (bmax > 0)) {
         err = NOS_E_INV_VAL;
     } else
 #endif
@@ -52,17 +63,15 @@ nOS_Error nOS_QueueCreate (nOS_Queue *queue, void *buffer, uint8_t bsize, nOS_Qu
         } else
 #endif
         {
+            nOS_CreateEvent((nOS_Event*)queue
 #if (NOS_CONFIG_SAFE > 0)
-            nOS_CreateEvent((nOS_Event*)queue, NOS_EVENT_QUEUE);
-#else
-            nOS_CreateEvent((nOS_Event*)queue);
+                           ,NOS_EVENT_QUEUE
 #endif
+                           );
             queue->buffer = (uint8_t*)buffer;
             queue->bsize  = bsize;
-            queue->bcount = 0;
             queue->bmax   = bmax;
-            queue->r      = 0;
-            queue->w      = 0;
+            _Flush(queue);
 
             err = NOS_OK;
         }
@@ -91,19 +100,11 @@ nOS_Error nOS_QueueDelete (nOS_Queue *queue)
         } else
 #endif
         {
+            _Flush(queue);
             queue->buffer = NULL;
             queue->bsize  = 0;
-            queue->bcount = 0;
             queue->bmax   = 0;
-            queue->r      = 0;
-            queue->w      = 0;
-#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
-            if (nOS_DeleteEvent((nOS_Event*)queue)) {
-                nOS_Schedule();
-            }
-#else
             nOS_DeleteEvent((nOS_Event*)queue);
-#endif
 
             err = NOS_OK;
         }
@@ -123,7 +124,8 @@ nOS_Error nOS_QueueRead (nOS_Queue *queue, void *block, nOS_TickCounter timeout)
 #if (NOS_CONFIG_SAFE > 0)
     if (queue == NULL) {
         err = NOS_E_INV_OBJ;
-    } else if (block == NULL) {
+    }
+    else if (block == NULL) {
         err = NOS_E_NULL;
     } else
 #endif
@@ -134,51 +136,34 @@ nOS_Error nOS_QueueRead (nOS_Queue *queue, void *block, nOS_TickCounter timeout)
             err = NOS_E_INV_OBJ;
         } else
 #endif
-        {
-            /* No chance a thread waiting to read from queue if count is higher than 0 */
-            if (queue->bcount > 0) {
-                _Read(queue, block);
-                /* Check if thread waiting to write in queue */
-                thread = nOS_SendEvent((nOS_Event*)queue, NOS_OK);
-                if (thread != NULL) {
-                    /* Write thread's block in queue */
-                    _Write(queue, thread->ext);
-#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
-                    if ((thread->state == NOS_THREAD_READY) && (thread->prio > nOS_runningThread->prio)) {
-                        nOS_Schedule();
-                    }
+        /* No chance a thread waiting to read from queue if count is higher than 0 */
+        if (queue->bcount > 0) {
+            _Read(queue, block);
+            /* Check if thread waiting to write in queue */
+            thread = nOS_SendEvent((nOS_Event*)queue, NOS_OK);
+            if (thread != NULL) {
+                /* Write thread's block in queue */
+                _Write(queue, thread->ext);
+#if (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
+                /* Verify if a highest prio thread is ready to run */
+                nOS_Schedule();
 #endif
-                }
-                err = NOS_OK;
-            } else if (timeout == NOS_NO_WAIT) {
-                err = NOS_E_EMPTY;
             }
-#if (NOS_CONFIG_SAFE > 0)
-            else if (nOS_isrNestingCounter > 0) {
-                err = NOS_E_ISR;
-            }
- #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
-            else if (nOS_lockNestingCounter > 0) {
-                err = NOS_E_LOCKED;
-            }
- #endif
-            else if (nOS_runningThread == &nOS_idleHandle) {
-                err = NOS_E_IDLE;
-            }
+            err = NOS_OK;
+        }
+        else if (timeout == NOS_NO_WAIT) {
+            err = NOS_E_EMPTY;
+        }
+        else {
+            nOS_runningThread->ext = block;
+            err = nOS_WaitForEvent((nOS_Event*)queue,
+                                   NOS_THREAD_READING_QUEUE
+#if (NOS_CONFIG_WAITING_TIMEOUT_ENABLE > 0)
+                                  ,timeout
+#elif (NOS_CONFIG_SLEEP_ENABLE > 0) || (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
+                                  ,NOS_WAIT_INFINITE
 #endif
-            else {
-                nOS_runningThread->ext = block;
-                err = nOS_WaitForEvent((nOS_Event*)queue,
-                                       NOS_THREAD_READING_QUEUE
-#if (NOS_CONFIG_WAITING_TIMEOUT_ENABLE > 0) || (NOS_CONFIG_SLEEP_ENABLE > 0) || (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
- #if (NOS_CONFIG_WAITING_TIMEOUT_ENABLE > 0)
-                                      ,timeout
- #else
-                                      ,NOS_WAIT_INFINITE
- #endif
-#endif
-                                      );
-            }
+                                  );
         }
         nOS_LeaveCritical(sr);
     }
@@ -195,7 +180,8 @@ nOS_Error nOS_QueueWrite (nOS_Queue *queue, void *block, nOS_TickCounter timeout
 #if (NOS_CONFIG_SAFE > 0)
     if (queue == NULL) {
         err = NOS_E_INV_OBJ;
-    } else if (block == NULL) {
+    }
+    else if (block == NULL) {
         err = NOS_E_NULL;
     } else
 #endif
@@ -206,62 +192,89 @@ nOS_Error nOS_QueueWrite (nOS_Queue *queue, void *block, nOS_TickCounter timeout
             err = NOS_E_INV_OBJ;
         } else
 #endif
-        {
-            /* If count equal 0, there are chances some threads can wait to read from queue */
-            if (queue->bcount == 0) {
-                /* Check if thread waiting to read from queue */
-                thread = nOS_SendEvent((nOS_Event*)queue, NOS_OK);
-                if (thread != NULL) {
-                    /* Direct copy between thread's buffers */
-                    memcpy(thread->ext, block, queue->bsize);
-#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
-                    if ((thread->state == NOS_THREAD_READY) && (thread->prio > nOS_runningThread->prio)) {
-                        nOS_Schedule();
-                    }
+        /* If count equal 0, there are chances some threads can wait to read from queue */
+        if (queue->bcount == 0) {
+            /* Check if thread waiting to read from queue */
+            thread = nOS_SendEvent((nOS_Event*)queue, NOS_OK);
+            if (thread != NULL) {
+                /* Direct copy between thread's buffers */
+                memcpy(thread->ext, block, queue->bsize);
+#if (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
+                /* Verify if a highest prio thread is ready to run */
+                nOS_Schedule();
 #endif
-                    err = NOS_OK;
-                } else if (queue->buffer != NULL) {
-                    /* No thread waiting to read from queue, then store it */
-                    _Write(queue, block);
-                    err = NOS_OK;
-                } else {
-                    /* No thread waiting to consume message, inform producer */
-                    err = NOS_E_NO_CONSUMER;
-                }
-            } else if (queue->bcount < queue->bmax) {
-                /* No chance a thread waiting to read from queue if count is higher than 0 */
+                err = NOS_OK;
+            }
+            else if (queue->buffer != NULL) {
+                /* No thread waiting to read from queue, then store it */
                 _Write(queue, block);
                 err = NOS_OK;
-            } else if (timeout == NOS_NO_WAIT) {
-                err = NOS_E_FULL;
             }
-#if (NOS_CONFIG_SAFE > 0)
-            else if (nOS_isrNestingCounter > 0) {
-                err = NOS_E_ISR;
-            }
- #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
-            else if (nOS_lockNestingCounter > 0) {
-                err = NOS_E_LOCKED;
-            }
- #endif
-            else if (nOS_runningThread == &nOS_idleHandle) {
-                /* Main threadv can't wait. */
-                err = NOS_E_IDLE;
-            }
-#endif
             else {
-                nOS_runningThread->ext = block;
-                err = nOS_WaitForEvent((nOS_Event*)queue,
-                                       NOS_THREAD_WRITING_QUEUE
-#if (NOS_CONFIG_WAITING_TIMEOUT_ENABLE > 0) || (NOS_CONFIG_SLEEP_ENABLE > 0) || (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
- #if (NOS_CONFIG_WAITING_TIMEOUT_ENABLE > 0)
-                                      ,timeout
- #else
-                                      ,NOS_WAIT_INFINITE
- #endif
-#endif
-                                      );
+                /* No thread waiting to consume message, inform producer */
+                err = NOS_E_NO_CONSUMER;
             }
+        }
+        else if (queue->bcount < queue->bmax) {
+            /* No chance a thread waiting to read from queue if count is higher than 0 */
+            _Write(queue, block);
+            err = NOS_OK;
+        }
+        else if (timeout == NOS_NO_WAIT) {
+            err = NOS_E_FULL;
+        }
+        else {
+            nOS_runningThread->ext = block;
+            err = nOS_WaitForEvent((nOS_Event*)queue,
+                                   NOS_THREAD_WRITING_QUEUE
+#if (NOS_CONFIG_WAITING_TIMEOUT_ENABLE > 0)
+                                  ,timeout
+#elif (NOS_CONFIG_SLEEP_ENABLE > 0) || (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
+                                  ,NOS_WAIT_INFINITE
+#endif
+                                  );
+        }
+        nOS_LeaveCritical(sr);
+    }
+
+    return err;
+}
+
+nOS_Error nOS_QueueFlush (nOS_Queue *queue, nOS_QueueCallback callback)
+{
+    nOS_Error       err;
+    nOS_StatusReg   sr;
+
+#if (NOS_CONFIG_SAFE > 0)
+    if (queue == NULL) {
+        err = NOS_E_INV_OBJ;
+    } else
+#endif
+    {
+        nOS_EnterCritical(sr);
+#if (NOS_CONFIG_SAFE > 0)
+        if (queue->e.type != NOS_EVENT_QUEUE) {
+            err = NOS_E_INV_OBJ;
+        } else
+#endif
+        {
+            /* If blocks are stored in queue ... */
+            if (queue->bcount > 0) {
+                if (callback != NULL) {
+                    /* ... call user's callback for every stored block */
+                    while (queue->bcount > 0) {
+                        callback(queue, &queue->buffer[(size_t)queue->r * (size_t)queue->bsize]);
+                        queue->r = (queue->r + 1) % queue->bmax;
+                        queue->bcount--;
+                    }
+                }
+                else {
+                    _Flush(queue);
+                }
+                /* maybe some threads are waiting to write in queue */
+                nOS_BroadcastEvent((nOS_Event*)queue, NOS_E_FLUSHED);
+            }
+            err = NOS_OK;
         }
         nOS_LeaveCritical(sr);
     }
@@ -286,13 +299,7 @@ bool nOS_QueueIsEmpty (nOS_Queue *queue)
             empty = false;
         } else
 #endif
-        {
-            if (queue->buffer != NULL) {
-                empty = (queue->bcount == 0);
-            } else {
-                empty = true;
-            }
-        }
+        empty = queue->buffer != NULL ? queue->bcount == 0 : true;
         nOS_LeaveCritical(sr);
     }
 
@@ -316,13 +323,11 @@ bool nOS_QueueIsFull (nOS_Queue *queue)
             full = false;
         } else
 #endif
-        {
-            if (queue->buffer != NULL) {
-                full = (queue->bcount == queue->bmax);
-            } else {
-                full = false;
-            }
-        }
+        full = queue->buffer != NULL ?
+                   queue->bcount == queue->bmax :
+                   nOS_GetHeadOfList(&queue->e.waitList) != NULL ?  /* A thread can be ready to consume message */
+                       false :
+                       true;
         nOS_LeaveCritical(sr);
     }
 

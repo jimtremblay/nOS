@@ -24,10 +24,10 @@ typedef uint32_t                            nOS_StatusReg;
 #define NOS_32_BITS_SCHEDULER
 #define NOS_USE_CLZ
 
-#ifdef NOS_CONFIG_ISR_STACK_SIZE
- #if (NOS_CONFIG_ISR_STACK_SIZE == 0)
-  #error "nOSConfig.h: NOS_CONFIG_ISR_STACK_SIZE is set to invalid value: must be higher than 0."
- #endif
+#ifndef NOS_CONFIG_ISR_STACK_SIZE
+ #error "nOSConfig.h: NOS_CONFIG_ISR_STACK_SIZE is not defined: must be higher than 0."
+#elif (NOS_CONFIG_ISR_STACK_SIZE == 0)
+ #error "nOSConfig.h: NOS_CONFIG_ISR_STACK_SIZE is set to invalid value: must be higher than 0."
 #endif
 
 /* __NVIC_PRIO_BITS defined from CMSIS if used */

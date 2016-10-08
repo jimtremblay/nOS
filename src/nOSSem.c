@@ -22,7 +22,8 @@ nOS_Error nOS_SemCreate (nOS_Sem *sem, nOS_SemCounter count, nOS_SemCounter max)
 #if (NOS_CONFIG_SAFE > 0)
     if (sem == NULL) {
         err = NOS_E_INV_OBJ;
-    } else if (count > max) {
+    }
+    else if (count > max) {
         err = NOS_E_INV_VAL;
     } else
 #endif
@@ -34,11 +35,11 @@ nOS_Error nOS_SemCreate (nOS_Sem *sem, nOS_SemCounter count, nOS_SemCounter max)
         } else
 #endif
         {
+            nOS_CreateEvent((nOS_Event*)sem
 #if (NOS_CONFIG_SAFE > 0)
-            nOS_CreateEvent((nOS_Event*)sem, NOS_EVENT_SEM);
-#else
-            nOS_CreateEvent((nOS_Event*)sem);
+                           ,NOS_EVENT_SEM
 #endif
+                           );
             sem->count = count;
             sem->max = max;
 
@@ -71,13 +72,8 @@ nOS_Error nOS_SemDelete (nOS_Sem *sem)
         {
             sem->count = 0;
             sem->max = 0;
-#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
-            if (nOS_DeleteEvent((nOS_Event*)sem)) {
-                nOS_Schedule();
-            }
-#else
             nOS_DeleteEvent((nOS_Event*)sem);
-#endif
+
             err = NOS_OK;
         }
         nOS_LeaveCritical(sr);
@@ -104,44 +100,25 @@ nOS_Error nOS_SemTake (nOS_Sem *sem, nOS_TickCounter timeout)
             err = NOS_E_INV_OBJ;
         } else
 #endif
-        {
-            if (sem->count > 0) {
-                /* Sem available. */
-                sem->count--;
-                err = NOS_OK;
-            } else if (timeout == NOS_NO_WAIT) {
-                /* Calling thread can't wait. */
-                err = NOS_E_AGAIN;
-            }
-#if (NOS_CONFIG_SAFE > 0)
-            else if (nOS_isrNestingCounter > 0) {
-                /* Can't wait from ISR */
-                err = NOS_E_ISR;
-            }
- #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
-            else if (nOS_lockNestingCounter > 0) {
-                /* Can't switch context when scheduler is locked */
-                err = NOS_E_LOCKED;
-            }
- #endif
-            else if (nOS_runningThread == &nOS_idleHandle) {
-                /* Main thread can't wait */
-                err = NOS_E_IDLE;
-            }
+        if (sem->count > 0) {
+            /* Sem available. */
+            sem->count--;
+            err = NOS_OK;
+        }
+        else if (timeout == NOS_NO_WAIT) {
+            /* Calling thread can't wait. */
+            err = NOS_E_AGAIN;
+        }
+        else {
+            /* Calling thread must wait on sem. */
+            err = nOS_WaitForEvent((nOS_Event*)sem,
+                                   NOS_THREAD_TAKING_SEM
+#if (NOS_CONFIG_WAITING_TIMEOUT_ENABLE > 0)
+                                  ,timeout
+#elif (NOS_CONFIG_SLEEP_ENABLE > 0) || (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
+                                  ,NOS_WAIT_INFINITE
 #endif
-            else {
-                /* Calling thread must wait on sem. */
-                err = nOS_WaitForEvent((nOS_Event*)sem,
-                                       NOS_THREAD_TAKING_SEM
-#if (NOS_CONFIG_WAITING_TIMEOUT_ENABLE > 0) || (NOS_CONFIG_SLEEP_ENABLE > 0) || (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
- #if (NOS_CONFIG_WAITING_TIMEOUT_ENABLE > 0)
-                                      ,timeout
- #else
-                                      ,NOS_WAIT_INFINITE
- #endif
-#endif
-                                      );
-            }
+                                  );
         }
         nOS_LeaveCritical(sr);
     }
@@ -170,20 +147,21 @@ nOS_Error nOS_SemGive (nOS_Sem *sem)
         {
             thread = nOS_SendEvent((nOS_Event*)sem, NOS_OK);
             if (thread != NULL) {
-    #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
-                if ((thread->state == NOS_THREAD_READY) && (thread->prio > nOS_runningThread->prio)) {
-                    nOS_Schedule();
-                }
-    #endif
-
+#if (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
+                /* Verify if a highest prio thread is ready to run */
+                nOS_Schedule();
+#endif
                 err = NOS_OK;
-            } else if (sem->count < sem->max) {
+            }
+            /* No thread waiting for semaphore, can we increase count? */
+            else if (sem->count < sem->max) {
                 sem->count++;
-
                 err = NOS_OK;
-            } else if (sem->max > 0) {
+            }
+            else if (sem->max > 0) {
                 err = NOS_E_OVERFLOW;
-            } else {
+            }
+            else {
                 /* No thread waiting to consume sem, inform producer */
                 err = NOS_E_NO_CONSUMER;
             }
