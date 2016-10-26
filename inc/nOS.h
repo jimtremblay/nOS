@@ -1040,65 +1040,61 @@ struct nOS_Barrier
  #endif
 
  #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
-  nOS_Thread*   nOS_FindHighPrioThread              (void);
-  void          nOS_AppendThreadToReadyList         (nOS_Thread *thread);
-  void          nOS_RemoveThreadFromReadyList       (nOS_Thread *thread);
+  nOS_Thread*       nOS_FindHighPrioThread              (void);
+  void              nOS_AppendThreadToReadyList         (nOS_Thread *thread);
+  void              nOS_RemoveThreadFromReadyList       (nOS_Thread *thread);
  #else
-  #define       nOS_FindHighPrioThread()            nOS_GetHeadOfList(&nOS_readyThreadsList)
-  #define       nOS_AppendThreadToReadyList(t)      nOS_AppendToList(&nOS_readyThreadsList, &(t)->readyWait)
-  #define       nOS_RemoveThreadFromReadyList(t)    nOS_RemoveFromList(&nOS_readyThreadsList, &(t)->readyWait)
+  #define           nOS_FindHighPrioThread()            nOS_GetHeadOfList(&nOS_readyThreadsList)
+  #define           nOS_AppendThreadToReadyList(t)      nOS_AppendToList(&nOS_readyThreadsList, &(t)->readyWait)
+  #define           nOS_RemoveThreadFromReadyList(t)    nOS_RemoveFromList(&nOS_readyThreadsList, &(t)->readyWait)
  #endif
- nOS_Error      nOS_Schedule                        (void);
+ nOS_Error          nOS_Schedule                        (void);
 
- #define        nOS_InitList(list)                                              \
- do {                                                                           \
-     (list)->head = NULL;                                                       \
-     (list)->tail = NULL;                                                       \
- } while(0)
- #define        nOS_GetHeadOfList(list)             ((list)->head != NULL ? (list)->head->payload : NULL)
- void           nOS_AppendToList                    (nOS_List *list, nOS_Node *node);
- void           nOS_RemoveFromList                  (nOS_List *list, nOS_Node *node);
- void           nOS_RotateList                      (nOS_List *list);
- void           nOS_WalkInList                      (nOS_List *list, nOS_NodeHandler handler, void *arg);
+ #define            nOS_InitList(list)                  do{ (list)->head = NULL; (list)->tail = NULL; } while(0)
+ #define            nOS_GetHeadOfList(list)             ((list)->head != NULL ? (list)->head->payload : NULL)
+ void               nOS_AppendToList                    (nOS_List *list, nOS_Node *node);
+ void               nOS_RemoveFromList                  (nOS_List *list, nOS_Node *node);
+ void               nOS_RotateList                      (nOS_List *list);
+ void               nOS_WalkInList                      (nOS_List *list, nOS_NodeHandler handler, void *arg);
 
  #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
-  void          nOS_SetThreadPrio                   (nOS_Thread *thread, uint8_t prio);
+  void              nOS_SetThreadPrio                   (nOS_Thread *thread, uint8_t prio);
  #endif
- void           nOS_TickThread                      (void *payload, void *arg);
- void           nOS_WakeUpThread                    (nOS_Thread *thread, nOS_Error err);
+ void               nOS_TickThread                      (void *payload, void *arg);
+ void               nOS_WakeUpThread                    (nOS_Thread *thread, nOS_Error err);
  #if (NOS_CONFIG_THREAD_JOIN_ENABLE > 0)
-  int           nOS_ThreadWrapper                   (void *arg);
+  int               nOS_ThreadWrapper                   (void *arg);
  #endif
 
- void           nOS_CreateEvent                     (nOS_Event *event
+ void               nOS_CreateEvent                     (nOS_Event *event
  #if (NOS_CONFIG_SAFE > 0)
-                                                    ,nOS_EventType type
+                                                        ,nOS_EventType type
  #endif
-                                                    );
- void           nOS_DeleteEvent                     (nOS_Event *event);
- void           nOS_BroadcastEvent                  (nOS_Event *event, nOS_Error err);
- nOS_Error      nOS_WaitForEvent                    (nOS_Event *event,
-                                                     nOS_ThreadState state
+                                                        );
+ void               nOS_DeleteEvent                     (nOS_Event *event);
+ void               nOS_BroadcastEvent                  (nOS_Event *event, nOS_Error err);
+ nOS_Error          nOS_WaitForEvent                    (nOS_Event *event,
+                                                         nOS_ThreadState state
  #if (NOS_CONFIG_WAITING_TIMEOUT_ENABLE > 0) || (NOS_CONFIG_SLEEP_ENABLE > 0) || (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
-                                                    ,nOS_TickCounter timeout
+                                                        ,nOS_TickCounter timeout
  #endif
-                                                    );
- nOS_Thread*    nOS_SendEvent                       (nOS_Event *event, nOS_Error err);
+                                                        );
+ nOS_Thread*        nOS_SendEvent                       (nOS_Event *event, nOS_Error err);
 
  #if (NOS_CONFIG_TIMER_ENABLE > 0)
-  void          nOS_InitTimer                       (void);
+  void              nOS_InitTimer                       (void);
  #endif
 
  #if (NOS_CONFIG_SIGNAL_ENABLE > 0)
-  void          nOS_InitSignal                      (void);
+  void              nOS_InitSignal                      (void);
  #endif
 
  #if (NOS_CONFIG_TIME_ENABLE > 0)
-  void          nOS_InitTime                        (void);
+  void              nOS_InitTime                        (void);
  #endif
 
  #if (NOS_CONFIG_ALARM_ENABLE > 0)
-  void          nOS_InitAlarm                       (void);
+  void              nOS_InitAlarm                       (void);
  #endif
 #endif
 
@@ -1116,7 +1112,7 @@ struct nOS_Barrier
  *   1. This is the first nOS function that the application should call, else the behavior is undefined.              *
  *                                                                                                                    *
  **********************************************************************************************************************/
-nOS_Error       nOS_Init                            (void);
+nOS_Error           nOS_Init                            (void);
 
 /**********************************************************************************************************************
  *                                                                                                                    *
@@ -1135,7 +1131,7 @@ nOS_Error       nOS_Init                            (void);
  *   1. Call this function when you are ready to enable interrupts and allow context switching.                       *
  *                                                                                                                    *
  **********************************************************************************************************************/
-nOS_Error       nOS_Start                           (nOS_Callback callback);
+nOS_Error           nOS_Start                           (nOS_Callback callback);
 
 /**********************************************************************************************************************
  *                                                                                                                    *
@@ -1150,7 +1146,7 @@ nOS_Error       nOS_Start                           (nOS_Callback callback);
  *   NOS_E_LOCKED : Can't yield from a scheduler locked section.                                                      *
  *                                                                                                                    *
  **********************************************************************************************************************/
-nOS_Error       nOS_Yield                           (void);
+nOS_Error           nOS_Yield                           (void);
 
 /**********************************************************************************************************************
  *                                                                                                                    *
@@ -1163,7 +1159,7 @@ nOS_Error       nOS_Yield                           (void);
  *        x = NOS_CONFIG_TICKS_PER_SECOND                                                                             *
  *                                                                                                                    *
  **********************************************************************************************************************/
-void            nOS_Tick                            (void);
+void                nOS_Tick                            (void);
 
 /**********************************************************************************************************************
  *                                                                                                                    *
@@ -1180,7 +1176,7 @@ void            nOS_Tick                            (void);
  *   2. This is a free running counter that will certainly overflow.                                                  *
  *                                                                                                                    *
  **********************************************************************************************************************/
-nOS_TickCounter nOS_GetTickCount                    (void);
+nOS_TickCounter     nOS_GetTickCount                    (void);
 
 #if defined(NOS_CONFIG_TICKS_PER_SECOND) && (NOS_CONFIG_TICKS_PER_SECOND > 0)
 /**********************************************************************************************************************
@@ -1198,7 +1194,7 @@ nOS_TickCounter nOS_GetTickCount                    (void);
  *   1. Can return a higher count than nOS_TickCounter if NOS_CONFIG_TICK_COUNT_WIDTH is less than 32 bits.           *
  *                                                                                                                    *
  **********************************************************************************************************************/
- uint32_t       nOS_MsToTicks                       (uint16_t ms);
+ uint32_t           nOS_MsToTicks                       (uint16_t ms);
 #endif
 
 #if (NOS_CONFIG_SLEEP_ENABLE > 0)
@@ -1218,7 +1214,7 @@ nOS_TickCounter nOS_GetTickCount                    (void);
  *   NOS_E_IDLE   : Can't sleep from main thread.                                                                     *
  *                                                                                                                    *
  **********************************************************************************************************************/
- nOS_Error      nOS_Sleep                           (nOS_TickCounter ticks);
+ nOS_Error          nOS_Sleep                           (nOS_TickCounter ticks);
 
  #if defined(NOS_CONFIG_TICKS_PER_SECOND) && (NOS_CONFIG_TICKS_PER_SECOND > 0)
 /**********************************************************************************************************************
@@ -1237,7 +1233,7 @@ nOS_TickCounter nOS_GetTickCount                    (void);
  *   NOS_E_IDLE   : Can't sleep from main thread.                                                                     *
  *                                                                                                                    *
  **********************************************************************************************************************/
-  nOS_Error     nOS_SleepMs                         (uint16_t ms);
+  nOS_Error         nOS_SleepMs                         (uint16_t ms);
  #endif
 #endif
 
@@ -1259,7 +1255,7 @@ nOS_TickCounter nOS_GetTickCount                    (void);
  *   NOS_E_IDLE   : Can't sleep from main thread.                                                                     *
  *                                                                                                                    *
  **********************************************************************************************************************/
- nOS_Error      nOS_SleepUntil                      (nOS_TickCounter tick);
+ nOS_Error          nOS_SleepUntil                      (nOS_TickCounter tick);
 #endif
 
 #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
@@ -1278,7 +1274,7 @@ nOS_TickCounter nOS_GetTickCount                    (void);
  *   1. For each lock called, the same number of unlock should be called to unlock the scheduler.                     *
  *                                                                                                                    *
  **********************************************************************************************************************/
- nOS_Error      nOS_SchedLock                       (void);
+ nOS_Error          nOS_SchedLock                       (void);
 
 /**********************************************************************************************************************
  *                                                                                                                    *
@@ -1295,7 +1291,7 @@ nOS_TickCounter nOS_GetTickCount                    (void);
  *   1. For each lock called, the same number of unlock should be called to unlock the scheduler.                     *
  *                                                                                                                    *
  **********************************************************************************************************************/
- nOS_Error      nOS_SchedUnlock                     (void);
+ nOS_Error          nOS_SchedUnlock                     (void);
 #endif
 
 /**********************************************************************************************************************
@@ -1307,7 +1303,7 @@ nOS_TickCounter nOS_GetTickCount                    (void);
  * Return            : Pointer to nOS_Thread.                                                                         *
  *                                                                                                                    *
  **********************************************************************************************************************/
-nOS_Thread *    nOS_GetRunningThread                (void);
+nOS_Thread *        nOS_GetRunningThread                (void);
 
 /**********************************************************************************************************************
  *                                                                                                                    *
@@ -1349,24 +1345,24 @@ nOS_Thread *    nOS_GetRunningThread                (void);
  *   4. Not available if NOS_CONFIG_THREAD_NAME_ENABLE is defined to 0.                                               *
  *                                                                                                                    *
  **********************************************************************************************************************/
-nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
-                                                     nOS_ThreadEntry entry,
-                                                     void *arg,
-                                                     nOS_Stack *stack,
-                                                     size_t ssize
+nOS_Error           nOS_ThreadCreate                    (nOS_Thread *thread,
+                                                         nOS_ThreadEntry entry,
+                                                         void *arg,
+                                                         nOS_Stack *stack,
+                                                         size_t ssize
 #ifdef NOS_USE_SEPARATE_CALL_STACK
-                                                    ,size_t cssize
+                                                        ,size_t cssize
 #endif
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
-                                                    ,uint8_t prio
+                                                        ,uint8_t prio
 #endif
 #if (NOS_CONFIG_THREAD_SUSPEND_ENABLE > 0)
-                                                    ,nOS_ThreadState state
+                                                        ,nOS_ThreadState state
 #endif
 #if (NOS_CONFIG_THREAD_NAME_ENABLE > 0)
-                                                    ,const char *name
+                                                        ,const char *name
 #endif
-                                                    );
+                                                        );
 
 #if (NOS_CONFIG_THREAD_DELETE_ENABLE > 0)
 /**********************************************************************************************************************
@@ -1388,11 +1384,11 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
  *   1. Pointer can be NULL to access the running thread.                                                             *
  *                                                                                                                    *
  **********************************************************************************************************************/
- nOS_Error      nOS_ThreadDelete                    (nOS_Thread *thread);
+ nOS_Error          nOS_ThreadDelete                    (nOS_Thread *thread);
 #endif
 
 #if (NOS_CONFIG_THREAD_ABORT_ENABLE > 0)
- nOS_Error      nOS_ThreadAbort                     (nOS_Thread *thread);
+ nOS_Error          nOS_ThreadAbort                     (nOS_Thread *thread);
 #endif
 
 #if (NOS_CONFIG_THREAD_SUSPEND_ENABLE > 0)
@@ -1418,7 +1414,7 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
  *   1. Pointer can be NULL to access the running thread.                                                             *
  *                                                                                                                    *
  **********************************************************************************************************************/
- nOS_Error      nOS_ThreadSuspend                   (nOS_Thread *thread);
+ nOS_Error          nOS_ThreadSuspend                   (nOS_Thread *thread);
 
 /**********************************************************************************************************************
  *                                                                                                                    *
@@ -1435,7 +1431,7 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
  *   NOS_E_INV_STATE : Thread is not in suspended state.                                                              *
  *                                                                                                                    *
  **********************************************************************************************************************/
- nOS_Error      nOS_ThreadResume                    (nOS_Thread *thread);
+ nOS_Error          nOS_ThreadResume                    (nOS_Thread *thread);
 
 #if (NOS_CONFIG_THREAD_SUSPEND_ALL_ENABLE > 0)
 /**********************************************************************************************************************
@@ -1449,7 +1445,7 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
  *   NOS_E_LOCKED : Can't lock all threads from scheduler locked section if not called from main thread.              *
  *                                                                                                                    *
  **********************************************************************************************************************/
- nOS_Error      nOS_ThreadSuspendAll                (void);
+ nOS_Error          nOS_ThreadSuspendAll                (void);
 
 /**********************************************************************************************************************
  *                                                                                                                    *
@@ -1461,20 +1457,20 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
  *   NOS_OK    : All suspended threads successfully resumed.                                                          *
  *                                                                                                                    *
  **********************************************************************************************************************/
- nOS_Error      nOS_ThreadResumeAll                 (void);
+ nOS_Error          nOS_ThreadResumeAll                 (void);
 #endif
 
 #endif
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_THREAD_SET_PRIO_ENABLE > 0)
- int16_t        nOS_ThreadGetPriority               (nOS_Thread *thread);
- nOS_Error      nOS_ThreadSetPriority               (nOS_Thread *thread, uint8_t prio);
+ int16_t            nOS_ThreadGetPriority               (nOS_Thread *thread);
+ nOS_Error          nOS_ThreadSetPriority               (nOS_Thread *thread, uint8_t prio);
 #endif
 #if (NOS_CONFIG_THREAD_NAME_ENABLE > 0)
- const char*    nOS_ThreadGetName                   (nOS_Thread *thread);
- nOS_Error      nOS_ThreadSetName                   (nOS_Thread *thread, const char *name);
+ const char*        nOS_ThreadGetName                   (nOS_Thread *thread);
+ nOS_Error          nOS_ThreadSetName                   (nOS_Thread *thread, const char *name);
 #endif
 #if (NOS_CONFIG_THREAD_JOIN_ENABLE > 0)
- nOS_Error      nOS_ThreadJoin                      (nOS_Thread *thread, int *ret, nOS_TickCounter timeout);
+ nOS_Error          nOS_ThreadJoin                      (nOS_Thread *thread, int *ret, nOS_TickCounter timeout);
 #endif
 
 #if (NOS_CONFIG_SEM_ENABLE > 0)
@@ -1499,7 +1495,7 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
  *   2. Must be called one time only for each semaphore object.                                                       *
  *                                                                                                                    *
  **********************************************************************************************************************/
- nOS_Error      nOS_SemCreate                       (nOS_Sem *sem, nOS_SemCounter count, nOS_SemCounter max);
+ nOS_Error          nOS_SemCreate                       (nOS_Sem *sem, nOS_SemCounter count, nOS_SemCounter max);
 
  #if (NOS_CONFIG_SEM_DELETE_ENABLE > 0)
 /**********************************************************************************************************************
@@ -1516,7 +1512,7 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
  *   NOS_E_INV_OBJ : Pointer to semaphore object is invalid.                                                          *
  *                                                                                                                    *
  **********************************************************************************************************************/
-  nOS_Error     nOS_SemDelete                       (nOS_Sem *sem);
+  nOS_Error         nOS_SemDelete                       (nOS_Sem *sem);
  #endif
 
 /**********************************************************************************************************************
@@ -1546,7 +1542,7 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
  *   NOS_E_DELETED : Semaphore object has been deleted.                                                               *
  *                                                                                                                    *
  **********************************************************************************************************************/
- nOS_Error      nOS_SemTake                         (nOS_Sem *sem, nOS_TickCounter timeout);
+ nOS_Error          nOS_SemTake                         (nOS_Sem *sem, nOS_TickCounter timeout);
 
 /**********************************************************************************************************************
  *                                                                                                                    *
@@ -1564,7 +1560,7 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
  *   NOS_E_INV_OBJ : Pointer to semaphore object is invalid.                                                          *
  *                                                                                                                    *
  **********************************************************************************************************************/
- nOS_Error      nOS_SemGive                         (nOS_Sem *sem);
+ nOS_Error          nOS_SemGive                         (nOS_Sem *sem);
 
 /**********************************************************************************************************************
  *                                                                                                                    *
@@ -1578,7 +1574,7 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
  * Return          : TRUE if semaphore count is higher than 0, else FALSE.                                            *
  *                                                                                                                    *
  **********************************************************************************************************************/
- bool           nOS_SemIsAvailable                  (nOS_Sem *sem);
+ bool               nOS_SemIsAvailable                  (nOS_Sem *sem);
 #endif
 
 #if (NOS_CONFIG_MUTEX_ENABLE > 0)
@@ -1609,31 +1605,32 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
  *   2. Must be called one time only for each mutex object.                                                           *
  *                                                                                                                    *
  **********************************************************************************************************************/
- nOS_Error      nOS_MutexCreate                     (nOS_Mutex *mutex,
-                                                     nOS_MutexType type
+ nOS_Error          nOS_MutexCreate                     (nOS_Mutex *mutex,
+                                                         nOS_MutexType type
  #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
-                                                    ,uint8_t prio
+                                                        ,uint8_t prio
  #endif
-                                                    );
+                                                        );
  #if (NOS_CONFIG_MUTEX_DELETE_ENABLE > 0)
-  nOS_Error     nOS_MutexDelete                     (nOS_Mutex *mutex);
+  nOS_Error         nOS_MutexDelete                     (nOS_Mutex *mutex);
  #endif
- nOS_Error      nOS_MutexLock                       (nOS_Mutex *mutex, nOS_TickCounter timeout);
- nOS_Error      nOS_MutexUnlock                     (nOS_Mutex *mutex);
- bool           nOS_MutexIsLocked                   (nOS_Mutex *mutex);
- nOS_Thread*    nOS_MutexGetOwner                   (nOS_Mutex *mutex);
+ nOS_Error          nOS_MutexLock                       (nOS_Mutex *mutex, nOS_TickCounter timeout);
+ nOS_Error          nOS_MutexUnlock                     (nOS_Mutex *mutex);
+ bool               nOS_MutexIsLocked                   (nOS_Mutex *mutex);
+ nOS_Thread*        nOS_MutexGetOwner                   (nOS_Mutex *mutex);
 #endif
 
 #if (NOS_CONFIG_QUEUE_ENABLE > 0)
- nOS_Error      nOS_QueueCreate                     (nOS_Queue *queue, void *buffer, uint8_t bsize, nOS_QueueCounter bmax);
+ nOS_Error          nOS_QueueCreate                     (nOS_Queue *queue, void *buffer, uint8_t bsize, nOS_QueueCounter bmax);
  #if (NOS_CONFIG_QUEUE_DELETE_ENABLE > 0)
-  nOS_Error     nOS_QueueDelete                     (nOS_Queue *queue);
+  nOS_Error         nOS_QueueDelete                     (nOS_Queue *queue);
  #endif
- nOS_Error      nOS_QueueRead                       (nOS_Queue *queue, void *block, nOS_TickCounter timeout);
- nOS_Error      nOS_QueueWrite                      (nOS_Queue *queue, void *block, nOS_TickCounter timeout);
- nOS_Error      nOS_QueueFlush                      (nOS_Queue *queue, nOS_QueueCallback callback);
- bool           nOS_QueueIsEmpty                    (nOS_Queue *queue);
- bool           nOS_QueueIsFull                     (nOS_Queue *queue);
+ nOS_Error          nOS_QueueRead                       (nOS_Queue *queue, void *block, nOS_TickCounter timeout);
+ nOS_Error          nOS_QueueWrite                      (nOS_Queue *queue, void *block, nOS_TickCounter timeout);
+ nOS_Error          nOS_QueueFlush                      (nOS_Queue *queue, nOS_QueueCallback callback);
+ bool               nOS_QueueIsEmpty                    (nOS_Queue *queue);
+ bool               nOS_QueueIsFull                     (nOS_Queue *queue);
+ nOS_QueueCounter   nOS_QueueGetCount                   (nOS_Queue *queue);
 #endif
 
 #if (NOS_CONFIG_FLAG_ENABLE > 0)
@@ -1656,7 +1653,7 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
  *   2. Must be called one time only for each flag object.                                                            *
  *                                                                                                                    *
  **********************************************************************************************************************/
- nOS_Error      nOS_FlagCreate                      (nOS_Flag *flag, nOS_FlagBits flags);
+ nOS_Error          nOS_FlagCreate                      (nOS_Flag *flag, nOS_FlagBits flags);
 
  #if (NOS_CONFIG_FLAG_DELETE_ENABLE > 0)
 /**********************************************************************************************************************
@@ -1677,7 +1674,7 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
  *   2. Flag object must not be used after deletion, else the behavior is undefined.                                  *
  *                                                                                                                    *
  **********************************************************************************************************************/
-  nOS_Error     nOS_FlagDelete                      (nOS_Flag *flag);
+  nOS_Error         nOS_FlagDelete                      (nOS_Flag *flag);
  #endif
 
 /**********************************************************************************************************************
@@ -1720,8 +1717,8 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
  *   2. One waiting option can be OR'ed with altering option if needed.                                               *
  *                                                                                                                    *
  **********************************************************************************************************************/
- nOS_Error      nOS_FlagWait                        (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits *res,
-                                                     nOS_FlagOption opt, nOS_TickCounter timeout);
+ nOS_Error          nOS_FlagWait                        (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits *res,
+                                                         nOS_FlagOption opt, nOS_TickCounter timeout);
 
 /**********************************************************************************************************************
  *                                                                                                                    *
@@ -1741,7 +1738,7 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
  *   NOS_E_INV_OBJ : Pointer to flag object is invalid.                                                               *
  *                                                                                                                    *
  **********************************************************************************************************************/
- nOS_Error      nOS_FlagSend                        (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits mask);
+ nOS_Error          nOS_FlagSend                        (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits mask);
 #endif
 
 #if (NOS_CONFIG_MEM_ENABLE > 0)
@@ -1776,10 +1773,10 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
  *   6. Must be called one time only for each mem object.                                                             *
  *                                                                                                                    *
  **********************************************************************************************************************/
- nOS_Error      nOS_MemCreate                       (nOS_Mem *mem, void *buffer, nOS_MemSize bsize, nOS_MemCounter bmax);
+ nOS_Error          nOS_MemCreate                       (nOS_Mem *mem, void *buffer, nOS_MemSize bsize, nOS_MemCounter bmax);
 
  #if (NOS_CONFIG_MEM_DELETE_ENABLE > 0)
-  nOS_Error     nOS_MemDelete                       (nOS_Mem *mem);
+  nOS_Error         nOS_MemDelete                       (nOS_Mem *mem);
  #endif
 
 /**********************************************************************************************************************
@@ -1807,7 +1804,7 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
  *   2. Caller is responsible to free the block when memory is no longer needed.                                      *
  *                                                                                                                    *
  **********************************************************************************************************************/
- void*          nOS_MemAlloc                        (nOS_Mem *mem, nOS_TickCounter timeout);
+ void*              nOS_MemAlloc                        (nOS_Mem *mem, nOS_TickCounter timeout);
 
 /**********************************************************************************************************************
  *                                                                                                                    *
@@ -1833,7 +1830,7 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
  *   3. Do not continue to use memory block after it has been freed.                                                  *
  *                                                                                                                    *
  **********************************************************************************************************************/
- nOS_Error      nOS_MemFree                         (nOS_Mem *mem, void *block);
+ nOS_Error          nOS_MemFree                         (nOS_Mem *mem, void *block);
 
 /**********************************************************************************************************************
  *                                                                                                                    *
@@ -1849,7 +1846,7 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
  *   true      : At least one block of memory is available.                                                           *
  *                                                                                                                    *
  **********************************************************************************************************************/
- bool           nOS_MemIsAvailable                  (nOS_Mem *mem);
+ bool               nOS_MemIsAvailable                  (nOS_Mem *mem);
 
 /**********************************************************************************************************************
  *                                                                                                                    *
@@ -1872,87 +1869,87 @@ nOS_Error       nOS_ThreadCreate                    (nOS_Thread *thread,
  *   1. Never suppose to happen normally, can be a sign of corruption.                                                *
  *                                                                                                                    *
  **********************************************************************************************************************/
- nOS_Error      nOS_MemSanityCheck                  (nOS_Mem *mem, void *block);
+ nOS_Error          nOS_MemSanityCheck                  (nOS_Mem *mem, void *block);
 #endif
 
 #if (NOS_CONFIG_TIMER_ENABLE > 0)
- void           nOS_TimerTick                       (void);
- void           nOS_TimerProcess                    (void);
- nOS_Error      nOS_TimerCreate                     (nOS_Timer *timer,
-                                                     nOS_TimerCallback callback,
-                                                     void *arg,
-                                                     nOS_TimerCounter reload,
-                                                     nOS_TimerMode mode
+ void               nOS_TimerTick                       (void);
+ void               nOS_TimerProcess                    (void);
+ nOS_Error          nOS_TimerCreate                     (nOS_Timer *timer,
+                                                         nOS_TimerCallback callback,
+                                                         void *arg,
+                                                         nOS_TimerCounter reload,
+                                                         nOS_TimerMode mode
  #if (NOS_CONFIG_TIMER_HIGHEST_PRIO > 0)
-                                                    ,uint8_t prio
+                                                        ,uint8_t prio
  #endif
-                                                    );
+                                                        );
  #if (NOS_CONFIG_TIMER_DELETE_ENABLE > 0)
-  nOS_Error     nOS_TimerDelete                     (nOS_Timer *timer);
+  nOS_Error         nOS_TimerDelete                     (nOS_Timer *timer);
  #endif
- nOS_Error      nOS_TimerStart                      (nOS_Timer *timer);
- nOS_Error      nOS_TimerStop                       (nOS_Timer *timer, bool instant);
- nOS_Error      nOS_TimerRestart                    (nOS_Timer *timer, nOS_TimerCounter reload);
- nOS_Error      nOS_TimerPause                      (nOS_Timer *timer);
- nOS_Error      nOS_TimerContinue                   (nOS_Timer *timer);
- nOS_Error      nOS_TimerSetReload                  (nOS_Timer *timer, nOS_TimerCounter reload);
- nOS_Error      nOS_TimerSetCallback                (nOS_Timer *timer, nOS_TimerCallback callback, void *arg);
- nOS_Error      nOS_TimerSetMode                    (nOS_Timer *timer, nOS_TimerMode mode);
+ nOS_Error          nOS_TimerStart                      (nOS_Timer *timer);
+ nOS_Error          nOS_TimerStop                       (nOS_Timer *timer, bool instant);
+ nOS_Error          nOS_TimerRestart                    (nOS_Timer *timer, nOS_TimerCounter reload);
+ nOS_Error          nOS_TimerPause                      (nOS_Timer *timer);
+ nOS_Error          nOS_TimerContinue                   (nOS_Timer *timer);
+ nOS_Error          nOS_TimerSetReload                  (nOS_Timer *timer, nOS_TimerCounter reload);
+ nOS_Error          nOS_TimerSetCallback                (nOS_Timer *timer, nOS_TimerCallback callback, void *arg);
+ nOS_Error          nOS_TimerSetMode                    (nOS_Timer *timer, nOS_TimerMode mode);
  #if (NOS_CONFIG_TIMER_HIGHEST_PRIO > 0)
-  nOS_Error     nOS_TimerSetPrio                    (nOS_Timer *timer, uint8_t prio);
+  nOS_Error         nOS_TimerSetPrio                    (nOS_Timer *timer, uint8_t prio);
  #endif
- bool           nOS_TimerIsRunning                  (nOS_Timer *timer);
+ bool               nOS_TimerIsRunning                  (nOS_Timer *timer);
 #endif
 
 #if (NOS_CONFIG_SIGNAL_ENABLE > 0)
- void           nOS_SignalProcess                   (void);
- nOS_Error      nOS_SignalCreate                    (nOS_Signal *signal,
-                                                     nOS_SignalCallback callback
+ void               nOS_SignalProcess                   (void);
+ nOS_Error          nOS_SignalCreate                    (nOS_Signal *signal,
+                                                         nOS_SignalCallback callback
  #if (NOS_CONFIG_SIGNAL_HIGHEST_PRIO > 0)
-                                                    ,uint8_t prio
+                                                        ,uint8_t prio
  #endif
-                                                    );
+                                                        );
  #if (NOS_CONFIG_SIGNAL_DELETE_ENABLE > 0)
-  nOS_Error     nOS_SignalDelete                    (nOS_Signal *signal);
+  nOS_Error         nOS_SignalDelete                    (nOS_Signal *signal);
  #endif
- nOS_Error      nOS_SignalSend                      (nOS_Signal *signal, void *arg);
- nOS_Error      nOS_SignalSetCallback               (nOS_Signal *signal, nOS_SignalCallback callback);
- bool           nOS_SignalIsRaised                  (nOS_Signal *signal);
+ nOS_Error          nOS_SignalSend                      (nOS_Signal *signal, void *arg);
+ nOS_Error          nOS_SignalSetCallback               (nOS_Signal *signal, nOS_SignalCallback callback);
+ bool               nOS_SignalIsRaised                  (nOS_Signal *signal);
 #endif
 
 #if (NOS_CONFIG_TIME_ENABLE > 0)
- void           nOS_TimeTick                        (void);
- nOS_Time       nOS_TimeGet                         (void);
- nOS_Error      nOS_TimeSet                         (nOS_Time time);
- nOS_TimeDate   nOS_TimeConvert                     (nOS_Time time);
+ void               nOS_TimeTick                        (void);
+ nOS_Time           nOS_TimeGet                         (void);
+ nOS_Error          nOS_TimeSet                         (nOS_Time time);
+ nOS_TimeDate       nOS_TimeConvert                     (nOS_Time time);
  #if (NOS_CONFIG_TIME_WAIT_ENABLE > 0)
-  nOS_Error     nOS_TimeWait                        (nOS_Time time);
+  nOS_Error         nOS_TimeWait                        (nOS_Time time);
  #endif
- nOS_TimeDate   nOS_TimeDateGet                     (void);
- nOS_Error      nOS_TimeDateSet                     (nOS_TimeDate timedate);
- nOS_Time       nOS_TimeDateConvert                 (nOS_TimeDate timedate);
+ nOS_TimeDate       nOS_TimeDateGet                     (void);
+ nOS_Error          nOS_TimeDateSet                     (nOS_TimeDate timedate);
+ nOS_Time           nOS_TimeDateConvert                 (nOS_TimeDate timedate);
  #if (NOS_CONFIG_TIME_WAIT_ENABLE > 0)
-  nOS_Error     nOS_TimeDateWait                    (nOS_TimeDate timedate);
+  nOS_Error         nOS_TimeDateWait                    (nOS_TimeDate timedate);
  #endif
 #endif
 
 #if (NOS_CONFIG_ALARM_ENABLE > 0)
- void           nOS_AlarmTick                       (void);
- void           nOS_AlarmProcess                    (void);
- nOS_Error      nOS_AlarmCreate                     (nOS_Alarm *alarm, nOS_AlarmCallback callback, void *arg, nOS_Time time);
+ void               nOS_AlarmTick                       (void);
+ void               nOS_AlarmProcess                    (void);
+ nOS_Error          nOS_AlarmCreate                     (nOS_Alarm *alarm, nOS_AlarmCallback callback, void *arg, nOS_Time time);
  #if (NOS_CONFIG_ALARM_DELETE_ENABLE > 0)
-  nOS_Error     nOS_AlarmDelete                     (nOS_Alarm *alarm);
+  nOS_Error         nOS_AlarmDelete                     (nOS_Alarm *alarm);
  #endif
- nOS_Error      nOS_AlarmSetTime                    (nOS_Alarm *alarm, nOS_Time time);
- nOS_Error      nOS_AlarmSetCallback                (nOS_Alarm *alarm, nOS_AlarmCallback callback, void *arg);
+ nOS_Error          nOS_AlarmSetTime                    (nOS_Alarm *alarm, nOS_Time time);
+ nOS_Error          nOS_AlarmSetCallback                (nOS_Alarm *alarm, nOS_AlarmCallback callback, void *arg);
 #endif
 
 #if (NOS_CONFIG_BARRIER_ENABLE > 0)
- nOS_Error      nOS_BarrierCreate                   (nOS_Barrier *barrier, uint8_t max);
+ nOS_Error          nOS_BarrierCreate                   (nOS_Barrier *barrier, uint8_t max);
  #if (NOS_CONFIG_BARRIER_DELETE_ENABLE > 0)
-  nOS_Error     nOS_BarrierDelete                   (nOS_Barrier *barrier);
+  nOS_Error         nOS_BarrierDelete                   (nOS_Barrier *barrier);
  #endif
- nOS_Error      nOS_BarrierWait                     (nOS_Barrier *barrier);
+ nOS_Error          nOS_BarrierWait                     (nOS_Barrier *barrier);
 #endif
 
 #ifdef __cplusplus

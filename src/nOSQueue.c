@@ -299,7 +299,9 @@ bool nOS_QueueIsEmpty (nOS_Queue *queue)
             empty = false;
         } else
 #endif
-        empty = queue->buffer != NULL ? queue->bcount == 0 : true;
+        {
+            empty = queue->buffer != NULL ? queue->bcount == 0 : true;
+        }
         nOS_LeaveCritical(sr);
     }
 
@@ -323,15 +325,43 @@ bool nOS_QueueIsFull (nOS_Queue *queue)
             full = false;
         } else
 #endif
-        full = queue->buffer != NULL ?
-                   queue->bcount == queue->bmax :
-                   nOS_GetHeadOfList(&queue->e.waitList) != NULL ?  /* A thread can be ready to consume message */
-                       false :
-                       true;
+        {
+            full = queue->buffer != NULL ?
+                        queue->bcount == queue->bmax :
+                        nOS_GetHeadOfList(&queue->e.waitList) != NULL ?  /* A thread can be ready to consume message */
+                            false :
+                            true;
+        }
         nOS_LeaveCritical(sr);
     }
 
     return full;
+}
+
+nOS_QueueCounter nOS_QueueGetCount (nOS_Queue *queue)
+{
+    nOS_StatusReg       sr;
+    nOS_QueueCounter    bcount;
+
+#if (NOS_CONFIG_SAFE > 0)
+    if (queue == NULL) {
+        bcount = 0;
+    } else
+#endif
+    {
+        nOS_EnterCritical(sr);
+#if (NOS_CONFIG_SAFE > 0)
+        if (queue->e.type != NOS_EVENT_QUEUE) {
+            bcount = 0;
+        } else
+#endif
+        {
+            bcount = queue->bcount;
+        }
+        nOS_LeaveCritical(sr);
+    }
+
+    return bcount;
 }
 #endif  /* NOS_CONFIG_QUEUE_ENABLE */
 
