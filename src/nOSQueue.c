@@ -171,6 +171,39 @@ nOS_Error nOS_QueueRead (nOS_Queue *queue, void *block, nOS_TickCounter timeout)
     return err;
 }
 
+nOS_Error nOS_QueuePeek (nOS_Queue *queue, void *block)
+{
+    nOS_Error       err;
+    nOS_StatusReg   sr;
+
+#if (NOS_CONFIG_SAFE > 0)
+    if (queue == NULL) {
+        err = NOS_E_INV_OBJ;
+    }
+    else if (block == NULL) {
+        err = NOS_E_NULL;
+    } else
+#endif
+    {
+        nOS_EnterCritical(sr);
+#if (NOS_CONFIG_SAFE > 0)
+        if (queue->e.type != NOS_EVENT_QUEUE) {
+            err = NOS_E_INV_OBJ;
+        } else
+#endif
+        if (queue->bcount > 0) {
+            memcpy(block, &queue->buffer[(size_t)queue->r * (size_t)queue->bsize], queue->bsize);
+            err = NOS_OK;
+        }
+        else {
+            err = NOS_E_EMPTY;
+        }
+        nOS_LeaveCritical(sr);
+    }
+
+    return err;
+}
+
 nOS_Error nOS_QueueWrite (nOS_Queue *queue, void *block, nOS_TickCounter timeout)
 {
     nOS_Error       err;

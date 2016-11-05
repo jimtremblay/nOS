@@ -1626,6 +1626,7 @@ nOS_Error           nOS_ThreadCreate                    (nOS_Thread *thread,
   nOS_Error         nOS_QueueDelete                     (nOS_Queue *queue);
  #endif
  nOS_Error          nOS_QueueRead                       (nOS_Queue *queue, void *block, nOS_TickCounter timeout);
+ nOS_Error          nOS_QueuePeek                       (nOS_Queue *queue, void *block);
  nOS_Error          nOS_QueueWrite                      (nOS_Queue *queue, void *block, nOS_TickCounter timeout);
  nOS_Error          nOS_QueueFlush                      (nOS_Queue *queue, nOS_QueueCallback callback);
  bool               nOS_QueueIsEmpty                    (nOS_Queue *queue);
