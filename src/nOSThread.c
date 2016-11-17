@@ -244,8 +244,10 @@ nOS_Error nOS_ThreadCreate (nOS_Thread *thread,
             {
                 nOS_AppendThreadToReadyList(thread);
 #if (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
-                /* Verify if a highest prio thread is ready to run */
-                nOS_Schedule();
+                if (nOS_running) {
+                    /* Verify if a highest prio thread is ready to run */
+                    nOS_Schedule();
+                }
 #endif
             }
 
