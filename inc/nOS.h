@@ -122,6 +122,8 @@ extern "C" {
  #error "nOSConfig.h: NOS_CONFIG_SCHED_ROUND_ROBIN_ENABLE is not defined: must be set to 0 or 1."
 #elif (NOS_CONFIG_SCHED_ROUND_ROBIN_ENABLE != 0) && (NOS_CONFIG_SCHED_ROUND_ROBIN_ENABLE != 1)
  #error "nOSConfig.h: NOS_CONFIG_SCHED_ROUND_ROBIN_ENABLE is set to invalid value: must be set to 0 or 1."
+#elif (NOS_CONFIG_SCHED_ROUND_ROBIN_ENABLE > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE == 0) && (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
+ #error "nOSConfig.h: NOS_CONFIG_SCHED_ROUND_ROBIN_ENABLE should not be used in cooperative scheduling with more than 1 level of priority."
 #endif
 
 #ifndef NOS_CONFIG_SCHED_LOCK_ENABLE
