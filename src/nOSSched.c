@@ -503,9 +503,13 @@ nOS_Error nOS_Start(nOS_Callback callback)
         nOS_EnterCritical(sr);
         /* Context switching is possible after this point */
         nOS_running = true;
+        nOS_LeaveCritical(sr);
+
         if (callback != NULL) {
             callback();
         }
+
+        nOS_EnterCritical(sr);
         err = nOS_Schedule();
         nOS_LeaveCritical(sr);
     }
