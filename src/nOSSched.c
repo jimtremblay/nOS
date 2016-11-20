@@ -704,14 +704,14 @@ nOS_Error nOS_SleepUntil (nOS_TickCounter tick)
         err = NOS_OK;
         if (tick != nOS_tickCounter) {
             /* Always give number of ticks to wait to this function */
-            err = nOS_WaitForEvent(NULL, NOS_THREAD_SLEEPING_UNTIL, tick - nOS_tickCounter);
+            err = nOS_WaitForEvent(NULL, NOS_THREAD_SLEEPING, tick - nOS_tickCounter);
         }
         nOS_LeaveCritical(sr);
     }
 
     return err;
 }
-#endif
+#endif  /* NOS_CONFIG_SLEEP_UNTIL_ENABLE */
 
 #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
 nOS_Error nOS_SchedLock(void)

@@ -669,10 +669,9 @@ typedef enum nOS_ThreadState
     NOS_THREAD_WAITING_FLAG     = 0x05,
     NOS_THREAD_ALLOC_MEM        = 0x06,
     NOS_THREAD_SLEEPING         = 0x07,
-    NOS_THREAD_SLEEPING_UNTIL   = 0x08,
-    NOS_THREAD_WAITING_TIME     = 0x09,
-    NOS_THREAD_ON_BARRIER       = 0x0A,
-    NOS_THREAD_JOINING          = 0x0B,
+    NOS_THREAD_WAITING_TIME     = 0x08,
+    NOS_THREAD_ON_BARRIER       = 0x09,
+    NOS_THREAD_JOINING          = 0x0A,
     NOS_THREAD_ON_HOLD          = 0x0F,
     NOS_THREAD_WAITING_MASK     = 0x0F,
     NOS_THREAD_FINISHED         = 0x10,
@@ -1390,6 +1389,21 @@ nOS_Error           nOS_ThreadCreate                    (nOS_Thread *thread,
 #endif
 
 #if (NOS_CONFIG_THREAD_ABORT_ENABLE > 0)
+/**********************************************************************************************************************
+ *                                                                                                                    *
+ * Name              : nOS_ThreadAbort                                                                                *
+ *                                                                                                                    *
+ * Description       : Abort waiting operation of thread and remove it from the event waiting list.                   *
+ *                                                                                                                    *
+ * Parameters                                                                                                         *
+ *   thread          : Pointer to nOS_Thread object.                                                                  *
+ *                                                                                                                    *
+ * Return            : Error code.                                                                                    *
+ *   NOS_OK          : Thread have successfully abort is waiting operation.                                           *
+ *   NOS_E_INV_OBJ   : Pointer to nOS_Thread object is invalid.                                                       *
+ *   NOS_E_INV_STATE : Thread not currently in waiting state.                                                         *
+ *                                                                                                                    *
+ **********************************************************************************************************************/
  nOS_Error          nOS_ThreadAbort                     (nOS_Thread *thread);
 #endif
 

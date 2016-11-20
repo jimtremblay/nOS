@@ -57,13 +57,8 @@ void nOS_TickThread (void *payload, void *arg)
 
     if (thread->timeout == nOS_tickCounter) {
         err = NOS_E_TIMEOUT;
-#if (NOS_CONFIG_SLEEP_ENABLE > 0)
+#if (NOS_CONFIG_SLEEP_ENABLE > 0) || (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
         if (state == NOS_THREAD_SLEEPING) {
-            err = NOS_OK;
-        }
-#endif
-#if (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
-        if (state == NOS_THREAD_SLEEPING_UNTIL) {
             err = NOS_OK;
         }
 #endif
@@ -138,8 +133,8 @@ void nOS_SetThreadPrio (nOS_Thread *thread, uint8_t prio)
         }
     }
 }
- #endif
-#endif
+ #endif /* NOS_CONFIG_THREAD_SET_PRIO_ENABLE || NOS_CONFIG_MUTEX_ENABLE */
+#endif  /* NOS_CONFIG_HIGHEST_THREAD_PRIO */
 
 nOS_Error nOS_ThreadCreate (nOS_Thread *thread,
                             nOS_ThreadEntry entry,
