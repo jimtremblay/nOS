@@ -392,17 +392,17 @@ nOS_Error nOS_Schedule(void)
     /* Switch only if initialization is completed */
     if (!nOS_running) {
         err = NOS_E_NOT_RUNNING;
-    }
-    else if (nOS_isrNestingCounter > 0) {
+    } else
+#endif
+    if (nOS_isrNestingCounter > 0) {
         /* Can't switch context from ISR */
         err = NOS_E_ISR;
     } else
- #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
+#if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
     if (nOS_lockNestingCounter > 0) {
         /* Can't switch context when scheduler is locked */
         err = NOS_E_LOCKED;
     } else
- #endif
 #endif
     {
         /* Recheck if current running thread is the highest prio thread */

@@ -52,23 +52,20 @@ nOS_Error nOS_WaitForEvent (nOS_Event *event,
 {
     nOS_Error   err;
 
-#if (NOS_CONFIG_SAFE > 0)
     if (nOS_isrNestingCounter > 0) {
         /* Can't wait from ISR */
         err = NOS_E_ISR;
     } else
- #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
+#if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
     if (nOS_lockNestingCounter > 0) {
         /* Can't switch context when scheduler is locked */
         err = NOS_E_LOCKED;
     } else
- #endif
+#endif
     if (nOS_runningThread == &nOS_idleHandle) {
         /* Main thread can't wait */
         err = NOS_E_IDLE;
-    } else
-#endif
-    {
+    } else {
         nOS_RemoveThreadFromReadyList(nOS_runningThread);
 
         nOS_runningThread->state = (nOS_ThreadState)(nOS_runningThread->state | (state & NOS_THREAD_WAITING_MASK));
