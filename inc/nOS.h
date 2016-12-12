@@ -1121,18 +1121,15 @@ nOS_Error           nOS_Init                            (void);
  *                                                                                                                    *
  * Description     : Enable context switching.                                                                        *
  *                                                                                                                    *
- * Parameters                                                                                                         *
- *   callback      : Pointer to function to call before starting scheduler.                                           *
- *                                                                                                                    *
  * Return          : Error code.                                                                                      *
  *   NOS_OK        : Initialization successfully completed.                                                           *
  *   NOS_E_RUNNING : Context switching is already enabled.                                                            *
  *                                                                                                                    *
  * Notes                                                                                                              *
- *   1. Call this function when you are ready to enable interrupts and allow context switching.                       *
+ *   1. Call this function when you are ready to allow context switching.                                             *
  *                                                                                                                    *
  **********************************************************************************************************************/
-nOS_Error           nOS_Start                           (nOS_Callback callback);
+nOS_Error           nOS_Start                           (void);
 
 /**********************************************************************************************************************
  *                                                                                                                    *

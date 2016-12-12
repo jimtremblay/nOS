@@ -485,14 +485,16 @@ nOS_Error nOS_Init(void)
     return err;
 }
 
-nOS_Error nOS_Start(nOS_Callback callback)
+nOS_Error nOS_Start(void)
 {
     nOS_Error       err;
+#if (NOS_CONFIG_SAFE > 0)
     nOS_StatusReg   sr;
 
-#if (NOS_CONFIG_SAFE > 0)
     if (!nOS_initialized) {
+        nOS_EnterCritical(sr);
         nOS_Init();
+        nOS_LeaveCritical(sr);
     }
 
     if (nOS_running) {
@@ -500,18 +502,10 @@ nOS_Error nOS_Start(nOS_Callback callback)
     } else
 #endif
     {
-        nOS_EnterCritical(sr);
         /* Context switching is possible after this point */
         nOS_running = true;
-        nOS_LeaveCritical(sr);
 
-        if (callback != NULL) {
-            callback();
-        }
-
-        nOS_EnterCritical(sr);
-        err = nOS_Schedule();
-        nOS_LeaveCritical(sr);
+        err = NOS_OK;
     }
 
     return err;
