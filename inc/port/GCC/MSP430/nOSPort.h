@@ -107,7 +107,7 @@ nOS_Stack*  nOS_LeaveIsr        (nOS_Stack *sp);
 #define NOS_ISR(vect)                                                           \
 void vect##_ISR_L2(void) __attribute__ ((naked));                               \
 inline void vect##_ISR_L3(void) __attribute__ ((always_inline));                \
-void __attribute__ ((__interrupt__(vect), naked)) vect##_ISR(void)              \
+void __attribute__ ((interrupt(vect), naked)) vect##_ISR(void)                  \
 {                                                                               \
     asm volatile (                                                              \
          CALL_X"    #"NOS_STR(vect##_ISR_L2)"   \n"                             \
