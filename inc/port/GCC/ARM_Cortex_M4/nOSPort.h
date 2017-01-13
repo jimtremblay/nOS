@@ -43,7 +43,11 @@ typedef uint32_t                            nOS_StatusReg;
  #error "nOSConfig.h: NOS_CONFIG_MAX_UNSAFE_ISR_PRIO is not defined."
 #endif
 
+#if (NOS_CONFIG_MAX_UNSAFE_ISR_PRIO > 0)
 #define NOS_MAX_UNSAFE_BASEPRI              (NOS_CONFIG_MAX_UNSAFE_ISR_PRIO << (8 - NOS_NVIC_PRIO_BITS))
+#else
+#undef NOS_NVIC_PRIO_BITS
+#endif
 
 __attribute__( ( always_inline ) ) static inline uint32_t _GetMSP (void)
 {
@@ -93,6 +97,18 @@ __attribute__( ( always_inline ) ) static inline void _SetBASEPRI (uint32_t r)
     __asm volatile ("MSR BASEPRI, %0" :: "r" (r));
 }
 
+__attribute__( ( always_inline ) ) static inline uint32_t _GetPRIMASK (void)
+{
+    uint32_t r;
+    __asm volatile ("MRS %0, PRIMASK" : "=r" (r));
+    return r;
+}
+
+__attribute__( ( always_inline ) ) static inline void _SetPRIMASK (uint32_t r)
+{
+    __asm volatile ("MSR PRIMASK, %0" :: "r" (r));
+}
+
 __attribute__( ( always_inline ) ) static inline void _DSB (void)
 {
     __asm volatile ("DSB");
@@ -108,6 +124,16 @@ __attribute__( ( always_inline ) ) static inline void _NOP (void)
     __asm volatile ("NOP");
 }
 
+__attribute__( ( always_inline ) ) static inline void _DI (void)
+{
+    __asm volatile ("CPSID I");
+}
+
+__attribute__( ( always_inline ) ) static inline void _EI (void)
+{
+    __asm volatile ("CPSIE I");
+}
+
 __attribute__( ( always_inline ) ) static inline uint32_t _CLZ(uint32_t n)
 {
     register uint32_t r;
@@ -119,10 +145,11 @@ __attribute__( ( always_inline ) ) static inline uint32_t _CLZ(uint32_t n)
     return r;
 }
 
+#if (NOS_CONFIG_MAX_UNSAFE_ISR_PRIO > 0)
 #define nOS_EnterCritical(sr)                                                   \
     do {                                                                        \
         sr = _GetBASEPRI();                                                     \
-        if (sr < NOS_MAX_UNSAFE_BASEPRI) {                                      \
+        if (sr == 0 || sr > NOS_MAX_UNSAFE_BASEPRI) {                           \
             _SetBASEPRI(NOS_MAX_UNSAFE_BASEPRI);                                \
             _DSB();                                                             \
             _ISB();                                                             \
@@ -135,6 +162,22 @@ __attribute__( ( always_inline ) ) static inline uint32_t _CLZ(uint32_t n)
         _DSB();                                                                 \
         _ISB();                                                                 \
     } while (0)
+#else
+#define nOS_EnterCritical(sr)                                                   \
+    do {                                                                        \
+        sr = _GetPRIMASK();                                                     \
+        _DI();                                                                  \
+        _DSB();                                                                 \
+        _ISB();                                                                 \
+    } while (0)
+
+#define nOS_LeaveCritical(sr)                                                   \
+    do {                                                                        \
+        _SetPRIMASK(sr);                                                        \
+        _DSB();                                                                 \
+        _ISB();                                                                 \
+    } while (0)
+#endif
 
 void    nOS_EnterIsr    (void);
 void    nOS_LeaveIsr    (void);

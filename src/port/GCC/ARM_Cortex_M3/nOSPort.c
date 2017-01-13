@@ -78,20 +78,30 @@ void nOS_InitContext(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_Thr
 
 void nOS_SwitchContext(void)
 {
+#if (NOS_CONFIG_MAX_UNSAFE_ISR_PRIO > 0)
     nOS_StatusReg   sr = _GetBASEPRI();
+#endif
 
     /* Request context switch */
     *(volatile uint32_t *)0xE000ED04UL = 0x10000000UL;
 
     /* Leave critical section */
+#if (NOS_CONFIG_MAX_UNSAFE_ISR_PRIO > 0)
     _SetBASEPRI(0);
+#else
+    _EI();
+#endif
     _DSB();
     _ISB();
 
     _NOP();
 
     /* Enter critical section */
+#if (NOS_CONFIG_MAX_UNSAFE_ISR_PRIO > 0)
     _SetBASEPRI(sr);
+#else
+    _DI();
+#endif
     _DSB();
     _ISB();
 }

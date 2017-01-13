@@ -664,13 +664,15 @@
  *                                                                                                                    *
  * Highest priority of interrupt service routines that use nOS API. It can enable zero interrupt latency for high     *
  * priority ISR. Application should not call any nOS API from interrupt service routines with priority higher than    *
- * this setting. Can't be set to zero.                                                                                *
+ * this setting.                                                                                                      *
  *                                                                                                                    *
  * Lower number  = Higher priority (except PIC24)                                                                     *
  * Higher number = Lower priority (except PIC24)                                                                      *
  *                                                                                                                    *
  * Notes                                                                                                              *
  *   1. Not used on all platforms.                                                                                    *
+ *   2. Can be set to zero to disable zero interrupt latency feature and completely disable interrupts in critical    *
+ *      section (only applicable to ARM Cortex M3, M4 and M7).
  *                                                                                                                    *
  **********************************************************************************************************************/
 #define NOS_CONFIG_MAX_UNSAFE_ISR_PRIO              5

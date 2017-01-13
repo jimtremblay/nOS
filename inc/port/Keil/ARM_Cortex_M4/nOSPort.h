@@ -43,7 +43,11 @@ typedef uint32_t                            nOS_StatusReg;
  #error "nOSConfig.h: NOS_CONFIG_MAX_UNSAFE_ISR_PRIO is not defined."
 #endif
 
+#if (NOS_CONFIG_MAX_UNSAFE_ISR_PRIO > 0)
 #define NOS_MAX_UNSAFE_BASEPRI              (NOS_CONFIG_MAX_UNSAFE_ISR_PRIO << (8 - NOS_NVIC_PRIO_BITS))
+#else
+#undef NOS_NVIC_PRIO_BITS
+#endif
 
 #define _CLZ(n)                             __clz(n)
 
@@ -103,10 +107,25 @@ static inline void _SetBASEPRI (uint32_t r)
     _basepri = r;
 }
 
+static inline uint32_t _GetPRIMASK (void)
+{
+    register uint32_t volatile _primask __asm("primask");
+
+    return _primask;
+}
+
+static inline void _SetPRIMASK (uint32_t r)
+{
+    register uint32_t volatile _primask __asm("primask");
+
+    _primask = r;
+}
+
+#if (NOS_CONFIG_MAX_UNSAFE_ISR_PRIO > 0)
 #define nOS_EnterCritical(sr)                                                   \
     do {                                                                        \
         sr = _GetBASEPRI();                                                     \
-        if (sr < NOS_MAX_UNSAFE_BASEPRI) {                                      \
+        if (sr == 0 || sr > NOS_MAX_UNSAFE_BASEPRI) {                           \
             _SetBASEPRI(NOS_MAX_UNSAFE_BASEPRI);                                \
             __dsb(0xF);                                                         \
             __isb(0xF);                                                         \
@@ -119,6 +138,22 @@ static inline void _SetBASEPRI (uint32_t r)
         __dsb(0xF);                                                             \
         __isb(0xF);                                                             \
     } while (0)
+#else
+#define nOS_EnterCritical(sr)                                                   \
+    do {                                                                        \
+        sr = _GetPRIMASK();                                                     \
+        __disable_irq();                                                        \
+        __dsb(0xF);                                                             \
+        __isb(0xF);                                                             \
+    } while (0)
+
+#define nOS_LeaveCritical(sr)                                                   \
+    do {                                                                        \
+        _SetPRIMASK(sr);                                                        \
+        __dsb(0xF);                                                             \
+        __isb(0xF);                                                             \
+    } while (0)
+#endif
 
 void    nOS_EnterIsr    (void);
 void    nOS_LeaveIsr    (void);
