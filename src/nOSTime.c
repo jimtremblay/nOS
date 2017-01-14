@@ -31,13 +31,13 @@ static NOS_CONST uint8_t    _daysPerMonth[12] = {31, 28, 31, 30, 31, 30, 31, 31,
 #if (NOS_CONFIG_TIME_WAIT_ENABLE > 0)
 static void _TickTime(void *payload, void *arg)
 {
-    nOS_Thread  *thread = (nOS_Thread*)payload;
-    nOS_Time    time = *(nOS_Time*)thread->ext;
+    nOS_Thread  *thread = (nOS_Thread *)payload;
+    nOS_Time    time    = *(nOS_Time *)thread->ext;
 
     /* Avoid warning */
     NOS_UNUSED(arg);
 
-    if (time == _time) {
+    if (time >= _time) {
         nOS_WakeUpThread(thread, NOS_OK);
     }
 }
@@ -58,18 +58,25 @@ void nOS_InitTime (void)
 #endif
 }
 
-void nOS_TimeTick (void)
+void nOS_TimeTick (nOS_TickCounter ticks)
 {
     nOS_StatusReg   sr;
+    nOS_Time        dt;
 
     nOS_EnterCritical(sr);
-#if (NOS_CONFIG_TIME_TICKS_PER_SECOND > 1)
-    _prescaler++;
-    _prescaler %= NOS_CONFIG_TIME_TICKS_PER_SECOND;
-    if (_prescaler == 0)
+#if (NOS_CONFIG_TIME_TICKS_PER_SECOND == 1)
+    dt = (nOS_Time)ticks;
+#else
+    dt = (nOS_Time)(ticks / NOS_CONFIG_TIME_TICKS_PER_SECOND);
+    _prescaler += (uint16_t)(ticks % NOS_CONFIG_TIME_TICKS_PER_SECOND);
+    if (_prescaler >= NOS_CONFIG_TIME_TICKS_PER_SECOND) {
+        dt++;
+        _prescaler -= NOS_CONFIG_TIME_TICKS_PER_SECOND;
+    }
+    if (dt > 0)
 #endif
     {
-        _time++;
+        _time += dt;
 #if (NOS_CONFIG_TIME_WAIT_ENABLE > 0)
         nOS_WalkInList(&_event.waitList, _TickTime, NULL);
 #endif

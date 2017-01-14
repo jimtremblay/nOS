@@ -49,13 +49,11 @@ static void _ResumeThread (void *payload, void *arg)
 void nOS_TickThread (void *payload, void *arg)
 {
     nOS_Thread      *thread = (nOS_Thread*)payload;
-    nOS_ThreadState state = (nOS_ThreadState)(thread->state & NOS_THREAD_WAITING_MASK);
+    nOS_ThreadState state   = (nOS_ThreadState)(thread->state & NOS_THREAD_WAITING_MASK);
+    nOS_TickCounter ticks   = *(nOS_TickCounter *)arg;
     nOS_Error       err;
 
-    /* Avoid warning */
-    NOS_UNUSED(arg);
-
-    if (thread->timeout == nOS_tickCounter) {
+    if ((thread->timeout - nOS_tickCounter) <= ticks) {
         err = NOS_E_TIMEOUT;
 #if (NOS_CONFIG_SLEEP_ENABLE > 0) || (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
         if (state == NOS_THREAD_SLEEPING) {
