@@ -14,6 +14,14 @@ extern "C" {
 #endif
 
 #if (NOS_CONFIG_TIMER_ENABLE > 0)
+typedef struct _TickContext
+{
+    nOS_TickCounter ticks;
+#if (NOS_CONFIG_TIMER_THREAD_ENABLE > 0)
+    bool            triggered;
+#endif
+} _TickContext;
+
 #if (NOS_CONFIG_TIMER_THREAD_ENABLE > 0)
  #if (NOS_CONFIG_THREAD_JOIN_ENABLE > 0)
   static int _Thread (void *arg);
@@ -130,17 +138,16 @@ static void _Thread (void *arg)
 /* Called from critical section */
 static void _Tick (void *payload, void *arg)
 {
-    nOS_Timer   *timer      = (nOS_Timer *)payload;
-#if (NOS_CONFIG_TIMER_THREAD_ENABLE > 0)
-    bool        *triggered  = (bool*)arg;
-#else
-    NOS_UNUSED(arg);
-#endif
+    nOS_Timer           *timer  = (nOS_Timer *)payload;
+    _TickContext        *ctx    = (_TickContext *)arg;
+    nOS_TimerCounter    overflow;
 
-    if (timer->count == _tickCounter) {
+    if ((timer->count - _tickCounter) <= ctx->ticks) {
+        overflow = 1;
         if (((nOS_TimerMode)timer->state & NOS_TIMER_MODE) == NOS_TIMER_FREE_RUNNING) {
             /* Free running timer */
-            timer->count = _tickCounter + timer->reload;
+            overflow += ((ctx->ticks - (timer->count - _tickCounter)) / timer->reload);
+            timer->count += (overflow * timer->reload);
         }
         else {
             /* One-shot timer */
@@ -150,9 +157,13 @@ static void _Tick (void *payload, void *arg)
         if (timer->overflow == 0) {
             _AppendToTriggeredList(timer);
         }
-        timer->overflow++;
+        if ((NOS_TIMER_COUNT_MAX - timer->overflow) < overflow) {
+            timer->overflow = NOS_TIMER_COUNT_MAX;
+        } else {
+            timer->overflow += overflow;
+        }
 #if (NOS_CONFIG_TIMER_THREAD_ENABLE > 0)
-        *triggered = true;
+        ctx->triggered = true;
 #endif
     }
 }
@@ -195,22 +206,22 @@ void nOS_InitTimer(void)
 #endif
 }
 
-void nOS_TimerTick (void)
+void nOS_TimerTick (nOS_TickCounter ticks)
 {
     nOS_StatusReg   sr;
+    _TickContext    ctx;
+
+    ctx.ticks = ticks;
 #if (NOS_CONFIG_TIMER_THREAD_ENABLE > 0)
-    bool            triggered = false;
+    ctx.triggered = false;
 #endif
 
     nOS_EnterCritical(sr);
-    _tickCounter++;
+    nOS_WalkInList(&_activeList, _Tick, &ctx);
 #if (NOS_CONFIG_TIMER_THREAD_ENABLE > 0)
-    nOS_WalkInList(&_activeList, _Tick, &triggered);
-    if (triggered && (_thread.state == (NOS_THREAD_READY | NOS_THREAD_ON_HOLD))) {
+    if (ctx.triggered && (_thread.state == (NOS_THREAD_READY | NOS_THREAD_ON_HOLD))) {
         nOS_WakeUpThread(&_thread, NOS_OK);
     }
-#else
-    nOS_WalkInList(&_activeList, _Tick, NULL);
 #endif
     nOS_LeaveCritical(sr);
 }

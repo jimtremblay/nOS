@@ -430,6 +430,10 @@ extern "C" {
   #error "nOSConfig.h: NOS_CONFIG_TIME_TICKS_PER_SECOND is not defined: must be higher than 0."
  #elif (NOS_CONFIG_TIME_TICKS_PER_SECOND == 0)
   #error "nOSConfig.h: NOS_CONFIG_TIME_TICKS_PER_SECOND is set to invalue value: must be higher than 0."
+ #elif defined(NOS_CONFIG_TICKS_PER_SECOND) && (NOS_CONFIG_TICKS_PER_SECOND > 0)
+  #if (NOS_CONFIG_TIME_TICK_ENABLE > 0) && (NOS_CONFIG_TIME_TICKS_PER_SECOND != NOS_CONFIG_TICKS_PER_SECOND)
+   #error "nOSConfig.h: NOS_CONFIG_TIME_TICKS_PER_SECOND is not equal to NOS_CONFIG_TICKS_PER_SECOND: must be equal when NOS_CONFIG_TIME_TICK_ENABLE is enabled."
+  #endif
  #endif
  #ifndef NOS_CONFIG_TIME_COUNT_WIDTH
   #error "nOSConfig.h: NOS_CONFIG_TIME_COUNT_WIDTH is not defined: must be set to 32 or 64."
@@ -1006,6 +1010,16 @@ struct nOS_Barrier
  #define NOS_MUTEX_COUNT_MAX        UINT64_MAX
 #endif
 
+#if (NOS_CONFIG_TIMER_COUNT_WIDTH == 8)
+ #define NOS_TIMER_COUNT_MAX        UINT8_MAX
+#elif (NOS_CONFIG_TIMER_COUNT_WIDTH == 16)
+ #define NOS_TIMER_COUNT_MAX        UINT16_MAX
+#elif (NOS_CONFIG_TIMER_COUNT_WIDTH == 32)
+ #define NOS_TIMER_COUNT_MAX        UINT32_MAX
+#elif (NOS_CONFIG_TIMER_COUNT_WIDTH == 64)
+ #define NOS_TIMER_COUNT_MAX        UINT64_MAX
+#endif
+
 #define NOS_MUTEX_PRIO_INHERIT      0
 
 #define NOS_FLAG_NONE               0
@@ -1150,14 +1164,18 @@ nOS_Error           nOS_Yield                           (void);
  *                                                                                                                    *
  * Name        : nOS_Tick                                                                                             *
  *                                                                                                                    *
- * Description : Send a tick to scheduler and enabled services.                                                       *
+ * Description : Send ticks to scheduler and enabled services. Can send single tick like in systick handler or        *
+ *               multiple ticks when systick has been disabled for a long time like when recovering from MCU sleep.   *
+ *                                                                                                                    *
+ * Parameters                                                                                                         *
+ *   ticks     : Number of ticks to do.                                                                               *
  *                                                                                                                    *
  * Notes                                                                                                              *
  *   1. Must be called x times per second by the application if needed.                                               *
  *        x = NOS_CONFIG_TICKS_PER_SECOND                                                                             *
  *                                                                                                                    *
  **********************************************************************************************************************/
-void                nOS_Tick                            (void);
+void                nOS_Tick                            (nOS_TickCounter ticks);
 
 /**********************************************************************************************************************
  *                                                                                                                    *
@@ -1887,7 +1905,7 @@ nOS_Error           nOS_ThreadCreate                    (nOS_Thread *thread,
 #endif
 
 #if (NOS_CONFIG_TIMER_ENABLE > 0)
- void               nOS_TimerTick                       (void);
+ void               nOS_TimerTick                       (nOS_TickCounter ticks);
  void               nOS_TimerProcess                    (void);
  nOS_Error          nOS_TimerCreate                     (nOS_Timer *timer,
                                                          nOS_TimerCallback callback,
@@ -1932,7 +1950,7 @@ nOS_Error           nOS_ThreadCreate                    (nOS_Thread *thread,
 #endif
 
 #if (NOS_CONFIG_TIME_ENABLE > 0)
- void               nOS_TimeTick                        (void);
+ void               nOS_TimeTick                        (nOS_TickCounter ticks);
  nOS_Time           nOS_TimeGet                         (void);
  nOS_Error          nOS_TimeSet                         (nOS_Time time);
  nOS_TimeDate       nOS_TimeConvert                     (nOS_Time time);

@@ -540,32 +540,37 @@ nOS_Error nOS_Yield(void)
     return err;
 }
 
-void nOS_Tick(void)
+void nOS_Tick(nOS_TickCounter ticks)
 {
     nOS_StatusReg   sr;
 
-    nOS_EnterCritical(sr);
-    nOS_tickCounter++;
+#if (NOS_CONFIG_SAFE > 0)
+    if (ticks > 0)
+#endif
+    {
+        nOS_EnterCritical(sr);
 #if (NOS_CONFIG_WAITING_TIMEOUT_ENABLE > 0) || (NOS_CONFIG_SLEEP_ENABLE > 0) || (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
-    nOS_WalkInList(&nOS_timeoutThreadsList, nOS_TickThread, NULL);
+        nOS_WalkInList(&nOS_timeoutThreadsList, nOS_TickThread, &ticks);
+#endif
+#if (NOS_CONFIG_TIMER_ENABLE > 0) && (NOS_CONFIG_TIMER_TICK_ENABLE > 0)
+        nOS_TimerTick(ticks);
+#endif
+#if (NOS_CONFIG_TIME_ENABLE > 0) && (NOS_CONFIG_TIME_TICK_ENABLE > 0)
+        nOS_TimeTick(ticks);
+#endif
+#if (NOS_CONFIG_ALARM_ENABLE > 0) && (NOS_CONFIG_ALARM_TICK_ENABLE > 0)
+        nOS_AlarmTick();
 #endif
 #if (NOS_CONFIG_SCHED_ROUND_ROBIN_ENABLE > 0)
  #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
-    nOS_RotateList(&nOS_readyThreadsList[nOS_runningThread->prio]);
+        nOS_RotateList(&nOS_readyThreadsList[nOS_runningThread->prio]);
  #else
-    nOS_RotateList(&nOS_readyThreadsList);
+        nOS_RotateList(&nOS_readyThreadsList);
  #endif
 #endif
-#if (NOS_CONFIG_TIMER_ENABLE > 0) && (NOS_CONFIG_TIMER_TICK_ENABLE > 0)
-    nOS_TimerTick();
-#endif
-#if (NOS_CONFIG_TIME_ENABLE > 0) && (NOS_CONFIG_TIME_TICK_ENABLE > 0)
-    nOS_TimeTick();
-#endif
-#if (NOS_CONFIG_ALARM_ENABLE > 0) && (NOS_CONFIG_ALARM_TICK_ENABLE > 0)
-    nOS_AlarmTick();
-#endif
-    nOS_LeaveCritical(sr);
+        nOS_tickCounter += ticks;
+        nOS_LeaveCritical(sr);
+    }
 }
 
 nOS_TickCounter nOS_GetTickCount(void)

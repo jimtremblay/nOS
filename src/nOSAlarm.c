@@ -14,13 +14,13 @@ extern "C" {
 #endif
 
 #if (NOS_CONFIG_TIME_ENABLE > 0) && (NOS_CONFIG_ALARM_ENABLE > 0)
-typedef struct _Context
+typedef struct _TickContext
 {
     nOS_Time    time;
 #if (NOS_CONFIG_ALARM_THREAD_ENABLE > 0)
     bool        triggered;
 #endif
-} _Context;
+} _TickContext;
 
 #if (NOS_CONFIG_ALARM_THREAD_ENABLE > 0)
  #if (NOS_CONFIG_THREAD_JOIN_ENABLE > 0)
@@ -81,8 +81,8 @@ static void _Thread (void *arg)
 /* Called from critical section */
 static void _Tick (void *payload, void *arg)
 {
-    nOS_Alarm   *alarm  = (nOS_Alarm *)payload;
-    _Context    *ctx    = (_Context*)arg;
+    nOS_Alarm       *alarm  = (nOS_Alarm *)payload;
+    _TickContext    *ctx    = (_TickContext *)arg;
 
     if (ctx->time >= alarm->time) {
         nOS_RemoveFromList(&_waitingList, &alarm->node);
@@ -133,7 +133,7 @@ void nOS_AlarmTick (void)
 #if (NOS_CONFIG_ALARM_TICK_ENABLE == 0)
     nOS_StatusReg   sr;
 #endif
-    _Context        ctx;
+    _TickContext    ctx;
 
 #if (NOS_CONFIG_ALARM_TICK_ENABLE == 0)
     nOS_EnterCritical(sr);
