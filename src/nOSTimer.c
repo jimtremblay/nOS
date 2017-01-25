@@ -223,6 +223,7 @@ void nOS_TimerTick (nOS_TickCounter ticks)
         nOS_WakeUpThread(&_thread, NOS_OK);
     }
 #endif
+    _tickCounter += ticks;
     nOS_LeaveCritical(sr);
 }
 
