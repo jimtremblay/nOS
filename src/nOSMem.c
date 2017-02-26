@@ -14,6 +14,61 @@ extern "C" {
 #endif
 
 #if (NOS_CONFIG_MEM_ENABLE > 0)
+#if (NOS_CONFIG_MEM_SANITY_CHECK_ENABLE > 0)
+/**********************************************************************************************************************
+ *                                                                                                                    *
+ * Name             : _SanityCheck                                                                                    *
+ *                                                                                                                    *
+ * Description      : Check if pointer is valid for given memory block (useful before freeing block).                 *
+ *                                                                                                                    *
+ * Parameters                                                                                                         *
+ *   mem            : Pointer to mem object.                                                                          *
+ *   block          : Pointer to previously allocated block.                                                          *
+ *                                                                                                                    *
+ * Return           : Error code.                                                                                     *
+ *   NOS_OK         : Pointer is valid.                                                                               *
+ *   NOS_E_INV_VAL  : Pointer to block is outside mem defined range.                                                  *
+ *                      See note 1                                                                                    *
+ *   NOS_E_OVERFLOW : Too much block has been freed or block is already free.                                         *
+ *                      See note 1                                                                                    *
+ *                                                                                                                    *
+ * Notes                                                                                                              *
+ *   1. Never suppose to happen normally, can be a sign of corruption.                                                *
+ *                                                                                                                    *
+ **********************************************************************************************************************/
+static nOS_Error _SanityCheck (nOS_Mem *mem, void *block)
+{
+    nOS_Error   err;
+
+    if (block < mem->buffer) {
+        /* Memory block pointer is out of range. */
+        err = NOS_E_INV_VAL;
+    }
+    else if (block >= (void*)((uint8_t*)mem->buffer + (mem->bsize * mem->bmax))) {
+        /* Memory block pointer is out of range. */
+        err = NOS_E_INV_VAL;
+    }
+    else if ((nOS_MemSize)((uint8_t*)block - (uint8_t*)mem->buffer) % mem->bsize != 0) {
+        /* Memory block pointer is not a multiple of block size. */
+        err = NOS_E_INV_VAL;
+    }
+    else if (mem->bcount == mem->bmax) {
+        /* All blocks are already free. */
+        err = NOS_E_OVERFLOW;
+    }
+    else {
+        /* Memory block is already free? */
+        void *p = (void*)mem->blist;
+        while ((p != NULL) && (p != block)) {
+            p = *(void**)p;
+        }
+        err = p == block ? NOS_E_OVERFLOW : NOS_OK;
+    }
+
+    return err;
+}
+#endif  /* NOS_CONFIG_MEM_SANITY_CHECK_ENABLE */
+
 nOS_Error nOS_MemCreate (nOS_Mem *mem, void *buffer, nOS_MemSize bsize, nOS_MemCounter bmax)
 {
     nOS_Error       err;
@@ -62,6 +117,9 @@ nOS_Error nOS_MemCreate (nOS_Mem *mem, void *buffer, nOS_MemSize bsize, nOS_MemC
                            );
             /* Initialize the single-link list */
             blist = NULL;
+#if (NOS_CONFIG_MEM_SANITY_CHECK_ENABLE > 0)
+            mem->buffer = buffer;
+#endif
             for (i = 0; i < bmax-1; i++) {
                 *(void**)buffer = blist;
                 blist = (void**)buffer;
@@ -70,7 +128,6 @@ nOS_Error nOS_MemCreate (nOS_Mem *mem, void *buffer, nOS_MemSize bsize, nOS_MemC
             *(void**)buffer = blist;
             mem->blist  = (void**)buffer;
 #if (NOS_CONFIG_MEM_SANITY_CHECK_ENABLE > 0)
-            mem->buffer = buffer;
             mem->bsize  = bsize;
             mem->bcount = bmax;
             mem->bmax   = bmax;
@@ -190,7 +247,7 @@ nOS_Error nOS_MemFree(nOS_Mem *mem, void *block)
 #endif
         {
 #if (NOS_CONFIG_MEM_SANITY_CHECK_ENABLE > 0)
-            err = nOS_MemSanityCheck(mem, block);
+            err = _SanityCheck(mem, block);
             if (err == NOS_OK)
 #else
             err = NOS_OK;
@@ -244,40 +301,6 @@ bool nOS_MemIsAvailable (nOS_Mem *mem)
 
     return avail;
 }
-
-#if (NOS_CONFIG_MEM_SANITY_CHECK_ENABLE > 0)
-nOS_Error nOS_MemSanityCheck (nOS_Mem *mem, void *block)
-{
-    nOS_Error   err;
-
-    if (block < mem->buffer) {
-        /* Memory block pointer is out of range. */
-        err = NOS_E_INV_VAL;
-    }
-    else if (block >= (void*)((uint8_t*)mem->buffer + (mem->bsize * mem->bmax))) {
-        /* Memory block pointer is out of range. */
-        err = NOS_E_INV_VAL;
-    }
-    else if ((nOS_MemSize)((uint8_t*)block - (uint8_t*)mem->buffer) % mem->bsize != 0) {
-        /* Memory block pointer is not a multiple of block size. */
-        err = NOS_E_INV_VAL;
-    }
-    else if (mem->bcount == mem->bmax) {
-        /* All blocks are already free. */
-        err = NOS_E_OVERFLOW;
-    }
-    else {
-        /* Memory block is already free? */
-        void *p = (void*)mem->blist;
-        while ((p != NULL) && (p != block)) {
-            p = *(void**)p;
-        }
-        err = p == block ? NOS_E_OVERFLOW : NOS_OK;
-    }
-
-    return err;
-}
-#endif  /* NOS_CONFIG_MEM_SANITY_CHECK_ENABLE */
 #endif  /* NOS_CONFIG_MEM_ENABLE */
 
 #ifdef __cplusplus
