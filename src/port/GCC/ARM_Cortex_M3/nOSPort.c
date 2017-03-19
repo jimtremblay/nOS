@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2016 Jim Tremblay
+ * Copyright (c) 2014-2017 Jim Tremblay
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -156,9 +156,12 @@ void nOS_LeaveIsr (void)
 void PendSV_Handler(void)
 {
     __asm volatile (
+        /* Disable interrupts */
+        "CPSID      I                               \n"
+        "ISB                                        \n"
+
         /* Save PSP before doing anything, PendSV_Handler already running on MSP */
         "MRS        R0,         PSP                 \n"
-        "ISB                                        \n"
 
         /* Get the location of nOS_runningThread */
         "LDR        R3,         runningThread       \n"
@@ -185,6 +188,9 @@ void PendSV_Handler(void)
 
         /* Restore PSP to high prio thread stack */
         "MSR        PSP,        R0                  \n"
+
+        /* Enable interrupts */
+        "CPSIE      I                               \n"
         "ISB                                        \n"
 
         /* Return */

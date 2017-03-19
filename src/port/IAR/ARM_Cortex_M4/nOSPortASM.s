@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2016 Jim Tremblay
+ * Copyright (c) 2014-2017 Jim Tremblay
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -15,9 +15,12 @@
     PUBLIC PendSV_Handler
 
 PendSV_Handler:
+    /* Disable interrupts */
+    CPSID       I
+    ISB
+
     /* Save PSP before doing anything, PendSV_Handler already running on MSP */
     MRS         R0,         PSP
-    ISB
 
     /* Get the location of nOS_runningThread */
     LDR         R3,         =nOS_runningThread
@@ -58,8 +61,12 @@ PendSV_Handler:
 
     /* Restore PSP to high prio thread stack */
     MSR         PSP,        R0
+
+    /* Enable interrupts */
+    CPSIE       I
     ISB
 
+    /* Return */
     BX          LR
 
     END
