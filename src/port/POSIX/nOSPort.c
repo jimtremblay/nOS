@@ -109,7 +109,7 @@ static void* _SysTick (void *arg)
         /* Simulate entry in interrupt */
         nOS_isrNestingCounter = 1;
 
-        nOS_Tick();
+        nOS_Tick(1);
 
         /* Simulate exit of interrupt */
         nOS_isrNestingCounter = 0;
