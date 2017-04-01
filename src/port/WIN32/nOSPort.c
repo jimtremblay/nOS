@@ -92,7 +92,7 @@ static DWORD WINAPI _SysTick (LPVOID lpParameter)
         /* Simulate entry in interrupt */
         nOS_isrNestingCounter = 1;
 
-        nOS_Tick();
+        nOS_Tick(1);
 
 #if (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0) || (NOS_CONFIG_SCHED_ROUND_ROBIN_ENABLE > 0)
  #if (NOS_CONFIG_HIGHEST_THREAD_PRIO == 0)
