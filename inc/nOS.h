@@ -1934,6 +1934,9 @@ nOS_Error           nOS_ThreadCreate                    (nOS_Thread *thread,
  #if (NOS_CONFIG_TIME_WAIT_ENABLE > 0)
   nOS_Error         nOS_TimeWait                        (nOS_Time time);
  #endif
+ bool               nOS_TimeIsLeapYear                  (uint16_t year);
+ uint16_t           nOS_TimeGetDaysPerYear              (uint16_t year);
+ uint8_t            nOS_TimeGetDaysPerMonth             (uint8_t month, uint16_t year);
  nOS_TimeDate       nOS_TimeDateGet                     (void);
  nOS_Error          nOS_TimeDateSet                     (nOS_TimeDate timedate);
  nOS_Time           nOS_TimeDateConvert                 (nOS_TimeDate timedate);
