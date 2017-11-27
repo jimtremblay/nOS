@@ -14,6 +14,27 @@ extern "C" {
 #endif
 
 #if (NOS_CONFIG_MUTEX_ENABLE > 0)
+ #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
+ static void _TestPrioHighest (void *payload, void *arg)
+ {
+    nOS_Thread      *thread  = (nOS_Thread*)payload;
+    uint8_t         *prio    = (uint8_t*)arg;
+
+    if (*prio < thread->prio) {
+        *prio = thread->prio;
+    }
+ }
+
+ static uint8_t _FindHighestPrioWaiting(nOS_Mutex *mutex)
+ {
+    uint8_t prio = 0;
+
+    nOS_WalkInList(&mutex->e.waitList, _TestPrioHighest, &prio);
+
+    return prio;
+ }
+ #endif
+
 nOS_Error nOS_MutexCreate (nOS_Mutex *mutex,
                            nOS_MutexType type
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
@@ -175,6 +196,9 @@ nOS_Error nOS_MutexUnlock (nOS_Mutex *mutex)
     nOS_Error       err;
     nOS_StatusReg   sr;
     nOS_Thread      *thread;
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
+    uint8_t         prio;
+#endif
 
 #if (NOS_CONFIG_SAFE > 0)
     if (mutex == NULL) {
@@ -199,29 +223,41 @@ nOS_Error nOS_MutexUnlock (nOS_Mutex *mutex)
             err = NOS_E_OWNER;
         }
         else {
-            mutex->count--;
-            if (mutex->count == 0) {
+            if (mutex->count == 1) {
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
                 nOS_SetThreadPrio(mutex->owner, mutex->backup);
 #endif
                 thread = nOS_SendEvent((nOS_Event*)mutex, NOS_OK);
                 if (thread != NULL) {
-                    mutex->count++;
                     mutex->owner = thread;
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
                     mutex->backup = thread->prio;
                     if (mutex->prio != NOS_MUTEX_PRIO_INHERIT) {
-                        nOS_SetThreadPrio(thread, mutex->prio);
+                        if (thread->prio < mutex->prio) {
+                            nOS_SetThreadPrio(thread, mutex->prio);
+                        }
                     }
- #if (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
-                    /* Verify if a highest prio thread is ready to run */
-                    nOS_Schedule();
- #endif
+                    /* If mutex is using priority inheritance, verify if there is other threads
+                     * in waiting list. If yes, then search for highest priority of threads in
+                     * waiting list and set new mutex owner to this priority if needed. */
+                    else if (mutex->e.waitList.head != NULL) {
+                        prio = _FindHighestPrioWaiting(mutex);
+                        if (thread->prio < prio) {
+                            nOS_SetThreadPrio(thread, prio);
+                        }
+                    }
 #endif
                 }
                 else {
+                    mutex->count = 0;
                     mutex->owner = NULL;
                 }
+#if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0) && (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
+                /* Verify if a highest prio thread is ready to run */
+                nOS_Schedule();
+#endif
+            } else {
+                mutex->count--;
             }
             err = NOS_OK;
         }

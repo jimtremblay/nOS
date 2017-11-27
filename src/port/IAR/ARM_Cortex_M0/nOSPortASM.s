@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2016 Jim Tremblay
+ * Copyright (c) 2014-2017 Jim Tremblay
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -15,9 +15,12 @@
     PUBLIC PendSV_Handler
 
 PendSV_Handler:
+    /* Disable interrupts */
+    CPSID       I
+    ISB
+
     /* Save PSP before doing anything, PendSV_Handler already running on MSP */
     MRS         R0,        PSP
-    ISB
 
     /* Get the location of nOS_runningThread */
     LDR         R3,         =nOS_runningThread
@@ -31,7 +34,7 @@ PendSV_Handler:
 
     /* Push low registers on thread stack */
     STMIA       R0!,        {R4-R7}
-    
+
     /* Copy high registers to low registers */
     MOV         R4,         R8
     MOV         R5,         R9
@@ -43,7 +46,7 @@ PendSV_Handler:
     /* Get the location of nOS_highPrioThread */
     LDR         R1,         =nOS_highPrioThread
     LDR         R2,         [R1]
-    
+
     /* Copy nOS_highPrioThread to nOS_runningThread */
     STR         R2,         [R3]
 
@@ -52,7 +55,7 @@ PendSV_Handler:
 
     /* Move to the high registers */
     ADDS        R0,         R0,                 #16
-    
+
     /* Pop high registers from thread stack */
     LDMIA       R0!,        {R4-R7}
     /* Copy low registers to high registers */
@@ -63,7 +66,6 @@ PendSV_Handler:
 
     /* Restore PSP to high prio thread stack */
     MSR         PSP,        R0
-    ISB
 
     /* Go back for the low registers */
     SUBS        R0,         R0,                 #32
@@ -71,7 +73,11 @@ PendSV_Handler:
     /* Pop low registers from thread stack */
     LDMIA       R0!,        {R4-R7}
 
+    /* Enable interrupts */
+    CPSIE       I
+    ISB
+
+    /* Return */
     BX          LR
-    NOP
 
     END

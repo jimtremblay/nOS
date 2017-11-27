@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2016 Jim Tremblay
+ * Copyright (c) 2014-2017 Jim Tremblay
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -144,9 +144,12 @@ __asm void PendSV_Handler(void)
     extern nOS_runningThread;
     extern nOS_highPrioThread;
 
+    /* Disable interrupts */
+    CPSID       I
+    ISB
+
     /* Save PSP before doing anything, PendSV_Handler already running on MSP */
     MRS         R0,         PSP
-    ISB
 
     /* Get the location of nOS_runningThread */
     LDR         R3,         =nOS_runningThread
@@ -192,17 +195,19 @@ __asm void PendSV_Handler(void)
 
     /* Restore PSP to high prio thread stack */
     MSR         PSP,        R0
-    ISB
 
     /* Go back for the low registers */
     SUBS        R0,         R0,             #32
 
     /* Pop low registers from thread stack */
-    LDMIA      R0!,        {R4-R7}
+    LDMIA       R0!,        {R4-R7}
+
+    /* Enable interrupts */
+    CPSIE       I
+    ISB
 
     /* Return */
     BX          LR
-    NOP
 }
 
 #ifdef __cplusplus

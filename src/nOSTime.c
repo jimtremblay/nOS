@@ -197,6 +197,21 @@ nOS_Error nOS_TimeWait (nOS_Time time)
 }
 #endif  /* NOS_CONFIG_TIME_WAIT_ENABLE */
 
+bool nOS_TimeIsLeapYear(uint16_t year)
+{
+    return IS_LEAP_YEAR(year);
+}
+
+uint16_t nOS_TimeGetDaysPerYear(uint16_t year)
+{
+    return DAYS_PER_YEAR(year);
+}
+
+uint8_t nOS_TimeGetDaysPerMonth(uint8_t month, uint16_t year)
+{
+   return DAYS_PER_MONTH(month,year);
+}
+
 nOS_TimeDate nOS_TimeDateGet (void)
 {
     return nOS_TimeConvert(nOS_TimeGet());
