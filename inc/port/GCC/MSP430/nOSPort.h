@@ -105,43 +105,43 @@ nOS_Stack*  nOS_EnterIsr        (nOS_Stack *sp);
 nOS_Stack*  nOS_LeaveIsr        (nOS_Stack *sp);
 
 #define NOS_ISR(vect)                                                           \
-void vect##_ISR_L2(void) __attribute__ ((naked));                               \
+void        vect##_ISR_L2(void) __attribute__ ((naked));                        \
 inline void vect##_ISR_L3(void) __attribute__ ((always_inline));                \
-void __attribute__ ((interrupt(vect), naked)) vect##_ISR(void)                  \
+void __attribute__ ((__interrupt__(vect), naked)) vect##_ISR(void)              \
 {                                                                               \
     asm volatile (                                                              \
-         CALL_X"    #"NOS_STR(vect##_ISR_L2)"   \n"                             \
+         CALL_X "   #" NOS_STR(vect##_ISR_L2) " \n"                             \
         "reti                                   \n"                             \
     );                                                                          \
 }                                                                               \
 void vect##_ISR_L2(void)                                                        \
 {                                                                               \
     asm volatile (                                                              \
-         PUSH_SR"                               \n"                             \
+         PUSH_SR "                              \n"                             \
         "                                       \n"                             \
         /* Push all registers to running thread stack */                        \
-         PUSH_CONTEXT"                          \n"                             \
+         PUSH_CONTEXT "                         \n"                             \
         "                                       \n"                             \
         /* Switch to isr stack if isr nesting counter is zero */                \
-        "mov.w      sp,                 r12     \n"                             \
-        CALL_X"     #nOS_EnterIsr               \n"                             \
-        "mov.w      r12,                sp      \n"                             \
+        MOV_X "     sp,                 r12     \n"                             \
+        CALL_X "    #nOS_EnterIsr               \n"                             \
+        MOV_X "     r12,                sp      \n"                             \
     );                                                                          \
     vect##_ISR_L3();                                                            \
     __disable_interrupt();                                                      \
     __no_operation();                                                           \
     asm volatile (                                                              \
         /* Switch to high prio thread stack if isr nesting counter reach zero */\
-        "mov.w      sp,                 r12     \n"                             \
-        CALL_X"     #nOS_LeaveIsr               \n"                             \
-        "mov.w      r12,                sp      \n"                             \
+        MOV_X "     sp,                 r12     \n"                             \
+        CALL_X "    #nOS_LeaveIsr               \n"                             \
+        MOV_X "     r12,                sp      \n"                             \
         "                                       \n"                             \
         /* Pop all registers from high prio thread stack */                     \
-         POP_CONTEXT"                           \n"                             \
+         POP_CONTEXT "                          \n"                             \
         "                                       \n"                             \
-         POP_SR"                                \n"                             \
+         POP_SR "                               \n"                             \
         "                                       \n"                             \
-         RET_X"                                 \n"                             \
+         RET_X "                                \n"                             \
     );                                                                          \
 }                                                                               \
 inline void vect##_ISR_L3(void)
@@ -149,7 +149,7 @@ inline void vect##_ISR_L3(void)
 /* Unused function for this port */
 #define     nOS_InitSpecific()
 
-#define     nOS_SwitchContext()         asm volatile (CALL_X" #nOS_SwitchContextHandler")
+#define     nOS_SwitchContext()         asm volatile (CALL_X " #nOS_SwitchContextHandler")
 void        nOS_SwitchContextHandler    (void) __attribute__ ((naked));
 
 #ifdef NOS_PRIVATE
