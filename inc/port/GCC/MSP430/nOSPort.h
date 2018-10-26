@@ -107,7 +107,7 @@ nOS_Stack*  nOS_LeaveIsr        (nOS_Stack *sp);
 #define NOS_ISR(vect)                                                           \
 void        vect##_ISR_L2(void) __attribute__ ((naked));                        \
 inline void vect##_ISR_L3(void) __attribute__ ((always_inline));                \
-__attribute__((interrupt(vect##_VECTOR), naked)) void vect##_ISR(void)          \
+void __attribute__ ((__interrupt__(vect), naked)) vect##_ISR(void)              \
 {                                                                               \
     asm volatile (                                                              \
          CALL_X "   #" NOS_STR(vect##_ISR_L2) " \n"                             \
@@ -123,18 +123,18 @@ void vect##_ISR_L2(void)                                                        
          PUSH_CONTEXT "                         \n"                             \
         "                                       \n"                             \
         /* Switch to isr stack if isr nesting counter is zero */                \
-		MOV_X "     sp,                 r12     \n"                             \
+        MOV_X "     sp,                 r12     \n"                             \
         CALL_X "    #nOS_EnterIsr               \n"                             \
-		MOV_X "     r12,                sp      \n"                             \
+        MOV_X "     r12,                sp      \n"                             \
     );                                                                          \
     vect##_ISR_L3();                                                            \
     __disable_interrupt();                                                      \
     __no_operation();                                                           \
     asm volatile (                                                              \
         /* Switch to high prio thread stack if isr nesting counter reach zero */\
-		MOV_X "     sp,                 r12     \n"                             \
+        MOV_X "     sp,                 r12     \n"                             \
         CALL_X "    #nOS_LeaveIsr               \n"                             \
-		MOV_X "     r12,                sp      \n"                             \
+        MOV_X "     r12,                sp      \n"                             \
         "                                       \n"                             \
         /* Pop all registers from high prio thread stack */                     \
          POP_CONTEXT "                          \n"                             \
