@@ -15,7 +15,11 @@ extern "C" {
 
 void PendSV_Handler(void) __attribute__( ( naked ) );
 
-static nOS_Stack _isrStack[NOS_CONFIG_ISR_STACK_SIZE] __attribute__ ( ( section(".noinit") ) );
+#ifdef NOS_CONFIG_ISR_STACK_SECTION
+static nOS_Stack _isrStack[NOS_CONFIG_ISR_STACK_SIZE] __attribute__ ( ( section(NOS_CONFIG_ISR_STACK_SECTION) ) );
+#else
+static nOS_Stack _isrStack[NOS_CONFIG_ISR_STACK_SIZE];
+#endif
 
 void nOS_InitSpecific(void)
 {

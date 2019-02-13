@@ -652,6 +652,17 @@
 
 /**********************************************************************************************************************
  *                                                                                                                    *
+ * Name of section where to put interrupt stack.                                                                      *
+ *                                                                                                                    *
+ * Notes                                                                                                              *
+ *   1. Not used on all platforms.                                                                                    *
+ *   2. Comment to disable section placement.                                                                         *
+ *                                                                                                                    *
+ **********************************************************************************************************************/
+//#define NOS_CONFIG_ISR_STACK_SECTION                ".noinit"
+
+/**********************************************************************************************************************
+ *                                                                                                                    *
  * Add possibility to override NVIC_PRIO_BITS if CMSIS is not used.                                                   *
  *                                                                                                                    *
  * Notes                                                                                                              *
