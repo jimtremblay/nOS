@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2016 Jim Tremblay
+ * Copyright (c) 2014-2019 Jim Tremblay
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -711,8 +711,10 @@ typedef enum nOS_FlagOption
 {
     NOS_FLAG_WAIT_ANY           = 0x00,
     NOS_FLAG_WAIT_ALL           = 0x01,
-    NOS_FLAG_WAIT               = 0x01,
-    NOS_FLAG_CLEAR_ON_EXIT      = 0x02
+    NOS_FLAG_WAIT_ONE           = 0x02,
+    NOS_FLAG_WAIT               = 0x03,
+    NOS_FLAG_WAIT_EXCLUSIVE     = 0x40,
+    NOS_FLAG_CLEAR_ON_EXIT      = 0x80
 } nOS_FlagOption;
 #endif
 
@@ -1726,7 +1728,9 @@ nOS_Error           nOS_ThreadCreate                    (nOS_Thread *thread,
  *   opt           : Waiting options.                                                                                 *
  *                     NOS_FLAG_WAIT_ALL      : Wait for all flags to be set.                                         *
  *                     NOS_FLAG_WAIT_ANY      : Wait for any flags to be set.                                         *
+ *                     NOS_FLAG_WAIT_ONE      : Wait for any flag to be set (give one at time).                       *
  *                   Altering options.                                                                                *
+ *                     NOS_FLAG_WAIT_EXCLUSIVE: Exclusive access to requested flags (when many theads waiting).       *
  *                     NOS_FLAG_CLEAR_ON_EXIT : Clear awoken flags.                                                   *
  *                       See note 2                                                                                   *
  *   timeout       : Timeout value.                                                                                   *
@@ -1746,7 +1750,7 @@ nOS_Error           nOS_ThreadCreate                    (nOS_Thread *thread,
  *                                                                                                                    *
  * Notes                                                                                                              *
  *   1. Only valid if returned error code is NOS_OK. Otherwise, res is unchanged.                                     *
- *   2. One waiting option can be OR'ed with altering option if needed.                                               *
+ *   2. One waiting option can be OR'ed with altering options if needed.                                              *
  *                                                                                                                    *
  **********************************************************************************************************************/
  nOS_Error          nOS_FlagWait                        (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits *res,

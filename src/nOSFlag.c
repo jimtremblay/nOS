@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2016 Jim Tremblay
+ * Copyright (c) 2014-2019 Jim Tremblay
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -14,27 +14,57 @@ extern "C" {
 #endif
 
 #if (NOS_CONFIG_FLAG_ENABLE > 0)
+static inline nOS_FlagBits _GetHighestFlag (nOS_FlagBits flags)
+{
+    nOS_FlagBits    n;
+
+    if (flags) {
+        n = flags;
+        n |= (n >> 1);
+        n |= (n >> 2);
+        n |= (n >> 4);
+#if (NOS_CONFIG_FLAG_NB_BITS > 8)
+        n |= (n >> 8);
+ #if (NOS_CONFIG_FLAG_NB_BITS > 16)
+        n |= (n >> 16);
+  #if (NOS_CONFIG_FLAG_NB_BITS > 32)
+        n |= (n >> 32);
+  #endif
+ #endif
+#endif
+        return ((n >> 1) + 1);
+    }
+    return (nOS_FlagBits)0;
+}
+
 static void _TestFlag (void *payload, void *arg)
 {
     nOS_Thread      *thread  = (nOS_Thread*)payload;
     nOS_Flag        *flag    = (nOS_Flag*)thread->event;
     nOS_FlagContext *ctx     = (nOS_FlagContext*)thread->ext;
-    nOS_FlagBits    *res     = (nOS_FlagBits*)arg;
+    nOS_FlagBits    *res     = &((nOS_FlagBits*)arg)[0];
+    nOS_FlagBits    *exc     = &((nOS_FlagBits*)arg)[1];
     nOS_FlagBits    r;
 
     /* Verify flags from object with wanted flags from waiting thread. */
-    r = flag->flags & ctx->flags;
+    r = (flag->flags & ctx->flags) &~ *exc;
     if (((ctx->opt & NOS_FLAG_WAIT) == NOS_FLAG_WAIT_ALL) && (r != ctx->flags)) {
         r = NOS_FLAG_NONE;
     }
+    if (((ctx->opt & NOS_FLAG_WAIT) == NOS_FLAG_WAIT_ONE) && (r != NOS_FLAG_NONE)) {
+        r = _GetHighestFlag(r);
+    }
     /* If conditions are met, wake up the thread and give it the result. */
     if (r != NOS_FLAG_NONE) {
-        nOS_WakeUpThread(thread, NOS_OK);
         *ctx->rflags = r;
         /* Accumulate awoken flags if waiting thread want to clear it when awoken. */
         if (ctx->opt & NOS_FLAG_CLEAR_ON_EXIT) {
             *res |= r;
         }
+        if (ctx->opt & NOS_FLAG_WAIT_EXCLUSIVE) {
+            *exc |= r;
+        }
+        nOS_WakeUpThread(thread, NOS_OK);
     }
 }
 
@@ -128,6 +158,10 @@ nOS_Error nOS_FlagWait (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits *res,
             if (((opt & NOS_FLAG_WAIT) == NOS_FLAG_WAIT_ALL) && (r != flags)) {
                 r = NOS_FLAG_NONE;
             }
+            /* If thread is waiting for ONE flag, then get highest bit set. */
+            if (((opt & NOS_FLAG_WAIT) == NOS_FLAG_WAIT_ONE) && (r != NOS_FLAG_NONE)) {
+                r = _GetHighestFlag(r);
+            }
 
             /* If result is not cleared, then condition is met for waiting thread. */
             if (r != NOS_FLAG_NONE) {
@@ -172,7 +206,7 @@ nOS_Error nOS_FlagSend (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits mask)
 {
     nOS_Error       err;
     nOS_StatusReg   sr;
-    nOS_FlagBits    res;
+    nOS_FlagBits    arg[2];
 
 #if (NOS_CONFIG_SAFE > 0)
     if (flag == NULL) {
@@ -188,10 +222,11 @@ nOS_Error nOS_FlagSend (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits mask)
 #endif
         {
             flag->flags ^= ((flag->flags ^ flags) & mask);
-            res = NOS_FLAG_NONE;
-            nOS_WalkInList(&flag->e.waitList, _TestFlag, &res);
+            arg[0] = NOS_FLAG_NONE;
+            arg[1] = NOS_FLAG_NONE;
+            nOS_WalkInList(&flag->e.waitList, _TestFlag, (void*)&arg);
             /* Clear all flags that have awoken the waiting threads. */
-            flag->flags &=~ res;
+            flag->flags &=~ arg[0];
 
 #if (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
             nOS_Schedule();
