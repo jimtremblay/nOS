@@ -1207,11 +1207,8 @@ nOS_TickCounter     nOS_GetTickCount                    (void);
  *                                                                                                                    *
  * Return      : Number of ticks.                                                                                     *
  *                                                                                                                    *
- * Notes                                                                                                              *
- *   1. Can return a higher count than nOS_TickCounter if NOS_CONFIG_TICK_COUNT_WIDTH is less than 32 bits.           *
- *                                                                                                                    *
  **********************************************************************************************************************/
- uint32_t           nOS_MsToTicks                       (uint16_t ms);
+ #define nOS_MsToTicks(MS)      (nOS_TickCounter)(((uint32_t)(MS)+((1000UL/(uint32_t)NOS_CONFIG_TICKS_PER_SECOND)-1UL))/(1000UL/(uint32_t)NOS_CONFIG_TICKS_PER_SECOND))
 #endif
 
 #if (NOS_CONFIG_SLEEP_ENABLE > 0)
@@ -1248,7 +1245,7 @@ nOS_TickCounter     nOS_GetTickCount                    (void);
  *   NOS_E_LOCKED : Can't sleep from scheduler locked section.                                                        *
  *                                                                                                                    *
  **********************************************************************************************************************/
-  nOS_Error         nOS_SleepMs                         (uint16_t ms);
+  nOS_Error         nOS_SleepMs                         (uint32_t ms);
  #endif
 #endif
 
