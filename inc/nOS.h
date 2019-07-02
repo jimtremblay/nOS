@@ -904,10 +904,10 @@ struct nOS_Mem
 {
     nOS_Event           e;
     void                **blist;
+    nOS_MemCounter      bcount;
  #if (NOS_CONFIG_MEM_SANITY_CHECK_ENABLE > 0)
     void                *buffer;
     nOS_MemSize         bsize;
-    nOS_MemCounter      bcount;
     nOS_MemCounter      bmax;
  #endif
 };
@@ -1877,6 +1877,22 @@ nOS_Error           nOS_ThreadCreate                    (nOS_Thread *thread,
  *                                                                                                                    *
  **********************************************************************************************************************/
  bool               nOS_MemIsAvailable                  (nOS_Mem *mem);
+
+/**********************************************************************************************************************
+ *                                                                                                                    *
+ * Name        : nOS_MemAvailable                                                                                     *
+ *                                                                                                                    *
+ * Description : Get number of blocks available in given memory partition.                                            *
+ *                                                                                                                    *
+ * Parameters                                                                                                         *
+ *   mem       : Pointer to mem object.                                                                               *
+ *                                                                                                                    *
+ * Return      : Number of blocks available.                                                                          *
+ *   0         : No block of memory is currently available.                                                           *
+ *   > 0       : At least one block of memory is available.                                                           *
+ *                                                                                                                    *
+ **********************************************************************************************************************/
+ nOS_MemCounter     nOS_MemAvailable                    (nOS_Mem *mem);
 #endif
 
 #if (NOS_CONFIG_TIMER_ENABLE > 0)

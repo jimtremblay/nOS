@@ -97,6 +97,16 @@ nOS_Error nOS_MemCreate (nOS_Mem *mem, void *buffer, nOS_MemSize bsize, nOS_MemC
     {
         err = NOS_E_INV_VAL;
     } else
+  #if (NOS_MEM_POINTER_WIDTH == 8)
+    if ((uint64_t)bsize % NOS_MEM_ALIGNMENT != 0)
+  #elif (NOS_MEM_POINTER_WIDTH == 4)
+    if ((uint32_t)bsize % NOS_MEM_ALIGNMENT != 0)
+  #elif (NOS_MEM_POINTER_WIDTH == 2)
+    if ((uint16_t)bsize % NOS_MEM_ALIGNMENT != 0)
+  #endif
+    {
+        err = NOS_E_INV_VAL;
+    } else
  #endif
     if (bmax == 0) {
         err = NOS_E_INV_VAL;
@@ -127,9 +137,9 @@ nOS_Error nOS_MemCreate (nOS_Mem *mem, void *buffer, nOS_MemSize bsize, nOS_MemC
             }
             *(void**)buffer = blist;
             mem->blist  = (void**)buffer;
+            mem->bcount = bmax;
 #if (NOS_CONFIG_MEM_SANITY_CHECK_ENABLE > 0)
             mem->bsize  = bsize;
-            mem->bcount = bmax;
             mem->bmax   = bmax;
 #endif
 
@@ -161,10 +171,10 @@ nOS_Error nOS_MemDelete (nOS_Mem *mem)
 #endif
         {
             mem->blist  = NULL;
+            mem->bcount = 0;
 #if (NOS_CONFIG_MEM_SANITY_CHECK_ENABLE > 0)
             mem->buffer = NULL;
             mem->bsize  = 0;
-            mem->bcount = 0;
             mem->bmax   = 0;
 #endif
             nOS_DeleteEvent((nOS_Event*)mem);
@@ -198,9 +208,7 @@ void *nOS_MemAlloc(nOS_Mem *mem, nOS_TickCounter timeout)
         if (mem->blist != NULL) {
             block = (void*)mem->blist;
             mem->blist = *(void***)block;
-#if (NOS_CONFIG_MEM_SANITY_CHECK_ENABLE > 0)
             mem->bcount--;
-#endif
         }
         else if (timeout == NOS_NO_WAIT) {
             /* Caller can't wait? Try again. */
@@ -264,9 +272,7 @@ nOS_Error nOS_MemFree(nOS_Mem *mem, void *block)
                 else {
                     *(void**)block = mem->blist;
                     mem->blist = (void**)block;
-#if (NOS_CONFIG_MEM_SANITY_CHECK_ENABLE > 0)
                     mem->bcount++;
-#endif
                 }
             }
         }
@@ -300,6 +306,32 @@ bool nOS_MemIsAvailable (nOS_Mem *mem)
     }
 
     return avail;
+}
+
+nOS_MemCounter nOS_MemAvailable (nOS_Mem *mem)
+{
+    nOS_StatusReg   sr;
+    nOS_MemCounter  count;
+
+#if (NOS_CONFIG_SAFE > 0)
+    if (mem == NULL) {
+        count = 0;
+    } else
+#endif
+    {
+        nOS_EnterCritical(sr);
+#if (NOS_CONFIG_SAFE > 0)
+        if (mem->e.type != NOS_EVENT_MEM) {
+            count = 0;
+        } else
+#endif
+        {
+            count = mem->bcount;
+        }
+        nOS_LeaveCritical(sr);
+    }
+
+    return count;
 }
 #endif  /* NOS_CONFIG_MEM_ENABLE */
 
