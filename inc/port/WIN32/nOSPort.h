@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2016 Jim Tremblay
+ * Copyright (c) 2014-2019 Jim Tremblay
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -66,6 +66,18 @@ typedef DWORD                               nOS_StatusReg;
                 ReleaseMutex(nOS_hCritical);                                    \
             }                                                                   \
         }                                                                       \
+    } while (0)
+
+#define nOS_PeekCritical()                                                      \
+    do {                                                                        \
+        uint32_t count = nOS_criticalNestingCounter;                            \
+        /* Leave critical section */                                            \
+        nOS_criticalNestingCounter = 0;                                         \
+        ReleaseMutex(nOS_hCritical);                                            \
+                                                                                \
+        /* Enter critical section */                                            \
+        while(WaitForSingleObject(nOS_hCritical, INFINITE) != WAIT_OBJECT_0);   \
+        nOS_criticalNestingCounter = count;                                     \
     } while (0)
 
 extern HANDLE       nOS_hCritical;

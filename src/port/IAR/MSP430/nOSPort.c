@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2016 Jim Tremblay
+ * Copyright (c) 2014-2019 Jim Tremblay
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -17,7 +17,7 @@ extern "C" {
  static nOS_Stack _isrStack[NOS_CONFIG_ISR_STACK_SIZE];
 #endif
 
-void nOS_InitContext(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg)
+void nOS_InitContext (nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg)
 {
     /* Stack grow from high to low address */
     nOS_Stack   *tos    = stack + (ssize - 1);
@@ -65,7 +65,7 @@ void nOS_InitContext(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_Thr
     thread->stackPtr = tos;
 }
 
-__task void nOS_SwitchContext(void)
+__task void nOS_SwitchContext (void)
 {
     __asm (
         /* Simulate an interrupt by pushing SR */
@@ -94,7 +94,7 @@ __task void nOS_SwitchContext(void)
     );
 }
 
-nOS_Stack* nOS_EnterIsr (nOS_Stack *sp)
+nOS_Stack* nOS_EnterISR (nOS_Stack *sp)
 {
     nOS_StatusReg   sr;
 
@@ -108,7 +108,7 @@ nOS_Stack* nOS_EnterIsr (nOS_Stack *sp)
 #ifdef NOS_CONFIG_ISR_STACK_SIZE
             sp = &_isrStack[NOS_CONFIG_ISR_STACK_SIZE-1];
 #else
-            sp = nOS_idleHandle.stackPtr;
+            sp = nOS_mainHandle.stackPtr;
 #endif
         }
         nOS_isrNestingCounter++;
@@ -118,9 +118,10 @@ nOS_Stack* nOS_EnterIsr (nOS_Stack *sp)
     return sp;
 }
 
-nOS_Stack* nOS_LeaveIsr (nOS_Stack *sp)
+nOS_Stack* nOS_LeaveISR (nOS_Stack *sp)
 {
     nOS_StatusReg   sr;
+    nOS_Thread     *highPrioThread;
 
 #if (NOS_CONFIG_SAFE > 0)
     if (nOS_running)
@@ -129,26 +130,24 @@ nOS_Stack* nOS_LeaveIsr (nOS_Stack *sp)
         nOS_EnterCritical(sr);
         nOS_isrNestingCounter--;
         if (nOS_isrNestingCounter == 0) {
-#if (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0) || (NOS_CONFIG_SCHED_ROUND_ROBIN_ENABLE > 0)
- #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
+#if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
             if (nOS_lockNestingCounter == 0)
- #endif
+#endif
             {
- #if (NOS_CONFIG_HIGHEST_THREAD_PRIO == 0)
-                nOS_highPrioThread = nOS_GetHeadOfList(&nOS_readyThreadsList);
- #elif (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
-                nOS_highPrioThread = nOS_FindHighPrioThread();
- #else
-                nOS_highPrioThread = nOS_GetHeadOfList(&nOS_readyThreadsList[nOS_runningThread->prio]);
- #endif
+                highPrioThread = nOS_FindHighPrioThread();
+                if (highPrioThread != NULL) {
+#if (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0) || (NOS_CONFIG_SCHED_ROUND_ROBIN_ENABLE > 0)
+                    nOS_highPrioThread = highPrioThread;
+#endif
+                } else if (nOS_runningThread != &nOS_mainHandle) {
+                    nOS_highPrioThread = &nOS_mainHandle;
+                }
                 nOS_runningThread = nOS_highPrioThread;
             }
-#endif
             sp = nOS_runningThread->stackPtr;
         }
         nOS_LeaveCritical(sr);
     }
-
     return sp;
 }
 

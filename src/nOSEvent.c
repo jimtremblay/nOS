@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2016 Jim Tremblay
+ * Copyright (c) 2014-2019 Jim Tremblay
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -62,23 +62,20 @@ nOS_Error nOS_WaitForEvent (nOS_Event *event,
         err = NOS_E_LOCKED;
     } else
 #endif
-    if (nOS_runningThread == &nOS_idleHandle) {
-        /* Main thread can't wait */
-        err = NOS_E_IDLE;
-    } else {
-        nOS_RemoveThreadFromReadyList(nOS_runningThread);
+    {
+        nOS_RemoveThreadFromReadyList((nOS_Thread*)nOS_runningThread);
 
         nOS_runningThread->state = (nOS_ThreadState)(nOS_runningThread->state | (state & NOS_THREAD_WAITING_MASK));
         nOS_runningThread->event = event;
         if (event != NULL) {
-            nOS_AppendToList(&event->waitList, &nOS_runningThread->readyWait);
+            nOS_AppendToList(&event->waitList, (nOS_Node*)&nOS_runningThread->readyWait);
         }
 
 #if (NOS_CONFIG_WAITING_TIMEOUT_ENABLE > 0) || (NOS_CONFIG_SLEEP_ENABLE > 0) || (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
         if ((timeout > 0) && (timeout < NOS_WAIT_INFINITE)) {
             nOS_runningThread->timeout = nOS_tickCounter + timeout;
             nOS_runningThread->state = (nOS_ThreadState)(nOS_runningThread->state | NOS_THREAD_WAIT_TIMEOUT);
-            nOS_AppendToList(&nOS_timeoutThreadsList, &nOS_runningThread->tout);
+            nOS_AppendToList((nOS_List*)&nOS_timeoutThreadsList, (nOS_Node*)&nOS_runningThread->tout);
         }
 #endif
 

@@ -641,26 +641,25 @@ typedef enum nOS_Error
     NOS_E_INV_VAL               = -2,
     NOS_E_LOCKED                = -3,
     NOS_E_ISR                   = -4,
-    NOS_E_IDLE                  = -5,
-    NOS_E_TIMEOUT               = -6,
-    NOS_E_UNDERFLOW             = -7,
-    NOS_E_OVERFLOW              = -8,
-    NOS_E_AGAIN                 = -9,
-    NOS_E_OWNER                 = -10,
-    NOS_E_EMPTY                 = -11,
-    NOS_E_FULL                  = -12,
-    NOS_E_INIT                  = -13,
-    NOS_E_DELETED               = -14,
-    NOS_E_INV_OBJ               = -15,
-    NOS_E_ELAPSED               = -16,
-    NOS_E_NOT_CREATED           = -17,
-    NOS_E_INV_STATE             = -18,
-    NOS_E_NO_CONSUMER           = -19,
-    NOS_E_INV_PRIO              = -20,
-    NOS_E_ABORT                 = -21,
-    NOS_E_RUNNING               = -22,
-    NOS_E_NOT_RUNNING           = -23,
-    NOS_E_FLUSHED               = -24
+    NOS_E_TIMEOUT               = -5,
+    NOS_E_UNDERFLOW             = -6,
+    NOS_E_OVERFLOW              = -7,
+    NOS_E_AGAIN                 = -8,
+    NOS_E_OWNER                 = -9,
+    NOS_E_EMPTY                 = -10,
+    NOS_E_FULL                  = -11,
+    NOS_E_INIT                  = -12,
+    NOS_E_DELETED               = -13,
+    NOS_E_INV_OBJ               = -14,
+    NOS_E_ELAPSED               = -15,
+    NOS_E_NOT_CREATED           = -16,
+    NOS_E_INV_STATE             = -17,
+    NOS_E_NO_CONSUMER           = -18,
+    NOS_E_INV_PRIO              = -19,
+    NOS_E_ABORT                 = -20,
+    NOS_E_RUNNING               = -21,
+    NOS_E_NOT_RUNNING           = -22,
+    NOS_E_FLUSHED               = -23
 } nOS_Error;
 
 typedef enum nOS_ThreadState
@@ -1030,30 +1029,30 @@ struct nOS_Barrier
 
 #ifdef NOS_PRIVATE
  #ifdef NOS_GLOBALS
-  bool                      nOS_initialized = false;
-  volatile bool             nOS_running = false;
+  volatile bool                             nOS_initialized = false;
+  volatile bool                             nOS_running = false;
  #else
-  extern bool               nOS_initialized;
-  extern volatile bool      nOS_running;
+  extern volatile bool                      nOS_initialized;
+  extern volatile bool                      nOS_running;
  #endif
- NOS_EXTERN nOS_Thread      nOS_idleHandle;
- NOS_EXTERN nOS_TickCounter nOS_tickCounter;
- NOS_EXTERN uint8_t         nOS_isrNestingCounter;
+ NOS_EXTERN volatile nOS_Thread             nOS_mainHandle;
+ NOS_EXTERN volatile nOS_TickCounter        nOS_tickCounter;
+ NOS_EXTERN volatile uint8_t                nOS_isrNestingCounter;
  #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
-  NOS_EXTERN uint8_t        nOS_lockNestingCounter;
+  NOS_EXTERN volatile uint8_t               nOS_lockNestingCounter;
  #endif
- NOS_EXTERN nOS_Thread      *nOS_runningThread;
- NOS_EXTERN nOS_Thread      *nOS_highPrioThread;
+ NOS_EXTERN volatile nOS_Thread * volatile  nOS_runningThread;
+ NOS_EXTERN volatile nOS_Thread * volatile  nOS_highPrioThread;
  #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
-  NOS_EXTERN nOS_List       nOS_readyThreadsList[NOS_CONFIG_HIGHEST_THREAD_PRIO+1];
+  NOS_EXTERN volatile nOS_List              nOS_readyThreadsList[NOS_CONFIG_HIGHEST_THREAD_PRIO+1];
  #else
-  NOS_EXTERN nOS_List       nOS_readyThreadsList;
+  NOS_EXTERN volatile nOS_List              nOS_readyThreadsList;
  #endif
  #if (NOS_CONFIG_WAITING_TIMEOUT_ENABLE > 0) || (NOS_CONFIG_SLEEP_ENABLE > 0) || (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
-  NOS_EXTERN nOS_List        nOS_timeoutThreadsList;
+  NOS_EXTERN volatile nOS_List              nOS_timeoutThreadsList;
  #endif
  #if (NOS_CONFIG_THREAD_SUSPEND_ALL_ENABLE > 0)
-  NOS_EXTERN nOS_List       nOS_allThreadsList;
+  NOS_EXTERN volatile nOS_List              nOS_allThreadsList;
  #endif
 
  #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
@@ -1229,7 +1228,6 @@ nOS_TickCounter     nOS_GetTickCount                    (void);
  *   NOS_OK       : Running thread successfully sleeping.                                                             *
  *   NOS_E_ISR    : Can't sleep from interrupt service routine.                                                       *
  *   NOS_E_LOCKED : Can't sleep from scheduler locked section.                                                        *
- *   NOS_E_IDLE   : Can't sleep from main thread.                                                                     *
  *                                                                                                                    *
  **********************************************************************************************************************/
  nOS_Error          nOS_Sleep                           (nOS_TickCounter ticks);
@@ -1248,7 +1246,6 @@ nOS_TickCounter     nOS_GetTickCount                    (void);
  *   NOS_OK       : Running thread successfully sleeping.                                                             *
  *   NOS_E_ISR    : Can't sleep from interrupt service routine.                                                       *
  *   NOS_E_LOCKED : Can't sleep from scheduler locked section.                                                        *
- *   NOS_E_IDLE   : Can't sleep from main thread.                                                                     *
  *                                                                                                                    *
  **********************************************************************************************************************/
   nOS_Error         nOS_SleepMs                         (uint16_t ms);
@@ -1270,7 +1267,6 @@ nOS_TickCounter     nOS_GetTickCount                    (void);
  *   NOS_OK       : Running thread successfully sleeping.                                                             *
  *   NOS_E_ISR    : Can't sleep from interrupt service routine.                                                       *
  *   NOS_E_LOCKED : Can't sleep from scheduler locked section.                                                        *
- *   NOS_E_IDLE   : Can't sleep from main thread.                                                                     *
  *                                                                                                                    *
  **********************************************************************************************************************/
  nOS_Error          nOS_SleepUntil                      (nOS_TickCounter tick);
@@ -1471,7 +1467,7 @@ nOS_Error           nOS_ThreadCreate                    (nOS_Thread *thread,
  *                                                                                                                    *
  * Name           : nOS_ThreadSuspendAll                                                                              *
  *                                                                                                                    *
- * Description    : Suspend all threads (except main thread) and remove them from ready ro run list.                  *
+ * Description    : Suspend all threads (except main thread) and remove them from ready to run list.                  *
  *                                                                                                                    *
  * Return         : Error code.                                                                                       *
  *   NOS_OK       : All threads successfully suspended.                                                               *
@@ -1570,7 +1566,6 @@ nOS_Error           nOS_ThreadCreate                    (nOS_Thread *thread,
  *   NOS_E_AGAIN   : Semaphore is unavailable (happens when timeout equal NOS_NO_WAIT).                               *
  *   NOS_E_ISR     : Can't wait from interrupt service routine.                                                       *
  *   NOS_E_LOCKED  : Can't wait from scheduler locked section.                                                        *
- *   NOS_E_IDLE    : Can't wait from main thread (idle).                                                              *
  *   NOS_E_TIMEOUT : Semaphore has not been given before reaching timeout.                                            *
  *   NOS_E_DELETED : Semaphore object has been deleted.                                                               *
  *                                                                                                                    *
@@ -1744,7 +1739,6 @@ nOS_Error           nOS_ThreadCreate                    (nOS_Thread *thread,
  *   NOS_E_AGAIN   : Flags are not in required state (happens when timeout equal NOS_NO_WAIT).                        *
  *   NOS_E_ISR     : Can't wait from interrupt service routine.                                                       *
  *   NOS_E_LOCKED  : Can't wait from scheduler locked section.                                                        *
- *   NOS_E_IDLE    : Can't wait from main thread (idle).                                                              *
  *   NOS_E_TIMEOUT : Flags have not been set before reaching timeout.                                                 *
  *   NOS_E_DELETED : Flag object has been deleted.                                                                    *
  *                                                                                                                    *

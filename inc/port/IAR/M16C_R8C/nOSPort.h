@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2016 Jim Tremblay
+ * Copyright (c) 2014-2019 Jim Tremblay
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -16,7 +16,6 @@ extern "C" {
 #endif
 
 typedef uint16_t                            nOS_Stack;
-typedef __ilevel_t                          nOS_StatusReg;
 
 #define NOS_UNUSED(v)                       (void)v
 
@@ -25,14 +24,23 @@ typedef __ilevel_t                          nOS_StatusReg;
 
 #define NOS_16_BITS_SCHEDULER
 
-#ifndef NOS_CONFIG_MAX_UNSAFE_ISR_PRIO
- #error "nOSConfig.h: NOS_CONFIG_MAX_UNSAFE_ISR_PRIO is not defined: must be set between 1 and 7 inclusively."
-#elif (NOS_CONFIG_MAX_UNSAFE_ISR_PRIO < 1) || (NOS_CONFIG_MAX_UNSAFE_ISR_PRIO > 7)
- #error "nOSConfig.h: NOS_CONFIG_MAX_UNSAFE_ISR_PRIO is set to invalid value: must be set between 1 and 7 inclusively."
-#else
- #define NOS_MAX_UNSAFE_IPL            NOS_CONFIG_MAX_UNSAFE_ISR_PRIO
+#ifdef NOS_CONFIG_MAX_UNSAFE_ISR_PRIO
+ #if (NOS_CONFIG_MAX_UNSAFE_ISR_PRIO < 0) || (NOS_CONFIG_MAX_UNSAFE_ISR_PRIO > 7)
+  #error "nOSConfig.h: NOS_CONFIG_MAX_UNSAFE_ISR_PRIO is set to invalid value: must be set between 0 and 7 inclusively. (0 disable zero interrupt latency feature)"
+ #elif (NOS_CONFIG_MAX_UNSAFE_ISR_PRIO > 0)
+  #define NOS_MAX_UNSAFE_IPL                NOS_CONFIG_MAX_UNSAFE_ISR_PRIO
+ #else
+  #undef NOS_CONFIG_MAX_UNSAFE_ISR_PRIO
+ #endif
 #endif
 
+#ifndef NOS_CONFIG_MAX_UNSAFE_ISR_PRIO
+ typedef __istate_t                         nOS_StatusReg;
+#else
+ typedef __ilevel_t                         nOS_StatusReg;
+#endif
+
+#ifdef NOS_CONFIG_MAX_UNSAFE_ISR_PRIO
 #define nOS_EnterCritical(sr)                                                   \
     do {                                                                        \
         sr = __get_interrupt_level();                                           \
@@ -44,15 +52,39 @@ typedef __ilevel_t                          nOS_StatusReg;
 #define nOS_LeaveCritical(sr)                                                   \
     __set_interrupt_level(sr)
 
+#define nOS_PeekCritical()                                                      \
+    do {                                                                        \
+        __set_interrupt_level(0);                                               \
+        __no_operation();                                                       \
+        __set_interrupt_level(NOS_MAX_UNSAFE_IPL);                              \
+    } while (0)
+#else
+#define nOS_EnterCritical(sr)                                                   \
+    do {                                                                        \
+        sr = __get_interrupt_state();                                           \
+        __disable_interrupt();                                                  \
+    } while (0)
+
+#define nOS_LeaveCritical(sr)                                                   \
+    __set_interrupt_state(sr)
+
+#define nOS_PeekCritical()                                                      \
+    do {                                                                        \
+        __enable_interrupt();                                                   \
+        __no_operation();                                                       \
+        __disable_interrupt();                                                  \
+    } while (0)
+#endif
+
 #define nOS_SwitchContext()                                     __asm ("INT #32")
 
-void    nOS_EnterIsr    (void);
-bool    nOS_LeaveIsr    (void);
+void    nOS_EnterISR    (void);
+bool    nOS_LeaveISR    (void);
 
 #define NOS_ISR(vect)                                                           \
 __task void vect##_ISR_L2(void);                                                \
-_Pragma("required=nOS_EnterIsr")                                                \
-_Pragma("required=nOS_LeaveIsr")                                                \
+_Pragma("required=nOS_EnterISR")                                                \
+_Pragma("required=nOS_LeaveISR")                                                \
 _Pragma(_STRINGIFY(vector=##vect))                                              \
 __interrupt void vect##_ISR(void)                                               \
 {                                                                               \
@@ -61,7 +93,7 @@ __interrupt void vect##_ISR(void)                                               
         "PUSHM  R0,R1,R2,R3,A0,A1,SB,FB     \n"                                 \
                                                                                 \
         /* Increment interrupts nested counter */                               \
-        "JSR.A  nOS_EnterIsr                \n"                                 \
+        "JSR.A  nOS_EnterISR                \n"                                 \
                                                                                 \
         /* Call user ISR function */                                            \
         "JSR.A  "#vect"_ISR_L2              \n"                                 \
@@ -72,7 +104,7 @@ __interrupt void vect##_ISR(void)                                               
                                                                                 \
         /* Decrement interrupts nested counter */                               \
         /* return true if we need to switch context, otherwise false */         \
-        "JSR.A  nOS_LeaveIsr                \n"                                 \
+        "JSR.A  nOS_LeaveISR                \n"                                 \
                                                                                 \
         /* Do we need to switch context from ISR ? */                           \
         "CMP.B  #0, R0L                     \n"                                 \

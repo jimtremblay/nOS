@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Alain Royer, Jim Tremblay
+ * Copyright (c) 2018-2019 Alain Royer, Jim Tremblay
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -22,12 +22,6 @@ typedef uint32_t                            nOS_StatusReg;
 #define NOS_MEM_POINTER_WIDTH               4
 
 #define NOS_32_BITS_SCHEDULER
-
-#ifndef NOS_CONFIG_ISR_STACK_SIZE
- #error "nOSConfig.h: NOS_CONFIG_ISR_STACK_SIZE is not defined: must be higher than 0."
-#elif (NOS_CONFIG_ISR_STACK_SIZE == 0)
- #error "nOSConfig.h: NOS_CONFIG_ISR_STACK_SIZE is set to invalid value: must be higher than 0."
-#endif
 
 __attribute__( ( always_inline ) ) static inline uint32_t _GetCPSR (void)
 {
@@ -139,54 +133,45 @@ __attribute__( ( always_inline ) ) static inline void _EI (void)
     );                                                                              \
 }
 
-
 #define nOS_EnterCritical(sr)                                                       \
     do {                                                                            \
         sr = _GetCPSR();                                                            \
         _DI();                                                                      \
     } while (0)
 
-
 #define nOS_LeaveCritical(sr)                                                       \
     do {                                                                            \
         _SetCPSR (sr);                                                              \
     } while (0)
 
+#define nOS_PeekCritical()                                                          \
+    do {                                                                            \
+        _EI();                                                                      \
+        _NOP();                                                                     \
+        _DI();                                                                      \
+    } while (0)
 
-void            nOS_EnterIsr        (void);
-void            nOS_LeaveIsr        (void);
+void            nOS_EnterISR        (void);
+void            nOS_LeaveISR        (void);
 void            SWI_Handler         (void)              __attribute__( ( interrupt("SWI"), naked ) );
 
-#if (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0) || (NOS_CONFIG_SCHED_ROUND_ROBIN_ENABLE > 0)
 #define NOS_ISR(func)                                                               \
 void func(void) __attribute__ ( ( naked ) );                                        \
 void func##_ISR(void) __attribute__ ( ( always_inline ) );                          \
 void func(void)                                                                     \
 {                                                                                   \
     PUSH_CONTEXT();                                                                 \
-    nOS_EnterIsr();                                                                 \
+    nOS_EnterISR();                                                                 \
     func##_ISR();                                                                   \
-    nOS_LeaveIsr();                                                                 \
+    nOS_LeaveISR();                                                                 \
     VICVectAddr = 0;                                                                \
     POP_CONTEXT();                                                                  \
 }                                                                                   \
 inline void func##_ISR(void)
-#else
-#define NOS_ISR(func)                                                               \
-void func(void) __attribute__ ( ( interrupt("IRQ") ) );                             \
-void func##_ISR(void) __attribute__ ( ( always_inline ) );                          \
-void func(void)                                                                     \
-{                                                                                   \
-    nOS_EnterIsr();                                                                 \
-    func##_ISR();                                                                   \
-    nOS_LeaveIsr();                                                                 \
-    VICVectAddr = 0;                                                                \
-}                                                                                   \
-inline void func##_ISR(void)
-#endif
+
+#define nOS_InitSpecific()
 
 #ifdef NOS_PRIVATE
- void   nOS_InitSpecific    (void);
  void   nOS_InitContext     (nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg);
 #endif
 

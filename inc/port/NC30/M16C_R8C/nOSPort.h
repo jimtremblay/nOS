@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2016 Jim Tremblay
+ * Copyright (c) 2014-2019 Jim Tremblay
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -23,35 +23,66 @@ typedef uint16_t                            nOS_StatusReg;
 
 #define NOS_16_BITS_SCHEDULER
 
-#ifndef NOS_CONFIG_MAX_UNSAFE_ISR_PRIO
- #error "nOSConfig.h: NOS_CONFIG_MAX_UNSAFE_ISR_PRIO is not defined: must be set between 1 and 7 inclusively."
-#elif (NOS_CONFIG_MAX_UNSAFE_ISR_PRIO < 1) || (NOS_CONFIG_MAX_UNSAFE_ISR_PRIO > 7)
- #error "nOSConfig.h: NOS_CONFIG_MAX_UNSAFE_ISR_PRIO is set to invalid value: must be set between 1 and 7 inclusively."
-#else
- #define NOS_MAX_UNSAFE_IPL            NOS_CONFIG_MAX_UNSAFE_ISR_PRIO
+#ifdef NOS_CONFIG_MAX_UNSAFE_ISR_PRIO
+ #if (NOS_CONFIG_MAX_UNSAFE_ISR_PRIO < 0) || (NOS_CONFIG_MAX_UNSAFE_ISR_PRIO > 7)
+  #error "nOSConfig.h: NOS_CONFIG_MAX_UNSAFE_ISR_PRIO is set to invalid value: must be set between 0 and 7 inclusively. (0 disable zero interrupt latency feature)"
+ #elif (NOS_CONFIG_MAX_UNSAFE_ISR_PRIO > 0)
+  #define NOS_MAX_UNSAFE_IPL                NOS_CONFIG_MAX_UNSAFE_ISR_PRIO
+ #else
+  #undef NOS_CONFIG_MAX_UNSAFE_ISR_PRIO
+ #endif
 #endif
 
-uint8_t     _GetIPL     (void);
-void        _SetIPL     (uint8_t ipl);
+uint16_t    _GetIPL     (void);
+void        _SetIPL     (uint16_t ipl);
+uint16_t    _GetI       (void);
+void        _SetI       (uint16_t i);
 
+#define _NOP()                                                      asm("NOP")
+#define _EI()                                                       asm("FSET I")
+#define _DI()                                                       asm("FCLR I")
+
+#ifdef NOS_MAX_UNSAFE_IPL
 #define nOS_EnterCritical(sr)                                                   \
     do {                                                                        \
         sr = _GetIPL();                                                         \
         if (sr < NOS_MAX_UNSAFE_IPL) {                                          \
-            asm("LDIPL  #"NOS_STR(NOS_MAX_UNSAFE_IPL)"      \n"                 \
-                "NOP                                        \n"                 \
-            );                                                                  \
+            _SetIPL(NOS_MAX_UNSAFE_IPL);                                        \
         }                                                                       \
     } while (0)
-
 
 #define nOS_LeaveCritical(sr)                                                   \
     _SetIPL(sr)
 
+#define nOS_PeekCritical()                                                      \
+    do {                                                                        \
+        _SetIPL(0);                                                             \
+        _NOP();                                                                 \
+        _SetIPL(NOS_MAX_UNSAFE_IPL);                                            \
+    } while (0)
+#else
+#define nOS_EnterCritical(sr)                                                   \
+    do {                                                                        \
+        sr = _GetI();                                                           \
+        _DI();                                                                  \
+    } while (0)
+
+#define nOS_LeaveCritical(sr)                                                   \
+    _SetI(sr)
+
+#define nOS_PeekCritical()                                                      \
+    do {                                                                        \
+        _EI();                                                                  \
+        _NOP();                                                                 \
+        _DI();                                                                  \
+        _NOP();                                                                 \
+    } while (0)
+#endif
+
 #define nOS_SwitchContext()                                         asm ("INT #32")
 
-void    nOS_EnterIsr    (void);
-bool    nOS_LeaveIsr    (void);
+void    nOS_EnterISR    (void);
+bool    nOS_LeaveISR    (void);
 
 #define NOS_ISR(func)                                                           \
 void func(void);                                                                \
@@ -63,7 +94,7 @@ void func(void)                                                                 
         "PUSHM  R0,R1,R2,R3,A0,A1,SB,FB     \n"                                 \
                                                                                 \
         /* Increment interrupts nested counter */                               \
-        "JSR.A  _nOS_EnterIsr               \n"                                 \
+        "JSR.A  _nOS_EnterISR               \n"                                 \
                                                                                 \
         /* Call user ISR function */                                            \
         "JSR.A  _"#func"_L2                 \n"                                 \
@@ -74,7 +105,7 @@ void func(void)                                                                 
                                                                                 \
         /* Decrement interrupts nested counter */                               \
         /* return true if we need to switch context, otherwise false */         \
-        "JSR.A  _nOS_LeaveIsr               \n"                                 \
+        "JSR.A  _nOS_LeaveISR               \n"                                 \
                                                                                 \
         /* Do we need to switch context from ISR ? */                           \
         "CMP.B  #0, R0L                     \n"                                 \

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2016 Jim Tremblay
+ * Copyright (c) 2014-2019 Jim Tremblay
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -137,12 +137,12 @@ nOS_Error nOS_MutexLock (nOS_Mutex *mutex, nOS_TickCounter timeout)
         if (mutex->owner == NULL) {
             /* Mutex available? Reserve it for calling thread */
             mutex->count++;
-            mutex->owner = nOS_runningThread;
+            mutex->owner = (nOS_Thread*)nOS_runningThread;
 #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
             mutex->backup = nOS_runningThread->prio;
             if (mutex->prio != NOS_MUTEX_PRIO_INHERIT) {
                 if (nOS_runningThread->prio < mutex->prio) {
-                    nOS_SetThreadPrio(nOS_runningThread, mutex->prio);
+                    nOS_SetThreadPrio((nOS_Thread*)nOS_runningThread, mutex->prio);
                 }
             }
 #endif

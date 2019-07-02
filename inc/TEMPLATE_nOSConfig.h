@@ -91,18 +91,12 @@
  *                                                                                                                    *
  * Enable or disable sleeping from running thread.                                                                    *
  *                                                                                                                    *
- * Notes                                                                                                              *
- *   1. Can't sleep from main thread (idle).                                                                          *
- *                                                                                                                    *
  **********************************************************************************************************************/
 #define NOS_CONFIG_SLEEP_ENABLE                     1
 
 /**********************************************************************************************************************
  *                                                                                                                    *
  * Enable or disable sleeping from running thread until reaching specified tick counter. Used to create timed thread. *
- *                                                                                                                    *
- * Notes                                                                                                              *
- *   1. Can't sleep from main thread (idle).                                                                          *
  *                                                                                                                    *
  **********************************************************************************************************************/
 #define NOS_CONFIG_SLEEP_UNTIL_ENABLE               1
@@ -528,9 +522,6 @@
  *                                                                                                                    *
  * Enable or disable waiting for specific time and date from running thread.                                          *
  *                                                                                                                    *
- * Notes                                                                                                              *
- *   1. Can't sleep from main thread (idle).                                                                          *
- *                                                                                                                    *
  **********************************************************************************************************************/
 #define NOS_CONFIG_TIME_WAIT_ENABLE                 1
 
@@ -683,7 +674,7 @@
  * Notes                                                                                                              *
  *   1. Not used on all platforms.                                                                                    *
  *   2. Can be set to zero to disable zero interrupt latency feature and completely disable interrupts in critical    *
- *      section (only applicable to ARM Cortex M3, M4 and M7).
+ *      section.                                                                                                      *
  *                                                                                                                    *
  **********************************************************************************************************************/
 #define NOS_CONFIG_MAX_UNSAFE_ISR_PRIO              5

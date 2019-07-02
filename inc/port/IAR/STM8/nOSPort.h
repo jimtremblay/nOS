@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2016 Jim Tremblay
+ * Copyright (c) 2014-2019 Jim Tremblay
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -28,11 +28,11 @@ typedef uint8_t                 nOS_StatusReg;
 #if   (__DATA_MODEL__ == __SMALL_DATA_MODEL__)
  #error "nOSConfig.h: Small data model is not supported: must use Medium or Large."
 #elif (__DATA_MODEL__ == __MEDIUM_DATA_MODEL__)
- #define SET_CPU_SP_ON_ISR_ENTRY() __set_cpu_sp((int)nOS_EnterIsr((nOS_Stack*)__get_cpu_sp()))
- #define SET_CPU_SP_ON_ISR_EXIT()  __set_cpu_sp((int)nOS_LeaveIsr((nOS_Stack*)__get_cpu_sp()))
+ #define SET_CPU_SP_ON_ISR_ENTRY() __set_cpu_sp((int)nOS_EnterISR((nOS_Stack*)__get_cpu_sp()))
+ #define SET_CPU_SP_ON_ISR_EXIT()  __set_cpu_sp((int)nOS_LeaveISR((nOS_Stack*)__get_cpu_sp()))
 #elif (__DATA_MODEL__ == __LARGE_DATA_MODEL__)
- #define SET_CPU_SP_ON_ISR_ENTRY() __set_cpu_sp((int)((long)nOS_EnterIsr((nOS_Stack*)__get_cpu_sp())))
- #define SET_CPU_SP_ON_ISR_EXIT()  __set_cpu_sp((int)((long)nOS_LeaveIsr((nOS_Stack*)__get_cpu_sp())))
+ #define SET_CPU_SP_ON_ISR_ENTRY() __set_cpu_sp((int)((long)nOS_EnterISR((nOS_Stack*)__get_cpu_sp())))
+ #define SET_CPU_SP_ON_ISR_EXIT()  __set_cpu_sp((int)((long)nOS_LeaveISR((nOS_Stack*)__get_cpu_sp())))
 #endif
 
 #ifdef NOS_CONFIG_ISR_STACK_SIZE
@@ -49,6 +49,13 @@ typedef uint8_t                 nOS_StatusReg;
 
 #define nOS_LeaveCritical(sr)                                                   \
     __set_interrupt_state(sr)
+
+#define nOS_PeekCritical()                                                      \
+    do {                                                                        \
+        __enable_interrupt();                                                   \
+        __no_operation();                                                       \
+        __disable_interrupt();                                                  \
+    } while (0)
 
 #define PUSH_CONTEXT()                                                          \
     __asm (                                                                     \
@@ -98,8 +105,8 @@ typedef uint8_t                 nOS_StatusReg;
         "popw   Y       \n"                                                     \
     )
 
-nOS_Stack*      nOS_EnterIsr        (nOS_Stack *sp);
-nOS_Stack*      nOS_LeaveIsr        (nOS_Stack *sp);
+nOS_Stack*      nOS_EnterISR        (nOS_Stack *sp);
+nOS_Stack*      nOS_LeaveISR        (nOS_Stack *sp);
 
 #define NOS_ISR(vect)                                                           \
 __task void vect##_ISR_L2(void);                                                \

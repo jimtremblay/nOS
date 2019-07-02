@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Alain Royer, Jim Tremblay
+ * Copyright (c) 2018-2019 Alain Royer, Jim Tremblay
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -12,11 +12,7 @@
 extern "C" {
 #endif
 
-void nOS_InitSpecific(void)
-{
-}
-
-void nOS_InitContext(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg)
+void nOS_InitContext (nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg)
 {
     nOS_Stack *tos = (nOS_Stack*)((uint32_t)(stack + ssize) & 0xFFFFFFF8UL);
 #if (NOS_CONFIG_DEBUG > 0)
@@ -56,7 +52,7 @@ void nOS_InitContext(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_Thr
     thread->stackPtr = tos;
 }
 
-void nOS_EnterIsr (void)
+void nOS_EnterISR (void)
 {
     nOS_StatusReg   sr;
 
@@ -70,9 +66,10 @@ void nOS_EnterIsr (void)
     }
 }
 
-void nOS_LeaveIsr (void)
+void nOS_LeaveISR (void)
 {
     nOS_StatusReg   sr;
+    nOS_Thread     *highPrioThread;
 
 #if (NOS_CONFIG_SAFE > 0)
     if (nOS_running)
@@ -80,23 +77,23 @@ void nOS_LeaveIsr (void)
     {
         nOS_EnterCritical(sr);
         nOS_isrNestingCounter--;
-#if (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0) || (NOS_CONFIG_SCHED_ROUND_ROBIN_ENABLE > 0)
         if (nOS_isrNestingCounter == 0) {
- #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
+#if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
             if (nOS_lockNestingCounter == 0)
- #endif
+#endif
             {
- #if (NOS_CONFIG_HIGHEST_THREAD_PRIO == 0)
-                nOS_highPrioThread = nOS_GetHeadOfList(&nOS_readyThreadsList);
- #elif (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
-                nOS_highPrioThread = nOS_FindHighPrioThread();
- #else
-                nOS_highPrioThread = nOS_GetHeadOfList(&nOS_readyThreadsList[nOS_runningThread->prio]);
- #endif
-                nOS_runningThread = nOS_highPrioThread;
+                highPrioThread = nOS_FindHighPrioThread();
+                if (highPrioThread != NULL) {
+#if (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0) || (NOS_CONFIG_SCHED_ROUND_ROBIN_ENABLE > 0)
+                    nOS_highPrioThread = highPrioThread;
+                    nOS_runningThread = nOS_highPrioThread;
+#endif
+                } else {
+                    nOS_highPrioThread = &nOS_mainHandle;
+                    nOS_runningThread = nOS_highPrioThread;
+                }
             }
         }
-#endif
         nOS_LeaveCritical(sr);
     }
 }

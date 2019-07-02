@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2016 Jim Tremblay
+ * Copyright (c) 2014-2019 Jim Tremblay
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -39,14 +39,13 @@ typedef uint32_t                            nOS_StatusReg;
  #define NOS_NVIC_PRIO_BITS                 4
 #endif
 
-#ifndef NOS_CONFIG_MAX_UNSAFE_ISR_PRIO
- #error "nOSConfig.h: NOS_CONFIG_MAX_UNSAFE_ISR_PRIO is not defined."
-#endif
-
-#if (NOS_CONFIG_MAX_UNSAFE_ISR_PRIO > 0)
-#define NOS_MAX_UNSAFE_BASEPRI              (NOS_CONFIG_MAX_UNSAFE_ISR_PRIO << (8 - NOS_NVIC_PRIO_BITS))
-#else
-#undef NOS_NVIC_PRIO_BITS
+#ifdef NOS_CONFIG_MAX_UNSAFE_ISR_PRIO
+ #if (NOS_CONFIG_MAX_UNSAFE_ISR_PRIO > 0)
+  #define NOS_MAX_UNSAFE_BASEPRI            (NOS_CONFIG_MAX_UNSAFE_ISR_PRIO << (8 - NOS_NVIC_PRIO_BITS))
+ #else
+  #undef NOS_NVIC_PRIO_BITS
+  #undef NOS_CONFIG_MAX_UNSAFE_ISR_PRIO
+ #endif
 #endif
 
 #define _CLZ(n)                             __clz(n)
@@ -121,7 +120,7 @@ static inline void _SetPRIMASK (uint32_t r)
     _primask = r;
 }
 
-#if (NOS_CONFIG_MAX_UNSAFE_ISR_PRIO > 0)
+#ifdef NOS_MAX_UNSAFE_BASEPRI
 #define nOS_EnterCritical(sr)                                                   \
     do {                                                                        \
         sr = _GetBASEPRI();                                                     \
@@ -135,6 +134,19 @@ static inline void _SetPRIMASK (uint32_t r)
 #define nOS_LeaveCritical(sr)                                                   \
     do {                                                                        \
         _SetBASEPRI(sr);                                                        \
+        __dsb(0xF);                                                             \
+        __isb(0xF);                                                             \
+    } while (0)
+
+#define nOS_PeekCritical()                                                      \
+    do {                                                                        \
+        _SetBASEPRI(0);                                                         \
+        __dsb(0xF);                                                             \
+        __isb(0xF);                                                             \
+                                                                                \
+        __nop();                                                                \
+                                                                                \
+        _SetBASEPRI(NOS_MAX_UNSAFE_BASEPRI);                                    \
         __dsb(0xF);                                                             \
         __isb(0xF);                                                             \
     } while (0)
@@ -153,18 +165,31 @@ static inline void _SetPRIMASK (uint32_t r)
         __dsb(0xF);                                                             \
         __isb(0xF);                                                             \
     } while (0)
+
+#define nOS_PeekCritical()                                                      \
+    do {                                                                        \
+        __enable_irq();                                                         \
+        __dsb(0xF);                                                             \
+        __isb(0xF);                                                             \
+                                                                                \
+        __nop();                                                                \
+                                                                                \
+        __disable_irq();                                                        \
+        __dsb(0xF);                                                             \
+        __isb(0xF);                                                             \
+    } while (0)
 #endif
 
-void    nOS_EnterIsr    (void);
-void    nOS_LeaveIsr    (void);
+void    nOS_EnterISR    (void);
+void    nOS_LeaveISR    (void);
 
 #define NOS_ISR(func)                                                           \
 void func##_ISR(void);                                                          \
 void func(void)                                                                 \
 {                                                                               \
-    nOS_EnterIsr();                                                             \
+    nOS_EnterISR();                                                             \
     func##_ISR();                                                               \
-    nOS_LeaveIsr();                                                             \
+    nOS_LeaveISR();                                                             \
 }                                                                               \
 void func##_ISR(void)
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2016 Jim Tremblay
+ * Copyright (c) 2014-2019 Jim Tremblay
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -16,7 +16,6 @@ extern "C" {
 #endif
 
 typedef uint32_t                            nOS_Stack;
-typedef __ilevel_t                          nOS_StatusReg;
 
 #define NOS_UNUSED(v)                       (void)v
 
@@ -31,12 +30,21 @@ typedef __ilevel_t                          nOS_StatusReg;
  #error "nOSConfig.h: NOS_CONFIG_ISR_STACK_SIZE is set to invalid value: must be higher than 0."
 #endif
 
-#ifndef NOS_CONFIG_MAX_UNSAFE_ISR_PRIO
- #error "nOSConfig.h: NOS_CONFIG_MAX_UNSAFE_ISR_PRIO is not defined."
-#else
- #define NOS_MAX_UNSAFE_IPL                 NOS_CONFIG_MAX_UNSAFE_ISR_PRIO
+#ifdef NOS_CONFIG_MAX_UNSAFE_ISR_PRIO
+ #if (NOS_CONFIG_MAX_UNSAFE_ISR_PRIO > 0)
+  #define NOS_MAX_UNSAFE_IPL                NOS_CONFIG_MAX_UNSAFE_ISR_PRIO
+ #else
+  #undef NOS_CONFIG_MAX_UNSAFE_ISR_PRIO
+ #endif
 #endif
 
+#ifndef NOS_MAX_UNSAFE_IPL
+ typedef __istate_t                         nOS_StatusReg;
+#else
+ typedef __ilevel_t                         nOS_StatusReg;
+#endif
+
+#ifdef NOS_MAX_UNSAFE_IPL
 #define nOS_EnterCritical(sr)                                                   \
     do {                                                                        \
         sr = __get_interrupt_level();                                           \
@@ -48,20 +56,44 @@ typedef __ilevel_t                          nOS_StatusReg;
 #define nOS_LeaveCritical(sr)                                                   \
     __set_interrupt_level(sr)
 
+#define nOS_PeekCritical()                                                      \
+    do {                                                                        \
+        __set_interrupt_level(0);                                               \
+        __no_operation();                                                       \
+        __set_interrupt_level(NOS_MAX_UNSAFE_IPL);                              \
+    } while (0)
+#else
+#define nOS_EnterCritical(sr)                                                   \
+    do {                                                                        \
+        sr = __get_interrupt_state();                                           \
+        __disable_interrupt();                                                  \
+    } while (0)
+
+#define nOS_LeaveCritical(sr)                                                   \
+    __set_interrupt_state(sr)
+
+#define nOS_PeekCritical()                                                      \
+    do {                                                                        \
+        __enable_interrupt();                                                   \
+        __no_operation();                                                       \
+        __disable_interrupt();                                                  \
+    } while (0)
+#endif
+
 #define nOS_SwitchContext()                                     __asm("INT  #27")
 
-void    nOS_EnterIsr    (void);
-void    nOS_LeaveIsr    (void);
+void    nOS_EnterISR    (void);
+void    nOS_LeaveISR    (void);
 
 #define NOS_ISR(vect)                                                           \
 void vect##_ISR_L2(void);                                                       \
 _Pragma(_STRINGIFY(vector=vect))                                                \
 __interrupt void vect##_ISR(void)                                               \
 {                                                                               \
-    nOS_EnterIsr();                                                             \
+    nOS_EnterISR();                                                             \
     vect##_ISR_L2();                                                            \
     __disable_interrupt();                                                      \
-    nOS_LeaveIsr();                                                             \
+    nOS_LeaveISR();                                                             \
 }                                                                               \
 inline void vect##_ISR_L2(void)
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2016 Jim Tremblay
+ * Copyright (c) 2014-2019 Jim Tremblay
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -66,6 +66,18 @@ typedef uint32_t                            nOS_StatusReg;
             /* Unlock mutex when nesting counter reach zero */                  \
             pthread_mutex_unlock(&nOS_criticalSection);                         \
         }                                                                       \
+    } while (0)
+
+#define nOS_PeekCritical()                                                      \
+    do {                                                                        \
+        uint32_t count = nOS_criticalNestingCounter;                            \
+        /* Leave critical section */                                            \
+        nOS_criticalNestingCounter = 0;                                         \
+        pthread_mutex_unlock(&nOS_criticalSection);                             \
+                                                                                \
+        /* Enter critical section */                                            \
+        pthread_mutex_lock(&nOS_criticalSection);                               \
+        nOS_criticalNestingCounter = count;                                     \
     } while (0)
 
 extern volatile uint32_t    nOS_criticalNestingCounter;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2017 Jim Tremblay
+ * Copyright (c) 2014-2019 Jim Tremblay
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -13,7 +13,7 @@
 extern "C" {
 #endif
 
-void PendSV_Handler(void) __attribute__( ( naked ) );
+void PendSV_Handler (void) __attribute__( ( naked ) );
 
 #ifdef NOS_CONFIG_ISR_STACK_SECTION
 static nOS_Stack _isrStack[NOS_CONFIG_ISR_STACK_SIZE] __attribute__ ( ( section(NOS_CONFIG_ISR_STACK_SECTION) ) );
@@ -21,7 +21,7 @@ static nOS_Stack _isrStack[NOS_CONFIG_ISR_STACK_SIZE] __attribute__ ( ( section(
 static nOS_Stack _isrStack[NOS_CONFIG_ISR_STACK_SIZE];
 #endif
 
-void nOS_InitSpecific(void)
+void nOS_InitSpecific (void)
 {
 #if (NOS_CONFIG_DEBUG > 0)
     size_t i;
@@ -41,7 +41,7 @@ void nOS_InitSpecific(void)
     *(volatile uint32_t *)0xE000ED20UL |= 0x00FF0000UL;
 }
 
-void nOS_InitContext(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg)
+void nOS_InitContext (nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg)
 {
     nOS_Stack *tos = (nOS_Stack*)((uint32_t)(stack + ssize) & 0xFFFFFFF8UL);
 #if (NOS_CONFIG_DEBUG > 0)
@@ -64,7 +64,7 @@ void nOS_InitContext(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_Thr
         tos -= 4;               /* R12, R3, R2 and R1 */
 #endif
     *(--tos) = (nOS_Stack)arg;  /* R0 */
-    *(--tos) = 0xFFFFFFFDUL;    /* EXC_RETURN (Thread mode, Thread use PSP */
+    *(--tos) = 0xFFFFFFFDUL;    /* EXC_RETURN (Thread mode, Thread use PSP) */
 #if (NOS_CONFIG_DEBUG > 0)
     *(--tos) = 0x11111111UL;    /* R11 */
     *(--tos) = 0x10101010UL;    /* R10 */
@@ -81,37 +81,14 @@ void nOS_InitContext(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_Thr
     thread->stackPtr = tos;
 }
 
-void nOS_SwitchContext(void)
+void nOS_SwitchContext (void)
 {
-#if (NOS_CONFIG_MAX_UNSAFE_ISR_PRIO > 0)
-    nOS_StatusReg   sr = _GetBASEPRI();
-#endif
-
     /* Request context switch */
     *(volatile uint32_t *)0xE000ED04UL = 0x10000000UL;
-
-    /* Leave critical section */
-#if (NOS_CONFIG_MAX_UNSAFE_ISR_PRIO > 0)
-    _SetBASEPRI(0);
-#else
-    _EI();
-#endif
-    _DSB();
-    _ISB();
-
-    _NOP();
-
-    /* Enter critical section */
-#if (NOS_CONFIG_MAX_UNSAFE_ISR_PRIO > 0)
-    _SetBASEPRI(sr);
-#else
-    _DI();
-#endif
-    _DSB();
-    _ISB();
+    nOS_PeekCritical();
 }
 
-void nOS_EnterIsr (void)
+void nOS_EnterISR (void)
 {
     nOS_StatusReg   sr;
 
@@ -125,9 +102,10 @@ void nOS_EnterIsr (void)
     }
 }
 
-void nOS_LeaveIsr (void)
+void nOS_LeaveISR (void)
 {
     nOS_StatusReg   sr;
+    nOS_Thread     *highPrioThread;
 
 #if (NOS_CONFIG_SAFE > 0)
     if (nOS_running)
@@ -135,30 +113,30 @@ void nOS_LeaveIsr (void)
     {
         nOS_EnterCritical(sr);
         nOS_isrNestingCounter--;
-#if (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0) || (NOS_CONFIG_SCHED_ROUND_ROBIN_ENABLE > 0)
         if (nOS_isrNestingCounter == 0) {
- #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
+#if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
             if (nOS_lockNestingCounter == 0)
- #endif
+#endif
             {
- #if (NOS_CONFIG_HIGHEST_THREAD_PRIO == 0)
-                nOS_highPrioThread = nOS_GetHeadOfList(&nOS_readyThreadsList);
- #elif (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
-                nOS_highPrioThread = nOS_FindHighPrioThread();
- #else
-                nOS_highPrioThread = nOS_GetHeadOfList(&nOS_readyThreadsList[nOS_runningThread->prio]);
- #endif
-                if (nOS_runningThread != nOS_highPrioThread) {
+                highPrioThread = nOS_FindHighPrioThread();
+                if (highPrioThread != NULL) {
+#if (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0) || (NOS_CONFIG_SCHED_ROUND_ROBIN_ENABLE > 0)
+                    nOS_highPrioThread = highPrioThread;
+                    if (nOS_runningThread != nOS_highPrioThread) {
+                        *(volatile uint32_t *)0xE000ED04UL = 0x10000000UL;
+                    }
+#endif
+                } else if (nOS_runningThread != &nOS_mainHandle) {
+                    nOS_highPrioThread = &nOS_mainHandle;
                     *(volatile uint32_t *)0xE000ED04UL = 0x10000000UL;
                 }
             }
         }
-#endif
         nOS_LeaveCritical(sr);
     }
 }
 
-void PendSV_Handler(void)
+void PendSV_Handler (void)
 {
     __asm volatile (
         /* Disable interrupts */

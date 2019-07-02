@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2016 Jim Tremblay
+ * Copyright (c) 2014-2019 Jim Tremblay
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -117,16 +117,29 @@ __attribute__( ( always_inline ) ) static inline void _EI (void)
         _ISB();                                                                 \
     } while (0)
 
-void    nOS_EnterIsr        (void);
-void    nOS_LeaveIsr        (void);
+#define nOS_PeekCritical()                                                      \
+    do {                                                                        \
+        _EI();                                                                  \
+        _DSB();                                                                 \
+        _ISB();                                                                 \
+                                                                                \
+        _NOP();                                                                 \
+                                                                                \
+        _DI();                                                                  \
+        _DSB();                                                                 \
+        _ISB();                                                                 \
+    } while (0)
+
+void    nOS_EnterISR        (void);
+void    nOS_LeaveISR        (void);
 
 #define NOS_ISR(func)                                                           \
 void func##_ISR(void) __attribute__ ( ( always_inline ) );                      \
 void func(void)                                                                 \
 {                                                                               \
-    nOS_EnterIsr();                                                             \
+    nOS_EnterISR();                                                             \
     func##_ISR();                                                               \
-    nOS_LeaveIsr();                                                             \
+    nOS_LeaveISR();                                                             \
 }                                                                               \
 inline void func##_ISR(void)
 

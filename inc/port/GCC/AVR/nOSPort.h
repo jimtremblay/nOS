@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2016 Jim Tremblay
+ * Copyright (c) 2014-2019 Jim Tremblay
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -11,6 +11,7 @@
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include <avr/cpufunc.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -81,6 +82,13 @@ typedef uint8_t                 nOS_StatusReg;
 
 #define nOS_LeaveCritical(sr)                                                   \
     SREG = sr
+
+void nOS_PeekCritical (void)                                                    \
+    do {                                                                        \
+        sei();                                                                  \
+        _NOP();                                                                 \
+        cli();                                                                  \
+    } while (0)
 
 #define PUSH_CONTEXT()                                                          \
     asm volatile (                                                              \
@@ -170,8 +178,8 @@ typedef uint8_t                 nOS_StatusReg;
         :: [SREG_ADDR] "I" (_SFR_IO_ADDR(SREG))                                 \
     )
 
-nOS_Stack*      nOS_EnterIsr        (nOS_Stack *sp);
-nOS_Stack*      nOS_LeaveIsr        (nOS_Stack *sp);
+nOS_Stack*      nOS_EnterISR        (nOS_Stack *sp);
+nOS_Stack*      nOS_LeaveISR        (nOS_Stack *sp);
 
 #define NOS_ISR(vect)                                                           \
 void vect##_ISR(void) __attribute__ ( ( naked ) );                              \
@@ -184,10 +192,10 @@ ISR(vect, ISR_NAKED)                                                            
 void vect##_ISR(void)                                                           \
 {                                                                               \
     PUSH_CONTEXT();                                                             \
-    SP = (int)nOS_EnterIsr((nOS_Stack*)SP);                                     \
+    SP = (int)nOS_EnterISR((nOS_Stack*)SP);                                     \
     vect##_ISR_L2();                                                            \
     cli();                                                                      \
-    SP = (int)nOS_LeaveIsr((nOS_Stack*)SP);                                     \
+    SP = (int)nOS_LeaveISR((nOS_Stack*)SP);                                     \
     POP_CONTEXT();                                                              \
     asm volatile ("ret");                                                       \
 }                                                                               \

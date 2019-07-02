@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2016 Jim Tremblay
+ * Copyright (c) 2014-2019 Jim Tremblay
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -19,7 +19,7 @@ HANDLE                  nOS_hCritical;
 uint32_t                nOS_criticalNestingCounter;
 
 static HANDLE           _hSchedRequest;
-static nOS_Stack        _idleStack;
+static nOS_Stack        _mainStack;
 
 static DWORD WINAPI _Entry (LPVOID lpParameter)
 {
@@ -56,6 +56,9 @@ static DWORD WINAPI _Scheduler (LPVOID lpParameter)
         /* Suspend currently running thread */
         SuspendThread(nOS_runningThread->stackPtr->handle);
 
+        if (nOS_highPrioThread == NULL) {
+            nOS_highPrioThread = &nOS_mainHandle;
+        }
         nOS_runningThread = nOS_highPrioThread;
 
         /* Resume high prio thread */
@@ -76,6 +79,8 @@ static DWORD WINAPI _Scheduler (LPVOID lpParameter)
 
 static DWORD WINAPI _SysTick (LPVOID lpParameter)
 {
+    nOS_Thread     *highPrioThread;
+
     NOS_UNUSED(lpParameter);
 
     while (!nOS_running) {
@@ -94,18 +99,23 @@ static DWORD WINAPI _SysTick (LPVOID lpParameter)
 
         nOS_Tick(1);
 
-#if (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0) || (NOS_CONFIG_SCHED_ROUND_ROBIN_ENABLE > 0)
- #if (NOS_CONFIG_HIGHEST_THREAD_PRIO == 0)
-        nOS_highPrioThread = nOS_GetHeadOfList(&nOS_readyThreadsList);
- #elif (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
-        nOS_highPrioThread = nOS_FindHighPrioThread();
- #else
-        nOS_highPrioThread = nOS_GetHeadOfList(&nOS_readyThreadsList[nOS_runningThread->prio]);
- #endif
-        if (nOS_runningThread != nOS_highPrioThread) {
-            SetEvent(_hSchedRequest);
-        }
+#if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
+        if (nOS_lockNestingCounter == 0)
 #endif
+        {
+            highPrioThread = nOS_FindHighPrioThread();
+            if (highPrioThread != NULL) {
+#if (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0) || (NOS_CONFIG_SCHED_ROUND_ROBIN_ENABLE > 0)
+                nOS_highPrioThread = highPrioThread;
+                if (nOS_runningThread != nOS_highPrioThread) {
+                    SetEvent(_hSchedRequest);
+                }
+#endif
+            } else if (nOS_runningThread != &nOS_mainHandle) {
+                nOS_highPrioThread = &nOS_mainHandle;
+                SetEvent(_hSchedRequest);
+            }
+        }
 
         /* Simulate exit of interrupt */
         nOS_isrNestingCounter = 0;
@@ -126,11 +136,11 @@ void nOS_InitSpecific (void)
                                 false,              /* Initial state is unlocked */
                                 NULL);              /* No name */
 
-    nOS_idleHandle.stackPtr = &_idleStack;
-    _idleStack.entry = NULL;
-    _idleStack.arg = NULL;
-    _idleStack.sync = false;
-    _idleStack.hsync = CreateSemaphore(NULL,        /* Default security descriptor */
+    nOS_mainHandle.stackPtr = &_mainStack;
+    _mainStack.entry = NULL;
+    _mainStack.arg = NULL;
+    _mainStack.sync = false;
+    _mainStack.hsync = CreateSemaphore(NULL,        /* Default security descriptor */
                                        0,           /* Initial count = 0 */
                                        1,           /* Maximum count = 1 */
                                        NULL);       /* No name */
@@ -138,11 +148,11 @@ void nOS_InitSpecific (void)
     DuplicateHandle(GetCurrentProcess(),
                     GetCurrentThread(),
                     GetCurrentProcess(),
-                    &_idleStack.handle,
+                    &_mainStack.handle,
                     0,
                     FALSE,
                     DUPLICATE_SAME_ACCESS);
-    _idleStack.id = GetCurrentThreadId();
+    _mainStack.id = GetCurrentThreadId();
 
     /* Create an event for context switching request */
     _hSchedRequest = CreateEvent(NULL,              /* Default security descriptor */

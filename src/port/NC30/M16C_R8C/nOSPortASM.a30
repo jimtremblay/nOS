@@ -1,5 +1,5 @@
 ;
-; Copyright (c) 2014-2015 Jim Tremblay
+; Copyright (c) 2014-2019 Jim Tremblay
 ;
 ; This Source Code Form is subject to the terms of the Mozilla Public
 ; License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -10,6 +10,8 @@
 
     .GLB        __GetIPL
     .GLB        $_SetIPL
+    .GLB        __GetI
+    .GLB        $_SetI
     .GLB        _nOS_SwitchContextHandler
     .GLB        _nOS_SwitchContextFromIsrHandler
 
@@ -18,33 +20,56 @@
 
 __GetIPL:
     ; Copy FLG register into working register
-    STC     FLG,    R0
-
-    ; Move 4 high-order bits to 4 low-order bits
-    MOVHL   R0H,    R0L
+    STC     FLG,        R0
 
     ; Keep only IPL bits from FLG register
-    AND.B   #7, R0L
+    AND.W   #0x7000,    R0
 
     ; Return from subroutine
     RTS
     NOP
 
 $_SetIPL:
-    ; Transfer working register
-    MOV.B   R1L,    R0L
-
     ; Copy FLG register into working register
-    STC     FLG,    R1
+    STC     FLG,        R0
 
     ; Clear IPL bits from FLG register
-    MOV.B   #0,     R1H
+    AND.W   #0x8FFF,    R0
 
-    ; Move 4 low-order bits to 4 high-order bits
-    MOVLH   R0L,    R1H
+    ; Write IPL into working register
+    OR.W    R1,         R0
 
     ; Copy working register into FLG register
-    LDC     R1,     FLG
+    LDC     R0,         FLG
+    NOP
+
+    ; Return from subroutine
+    RTS
+    NOP
+
+__GetI:
+    ; Copy FLG register into working register
+    STC     FLG,        R0
+
+    ; Keep only I bit from FLG register
+    AND.W   #0x0040,    R0
+
+    ; Return from subroutine
+    RTS
+    NOP
+
+$_SetI:
+    ; Copy FLG register into working register
+    STC     FLG,        R0
+
+    ; Clear I bit from FLG register
+    AND.W   #0xFFBF,    R0
+
+    ; Write I into working register
+    OR.W    R1,         R0
+
+    ; Copy working register into FLG register
+    LDC     R0,         FLG
     NOP
 
     ; Return from subroutine

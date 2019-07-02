@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2016 Jim Tremblay
+ * Copyright (c) 2014-2019 Jim Tremblay
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -27,7 +27,7 @@ pthread_mutex_t         nOS_criticalSection;
 static pthread_cond_t   _schedCond;
 volatile bool           _schedStarted;
 volatile bool           _schedRequest;
-static nOS_Stack        _idleStack;
+static nOS_Stack        _mainStack;
 
 static void* _Entry (void *arg)
 {
@@ -77,13 +77,10 @@ static void* _Scheduler (void *arg)
         _schedRequest = false;
 
         /* Find next high prio thread and give him permission to run */
-#if (NOS_CONFIG_HIGHEST_THREAD_PRIO == 0)
-        nOS_highPrioThread = nOS_GetHeadOfList(&nOS_readyThreadsList);
-#elif (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
         nOS_highPrioThread = nOS_FindHighPrioThread();
-#else
-        nOS_highPrioThread = nOS_GetHeadOfList(&nOS_readyThreadsList[nOS_runningThread->prio]);
-#endif
+        if (nOS_highPrioThread == NULL) {
+            nOS_highPrioThread = &nOS_mainHandle;
+        }
         nOS_runningThread = nOS_highPrioThread;
         nOS_highPrioThread->stackPtr->running = true;
         pthread_cond_signal(&nOS_highPrioThread->stackPtr->cond);
@@ -133,13 +130,13 @@ void nOS_InitSpecific (void)
 
     pthread_cond_init (&_schedCond, NULL);
 
-    nOS_idleHandle.stackPtr = &_idleStack;
-    _idleStack.entry = NULL;
-    _idleStack.arg = NULL;
-    _idleStack.crit = 0;
-    _idleStack.started = true;
-    _idleStack.running = true;
-    pthread_cond_init(&_idleStack.cond, NULL);
+    nOS_mainHandle.stackPtr = &_mainStack;
+    _mainStack.entry = NULL;
+    _mainStack.arg = NULL;
+    _mainStack.crit = 0;
+    _mainStack.started = true;
+    _mainStack.running = true;
+    pthread_cond_init(&_mainStack.cond, NULL);
 
     pthread_mutex_lock(&nOS_criticalSection);
 

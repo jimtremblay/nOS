@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2016 Jim Tremblay
+ * Copyright (c) 2014-2019 Jim Tremblay
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -31,24 +31,49 @@ typedef uint16_t                            nOS_StatusReg;
  #error "nOSConfig.h: NOS_CONFIG_ISR_STACK_SIZE is set to invalid value: must be higher than 0."
 #endif
 
-#ifndef NOS_CONFIG_MAX_UNSAFE_ISR_PRIO
- #error "nOSConfig.h: NOS_CONFIG_MAX_UNSAFE_ISR_PRIO is not defined: must be set between 1 and 6 inclusively."
-#elif (NOS_CONFIG_MAX_UNSAFE_ISR_PRIO < 1) || (NOS_CONFIG_MAX_UNSAFE_ISR_PRIO > 6)
- #error "nOSConfig.h: NOS_CONFIG_MAX_UNSAFE_ISR_PRIO is set to invalid value: must be set between 1 and 6 inclusively."
+#ifdef NOS_CONFIG_MAX_UNSAFE_ISR_PRIO
+ #if (NOS_CONFIG_MAX_UNSAFE_ISR_PRIO < 0) || (NOS_CONFIG_MAX_UNSAFE_ISR_PRIO > 7)
+  #error "nOSConfig.h: NOS_CONFIG_MAX_UNSAFE_ISR_PRIO is set to invalid value: must be set between 0 and 7 inclusively. (0 disable zero interrupt latency feature)"
+ #elif (NOS_CONFIG_MAX_UNSAFE_ISR_PRIO == 0)
+  #undef NOS_CONFIG_MAX_UNSAFE_ISR_PRIO
+ #endif
 #endif
 
-#define NOS_MAX_UNSAFE_IPL                  NOS_CONFIG_MAX_UNSAFE_ISR_PRIO
+#ifdef NOS_CONFIG_MAX_UNSAFE_ISR_PRIO
+ #define NOS_MAX_UNSAFE_IPL               NOS_CONFIG_MAX_UNSAFE_ISR_PRIO
+#else
+ #define NOS_MAX_UNSAFE_IPL               7
+#endif
 
 #define nOS_EnterCritical(sr)                                                   \
     do {                                                                        \
+        __asm__ volatile ("DISI #0x1FFF");                                      \
         sr = SRbits.IPL;                                                        \
         if (sr < NOS_MAX_UNSAFE_IPL) {                                          \
             SRbits.IPL = NOS_MAX_UNSAFE_IPL;                                    \
         }                                                                       \
+        DISICNT = 0;                                                            \
     } while (0)
 
 #define nOS_LeaveCritical(sr)                                                   \
-    SRbits.IPL = sr
+    do {                                                                        \
+        __asm__ volatile ("DISI #0x1FFF");                                      \
+        SRbits.IPL = sr;                                                        \
+        DISICNT = 0;                                                            \
+    } while (0)
+
+#define nOS_PeekCritical()                                                      \
+    do {                                                                        \
+        __asm__ volatile ("DISI #0x1FFF");                                      \
+        SRbits.IPL = 0;                                                         \
+        DISICNT = 0;                                                            \
+                                                                                \
+        Nop();                                                                  \
+                                                                                \
+        __asm__ volatile ("DISI #0x1FFF");                                      \
+        SRbits.IPL = NOS_MAX_UNSAFE_IPL;                                        \
+        DISICNT = 0;                                                            \
+    } while (0)
 
 #ifdef __HAS_EDS__
  #define PUSH_PAGE_ADDRESS                                                      \
@@ -64,14 +89,14 @@ typedef uint16_t                            nOS_StatusReg;
     "POP    PSVPAG                      \n"
 #endif
 
-nOS_Stack *nOS_EnterIsr (nOS_Stack *sp);
-nOS_Stack *nOS_LeaveIsr (nOS_Stack *sp);
+nOS_Stack *nOS_EnterISR (nOS_Stack *sp);
+nOS_Stack *nOS_LeaveISR (nOS_Stack *sp);
 
 #define NOS_ISR(vect)                                                           \
 void __attribute__((naked)) vect##_ISR(void);                                   \
 void __attribute__((naked)) vect##_ISR_L2(void);                                \
-nOS_Stack* __attribute__((keep)) nOS_EnterIsr(nOS_Stack*);                      \
-nOS_Stack* __attribute__((keep)) nOS_LeaveIsr(nOS_Stack*);                      \
+nOS_Stack* __attribute__((keep)) nOS_EnterISR(nOS_Stack*);                      \
+nOS_Stack* __attribute__((keep)) nOS_LeaveISR(nOS_Stack*);                      \
 void __attribute__((__interrupt__, auto_psv, naked)) vect(void)                 \
 {                                                                               \
     vect##_ISR();                                                               \
@@ -114,7 +139,7 @@ void __attribute__((naked)) vect##_ISR(void)                                    
                                                                                 \
         /* Save stack pointer if first nested interrupt */                      \
         "MOV    W15,                    W0  \n"                                 \
-        "CALL   _nOS_EnterIsr               \n"                                 \
+        "CALL   _nOS_EnterISR               \n"                                 \
         "MOV    W0,                     W15 \n"                                 \
         :: "i" (NOS_CONFIG_MAX_UNSAFE_ISR_PRIO << 5));                          \
                                                                                 \
@@ -128,7 +153,7 @@ void __attribute__((naked)) vect##_ISR(void)                                    
                                                                                 \
         /* Restore stack pointer if last nested interrupt */                    \
         "MOV    W15,                    W0  \n"                                 \
-        "CALL   _nOS_LeaveIsr               \n"                                 \
+        "CALL   _nOS_LeaveISR               \n"                                 \
         "MOV    W0,                     W15 \n"                                 \
                                                                                 \
         /* Pop page address register */                                         \

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2016 Jim Tremblay
+ * Copyright (c) 2014-2019 Jim Tremblay
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -124,8 +124,15 @@ typedef __istate_t                  nOS_StatusReg;
 #define nOS_LeaveCritical(sr)                                                   \
     __set_interrupt_state(sr)
 
-nOS_Stack*  nOS_EnterIsr        (nOS_Stack *sp);
-nOS_Stack*  nOS_LeaveIsr        (nOS_Stack *sp);
+#define nOS_PeekCritical()                                                      \
+    do {                                                                        \
+        __enable_interrupt();                                                   \
+        __no_operation();                                                       \
+        __disable_interrupt();                                                  \
+    } while (0)
+
+nOS_Stack*  nOS_EnterISR        (nOS_Stack *sp);
+nOS_Stack*  nOS_LeaveISR        (nOS_Stack *sp);
 
 #define NOS_ISR(vect)                                                           \
 __task void vect##_ISR_L2(void);                                                \
@@ -135,21 +142,21 @@ __interrupt __raw void vect##_ISR(void)                                         
 {                                                                               \
     vect##_ISR_L2();                                                            \
 }                                                                               \
-_Pragma("required=nOS_EnterIsr")                                                \
-_Pragma("required=nOS_LeaveIsr")                                                \
+_Pragma("required=nOS_EnterISR")                                                \
+_Pragma("required=nOS_LeaveISR")                                                \
 __task void vect##_ISR_L2(void)                                                 \
 {                                                                               \
     __asm (                                                                     \
         PUSH_SR                                                                 \
         PUSH_CONTEXT                                                            \
         MOV_X"  SP,     R12                     \n"                             \
-        CALL_X" #nOS_EnterIsr                   \n"                             \
+        CALL_X" #nOS_EnterISR                   \n"                             \
         MOV_X"  R12,    SP                      \n"                             \
         CALL_X" #"_STRINGIFY(vect##_ISR_L3)"    \n"                             \
         "DINT                                   \n"                             \
         "NOP                                    \n"                             \
         MOV_X"  SP,     R12                     \n"                             \
-        CALL_X" #nOS_LeaveIsr                   \n"                             \
+        CALL_X" #nOS_LeaveISR                   \n"                             \
         MOV_X"  R12,    SP                      \n"                             \
         POP_CONTEXT                                                             \
         POP_SR                                                                  \

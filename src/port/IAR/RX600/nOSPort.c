@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2016 Jim Tremblay
+ * Copyright (c) 2014-2019 Jim Tremblay
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -15,7 +15,7 @@ extern "C" {
 
 static nOS_Stack _isrStack[NOS_CONFIG_ISR_STACK_SIZE];
 
-void nOS_InitSpecific(void)
+void nOS_InitSpecific (void)
 {
     nOS_Stack  *sp = &_isrStack[NOS_CONFIG_ISR_STACK_SIZE-1];
     uint32_t    reg;
@@ -47,7 +47,7 @@ void nOS_InitSpecific(void)
     *(uint8_t*)0x00087303UL = (uint8_t)1;
 }
 
-void nOS_InitContext(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg)
+void nOS_InitContext (nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_ThreadEntry entry, void *arg)
 {
     nOS_Stack *tos = (stack + (ssize - 1));
 #if (NOS_CONFIG_DEBUG > 0)
@@ -90,7 +90,7 @@ void nOS_InitContext(nOS_Thread *thread, nOS_Stack *stack, size_t ssize, nOS_Thr
     thread->stackPtr = tos;
 }
 
-void nOS_EnterIsr (void)
+void nOS_EnterISR (void)
 {
     nOS_StatusReg   sr;
 
@@ -104,9 +104,10 @@ void nOS_EnterIsr (void)
     }
 }
 
-void nOS_LeaveIsr (void)
+void nOS_LeaveISR (void)
 {
     nOS_StatusReg   sr;
+    nOS_Thread      *highPrioThread;
 
 #if (NOS_CONFIG_SAFE > 0)
     if (nOS_running)
@@ -114,26 +115,27 @@ void nOS_LeaveIsr (void)
     {
         nOS_EnterCritical(sr);
         nOS_isrNestingCounter--;
-#if (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0) || (NOS_CONFIG_SCHED_ROUND_ROBIN_ENABLE > 0)
         if (nOS_isrNestingCounter == 0) {
- #if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
+#if (NOS_CONFIG_SCHED_LOCK_ENABLE > 0)
             if (nOS_lockNestingCounter == 0)
- #endif
+#endif
             {
- #if (NOS_CONFIG_HIGHEST_THREAD_PRIO == 0)
-                nOS_highPrioThread = nOS_GetHeadOfList(&nOS_readyThreadsList);
- #elif (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
-                nOS_highPrioThread = nOS_FindHighPrioThread();
- #else
-                nOS_highPrioThread = nOS_GetHeadOfList(&nOS_readyThreadsList[nOS_runningThread->prio]);
- #endif
-                if (nOS_runningThread != nOS_highPrioThread) {
-                    /* Request a software interrupt when going out of ISR */
+                highPrioThread = nOS_FindHighPrioThread();
+                if (highPrioThread != NULL) {
+#if (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0) || (NOS_CONFIG_SCHED_ROUND_ROBIN_ENABLE > 0)
+                    nOS_highPrioThread = highPrioThread;
+                    if (nOS_runningThread != nOS_highPrioThread) {
+                        /* Request a software interrupt when going out of ISR */
+                        *(uint8_t*)0x000872E0UL = (uint8_t)1;
+                    }
+#endif
+                } else if (nOS_runningThread != &nOS_mainHandle) {
+                    nOS_highPrioThread = &nOS_mainHandle;
+                    /* Return to main thread when going out of ISR */
                     *(uint8_t*)0x000872E0UL = (uint8_t)1;
                 }
             }
         }
-#endif
         nOS_LeaveCritical(sr);
     }
 }

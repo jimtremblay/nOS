@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2016 Jim Tremblay
+ * Copyright (c) 2014-2019 Jim Tremblay
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -169,9 +169,6 @@ nOS_Error nOS_TimeWait (nOS_Time time)
         err = NOS_E_LOCKED;
     } else
  #endif
-    if (nOS_runningThread == &nOS_idleHandle) {
-        err = NOS_E_IDLE;
-    } else
 #endif
     {
         nOS_EnterCritical(sr);

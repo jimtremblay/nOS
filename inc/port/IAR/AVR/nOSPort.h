@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2016 Jim Tremblay
+ * Copyright (c) 2014-2019 Jim Tremblay
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -16,7 +16,7 @@ extern "C" {
 #endif
 
 typedef uint8_t                         nOS_Stack;
-typedef uint8_t                         nOS_StatusReg;
+typedef __istate_t                      nOS_StatusReg;
 
 #define NOS_UNUSED(v)                   (void)v
 
@@ -58,12 +58,19 @@ typedef uint8_t                         nOS_StatusReg;
 
 #define nOS_EnterCritical(sr)                                                   \
     do {                                                                        \
-        sr = __save_interrupt();                                                \
+        sr = __get_interrupt_state();                                           \
         __disable_interrupt();                                                  \
     } while (0)
 
 #define nOS_LeaveCritical(sr)                                                   \
-    __restore_interrupt(sr)
+    __set_interrupt_state(sr)
+
+#define nOS_PeekCritical()                                                      \
+    do {                                                                        \
+        __enable_interrupt();                                                   \
+        __no_operation();                                                       \
+        __disable_interrupt();                                                  \
+    } while (0)
 
 #define PUSH_CONTEXT()                                                          \
     __asm (                                                                     \
@@ -150,8 +157,8 @@ typedef uint8_t                         nOS_StatusReg;
         "ld     r0,     y+                  \n" /* R0 */                        \
     )
 
-void            nOS_EnterIsr        (nOS_Stack *sp);
-nOS_Stack*      nOS_LeaveIsr        (nOS_Stack *sp);
+void            nOS_EnterISR        (nOS_Stack *sp);
+nOS_Stack*      nOS_LeaveISR        (nOS_Stack *sp);
 
 __no_init volatile uint16_t RSP @ 0x1C;
 
@@ -167,10 +174,10 @@ __raw __interrupt void vect##_ISR(void)                                         
 __task void vect##_ISR_L2(void)                                                 \
 {                                                                               \
     PUSH_CONTEXT();                                                             \
-    nOS_EnterIsr((nOS_Stack*)RSP);                                              \
+    nOS_EnterISR((nOS_Stack*)RSP);                                              \
     vect##_ISR_L3();                                                            \
     __disable_interrupt();                                                      \
-    RSP = (uint16_t)nOS_LeaveIsr((nOS_Stack*)RSP);                              \
+    RSP = (uint16_t)nOS_LeaveISR((nOS_Stack*)RSP);                              \
     POP_CONTEXT();                                                              \
     /* ret */                                                                   \
 }                                                                               \

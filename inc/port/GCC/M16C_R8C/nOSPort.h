@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2016 Jim Tremblay
+ * Copyright (c) 2014-2019 Jim Tremblay
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -24,12 +24,14 @@ typedef uint16_t                            nOS_StatusReg;
 #define NOS_16_BITS_SCHEDULER
 #define NOS_DONT_USE_CONST
 
-#ifndef NOS_CONFIG_MAX_UNSAFE_ISR_PRIO
- #error "nOSConfig.h: NOS_CONFIG_MAX_UNSAFE_ISR_PRIO is not defined: must be set between 1 and 7 inclusively."
-#elif (NOS_CONFIG_MAX_UNSAFE_ISR_PRIO < 1) || (NOS_CONFIG_MAX_UNSAFE_ISR_PRIO > 7)
- #error "nOSConfig.h: NOS_CONFIG_MAX_UNSAFE_ISR_PRIO is set to invalid value: must be set between 1 and 7 inclusively."
-#else
- #define NOS_MAX_UNSAFE_IPL                 NOS_CONFIG_MAX_UNSAFE_ISR_PRIO
+#ifdef NOS_CONFIG_MAX_UNSAFE_ISR_PRIO
+ #if (NOS_CONFIG_MAX_UNSAFE_ISR_PRIO < 0) || (NOS_CONFIG_MAX_UNSAFE_ISR_PRIO > 7)
+  #error "nOSConfig.h: NOS_CONFIG_MAX_UNSAFE_ISR_PRIO is set to invalid value: must be set between 0 and 7 inclusively. (0 disable zero interrupt latency feature)"
+ #elif (NOS_CONFIG_MAX_UNSAFE_ISR_PRIO > 0)
+  #define NOS_MAX_UNSAFE_IPL                (NOS_CONFIG_MAX_UNSAFE_ISR_PRIO << 12)
+ #else
+  #undef NOS_CONFIG_MAX_UNSAFE_ISR_PRIO
+ #endif
 #endif
 
 __attribute__( ( always_inline ) ) static inline uint16_t _GetIPL(void)
@@ -38,8 +40,6 @@ __attribute__( ( always_inline ) ) static inline uint16_t _GetIPL(void)
     __asm volatile(
         "STC    FLG,        %0      \n"
         "AND.W  #0x7000,    %0      \n"
-        "SHL.W  #-8,        %0      \n"
-        "SHL.W  #-4,        %0      \n"
     : "=r" (ipl));
     return ipl;
 }
@@ -50,22 +50,61 @@ __attribute__( ( always_inline ) ) static inline void _SetIPL(uint16_t ipl)
     __asm volatile (
         "STC    FLG,        %0      \n"
         "AND.W  #0x8FFF,    %0      \n"
-        "SHL.W  #8,         %1      \n"
-        "SHL.W  #4,         %1      \n"
         "OR.W   %1,         %0      \n"
         "LDC    %0,         FLG     \n"
         "NOP                        \n"
     :: "r" (flg), "r" (ipl));
 }
 
+__attribute__( ( always_inline ) ) static inline uint16_t _GetI(void)
+{
+    uint16_t i;
+    __asm volatile(
+        "STC    FLG,        %0      \n"
+        "AND.W  #0x0040,    %0      \n"
+    : "=r" (i));
+    return i;
+}
+
+__attribute__( ( always_inline ) ) static inline void _SetI(uint16_t i)
+{
+    uint16_t flg;
+    __asm volatile (
+        "STC    FLG,        %0      \n"
+        "AND.W  #0xFFBF,    %0      \n"
+        "OR.W   %1,         %0      \n"
+        "LDC    %0,         FLG     \n"
+        "NOP                        \n"
+    :: "r" (flg), "r" (i));
+}
+
+__attribute__( ( always_inline ) ) static inline void _EI(void)
+{
+    __asm volatile(
+        "FSET   I                   \n"
+        "NOP                        \n"
+    );
+}
+
+__attribute__( ( always_inline ) ) static inline void _DI(void)
+{
+    __asm volatile(
+        "FCLR   I                   \n"
+        "NOP                        \n"
+    );
+}
+
+__attribute__( ( always_inline ) ) static inline void _NOP(void)
+{
+    __asm volatile("NOP");
+}
+
+#ifdef NOS_CONFIG_MAX_UNSAFE_ISR_PRIO
 #define nOS_EnterCritical(sr)                                                   \
     do {                                                                        \
         sr = _GetIPL();                                                         \
         if (sr < NOS_MAX_UNSAFE_IPL) {                                          \
-            __asm volatile (                                                    \
-                "LDIPL  %0              \n"                                     \
-                "NOP                    \n"                                     \
-            :: "i" (NOS_MAX_UNSAFE_IPL));                                       \
+            _SetIPL(NOS_MAX_UNSAFE_IPL);                                        \
         }                                                                       \
     } while (0)
 
@@ -73,10 +112,35 @@ __attribute__( ( always_inline ) ) static inline void _SetIPL(uint16_t ipl)
 #define nOS_LeaveCritical(sr)                                                   \
     _SetIPL(sr)
 
+#define nOS_PeekCritical()                                                      \
+    do {                                                                        \
+        _SetIPL(0);                                                             \
+        _NOP();                                                                 \
+        _GetIPL(NOS_MAX_UNSAFE_IPL);                                            \
+    } while (0)
+#else
+#define nOS_EnterCritical(sr)                                                   \
+    do {                                                                        \
+        sr = _GetI();                                                           \
+        _DI();                                                                  \
+    } while (0)
+
+
+#define nOS_LeaveCritical(sr)                                                   \
+    _SetI(sr)
+
+#define nOS_PeekCritical()                                                      \
+    do {                                                                        \
+        _EI();                                                                  \
+        _NOP();                                                                 \
+        _DI();                                                                  \
+    } while (0)
+#endif
+
 #define nOS_SwitchContext()                             __asm volatile("INT #32")
 
-void    nOS_EnterIsr    (void);
-bool    nOS_LeaveIsr    (void);
+void    nOS_EnterISR    (void);
+bool    nOS_LeaveISR    (void);
 
 #define NOS_ISR(func)                                                           \
 void func(void) __attribute__ ((interrupt));                                    \
@@ -88,7 +152,7 @@ void func(void)                                                                 
         "PUSHM  R0,R1,R2,R3,A0,A1,SB,FB     \n"                                 \
                                                                                 \
         /* Increment interrupts nested counter */                               \
-        "JSR.A  _nOS_EnterIsr               \n"                                 \
+        "JSR.A  _nOS_EnterISR               \n"                                 \
                                                                                 \
         /* Call user ISR function */                                            \
         "JSR.A  _"#func"_L2                 \n"                                 \
@@ -99,7 +163,7 @@ void func(void)                                                                 
                                                                                 \
         /* Decrement interrupts nested counter */                               \
         /* return true if we need to switch context, otherwise false */         \
-        "JSR.A  _nOS_LeaveIsr               \n"                                 \
+        "JSR.A  _nOS_LeaveISR               \n"                                 \
                                                                                 \
         /* Do we need to switch context from ISR ? */                           \
         "CMP.B  #0, R0L                     \n"                                 \

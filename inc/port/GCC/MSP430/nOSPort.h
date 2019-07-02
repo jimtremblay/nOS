@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2016 Jim Tremblay
+ * Copyright (c) 2014-2019 Jim Tremblay
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -101,8 +101,15 @@ typedef uint16_t                    nOS_StatusReg;
         __no_operation();                                                       \
     } while (0)
 
-nOS_Stack*  nOS_EnterIsr        (nOS_Stack *sp);
-nOS_Stack*  nOS_LeaveIsr        (nOS_Stack *sp);
+#define nOS_PeekCritical()                                                      \
+    do {                                                                        \
+        __enable_interrupt();                                                   \
+        __no_operation();                                                       \
+        __disable_interrupt();                                                  \
+    } while (0)
+
+nOS_Stack*  nOS_EnterISR        (nOS_Stack *sp);
+nOS_Stack*  nOS_LeaveISR        (nOS_Stack *sp);
 
 #define NOS_ISR(vect)                                                           \
 void        vect##_ISR_L2(void) __attribute__ ((naked));                        \
@@ -124,7 +131,7 @@ void vect##_ISR_L2(void)                                                        
         "                                       \n"                             \
         /* Switch to isr stack if isr nesting counter is zero */                \
         MOV_X "     sp,                 r12     \n"                             \
-        CALL_X "    #nOS_EnterIsr               \n"                             \
+        CALL_X "    #nOS_EnterISR               \n"                             \
         MOV_X "     r12,                sp      \n"                             \
     );                                                                          \
     vect##_ISR_L3();                                                            \
@@ -133,7 +140,7 @@ void vect##_ISR_L2(void)                                                        
     asm volatile (                                                              \
         /* Switch to high prio thread stack if isr nesting counter reach zero */\
         MOV_X "     sp,                 r12     \n"                             \
-        CALL_X "    #nOS_LeaveIsr               \n"                             \
+        CALL_X "    #nOS_LeaveISR               \n"                             \
         MOV_X "     r12,                sp      \n"                             \
         "                                       \n"                             \
         /* Pop all registers from high prio thread stack */                     \
