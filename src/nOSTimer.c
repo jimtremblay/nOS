@@ -111,23 +111,19 @@ static void _Thread (void *arg)
     NOS_UNUSED(arg);
 
     while (true) {
-        nOS_TimerProcess();
-
-        nOS_EnterCritical(sr);
-        if (_FindTriggeredHighestPrio() == NULL) {
+        if (!nOS_TimerProcess()) {
+            nOS_EnterCritical(sr);
             nOS_WaitForEvent(NULL,
                              NOS_THREAD_ON_HOLD
 #if (NOS_CONFIG_WAITING_TIMEOUT_ENABLE > 0) || (NOS_CONFIG_SLEEP_ENABLE > 0) || (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
                             ,NOS_WAIT_INFINITE
 #endif
                             );
+            nOS_LeaveCritical(sr);
         }
-        nOS_LeaveCritical(sr);
-
 #if (NOS_CONFIG_THREAD_JOIN_ENABLE > 0)
         if (false) break; /* Remove "statement is unreachable" warning */
     }
-
     return 0;
 #else
     }
@@ -227,12 +223,13 @@ void nOS_TimerTick (nOS_TickCounter ticks)
     nOS_LeaveCritical(sr);
 }
 
-void nOS_TimerProcess (void)
+bool nOS_TimerProcess (void)
 {
     nOS_StatusReg       sr;
     nOS_Timer           *timer;
     nOS_TimerCallback   callback = NULL;
     void                *arg;
+    bool                active;
 
     nOS_EnterCritical(sr);
     timer = (nOS_Timer*)_FindTriggeredHighestPrio();
@@ -258,6 +255,12 @@ void nOS_TimerProcess (void)
     if (callback != NULL) {
         callback(timer, arg);
     }
+
+    nOS_EnterCritical(sr);
+    active = (_FindTriggeredHighestPrio() != NULL);
+    nOS_LeaveCritical(sr);
+
+    return active;
 }
 
 nOS_Error nOS_TimerCreate (nOS_Timer *timer,

@@ -98,23 +98,19 @@ static void _Thread (void *arg)
     NOS_UNUSED(arg);
 
     while (1) {
-        nOS_SignalProcess();
-
-        nOS_EnterCritical(sr);
-        if (_FindHighestPrio() == NULL) {
+        if (!nOS_SignalProcess()) {
+            nOS_EnterCritical(sr);
             nOS_WaitForEvent(NULL,
                              NOS_THREAD_ON_HOLD
 #if (NOS_CONFIG_WAITING_TIMEOUT_ENABLE > 0) || (NOS_CONFIG_SLEEP_ENABLE > 0) || (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
                             ,NOS_WAIT_INFINITE
 #endif
                             );
+            nOS_LeaveCritical(sr);
         }
-        nOS_LeaveCritical(sr);
-
 #if (NOS_CONFIG_THREAD_JOIN_ENABLE > 0)
         if (false) break; /* Remove "statement is unreachable" warning */
     }
-
     return 0;
 #else
     }
@@ -158,12 +154,13 @@ void nOS_InitSignal (void)
 #endif
 }
 
-void nOS_SignalProcess (void)
+bool nOS_SignalProcess (void)
 {
     nOS_StatusReg       sr;
     nOS_Signal          *signal  = NULL;
     nOS_SignalCallback  callback = NULL;
     void                *arg     = NULL;
+    bool                active;
 
     nOS_EnterCritical(sr);
     signal = (nOS_Signal *)_FindHighestPrio();
@@ -181,6 +178,12 @@ void nOS_SignalProcess (void)
     if (callback != NULL) {
         callback(signal, arg);
     }
+
+    nOS_EnterCritical(sr);
+    active = (_FindHighestPrio() != NULL);
+    nOS_LeaveCritical(sr);
+
+    return active;
 }
 
 nOS_Error nOS_SignalCreate (nOS_Signal *signal,

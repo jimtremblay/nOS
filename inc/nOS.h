@@ -1894,7 +1894,7 @@ nOS_Error           nOS_ThreadCreate                    (nOS_Thread *thread,
 
 #if (NOS_CONFIG_TIMER_ENABLE > 0)
  void               nOS_TimerTick                       (nOS_TickCounter ticks);
- void               nOS_TimerProcess                    (void);
+ bool               nOS_TimerProcess                    (void);
  nOS_Error          nOS_TimerCreate                     (nOS_Timer *timer,
                                                          nOS_TimerCallback callback,
                                                          void *arg,
@@ -1922,7 +1922,7 @@ nOS_Error           nOS_ThreadCreate                    (nOS_Thread *thread,
 #endif
 
 #if (NOS_CONFIG_SIGNAL_ENABLE > 0)
- void               nOS_SignalProcess                   (void);
+ bool               nOS_SignalProcess                   (void);
  nOS_Error          nOS_SignalCreate                    (nOS_Signal *signal,
                                                          nOS_SignalCallback callback
  #if (NOS_CONFIG_SIGNAL_HIGHEST_PRIO > 0)
@@ -1958,7 +1958,7 @@ nOS_Error           nOS_ThreadCreate                    (nOS_Thread *thread,
 
 #if (NOS_CONFIG_ALARM_ENABLE > 0)
  void               nOS_AlarmTick                       (void);
- void               nOS_AlarmProcess                    (void);
+ bool               nOS_AlarmProcess                    (void);
  nOS_Error          nOS_AlarmCreate                     (nOS_Alarm *alarm, nOS_AlarmCallback callback, void *arg, nOS_Time time);
  #if (NOS_CONFIG_ALARM_DELETE_ENABLE > 0)
   nOS_Error         nOS_AlarmDelete                     (nOS_Alarm *alarm);

@@ -54,23 +54,19 @@ static void _Thread (void *arg)
     NOS_UNUSED(arg);
 
     while (true) {
-        nOS_AlarmProcess();
-
-        nOS_EnterCritical(sr);
-        if (nOS_GetHeadOfList(&_triggeredList) == NULL) {
+        if (!nOS_AlarmProcess()) {
+            nOS_EnterCritical(sr);
             nOS_WaitForEvent(NULL,
                              NOS_THREAD_ON_HOLD
 #if (NOS_CONFIG_WAITING_TIMEOUT_ENABLE > 0) || (NOS_CONFIG_SLEEP_ENABLE > 0) || (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
                             ,NOS_WAIT_INFINITE
 #endif
                             );
+            nOS_LeaveCritical(sr);
         }
-        nOS_LeaveCritical(sr);
-
 #if (NOS_CONFIG_THREAD_JOIN_ENABLE > 0)
         if (false) break; /* Remove "statement is unreachable" warning */
     }
-
     return 0;
 #else
     }
@@ -153,12 +149,13 @@ void nOS_AlarmTick (void)
 #endif
 }
 
-void nOS_AlarmProcess (void)
+bool nOS_AlarmProcess (void)
 {
     nOS_StatusReg       sr;
     nOS_Alarm           *alarm;
     nOS_AlarmCallback   callback = NULL;
     void                *arg;
+    bool                active;
 
     nOS_EnterCritical(sr);
     alarm = (nOS_Alarm*)nOS_GetHeadOfList(&_triggeredList);
@@ -175,6 +172,12 @@ void nOS_AlarmProcess (void)
     if (callback != NULL) {
         callback(alarm, arg);
     }
+
+    nOS_EnterCritical(sr);
+    active = (nOS_GetHeadOfList(&_triggeredList) != NULL);
+    nOS_LeaveCritical(sr);
+
+    return active;
 }
 
 nOS_Error nOS_AlarmCreate (nOS_Alarm *alarm, nOS_AlarmCallback callback, void *arg, nOS_Time time)
