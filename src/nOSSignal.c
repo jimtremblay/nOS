@@ -38,7 +38,11 @@ extern "C" {
  #ifdef NOS_SIMULATED_STACK
   static nOS_Stack              _stack;
  #else
-  static nOS_Stack              _stack[NOS_CONFIG_SIGNAL_THREAD_STACK_SIZE];
+  #ifdef NOS_CONFIG_SIGNAL_THREAD_STACK_SECTION
+   static nOS_Stack             _stack[NOS_CONFIG_SIGNAL_THREAD_STACK_SIZE] __attribute__ ( ( section(NOS_CONFIG_SIGNAL_THREAD_STACK_SECTION) ) );
+  #else
+   static nOS_Stack             _stack[NOS_CONFIG_SIGNAL_THREAD_STACK_SIZE];
+  #endif
  #endif
 #endif
 

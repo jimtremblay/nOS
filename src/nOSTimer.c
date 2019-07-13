@@ -48,7 +48,11 @@ static nOS_List                 _activeList;
  #ifdef NOS_SIMULATED_STACK
   static nOS_Stack              _stack;
  #else
-  static nOS_Stack              _stack[NOS_CONFIG_TIMER_THREAD_STACK_SIZE];
+  #ifdef NOS_CONFIG_TIMER_THREAD_STACK_SECTION
+   static nOS_Stack             _stack[NOS_CONFIG_TIMER_THREAD_STACK_SIZE] __attribute__ ( ( section(NOS_CONFIG_TIMER_THREAD_STACK_SECTION) ) );
+  #else
+   static nOS_Stack             _stack[NOS_CONFIG_TIMER_THREAD_STACK_SIZE];
+  #endif
  #endif
 #endif
 static nOS_TimerCounter         _tickCounter;
