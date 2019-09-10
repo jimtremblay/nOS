@@ -556,6 +556,7 @@ typedef struct nOS_Event            nOS_Event;
 #endif
 #if (NOS_CONFIG_QUEUE_ENABLE > 0)
  typedef struct nOS_Queue           nOS_Queue;
+ typedef struct nOS_QueueContext    nOS_QueueContext;
  #if (NOS_CONFIG_QUEUE_BLOCK_COUNT_WIDTH == 8)
   typedef uint8_t                   nOS_QueueCounter;
  #elif (NOS_CONFIG_QUEUE_BLOCK_COUNT_WIDTH == 16)
@@ -881,6 +882,12 @@ struct nOS_Queue
     nOS_QueueCounter    bcount;
     nOS_QueueCounter    r;
     nOS_QueueCounter    w;
+};
+
+struct nOS_QueueContext
+{
+    void    *block;
+    bool    front;
 };
 #endif
 
@@ -1653,6 +1660,7 @@ nOS_Error           nOS_ThreadCreate                    (nOS_Thread *thread,
  nOS_Error          nOS_QueueRead                       (nOS_Queue *queue, void *block, nOS_TickCounter timeout);
  nOS_Error          nOS_QueuePeek                       (nOS_Queue *queue, void *block);
  nOS_Error          nOS_QueueWrite                      (nOS_Queue *queue, void *block, nOS_TickCounter timeout);
+ nOS_Error          nOS_QueueWriteInFront               (nOS_Queue *queue, void *block, nOS_TickCounter timeout);
  nOS_Error          nOS_QueueFlush                      (nOS_Queue *queue, nOS_QueueCallback callback);
  bool               nOS_QueueIsEmpty                    (nOS_Queue *queue);
  bool               nOS_QueueIsFull                     (nOS_Queue *queue);
