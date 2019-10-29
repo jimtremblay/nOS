@@ -297,6 +297,10 @@ nOS_Error nOS_SignalSend (nOS_Signal *signal, void *arg)
 #if (NOS_CONFIG_SIGNAL_THREAD_ENABLE > 0)
             if (_thread.state == (NOS_THREAD_READY | NOS_THREAD_ON_HOLD)) {
                 nOS_WakeUpThread(&_thread, NOS_OK);
+ #if (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
+                /* Verify if have wake up the highest prio thread */
+                nOS_Schedule();
+ #endif
             }
 #endif
             err = NOS_OK;
