@@ -70,7 +70,7 @@ extern "C" {
 
 #define NOS_QUOTE(s)                #s
 #define NOS_STR(s)                  NOS_QUOTE(s)
-#define NOS_VERSION                 NOS_STR(NOS_VERSION_MAJOR)"."NOS_STR(NOS_VERSION_MINOR)"."NOS_STR(NOS_VERSION_BUILD)
+#define NOS_VERSION                 NOS_STR(NOS_VERSION_MAJOR) "." NOS_STR(NOS_VERSION_MINOR) "." NOS_STR(NOS_VERSION_BUILD)
 
 #define NOS_VERSION_MAJOR           0
 #define NOS_VERSION_MINOR           1
