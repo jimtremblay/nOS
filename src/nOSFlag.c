@@ -43,11 +43,11 @@ static void _TestFlag (void *payload, void *arg)
     nOS_Flag        *flag    = (nOS_Flag*)thread->event;
     nOS_FlagContext *ctx     = (nOS_FlagContext*)thread->ext;
     nOS_FlagBits    *res     = &((nOS_FlagBits*)arg)[0];
-    nOS_FlagBits    *exc     = &((nOS_FlagBits*)arg)[1];
+    nOS_FlagBits    *excl    = &((nOS_FlagBits*)arg)[1];
     nOS_FlagBits    r;
 
     /* Verify flags from object with wanted flags from waiting thread. */
-    r = (flag->flags & ctx->flags) &~ *exc;
+    r = (flag->flags & ctx->flags) &~ *excl;
     if (((ctx->opt & NOS_FLAG_WAIT) == NOS_FLAG_WAIT_ALL) && (r != ctx->flags)) {
         r = NOS_FLAG_NONE;
     }
@@ -57,18 +57,19 @@ static void _TestFlag (void *payload, void *arg)
     /* If conditions are met, wake up the thread and give it the result. */
     if (r != NOS_FLAG_NONE) {
         *ctx->rflags = r;
+        /* Ensure exclusive flags will be cleared. */
+        *res |= (r & flag->excl);
         /* Accumulate awoken flags if waiting thread want to clear it when awoken. */
         if (ctx->opt & NOS_FLAG_CLEAR_ON_EXIT) {
             *res |= r;
         }
-        if (ctx->opt & NOS_FLAG_WAIT_EXCLUSIVE) {
-            *exc |= r;
-        }
+        /* Accumulate exclusive flags to not resend it to other thread. */
+        *excl |= (r & flag->excl);
         nOS_WakeUpThread(thread, NOS_OK);
     }
 }
 
-nOS_Error nOS_FlagCreate (nOS_Flag *flag, nOS_FlagBits flags)
+nOS_Error nOS_FlagCreate (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits excl)
 {
     nOS_Error       err;
     nOS_StatusReg   sr;
@@ -92,6 +93,7 @@ nOS_Error nOS_FlagCreate (nOS_Flag *flag, nOS_FlagBits flags)
 #endif
                            );
             flag->flags = flags;
+            flag->excl  = excl;
 
             err = NOS_OK;
         }
@@ -165,6 +167,8 @@ nOS_Error nOS_FlagWait (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits *res,
 
             /* If result is not cleared, then condition is met for waiting thread. */
             if (r != NOS_FLAG_NONE) {
+                /* CLear all exclusive flags sent to the thread. */
+                flag->flags &=~ (r & flag->excl);
                 if (opt & NOS_FLAG_CLEAR_ON_EXIT) {
                     /* Clear all flags that have awoken the waiting threads. */
                     flag->flags &=~ r;

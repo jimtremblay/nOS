@@ -713,7 +713,6 @@ typedef enum nOS_FlagOption
     NOS_FLAG_WAIT_ALL           = 0x01,
     NOS_FLAG_WAIT_ONE           = 0x02,
     NOS_FLAG_WAIT               = 0x03,
-    NOS_FLAG_WAIT_EXCLUSIVE     = 0x40,
     NOS_FLAG_CLEAR_ON_EXIT      = 0x80
 } nOS_FlagOption;
 #endif
@@ -896,6 +895,7 @@ struct nOS_Flag
 {
     nOS_Event           e;
     nOS_FlagBits        flags;
+    nOS_FlagBits        excl;
 };
 
 struct nOS_FlagContext
@@ -1677,6 +1677,7 @@ nOS_Error           nOS_ThreadCreate                    (nOS_Thread *thread,
  * Parameters                                                                                                         *
  *   flag          : Pointer to flag object.                                                                          *
  *   flags         : Initial values.                                                                                  *
+ *   excl          : Exclusive flags to send to only one thread (can be used like binary mutexes).                    *
  *                                                                                                                    *
  * Return          : Error code.                                                                                      *
  *   NOS_OK        : Flag successfully created.                                                                       *
@@ -1687,7 +1688,7 @@ nOS_Error           nOS_ThreadCreate                    (nOS_Thread *thread,
  *   2. Must be called one time only for each flag object.                                                            *
  *                                                                                                                    *
  **********************************************************************************************************************/
- nOS_Error          nOS_FlagCreate                      (nOS_Flag *flag, nOS_FlagBits flags);
+ nOS_Error          nOS_FlagCreate                      (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits excl);
 
  #if (NOS_CONFIG_FLAG_DELETE_ENABLE > 0)
 /**********************************************************************************************************************
