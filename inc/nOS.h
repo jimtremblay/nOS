@@ -1121,6 +1121,12 @@ struct nOS_Barrier
  #endif
 #endif
 
+nOS_Error           nOS_WaitOnHold                      (
+#if (NOS_CONFIG_WAITING_TIMEOUT_ENABLE > 0) || (NOS_CONFIG_SLEEP_ENABLE > 0) || (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
+                                                         nOS_TickCounter timeout
+#endif
+                                                        );
+
 /**********************************************************************************************************************
  *                                                                                                                    *
  * Name         : nOS_Init                                                                                            *
@@ -1903,7 +1909,7 @@ nOS_Error           nOS_ThreadCreate                    (nOS_Thread *thread,
 
 #if (NOS_CONFIG_TIMER_ENABLE > 0)
  void               nOS_TimerTick                       (nOS_TickCounter ticks);
- bool               nOS_TimerProcess                    (void);
+ void               nOS_TimerProcess                    (void);
  nOS_Error          nOS_TimerCreate                     (nOS_Timer *timer,
                                                          nOS_TimerCallback callback,
                                                          void *arg,
@@ -1928,10 +1934,11 @@ nOS_Error           nOS_ThreadCreate                    (nOS_Thread *thread,
   nOS_Error         nOS_TimerSetPrio                    (nOS_Timer *timer, uint8_t prio);
  #endif
  bool               nOS_TimerIsRunning                  (nOS_Timer *timer);
+ bool               nOS_TimerAnyTriggered               (void);
 #endif
 
 #if (NOS_CONFIG_SIGNAL_ENABLE > 0)
- bool               nOS_SignalProcess                   (void);
+ void               nOS_SignalProcess                   (void);
  nOS_Error          nOS_SignalCreate                    (nOS_Signal *signal,
                                                          nOS_SignalCallback callback
  #if (NOS_CONFIG_SIGNAL_HIGHEST_PRIO > 0)
@@ -1944,6 +1951,7 @@ nOS_Error           nOS_ThreadCreate                    (nOS_Thread *thread,
  nOS_Error          nOS_SignalSend                      (nOS_Signal *signal, void *arg);
  nOS_Error          nOS_SignalSetCallback               (nOS_Signal *signal, nOS_SignalCallback callback);
  bool               nOS_SignalIsRaised                  (nOS_Signal *signal);
+ bool               nOS_SignalAnyRaised                 (void);
 #endif
 
 #if (NOS_CONFIG_TIME_ENABLE > 0)
@@ -1967,13 +1975,14 @@ nOS_Error           nOS_ThreadCreate                    (nOS_Thread *thread,
 
 #if (NOS_CONFIG_ALARM_ENABLE > 0)
  void               nOS_AlarmTick                       (void);
- bool               nOS_AlarmProcess                    (void);
+ void               nOS_AlarmProcess                    (void);
  nOS_Error          nOS_AlarmCreate                     (nOS_Alarm *alarm, nOS_AlarmCallback callback, void *arg, nOS_Time time);
  #if (NOS_CONFIG_ALARM_DELETE_ENABLE > 0)
   nOS_Error         nOS_AlarmDelete                     (nOS_Alarm *alarm);
  #endif
  nOS_Error          nOS_AlarmSetTime                    (nOS_Alarm *alarm, nOS_Time time);
  nOS_Error          nOS_AlarmSetCallback                (nOS_Alarm *alarm, nOS_AlarmCallback callback, void *arg);
+ bool               nOS_AlarmAnyTriggered               (void);
 #endif
 
 #if (NOS_CONFIG_BARRIER_ENABLE > 0)

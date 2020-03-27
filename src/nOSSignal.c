@@ -35,6 +35,7 @@ extern "C" {
 #endif
 #if (NOS_CONFIG_SIGNAL_THREAD_ENABLE > 0)
  static nOS_Thread              _thread;
+ #define SIGNAL_THREAD_HANDLE   _thread
  #ifdef NOS_SIMULATED_STACK
   static nOS_Stack              _stack;
  #else
@@ -44,6 +45,9 @@ extern "C" {
    static nOS_Stack             _stack[NOS_CONFIG_SIGNAL_THREAD_STACK_SIZE];
   #endif
  #endif
+#elif defined(NOS_CONFIG_SIGNAL_USER_THREAD_HANDLE)
+ extern nOS_Thread              NOS_CONFIG_SIGNAL_USER_THREAD_HANDLE;
+ #define SIGNAL_THREAD_HANDLE   NOS_CONFIG_SIGNAL_USER_THREAD_HANDLE
 #endif
 
 #if (NOS_CONFIG_SIGNAL_HIGHEST_PRIO > 0)
@@ -102,16 +106,16 @@ static void _Thread (void *arg)
     NOS_UNUSED(arg);
 
     while (1) {
-        if (!nOS_SignalProcess()) {
-            nOS_EnterCritical(sr);
-            nOS_WaitForEvent(NULL,
-                             NOS_THREAD_ON_HOLD
+        nOS_SignalProcess();
+        nOS_EnterCritical(sr);
+        if (!nOS_SignalAnyRaised()) {
+            nOS_WaitOnHold(
 #if (NOS_CONFIG_WAITING_TIMEOUT_ENABLE > 0) || (NOS_CONFIG_SLEEP_ENABLE > 0) || (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
-                            ,NOS_WAIT_INFINITE
+                NOS_WAIT_INFINITE
 #endif
-                            );
-            nOS_LeaveCritical(sr);
+                          );
         }
+        nOS_LeaveCritical(sr);
 #if (NOS_CONFIG_THREAD_JOIN_ENABLE > 0)
         if (false) break; /* Remove "statement is unreachable" warning */
     }
@@ -158,13 +162,12 @@ void nOS_InitSignal (void)
 #endif
 }
 
-bool nOS_SignalProcess (void)
+void nOS_SignalProcess (void)
 {
     nOS_StatusReg       sr;
     nOS_Signal          *signal  = NULL;
     nOS_SignalCallback  callback = NULL;
     void                *arg     = NULL;
-    bool                active;
 
     nOS_EnterCritical(sr);
     signal = (nOS_Signal *)_FindHighestPrio();
@@ -182,12 +185,6 @@ bool nOS_SignalProcess (void)
     if (callback != NULL) {
         callback(signal, arg);
     }
-
-    nOS_EnterCritical(sr);
-    active = (_FindHighestPrio() != NULL);
-    nOS_LeaveCritical(sr);
-
-    return active;
 }
 
 nOS_Error nOS_SignalCreate (nOS_Signal *signal,
@@ -294,9 +291,9 @@ nOS_Error nOS_SignalSend (nOS_Signal *signal, void *arg)
             signal->arg   = arg;
             _AppendToList(signal);
 
-#if (NOS_CONFIG_SIGNAL_THREAD_ENABLE > 0)
-            if (_thread.state == (NOS_THREAD_READY | NOS_THREAD_ON_HOLD)) {
-                nOS_WakeUpThread(&_thread, NOS_OK);
+#if (NOS_CONFIG_SIGNAL_THREAD_ENABLE > 0) || defined(NOS_CONFIG_SIGNAL_USER_THREAD_HANDLE)
+            if (SIGNAL_THREAD_HANDLE.state == (NOS_THREAD_READY | NOS_THREAD_ON_HOLD)) {
+                nOS_WakeUpThread(&SIGNAL_THREAD_HANDLE, NOS_OK);
  #if (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
                 /* Verify if have wake up the highest prio thread */
                 nOS_Schedule();
@@ -403,6 +400,18 @@ bool nOS_SignalIsRaised (nOS_Signal *signal)
         }
         nOS_LeaveCritical(sr);
     }
+
+    return raised;
+}
+
+bool nOS_SignalAnyRaised (void)
+{
+    nOS_StatusReg   sr;
+    bool            raised;
+
+    nOS_EnterCritical(sr);
+    raised = (_FindHighestPrio() != NULL);
+    nOS_LeaveCritical(sr);
 
     return raised;
 }

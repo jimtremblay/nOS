@@ -17,7 +17,7 @@ extern "C" {
 typedef struct _TickContext
 {
     nOS_Time    time;
-#if (NOS_CONFIG_ALARM_THREAD_ENABLE > 0)
+#if (NOS_CONFIG_ALARM_THREAD_ENABLE > 0) || defined(NOS_CONFIG_ALARM_USER_THREAD_HANDLE)
     bool        triggered;
 #endif
 } _TickContext;
@@ -31,19 +31,23 @@ typedef struct _TickContext
 #endif
 static  void    _Tick       (void *payload, void *arg);
 
-static nOS_List         _waitingList;
-static nOS_List         _triggeredList;
+static nOS_List                 _waitingList;
+static nOS_List                 _triggeredList;
 #if (NOS_CONFIG_ALARM_THREAD_ENABLE > 0)
- static nOS_Thread      _thread;
+ static nOS_Thread              _thread;
+ #define ALARM_THREAD_HANDLE    _thread
  #ifdef NOS_SIMULATED_STACK
-  static nOS_Stack      _stack;
+  static nOS_Stack              _stack;
  #else
   #ifdef NOS_CONFIG_ALARM_THREAD_STACK_SECTION
-   static nOS_Stack     _stack[NOS_CONFIG_ALARM_THREAD_STACK_SIZE] __attribute__ ( ( section(NOS_CONFIG_ALARM_THREAD_STACK_SECTION) ) );
+   static nOS_Stack             _stack[NOS_CONFIG_ALARM_THREAD_STACK_SIZE] __attribute__ ( ( section(NOS_CONFIG_ALARM_THREAD_STACK_SECTION) ) );
   #else
-   static nOS_Stack     _stack[NOS_CONFIG_ALARM_THREAD_STACK_SIZE];
+   static nOS_Stack             _stack[NOS_CONFIG_ALARM_THREAD_STACK_SIZE];
   #endif
  #endif
+#elif defined(NOS_CONFIG_ALARM_USER_THREAD_HANDLE)
+ extern nOS_Thread              NOS_CONFIG_ALARM_USER_THREAD_HANDLE;
+ #define ALARM_THREAD_HANDLE    NOS_CONFIG_ALARM_USER_THREAD_HANDLE
 #endif
 
 #if (NOS_CONFIG_ALARM_THREAD_ENABLE > 0)
@@ -58,16 +62,16 @@ static void _Thread (void *arg)
     NOS_UNUSED(arg);
 
     while (true) {
-        if (!nOS_AlarmProcess()) {
-            nOS_EnterCritical(sr);
-            nOS_WaitForEvent(NULL,
-                             NOS_THREAD_ON_HOLD
+        nOS_AlarmProcess();
+        nOS_EnterCritical(sr);
+        if (!nOS_AlarmAnyTriggered()) {
+            nOS_WaitOnHold(
 #if (NOS_CONFIG_WAITING_TIMEOUT_ENABLE > 0) || (NOS_CONFIG_SLEEP_ENABLE > 0) || (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
-                            ,NOS_WAIT_INFINITE
+                NOS_WAIT_INFINITE
 #endif
-                            );
-            nOS_LeaveCritical(sr);
+                          );
         }
+        nOS_LeaveCritical(sr);
 #if (NOS_CONFIG_THREAD_JOIN_ENABLE > 0)
         if (false) break; /* Remove "statement is unreachable" warning */
     }
@@ -127,39 +131,31 @@ void nOS_InitAlarm(void)
 #endif
 }
 
-/* Called from critical section if NOS_CONFIG_ALARM_TICK_ENABLE is enabled */
 void nOS_AlarmTick (void)
 {
-#if (NOS_CONFIG_ALARM_TICK_ENABLE == 0)
     nOS_StatusReg   sr;
-#endif
     _TickContext    ctx;
 
-#if (NOS_CONFIG_ALARM_TICK_ENABLE == 0)
     nOS_EnterCritical(sr);
-#endif
     ctx.time = nOS_TimeGet();
-#if (NOS_CONFIG_ALARM_THREAD_ENABLE > 0)
+#if (NOS_CONFIG_ALARM_THREAD_ENABLE > 0) || defined(NOS_CONFIG_ALARM_USER_THREAD_HANDLE)
     ctx.triggered = false;
 #endif
     nOS_WalkInList(&_waitingList, _Tick, &ctx);
-#if (NOS_CONFIG_ALARM_THREAD_ENABLE > 0)
-    if (ctx.triggered && (_thread.state == (NOS_THREAD_READY | NOS_THREAD_ON_HOLD))) {
-        nOS_WakeUpThread(&_thread, NOS_OK);
+#if (NOS_CONFIG_ALARM_THREAD_ENABLE > 0) || defined(NOS_CONFIG_ALARM_USER_THREAD_HANDLE)
+    if (ctx.triggered && (ALARM_THREAD_HANDLE.state == (NOS_THREAD_READY | NOS_THREAD_ON_HOLD))) {
+        nOS_WakeUpThread(&ALARM_THREAD_HANDLE, NOS_OK);
     }
 #endif
-#if (NOS_CONFIG_ALARM_TICK_ENABLE == 0)
     nOS_LeaveCritical(sr);
-#endif
 }
 
-bool nOS_AlarmProcess (void)
+void nOS_AlarmProcess (void)
 {
     nOS_StatusReg       sr;
     nOS_Alarm           *alarm;
     nOS_AlarmCallback   callback = NULL;
     void                *arg;
-    bool                active;
 
     nOS_EnterCritical(sr);
     alarm = (nOS_Alarm*)nOS_GetHeadOfList(&_triggeredList);
@@ -176,12 +172,6 @@ bool nOS_AlarmProcess (void)
     if (callback != NULL) {
         callback(alarm, arg);
     }
-
-    nOS_EnterCritical(sr);
-    active = (nOS_GetHeadOfList(&_triggeredList) != NULL);
-    nOS_LeaveCritical(sr);
-
-    return active;
 }
 
 nOS_Error nOS_AlarmCreate (nOS_Alarm *alarm, nOS_AlarmCallback callback, void *arg, nOS_Time time)
@@ -334,6 +324,18 @@ nOS_Error nOS_AlarmSetCallback (nOS_Alarm *alarm, nOS_AlarmCallback callback, vo
     }
 
     return err;
+}
+
+bool nOS_AlarmAnyTriggered (void)
+{
+    nOS_StatusReg   sr;
+    bool            triggered;
+
+    nOS_EnterCritical(sr);
+    triggered = (nOS_GetHeadOfList(&_triggeredList) != NULL);
+    nOS_LeaveCritical(sr);
+
+    return triggered;
 }
 #endif  /* NOS_CONFIG_TIME_ENABLE && NOS_CONFIG_ALARM_ENABLE */
 

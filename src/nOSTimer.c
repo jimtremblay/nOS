@@ -45,6 +45,7 @@ static nOS_List                 _activeList;
 #endif
 #if (NOS_CONFIG_TIMER_THREAD_ENABLE > 0)
  static nOS_Thread              _thread;
+ #define TIMER_THREAD_HANDLE    _thread
  #ifdef NOS_SIMULATED_STACK
   static nOS_Stack              _stack;
  #else
@@ -54,6 +55,9 @@ static nOS_List                 _activeList;
    static nOS_Stack             _stack[NOS_CONFIG_TIMER_THREAD_STACK_SIZE];
   #endif
  #endif
+#elif defined(NOS_CONFIG_TIMER_USER_THREAD_HANDLE)
+ extern nOS_Thread              NOS_CONFIG_TIMER_USER_THREAD_HANDLE;
+ #define TIMER_THREAD_HANDLE    NOS_CONFIG_TIMER_USER_THREAD_HANDLE
 #endif
 static nOS_TimerCounter         _tickCounter;
 
@@ -115,16 +119,16 @@ static void _Thread (void *arg)
     NOS_UNUSED(arg);
 
     while (true) {
-        if (!nOS_TimerProcess()) {
-            nOS_EnterCritical(sr);
-            nOS_WaitForEvent(NULL,
-                             NOS_THREAD_ON_HOLD
+        nOS_TimerProcess();
+        nOS_EnterCritical(sr);
+        if (!nOS_TimerAnyTriggered()) {
+            nOS_WaitOnHold(
 #if (NOS_CONFIG_WAITING_TIMEOUT_ENABLE > 0) || (NOS_CONFIG_SLEEP_ENABLE > 0) || (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
-                            ,NOS_WAIT_INFINITE
+                NOS_WAIT_INFINITE
 #endif
-                            );
-            nOS_LeaveCritical(sr);
+                          );
         }
+        nOS_LeaveCritical(sr);
 #if (NOS_CONFIG_THREAD_JOIN_ENABLE > 0)
         if (false) break; /* Remove "statement is unreachable" warning */
     }
@@ -219,21 +223,20 @@ void nOS_TimerTick (nOS_TickCounter ticks)
     nOS_EnterCritical(sr);
     nOS_WalkInList(&_activeList, _Tick, &ctx);
 #if (NOS_CONFIG_TIMER_THREAD_ENABLE > 0)
-    if (ctx.triggered && (_thread.state == (NOS_THREAD_READY | NOS_THREAD_ON_HOLD))) {
-        nOS_WakeUpThread(&_thread, NOS_OK);
+    if (ctx.triggered && (TIMER_THREAD_HANDLE.state == (NOS_THREAD_READY | NOS_THREAD_ON_HOLD))) {
+        nOS_WakeUpThread(&TIMER_THREAD_HANDLE, NOS_OK);
     }
 #endif
     _tickCounter += ticks;
     nOS_LeaveCritical(sr);
 }
 
-bool nOS_TimerProcess (void)
+void nOS_TimerProcess (void)
 {
     nOS_StatusReg       sr;
     nOS_Timer           *timer;
     nOS_TimerCallback   callback = NULL;
     void                *arg;
-    bool                active;
 
     nOS_EnterCritical(sr);
     timer = (nOS_Timer*)_FindTriggeredHighestPrio();
@@ -259,12 +262,6 @@ bool nOS_TimerProcess (void)
     if (callback != NULL) {
         callback(timer, arg);
     }
-
-    nOS_EnterCritical(sr);
-    active = (_FindTriggeredHighestPrio() != NULL);
-    nOS_LeaveCritical(sr);
-
-    return active;
 }
 
 nOS_Error nOS_TimerCreate (nOS_Timer *timer,
@@ -675,6 +672,18 @@ bool nOS_TimerIsRunning (nOS_Timer *timer)
     }
 
     return running;
+}
+
+bool nOS_TimerAnyTriggered(void)
+{
+    nOS_StatusReg   sr;
+    bool            triggered;
+
+    nOS_EnterCritical(sr);
+    triggered = (_FindTriggeredHighestPrio() != NULL);
+    nOS_LeaveCritical(sr);
+
+    return triggered;
 }
 #endif  /* NOS_CONFIG_TIMER_ENABLE */
 

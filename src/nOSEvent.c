@@ -87,6 +87,27 @@ nOS_Error nOS_WaitForEvent (nOS_Event *event,
     return err;
 }
 
+nOS_Error nOS_WaitOnHold (
+#if (NOS_CONFIG_WAITING_TIMEOUT_ENABLE > 0) || (NOS_CONFIG_SLEEP_ENABLE > 0) || (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
+                          nOS_TickCounter timeout
+#endif
+                         )
+{
+    nOS_StatusReg   sr;
+    nOS_Error       err;
+
+    nOS_EnterCritical(sr);
+    err = nOS_WaitForEvent(NULL,
+                           NOS_THREAD_ON_HOLD
+#if (NOS_CONFIG_WAITING_TIMEOUT_ENABLE > 0) || (NOS_CONFIG_SLEEP_ENABLE > 0) || (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
+                          ,timeout
+#endif
+                          );
+    nOS_LeaveCritical(sr);
+
+    return err;
+}
+
 nOS_Thread* nOS_SendEvent (nOS_Event *event, nOS_Error err)
 {
     nOS_Thread  *thread;
