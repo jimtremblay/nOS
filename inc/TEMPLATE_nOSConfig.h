@@ -350,11 +350,8 @@
 
 /**********************************************************************************************************************
  *                                                                                                                    *
- * Highest priority a timer can take (0 to 7 inclusively). Set to 0 to disable timer priority with all timers at      *
- * the same priority.                                                                                                 *
- *                                                                                                                    *
- * 0 = Lowest priority                                                                                                *
- * 7 = Highest priority                                                                                               *
+ * Highest priority a timer can take (0 to 255 inclusively). Set to 0 to disable timer priority with all timers at    *
+ * the same priority. Each priority will run in his own thread                                                        *
  *                                                                                                                    *
  * Notes                                                                                                              *
  *   1. It is recommenced to set the timer highest priority adjusted to the minimum required by the application to    *
@@ -385,13 +382,13 @@
 
 /**********************************************************************************************************************
  *                                                                                                                    *
- * Priority of timer thread.                                                                                          *
+ * List of priority for timer thread.                                                                                 *
  *                                                                                                                    *
  * Notes                                                                                                              *
  *   1. Not used if timer thread is disabled.                                                                         *
  *                                                                                                                    *
  **********************************************************************************************************************/
-#define NOS_CONFIG_TIMER_THREAD_PRIO                1
+#define NOS_CONFIG_TIMER_THREAD_PRIO                NOS_CONFIG_HIGHEST_THREAD_PRIO
 
 /**********************************************************************************************************************
  *                                                                                                                    *
@@ -427,13 +424,15 @@
 
 /**********************************************************************************************************************
  *                                                                                                                    *
- * Handle of user thread that will take care of callback when system timer thread is disabled.                        *
+ * List of nOS_Thread objects pointer of user threads that will take care of callbacks when system timer thread is    *
+ * disabled.                                                                                                          *
  *                                                                                                                    *
  * Notes                                                                                                              *
- *   1. Not used if NOS_CONFIG_TIMER_THREAD_ENABLE is higher than 0.                                                  *
+ *   1. Not used if NOS_CONFIG_TIMER_THREAD_ENABLE is set to 1.                                                       *
  *                                                                                                                    *
  **********************************************************************************************************************/
-//#define NOS_CONFIG_TIMER_USER_THREAD_HANDLE         handleThread
+//extern nOS_Thread handleThread;
+//#define NOS_CONFIG_TIMER_USER_THREAD_HANDLE         &handleThread
 
 /**********************************************************************************************************************
  *                                                                                                                    *
@@ -465,11 +464,8 @@
 
 /**********************************************************************************************************************
  *                                                                                                                    *
- * Highest priority a signal can take (0 to 7 inclusively). Set to 0 to disable signal priority with all signals at   *
- * the same priority.                                                                                                 *
- *                                                                                                                    *
- * 0 = Lowest priority                                                                                                *
- * 7 = Highest priority                                                                                               *
+ * Highest priority a signal can take (0 to 255 inclusively). Set to 0 to disable signal priority with all signals at *
+ * the same priority. Each priority will run in his own thread.                                                       *
  *                                                                                                                    *
  * Notes                                                                                                              *
  *   1. It is recommenced to set the signal highest priority adjusted to the minimum required by the application to   *
@@ -490,13 +486,13 @@
 
 /**********************************************************************************************************************
  *                                                                                                                    *
- * Priority of signal thread.                                                                                         *
+ * List of priority for signal thread.                                                                                *
  *                                                                                                                    *
  * Notes                                                                                                              *
  *   1. Not used if signal thread is disabled.                                                                        *
  *                                                                                                                    *
  **********************************************************************************************************************/
-#define NOS_CONFIG_SIGNAL_THREAD_PRIO               1
+#define NOS_CONFIG_SIGNAL_THREAD_PRIO               NOS_CONFIG_HIGHEST_THREAD_PRIO
 
 /**********************************************************************************************************************
  *                                                                                                                    *
@@ -532,13 +528,15 @@
 
 /**********************************************************************************************************************
  *                                                                                                                    *
- * Handle of user thread that will take care of callback when system signal thread is disabled.                       *
+ * List of nOS_Thread objects pointer of user threads that will take care of callbacks when system signal thread is   *
+ * disabled.                                                                                                          *
  *                                                                                                                    *
  * Notes                                                                                                              *
- *   1. Not used if NOS_CONFIG_SIGNAL_THREAD_ENABLE is higher than 0.                                                 *
+ *   1. Not used if NOS_CONFIG_SIGNAL_THREAD_ENABLE is set to 1.                                                      *
  *                                                                                                                    *
  **********************************************************************************************************************/
-//#define NOS_CONFIG_SIGNAL_USER_THREAD_HANDLE        handleThread
+//extern nOS_Thread handleThread;
+//#define NOS_CONFIG_SIGNAL_USER_THREAD_HANDLE        &handleThread
 
 /**********************************************************************************************************************
  *                                                                                                                    *
@@ -672,10 +670,11 @@
  * Handle of user thread that will take care of callback when system alarm thread is disabled.                        *
  *                                                                                                                    *
  * Notes                                                                                                              *
- *   1. Not used if NOS_CONFIG_ALARM_THREAD_ENABLE is higher than 0.                                                  *
+ *   1. Not used if NOS_CONFIG_ALARM_THREAD_ENABLE is set to 1.                                                       *
  *                                                                                                                    *
  **********************************************************************************************************************/
-//#define NOS_CONFIG_ALARM_USER_THREAD_HANDLE         handleThread
+//extern nOS_Thread handleThread;
+//#define NOS_CONFIG_ALARM_USER_THREAD_HANDLE         &handleThread
 
 /**********************************************************************************************************************
  *                                                                                                                    *

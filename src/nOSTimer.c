@@ -31,80 +31,69 @@ typedef struct _TickContext
 #endif
 static  void    _Tick       (void *payload, void *arg);
 
-static nOS_List                 _activeList;
 #if (NOS_CONFIG_TIMER_HIGHEST_PRIO > 0)
- static nOS_List                _triggeredList[NOS_CONFIG_TIMER_HIGHEST_PRIO+1];
- static uint8_t                 _triggeredListByPrio;
- #ifndef NOS_USE_CLZ
-  static NOS_CONST uint8_t      _tableDeBruijn[8] = {
-       0, 5, 1, 6, 4, 3, 2, 7
-   };
- #endif
+ static nOS_List                    _activeList[NOS_CONFIG_TIMER_HIGHEST_PRIO+1];
+ static nOS_List                    _triggeredList[NOS_CONFIG_TIMER_HIGHEST_PRIO+1];
 #else
- static nOS_List                _triggeredList;
+ static nOS_List                    _activeList;
+ static nOS_List                    _triggeredList;
 #endif
 #if (NOS_CONFIG_TIMER_THREAD_ENABLE > 0)
- static nOS_Thread              _thread;
- #define TIMER_THREAD_HANDLE    _thread
- #ifdef NOS_SIMULATED_STACK
-  static nOS_Stack              _stack;
+ #if (NOS_CONFIG_TIMER_HIGHEST_PRIO > 0)
+  static nOS_Thread                 _thread[NOS_CONFIG_TIMER_HIGHEST_PRIO+1];
+  #define _GetTimerThread(p)        (&_thread[p])
+  static NOS_CONST uint8_t          _prio[] = {NOS_CONFIG_TIMER_THREAD_PRIO};
+  NOS_STATIC_ASSERT(NOS_ROW_COUNT(_prio)==(NOS_CONFIG_TIMER_HIGHEST_PRIO+1),Priority_count_mismatch_in_list_NOS_CONFIG_TIMER_THREAD_PRIO);
  #else
-  #ifdef NOS_CONFIG_TIMER_THREAD_STACK_SECTION
-   static nOS_Stack             _stack[NOS_CONFIG_TIMER_THREAD_STACK_SIZE] __attribute__ ( ( section(NOS_CONFIG_TIMER_THREAD_STACK_SECTION) ) );
+  static nOS_Thread                 _thread;
+  #define _GetTimerThread(p)        (&_thread)
+ #endif
+ #ifdef NOS_SIMULATED_STACK
+  #if (NOS_CONFIG_TIMER_HIGHEST_PRIO > 0)
+   static nOS_Stack                 _stack[NOS_CONFIG_TIMER_HIGHEST_PRIO+1];
   #else
-   static nOS_Stack             _stack[NOS_CONFIG_TIMER_THREAD_STACK_SIZE];
+   static nOS_Stack                 _stack;
+  #endif
+ #else
+  #if (NOS_CONFIG_TIMER_HIGHEST_PRIO > 0)
+   static nOS_Stack                 _stack[NOS_CONFIG_TIMER_HIGHEST_PRIO+1][NOS_CONFIG_TIMER_THREAD_STACK_SIZE]
+   #ifdef NOS_CONFIG_TIMER_THREAD_STACK_SECTION
+        __attribute__ ( ( section(NOS_CONFIG_TIMER_THREAD_STACK_SECTION) ) )
+   #endif
+   ;
+  #else
+   static nOS_Stack                 _stack[NOS_CONFIG_TIMER_THREAD_STACK_SIZE]
+   #ifdef NOS_CONFIG_TIMER_THREAD_STACK_SECTION
+        __attribute__ ( ( section(NOS_CONFIG_TIMER_THREAD_STACK_SECTION) ) )
+   #endif
+   ;
   #endif
  #endif
 #elif defined(NOS_CONFIG_TIMER_USER_THREAD_HANDLE)
- extern nOS_Thread              NOS_CONFIG_TIMER_USER_THREAD_HANDLE;
- #define TIMER_THREAD_HANDLE    NOS_CONFIG_TIMER_USER_THREAD_HANDLE
-#endif
-static nOS_TimerCounter         _tickCounter;
-
-#define _AppendToActiveList(t)          nOS_AppendToList(&_activeList, &(t)->node)
-#define _RemoveFromActiveList(t)        nOS_RemoveFromList(&_activeList, &(t)->node)
-#if (NOS_CONFIG_TIMER_HIGHEST_PRIO > 0)
- static inline nOS_Timer* _FindTriggeredHighestPrio (void)
- {
-     uint8_t prio;
-
-     if (_triggeredListByPrio != 0) {
- #ifdef NOS_USE_CLZ
-         prio = (uint8_t)(31 - _CLZ((uint32_t)_triggeredListByPrio));
+ #if (NOS_CONFIG_TIMER_HIGHEST_PRIO > 0)
+  static NOS_CONST nOS_Thread*      _handle[] = {NOS_CONFIG_TIMER_USER_THREAD_HANDLE};
+  #define _GetTimerThread(p)        (_handle[p])
+  NOS_STATIC_ASSERT(NOS_ROW_COUNT(_handle)==(NOS_CONFIG_TIMER_HIGHEST_PRIO+1),Handle_count_mismatch_in_list_NOS_CONFIG_TIMER_USER_THREAD_HANDLE);
  #else
-         prio = _triggeredListByPrio;
-         prio |= prio >> 1; // first round down to one less than a power of 2
-         prio |= prio >> 2;
-         prio |= prio >> 4;
-         prio = (uint8_t)_tableDeBruijn[(uint8_t)(prio * 0x1d) >> 5];
+  #define _GetTimerThread(p)        (NOS_CONFIG_TIMER_USER_THREAD_HANDLE)
  #endif
+#endif
+static nOS_TimerCounter             _tickCounter;
 
-         return (nOS_Timer*)_triggeredList[prio].head->payload;
-     }
-     else {
-         return (nOS_Timer*)NULL;
-     }
- }
- static inline void _AppendToTriggeredList (nOS_Timer *timer)
- {
-     uint8_t prio = timer->prio;
-
-     nOS_AppendToList(&_triggeredList[prio], &timer->trig);
-     _triggeredListByPrio |= (0x00000001UL << prio);
- }
- static inline void _RemoveFromTriggeredList (nOS_Timer *timer)
- {
-     uint8_t prio = timer->prio;
-
-     nOS_RemoveFromList(&_triggeredList[prio], &timer->trig);
-     if (_triggeredList[prio].head == NULL) {
-         _triggeredListByPrio &=~ (0x00000001UL << prio);
-     }
- }
+#if (NOS_CONFIG_TIMER_HIGHEST_PRIO > 0)
+ #define _GetActiveList(p)              (&_activeList[(p)])
+ #define _AppendToActiveList(t)         nOS_AppendToList(&_activeList[(t)->prio], &(t)->node)
+ #define _RemoveFromActiveList(t)       nOS_RemoveFromList(&_activeList[(t)->prio], &(t)->node)
+ #define _AppendToTriggeredList(t)      nOS_AppendToList(&_triggeredList[(t)->prio], &(t)->trig)
+ #define _RemoveFromTriggeredList(t)    nOS_RemoveFromList(&_triggeredList[(t)->prio], &(t)->trig)
+ #define _RotateTriggeredList(t)        nOS_RotateList(&_triggeredList[(t)->prio])
 #else
- #define _FindTriggeredHighestPrio()    nOS_GetHeadOfList(&_triggeredList)
+ #define _GetActiveList(p)              (&_activeList)
+ #define _AppendToActiveList(t)         nOS_AppendToList(&_activeList, &(t)->node)
+ #define _RemoveFromActiveList(t)       nOS_RemoveFromList(&_activeList, &(t)->node)
  #define _AppendToTriggeredList(t)      nOS_AppendToList(&_triggeredList, &(t)->trig)
  #define _RemoveFromTriggeredList(t)    nOS_RemoveFromList(&_triggeredList, &(t)->trig)
+ #define _RotateTriggeredList(t)        nOS_RotateList(&_triggeredList)
 #endif
 
 #if (NOS_CONFIG_TIMER_THREAD_ENABLE > 0)
@@ -115,18 +104,29 @@ static void _Thread (void *arg)
 #endif
 {
     nOS_StatusReg   sr;
-
+#if (NOS_CONFIG_TIMER_HIGHEST_PRIO > 0)
+    unsigned int    prio = (unsigned int)arg;
+#else
     NOS_UNUSED(arg);
+#endif
 
     while (true) {
-        nOS_TimerProcess();
+        nOS_TimerProcess(
+#if (NOS_CONFIG_TIMER_HIGHEST_PRIO > 0)
+            prio
+#endif
+        );
         nOS_EnterCritical(sr);
-        if (!nOS_TimerAnyTriggered()) {
+        if (!nOS_TimerAnyTriggered(
+#if (NOS_CONFIG_TIMER_HIGHEST_PRIO > 0)
+            prio
+#endif
+        )) {
             nOS_WaitOnHold(
 #if (NOS_CONFIG_WAITING_TIMEOUT_ENABLE > 0) || (NOS_CONFIG_SLEEP_ENABLE > 0) || (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
                 NOS_WAIT_INFINITE
 #endif
-                          );
+            );
         }
         nOS_LeaveCritical(sr);
 #if (NOS_CONFIG_THREAD_JOIN_ENABLE > 0)
@@ -174,39 +174,66 @@ static void _Tick (void *payload, void *arg)
 
 void nOS_InitTimer(void)
 {
+    _tickCounter = 0;
 #if (NOS_CONFIG_TIMER_HIGHEST_PRIO > 0)
-    uint8_t i;
-    for (i = 0; i < NOS_CONFIG_TIMER_HIGHEST_PRIO; i++) {
-        nOS_InitList(&_triggeredList[i]);
+    {
+        unsigned int i;
+        for (i = 0; i <= NOS_CONFIG_TIMER_HIGHEST_PRIO; i++) {
+            nOS_InitList(&_activeList[i]);
+            nOS_InitList(&_triggeredList[i]);
+ #if (NOS_CONFIG_TIMER_THREAD_ENABLE > 0)
+            if (_prio[i] <= NOS_CONFIG_HIGHEST_THREAD_PRIO) {
+                nOS_ThreadCreate(&_thread[i],
+                                 _Thread,
+                                 (void*)i
+  #ifdef NOS_SIMULATED_STACK
+                                ,&_stack[i]
+  #else
+                                ,_stack[i]
+  #endif
+                                ,NOS_CONFIG_TIMER_THREAD_STACK_SIZE
+  #ifdef NOS_USE_SEPARATE_CALL_STACK
+                                ,NOS_CONFIG_TIMER_THREAD_CALL_STACK_SIZE
+  #endif
+                                ,_prio[i]
+  #if (NOS_CONFIG_THREAD_SUSPEND_ENABLE > 0)
+                                ,NOS_THREAD_READY
+  #endif
+  #if (NOS_CONFIG_THREAD_NAME_ENABLE > 0)
+                                ,"nOS_Timer #" NOS_STR(i+1)
+  #endif
+                );
+            }
+ #endif
+        }
     }
 #else
-    nOS_InitList(&_triggeredList);
-#endif
-    _tickCounter = 0;
     nOS_InitList(&_activeList);
-#if (NOS_CONFIG_TIMER_THREAD_ENABLE > 0)
+    nOS_InitList(&_triggeredList);
+ #if (NOS_CONFIG_TIMER_THREAD_ENABLE > 0)
     nOS_ThreadCreate(&_thread,
                      _Thread,
                      NULL
- #ifdef NOS_SIMULATED_STACK
+  #ifdef NOS_SIMULATED_STACK
                     ,&_stack
- #else
+  #else
                     ,_stack
- #endif
+  #endif
                     ,NOS_CONFIG_TIMER_THREAD_STACK_SIZE
- #ifdef NOS_USE_SEPARATE_CALL_STACK
+  #ifdef NOS_USE_SEPARATE_CALL_STACK
                     ,NOS_CONFIG_TIMER_THREAD_CALL_STACK_SIZE
- #endif
- #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
+  #endif
+  #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
                     ,NOS_CONFIG_TIMER_THREAD_PRIO
- #endif
- #if (NOS_CONFIG_THREAD_SUSPEND_ENABLE > 0)
+  #endif
+  #if (NOS_CONFIG_THREAD_SUSPEND_ENABLE > 0)
                     ,NOS_THREAD_READY
- #endif
- #if (NOS_CONFIG_THREAD_NAME_ENABLE > 0)
+  #endif
+  #if (NOS_CONFIG_THREAD_NAME_ENABLE > 0)
                     ,"nOS_Timer"
+  #endif
+    );
  #endif
-                    );
 #endif
 }
 
@@ -216,22 +243,33 @@ void nOS_TimerTick (nOS_TickCounter ticks)
     _TickContext    ctx;
 
     ctx.ticks = ticks;
-#if (NOS_CONFIG_TIMER_THREAD_ENABLE > 0)
-    ctx.triggered = false;
-#endif
 
     nOS_EnterCritical(sr);
-    nOS_WalkInList(&_activeList, _Tick, &ctx);
+    {
+        unsigned int i;
+        for (i = 0; i <= NOS_CONFIG_TIMER_HIGHEST_PRIO; i++) {
 #if (NOS_CONFIG_TIMER_THREAD_ENABLE > 0)
-    if (ctx.triggered && (TIMER_THREAD_HANDLE.state == (NOS_THREAD_READY | NOS_THREAD_ON_HOLD))) {
-        nOS_WakeUpThread(&TIMER_THREAD_HANDLE, NOS_OK);
-    }
+            ctx.triggered = false;
 #endif
+            nOS_WalkInList(_GetActiveList(i), _Tick, &ctx);
+#if (NOS_CONFIG_TIMER_THREAD_ENABLE > 0) || defined(NOS_CONFIG_TIMER_USER_THREAD_HANDLE)
+            if (ctx.triggered && (_GetTimerThread(i)->state == (NOS_THREAD_READY | NOS_THREAD_ON_HOLD))) {
+                nOS_WakeUpThread(_GetTimerThread(i), NOS_OK);
+            }
+#endif
+        }
+    }
     _tickCounter += ticks;
     nOS_LeaveCritical(sr);
 }
 
-void nOS_TimerProcess (void)
+void nOS_TimerProcess (
+#if (NOS_CONFIG_TIMER_HIGHEST_PRIO > 0)
+    uint8_t prio
+#else
+    void
+#endif
+)
 {
     nOS_StatusReg       sr;
     nOS_Timer           *timer;
@@ -239,18 +277,20 @@ void nOS_TimerProcess (void)
     void                *arg;
 
     nOS_EnterCritical(sr);
-    timer = (nOS_Timer*)_FindTriggeredHighestPrio();
+    timer = (nOS_Timer*)nOS_GetHeadOfList(
+#if (NOS_CONFIG_TIMER_HIGHEST_PRIO > 0)
+        &_triggeredList[prio]
+#else
+        &_triggeredList
+#endif
+    );
     if (timer != NULL) {
         timer->overflow--;
         if (timer->overflow == 0) {
             _RemoveFromTriggeredList(timer);
         }
         else {
-#if (NOS_CONFIG_TIMER_HIGHEST_PRIO > 0)
-            nOS_RotateList(&_triggeredList[timer->prio]);
-#else
-            nOS_RotateList(&_triggeredList);
-#endif
+            _RotateTriggeredList(timer);
         }
 
         /* Call callback function outside of critical section */
@@ -632,6 +672,7 @@ nOS_Error nOS_TimerSetPrio (nOS_Timer *timer, uint8_t prio)
         } else
 #endif
         {
+            _RemoveFromActiveList(timer);
             if (timer->overflow > 0) {
                 _RemoveFromTriggeredList(timer);
             }
@@ -639,6 +680,7 @@ nOS_Error nOS_TimerSetPrio (nOS_Timer *timer, uint8_t prio)
             if (timer->overflow > 0) {
                 _AppendToTriggeredList(timer);
             }
+            _AppendToActiveList(timer);
             err = NOS_OK;
         }
         nOS_LeaveCritical(sr);
@@ -674,13 +716,25 @@ bool nOS_TimerIsRunning (nOS_Timer *timer)
     return running;
 }
 
-bool nOS_TimerAnyTriggered(void)
+bool nOS_TimerAnyTriggered(
+#if (NOS_CONFIG_TIMER_HIGHEST_PRIO > 0)
+    uint8_t prio
+#else
+    void
+#endif
+)
 {
     nOS_StatusReg   sr;
     bool            triggered;
 
     nOS_EnterCritical(sr);
-    triggered = (_FindTriggeredHighestPrio() != NULL);
+    triggered = (nOS_GetHeadOfList(
+#if (NOS_CONFIG_TIMER_HIGHEST_PRIO > 0)
+                &_triggeredList[prio]
+#else
+                &_triggeredList
+#endif
+    ) != NULL);
     nOS_LeaveCritical(sr);
 
     return triggered;

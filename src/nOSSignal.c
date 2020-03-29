@@ -23,73 +23,54 @@ extern "C" {
 #endif
 
 #if (NOS_CONFIG_SIGNAL_HIGHEST_PRIO > 0)
- static nOS_List                _list[NOS_CONFIG_SIGNAL_HIGHEST_PRIO+1];
- static uint8_t                 _listByPrio;
- #ifndef NOS_USE_CLZ
-  static NOS_CONST uint8_t      _tableDeBruijn[8] = {
-       0, 5, 1, 6, 4, 3, 2, 7
-   };
- #endif
+ static nOS_List                    _list[NOS_CONFIG_SIGNAL_HIGHEST_PRIO+1];
 #else
- static nOS_List                _list;
+ static nOS_List                    _list;
 #endif
 #if (NOS_CONFIG_SIGNAL_THREAD_ENABLE > 0)
- static nOS_Thread              _thread;
- #define SIGNAL_THREAD_HANDLE   _thread
- #ifdef NOS_SIMULATED_STACK
-  static nOS_Stack              _stack;
+ #if (NOS_CONFIG_SIGNAL_HIGHEST_PRIO > 0)
+  static nOS_Thread                 _thread[NOS_CONFIG_SIGNAL_HIGHEST_PRIO+1];
+  #define _GetSignalThread(s)       (&_thread[(s)->prio])
+  static NOS_CONST uint8_t          _prio[] = {NOS_CONFIG_SIGNAL_THREAD_PRIO};
+  NOS_STATIC_ASSERT(NOS_ROW_COUNT(_prio)==(NOS_CONFIG_SIGNAL_HIGHEST_PRIO+1),Priority_count_mismatch_in_list_NOS_CONFIG_SIGNAL_THREAD_PRIO);
  #else
-  #ifdef NOS_CONFIG_SIGNAL_THREAD_STACK_SECTION
-   static nOS_Stack             _stack[NOS_CONFIG_SIGNAL_THREAD_STACK_SIZE] __attribute__ ( ( section(NOS_CONFIG_SIGNAL_THREAD_STACK_SECTION) ) );
+  static nOS_Thread                 _thread;
+  #define _GetSignalThread(s)       (&_thread)
+ #endif
+ #ifdef NOS_SIMULATED_STACK
+  #if (NOS_CONFIG_SIGNAL_HIGHEST_PRIO > 0)
+   static nOS_Stack                 _stack[NOS_CONFIG_SIGNAL_HIGHEST_PRIO+1];
   #else
-   static nOS_Stack             _stack[NOS_CONFIG_SIGNAL_THREAD_STACK_SIZE];
+   static nOS_Stack                 _stack;
+  #endif
+ #else
+  #if (NOS_CONFIG_SIGNAL_HIGHEST_PRIO > 0)
+   static nOS_Stack                 _stack[NOS_CONFIG_SIGNAL_HIGHEST_PRIO+1][NOS_CONFIG_SIGNAL_THREAD_STACK_SIZE]
+   #ifdef NOS_CONFIG_SIGNAL_THREAD_STACK_SECTION
+        __attribute__ ( ( section(NOS_CONFIG_SIGNAL_THREAD_STACK_SECTION) ) )
+   #endif
+   ;
+  #else
+   static nOS_Stack                 _stack[NOS_CONFIG_SIGNAL_THREAD_STACK_SIZE]
+   #ifdef NOS_CONFIG_SIGNAL_THREAD_STACK_SECTION
+        __attribute__ ( ( section(NOS_CONFIG_SIGNAL_THREAD_STACK_SECTION) ) )
+   #endif
+   ;
   #endif
  #endif
 #elif defined(NOS_CONFIG_SIGNAL_USER_THREAD_HANDLE)
- extern nOS_Thread              NOS_CONFIG_SIGNAL_USER_THREAD_HANDLE;
- #define SIGNAL_THREAD_HANDLE   NOS_CONFIG_SIGNAL_USER_THREAD_HANDLE
-#endif
-
-#if (NOS_CONFIG_SIGNAL_HIGHEST_PRIO > 0)
- static inline nOS_Signal* _FindHighestPrio (void)
- {
-     uint8_t prio;
-
-     if (_listByPrio != 0) {
- #ifdef NOS_USE_CLZ
-         prio = (uint8_t)(31 - _CLZ((uint32_t)_listByPrio));
+ #if (NOS_CONFIG_SIGNAL_HIGHEST_PRIO > 0)
+  static NOS_CONST nOS_Thread*      _handle[] = {NOS_CONFIG_SIGNAL_USER_THREAD_HANDLE};
+  #define _GetSignalThread(s)       (_handle[(s)->prio])
+  NOS_STATIC_ASSERT(NOS_ROW_COUNT(_handle)==(NOS_CONFIG_SIGNAL_HIGHEST_PRIO+1),Handle_count_mismatch_in_list_NOS_CONFIG_SIGNAL_USER_THREAD_HANDLE);
  #else
-         prio = _listByPrio;
-         prio |= prio >> 1; // first round down to one less than a power of 2
-         prio |= prio >> 2;
-         prio |= prio >> 4;
-         prio = (uint8_t)_tableDeBruijn[(uint8_t)(prio * 0x1d) >> 5];
+  #define _GetSignalThread(s)       (NOS_CONFIG_SIGNAL_USER_THREAD_HANDLE)
  #endif
-
-         return (nOS_Signal*)_list[prio].head->payload;
-     }
-     else {
-         return (nOS_Signal*)NULL;
-     }
- }
- static inline void _AppendToList (nOS_Signal *signal)
- {
-     uint8_t prio = signal->prio;
-
-     nOS_AppendToList(&_list[prio], &signal->node);
-     _listByPrio |= (0x00000001UL << prio);
- }
- static inline void _RemoveFromList (nOS_Signal *signal)
- {
-     uint8_t prio = signal->prio;
-
-     nOS_RemoveFromList(&_list[prio], &signal->node);
-     if (_list[prio].head == NULL) {
-         _listByPrio &=~ (0x00000001UL << prio);
-     }
- }
+#endif
+#if (NOS_CONFIG_SIGNAL_HIGHEST_PRIO > 0)
+ #define _AppendToList(s)                   nOS_AppendToList(&_list[(s)->prio], &(s)->node)
+ #define _RemoveFromList(s)                 nOS_RemoveFromList(&_list[(s)->prio], &(s)->node)
 #else
- #define _FindHighestPrio()                 nOS_GetHeadOfList(&_list)
  #define _AppendToList(s)                   nOS_AppendToList(&_list, &(s)->node)
  #define _RemoveFromList(s)                 nOS_RemoveFromList(&_list, &(s)->node)
 #endif
@@ -102,18 +83,29 @@ static void _Thread (void *arg)
 #endif
 {
     nOS_StatusReg   sr;
-
+#if (NOS_CONFIG_SIGNAL_HIGHEST_PRIO > 0)
+    unsigned int    prio = (unsigned int)arg;
+#else
     NOS_UNUSED(arg);
+#endif
 
     while (1) {
-        nOS_SignalProcess();
+        nOS_SignalProcess(
+#if (NOS_CONFIG_SIGNAL_HIGHEST_PRIO > 0)
+            prio
+#endif
+        );
         nOS_EnterCritical(sr);
-        if (!nOS_SignalAnyRaised()) {
+        if (!nOS_SignalAnyRaised(
+#if (NOS_CONFIG_SIGNAL_HIGHEST_PRIO > 0)
+            prio
+#endif
+        )) {
             nOS_WaitOnHold(
 #if (NOS_CONFIG_WAITING_TIMEOUT_ENABLE > 0) || (NOS_CONFIG_SLEEP_ENABLE > 0) || (NOS_CONFIG_SLEEP_UNTIL_ENABLE > 0)
                 NOS_WAIT_INFINITE
 #endif
-                          );
+            );
         }
         nOS_LeaveCritical(sr);
 #if (NOS_CONFIG_THREAD_JOIN_ENABLE > 0)
@@ -129,40 +121,72 @@ static void _Thread (void *arg)
 void nOS_InitSignal (void)
 {
 #if (NOS_CONFIG_SIGNAL_HIGHEST_PRIO > 0)
-    uint8_t i;
-    for (i = 0; i < NOS_CONFIG_SIGNAL_HIGHEST_PRIO; i++) {
-        nOS_InitList(&_list[i]);
+    {
+        unsigned int i;
+        for (i = 0; i <= NOS_CONFIG_SIGNAL_HIGHEST_PRIO; i++) {
+            nOS_InitList(&_list[i]);
+ #if (NOS_CONFIG_SIGNAL_THREAD_ENABLE > 0)
+            if (_prio[i] <= NOS_CONFIG_HIGHEST_THREAD_PRIO) {
+                nOS_ThreadCreate(&_thread[i],
+                                 _Thread,
+                                 (void*)i
+  #ifdef NOS_SIMULATED_STACK
+                                ,&_stack[i]
+  #else
+                                ,_stack[i]
+  #endif
+                                ,NOS_CONFIG_SIGNAL_THREAD_STACK_SIZE
+  #ifdef NOS_USE_SEPARATE_CALL_STACK
+                                ,NOS_CONFIG_SIGNAL_THREAD_CALL_STACK_SIZE
+  #endif
+                                ,_prio[i]
+  #if (NOS_CONFIG_THREAD_SUSPEND_ENABLE > 0)
+                                ,NOS_THREAD_READY
+  #endif
+  #if (NOS_CONFIG_THREAD_NAME_ENABLE > 0)
+                                ,"nOS_Signal #" NOS_STR(i+1)
+  #endif
+                );
+            }
+        }
+ #endif
     }
 #else
     nOS_InitList(&_list);
-#endif
-#if (NOS_CONFIG_SIGNAL_THREAD_ENABLE > 0)
+ #if (NOS_CONFIG_SIGNAL_THREAD_ENABLE > 0)
     nOS_ThreadCreate(&_thread,
                      _Thread,
                      NULL
- #ifdef NOS_SIMULATED_STACK
+  #ifdef NOS_SIMULATED_STACK
                     ,&_stack
- #else
+  #else
                     ,_stack
- #endif
+  #endif
                     ,NOS_CONFIG_SIGNAL_THREAD_STACK_SIZE
- #ifdef NOS_USE_SEPARATE_CALL_STACK
+  #ifdef NOS_USE_SEPARATE_CALL_STACK
                     ,NOS_CONFIG_SIGNAL_THREAD_CALL_STACK_SIZE
- #endif
- #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
+  #endif
+  #if (NOS_CONFIG_HIGHEST_THREAD_PRIO > 0)
                     ,NOS_CONFIG_SIGNAL_THREAD_PRIO
- #endif
- #if (NOS_CONFIG_THREAD_SUSPEND_ENABLE > 0)
+  #endif
+  #if (NOS_CONFIG_THREAD_SUSPEND_ENABLE > 0)
                     ,NOS_THREAD_READY
- #endif
- #if (NOS_CONFIG_THREAD_NAME_ENABLE > 0)
+  #endif
+  #if (NOS_CONFIG_THREAD_NAME_ENABLE > 0)
                     ,"nOS_Signal"
+  #endif
+    );
  #endif
-                    );
 #endif
 }
 
-void nOS_SignalProcess (void)
+void nOS_SignalProcess (
+#if (NOS_CONFIG_SIGNAL_HIGHEST_PRIO > 0)
+    uint8_t prio
+#else
+    void
+#endif
+)
 {
     nOS_StatusReg       sr;
     nOS_Signal          *signal  = NULL;
@@ -170,7 +194,13 @@ void nOS_SignalProcess (void)
     void                *arg     = NULL;
 
     nOS_EnterCritical(sr);
-    signal = (nOS_Signal *)_FindHighestPrio();
+    signal = (nOS_Signal *)nOS_GetHeadOfList(
+#if (NOS_CONFIG_SIGNAL_HIGHEST_PRIO > 0)
+        &_list[prio]
+#else
+        &_list
+#endif
+    );
     if (signal != NULL) {
         if (signal->state & NOS_SIGNAL_RAISED) {
             signal->state = (nOS_SignalState)(signal->state &~ NOS_SIGNAL_RAISED);
@@ -292,8 +322,8 @@ nOS_Error nOS_SignalSend (nOS_Signal *signal, void *arg)
             _AppendToList(signal);
 
 #if (NOS_CONFIG_SIGNAL_THREAD_ENABLE > 0) || defined(NOS_CONFIG_SIGNAL_USER_THREAD_HANDLE)
-            if (SIGNAL_THREAD_HANDLE.state == (NOS_THREAD_READY | NOS_THREAD_ON_HOLD)) {
-                nOS_WakeUpThread(&SIGNAL_THREAD_HANDLE, NOS_OK);
+            if (_GetSignalThread(signal)->state == (NOS_THREAD_READY | NOS_THREAD_ON_HOLD)) {
+                nOS_WakeUpThread((nOS_Thread*)_GetSignalThread(signal), NOS_OK);
  #if (NOS_CONFIG_SCHED_PREEMPTIVE_ENABLE > 0)
                 /* Verify if have wake up the highest prio thread */
                 nOS_Schedule();
@@ -404,13 +434,25 @@ bool nOS_SignalIsRaised (nOS_Signal *signal)
     return raised;
 }
 
-bool nOS_SignalAnyRaised (void)
+bool nOS_SignalAnyRaised (
+#if (NOS_CONFIG_SIGNAL_HIGHEST_PRIO > 0)
+    uint8_t prio
+#else
+    void
+#endif
+)
 {
     nOS_StatusReg   sr;
     bool            raised;
 
     nOS_EnterCritical(sr);
-    raised = (_FindHighestPrio() != NULL);
+    raised = (nOS_GetHeadOfList(
+#if (NOS_CONFIG_SIGNAL_HIGHEST_PRIO > 0)
+                &_list[prio]
+#else
+                &_list
+#endif
+    ) != NULL);
     nOS_LeaveCritical(sr);
 
     return raised;

@@ -35,7 +35,7 @@ static nOS_List                 _waitingList;
 static nOS_List                 _triggeredList;
 #if (NOS_CONFIG_ALARM_THREAD_ENABLE > 0)
  static nOS_Thread              _thread;
- #define ALARM_THREAD_HANDLE    _thread
+ #define _GetAlarmThread()      (&_thread)
  #ifdef NOS_SIMULATED_STACK
   static nOS_Stack              _stack;
  #else
@@ -46,8 +46,7 @@ static nOS_List                 _triggeredList;
   #endif
  #endif
 #elif defined(NOS_CONFIG_ALARM_USER_THREAD_HANDLE)
- extern nOS_Thread              NOS_CONFIG_ALARM_USER_THREAD_HANDLE;
- #define ALARM_THREAD_HANDLE    NOS_CONFIG_ALARM_USER_THREAD_HANDLE
+ #define _GetAlarmThread()      (NOS_CONFIG_ALARM_USER_THREAD_HANDLE)
 #endif
 
 #if (NOS_CONFIG_ALARM_THREAD_ENABLE > 0)
@@ -143,8 +142,8 @@ void nOS_AlarmTick (void)
 #endif
     nOS_WalkInList(&_waitingList, _Tick, &ctx);
 #if (NOS_CONFIG_ALARM_THREAD_ENABLE > 0) || defined(NOS_CONFIG_ALARM_USER_THREAD_HANDLE)
-    if (ctx.triggered && (ALARM_THREAD_HANDLE.state == (NOS_THREAD_READY | NOS_THREAD_ON_HOLD))) {
-        nOS_WakeUpThread(&ALARM_THREAD_HANDLE, NOS_OK);
+    if (ctx.triggered && (_GetAlarmThread()->state == (NOS_THREAD_READY | NOS_THREAD_ON_HOLD))) {
+        nOS_WakeUpThread(_GetAlarmThread(), NOS_OK);
     }
 #endif
     nOS_LeaveCritical(sr);
