@@ -310,12 +310,12 @@ typedef struct nOS_Barrier          nOS_Barrier;
  #elif (NOS_CONFIG_MEM_DELETE_ENABLE != 0) && (NOS_CONFIG_MEM_DELETE_ENABLE != 1)
   #error "nOSConfig.h: NOS_CONFIG_MEM_DELETE_ENABLE is set to invalid value: must be set to 0 or 1."
  #endif
-  #ifndef NOS_CONFIG_MEM_BLOCK_SIZE_WIDTH
+ #ifndef NOS_CONFIG_MEM_BLOCK_SIZE_WIDTH
   #error "nOSConfig.h: NOS_CONFIG_MEM_BLOCK_SIZE_WIDTH is not defined: must be set to 8, 16, 32, or 64."
  #elif (NOS_CONFIG_MEM_BLOCK_SIZE_WIDTH != 8) && (NOS_CONFIG_MEM_BLOCK_SIZE_WIDTH != 16) && (NOS_CONFIG_MEM_BLOCK_SIZE_WIDTH != 32) && (NOS_CONFIG_MEM_BLOCK_SIZE_WIDTH != 64)
   #error "nOSConfig.h: NOS_CONFIG_MEM_BLOCK_SIZE_WIDTH is set to invalid value: must be set to 8, 16, 32 or 64."
  #endif
-  #ifndef NOS_CONFIG_MEM_BLOCK_COUNT_WIDTH
+ #ifndef NOS_CONFIG_MEM_BLOCK_COUNT_WIDTH
   #error "nOSConfig.h: NOS_CONFIG_MEM_BLOCK_COUNT_WIDTH is not defined: must be set to 8, 16, 32, or 64."
  #elif (NOS_CONFIG_MEM_BLOCK_COUNT_WIDTH != 8) && (NOS_CONFIG_MEM_BLOCK_COUNT_WIDTH != 16) && (NOS_CONFIG_MEM_BLOCK_COUNT_WIDTH != 32) && (NOS_CONFIG_MEM_BLOCK_COUNT_WIDTH != 64)
   #error "nOSConfig.h: NOS_CONFIG_MEM_BLOCK_COUNT_WIDTH is set to invalid value: must be set to 8, 16, 32 or 64."
@@ -400,6 +400,11 @@ typedef struct nOS_Barrier          nOS_Barrier;
  #elif (NOS_CONFIG_SIGNAL_DELETE_ENABLE != 0) && (NOS_CONFIG_SIGNAL_DELETE_ENABLE != 1)
   #error "nOSConfig.h: NOS_CONFIG_SIGNAL_DELETE_ENABLE is set to invalid value: must be set to 0 or 1."
  #endif
+ #ifndef NOS_CONFIG_SIGNAL_COUNT_WIDTH
+  #error "nOSConfig.h: NOS_CONFIG_SIGNAL_COUNT_WIDTH is not defined: must be set to 8, 16, 32, or 64."
+ #elif (NOS_CONFIG_SIGNAL_COUNT_WIDTH != 8) && (NOS_CONFIG_SIGNAL_COUNT_WIDTH != 16) && (NOS_CONFIG_SIGNAL_COUNT_WIDTH != 32) && (NOS_CONFIG_SIGNAL_COUNT_WIDTH != 64)
+  #error "nOSConfig.h: NOS_CONFIG_SIGNAL_COUNT_WIDTH is set to invalid value: must be set to 8, 16, 32 or 64."
+ #endif
  #ifndef NOS_CONFIG_SIGNAL_HIGHEST_PRIO
   #error "nOSConfig.h: NOS_CONFIG_SIGNAL_HIGHEST_PRIO is not defined: must be set between 0 and 255 inclusively."
  #elif (NOS_CONFIG_SIGNAL_HIGHEST_PRIO < 0) || (NOS_CONFIG_SIGNAL_HIGHEST_PRIO > 255)
@@ -429,6 +434,7 @@ typedef struct nOS_Barrier          nOS_Barrier;
  #endif
 #else
  #undef NOS_CONFIG_SIGNAL_DELETE_ENABLE
+ #undef NOS_CONFIG_SIGNAL_COUNT_WIDTH
  #undef NOS_CONFIG_SIGNAL_HIGHEST_PRIO
  #undef NOS_CONFIG_SIGNAL_THREAD_ENABLE
  #undef NOS_CONFIG_SIGNAL_THREAD_PRIO
@@ -631,6 +637,17 @@ typedef struct nOS_Barrier          nOS_Barrier;
   typedef uint64_t                  nOS_Time;
  #endif
 #endif
+#if (NOS_CONFIG_SIGNAL_ENABLE > 0)
+ #if (NOS_CONFIG_SIGNAL_COUNT_WIDTH == 8)
+  typedef uint8_t                   nOS_SignalCounter;
+ #elif (NOS_CONFIG_SIGNAL_COUNT_WIDTH == 16)
+  typedef uint16_t                  nOS_SignalCounter;
+ #elif (NOS_CONFIG_SIGNAL_COUNT_WIDTH == 32)
+  typedef uint32_t                  nOS_SignalCounter;
+ #elif (NOS_CONFIG_SIGNAL_COUNT_WIDTH == 64)
+  typedef uint64_t                  nOS_SignalCounter;
+ #endif
+#endif
 
 typedef enum nOS_Error
 {
@@ -731,11 +748,10 @@ typedef enum nOS_TimerState
 } nOS_TimerState;
 #endif
 
-#if (NOS_CONFIG_SIGNAL_ENABLE > 0)
+#if (NOS_CONFIG_SIGNAL_ENABLE > 0) && (NOS_CONFIG_SAFE > 0)
 typedef enum nOS_SignalState
 {
     NOS_SIGNAL_DELETED          = 0x00,
-    NOS_SIGNAL_RAISED           = 0x01,
     NOS_SIGNAL_CREATED          = 0x80
 } nOS_SignalState;
 #endif
@@ -937,9 +953,15 @@ struct nOS_Timer
 #if (NOS_CONFIG_SIGNAL_ENABLE > 0)
 struct nOS_Signal
 {
+#if (NOS_CONFIG_SAFE > 0)
     nOS_SignalState     state;
+#endif
     nOS_SignalCallback  callback;
-    void                *arg;
+    void                **buffer;
+    nOS_SignalCounter   count;
+    nOS_SignalCounter   max;
+    nOS_SignalCounter   r;
+    nOS_SignalCounter   w;
 #if (NOS_CONFIG_SIGNAL_HIGHEST_PRIO > 0)
     uint8_t             prio;
 #endif
@@ -1023,6 +1045,16 @@ struct nOS_Barrier
  #define NOS_TIMER_COUNT_MAX        UINT32_MAX
 #elif (NOS_CONFIG_TIMER_COUNT_WIDTH == 64)
  #define NOS_TIMER_COUNT_MAX        UINT64_MAX
+#endif
+
+#if (NOS_CONFIG_SIGNAL_COUNT_WIDTH == 8)
+ #define NOS_SIGNAL_COUNT_MAX       UINT8_MAX
+#elif (NOS_CONFIG_SIGNAL_COUNT_WIDTH == 16)
+ #define NOS_SIGNAL_COUNT_MAX       UINT16_MAX
+#elif (NOS_CONFIG_SIGNAL_COUNT_WIDTH == 32)
+ #define NOS_SIGNAL_COUNT_MAX       UINT32_MAX
+#elif (NOS_CONFIG_SIGNAL_COUNT_WIDTH == 64)
+ #define NOS_SIGNAL_COUNT_MAX       UINT64_MAX
 #endif
 
 #define NOS_MUTEX_PRIO_INHERIT      0
@@ -1955,7 +1987,9 @@ nOS_Error           nOS_ThreadCreate                    (nOS_Thread *thread,
  #endif
                                                         );
  nOS_Error          nOS_SignalCreate                    (nOS_Signal *signal,
-                                                         nOS_SignalCallback callback
+                                                         nOS_SignalCallback callback,
+                                                         void **buffer,
+                                                         nOS_SignalCounter max
  #if (NOS_CONFIG_SIGNAL_HIGHEST_PRIO > 0)
                                                         ,uint8_t prio
  #endif
@@ -1965,7 +1999,8 @@ nOS_Error           nOS_ThreadCreate                    (nOS_Thread *thread,
  #endif
  nOS_Error          nOS_SignalSend                      (nOS_Signal *signal, void *arg);
  nOS_Error          nOS_SignalSetCallback               (nOS_Signal *signal, nOS_SignalCallback callback);
- bool               nOS_SignalIsRaised                  (nOS_Signal *signal);
+ #define            nOS_SignalIsRaised(s)               (nOS_SignalGetCount(s) > 0)
+ nOS_SignalCounter  nOS_SignalGetCount                  (nOS_Signal *signal);
  bool               nOS_SignalAnyRaised                 (
  #if (NOS_CONFIG_SIGNAL_HIGHEST_PRIO > 0)
                                                          uint8_t prio

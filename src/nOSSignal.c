@@ -70,9 +70,11 @@ extern "C" {
 #if (NOS_CONFIG_SIGNAL_HIGHEST_PRIO > 0)
  #define _AppendToList(s)                   nOS_AppendToList(&_list[(s)->prio], &(s)->node)
  #define _RemoveFromList(s)                 nOS_RemoveFromList(&_list[(s)->prio], &(s)->node)
+ #define _RotateList(s)                     nOS_RotateList(&_list[(s)->prio])
 #else
  #define _AppendToList(s)                   nOS_AppendToList(&_list, &(s)->node)
  #define _RemoveFromList(s)                 nOS_RemoveFromList(&_list, &(s)->node)
+ #define _RotateList(s)                     nOS_RotateList(&_list)
 #endif
 
 #if (NOS_CONFIG_SIGNAL_THREAD_ENABLE > 0)
@@ -202,12 +204,21 @@ void nOS_SignalProcess (
 #endif
     );
     if (signal != NULL) {
-        if (signal->state & NOS_SIGNAL_RAISED) {
-            signal->state = (nOS_SignalState)(signal->state &~ NOS_SIGNAL_RAISED);
-            _RemoveFromList(signal);
+        if (signal->count > 0) {
+            signal->count--;
+            if (signal->count == 0) {
+                _RemoveFromList(signal);
+            } else {
+                _RotateList(signal);
+            }
 
             callback = signal->callback;
-            arg      = signal->arg;
+            if (signal->buffer != NULL) {
+                arg = signal->buffer[signal->r];
+                signal->r = (signal->r + 1) % signal->max;
+            } else if (signal->max == 1) {
+                arg = (void*)signal->buffer;
+            }
         }
     }
     nOS_LeaveCritical(sr);
@@ -218,7 +229,9 @@ void nOS_SignalProcess (
 }
 
 nOS_Error nOS_SignalCreate (nOS_Signal *signal,
-                            nOS_SignalCallback callback
+                            nOS_SignalCallback callback,
+                            void **buffer,
+                            nOS_SignalCounter max
 #if (NOS_CONFIG_SIGNAL_HIGHEST_PRIO > 0)
                             ,uint8_t prio
 #endif
@@ -232,6 +245,9 @@ nOS_Error nOS_SignalCreate (nOS_Signal *signal,
         err = NOS_E_INV_OBJ;
     }
     else if (callback == NULL) {
+        err = NOS_E_INV_VAL;
+    }
+    else if (max == 0) {
         err = NOS_E_INV_VAL;
     } else
  #if (NOS_CONFIG_SIGNAL_HIGHEST_PRIO > 0)
@@ -248,8 +264,15 @@ nOS_Error nOS_SignalCreate (nOS_Signal *signal,
         } else
 #endif
         {
+#if (NOS_CONFIG_SAFE > 0)
             signal->state        = NOS_SIGNAL_CREATED;
+#endif
             signal->callback     = callback;
+            signal->buffer       = buffer;
+            signal->count        = 0;
+            signal->max          = max;
+            signal->r            = 0;
+            signal->w            = 0;
 #if (NOS_CONFIG_SIGNAL_HIGHEST_PRIO > 0)
             signal->prio         = prio;
 #endif
@@ -282,10 +305,18 @@ nOS_Error nOS_SignalDelete (nOS_Signal *signal)
         } else
 #endif
         {
-            if (signal->state & NOS_SIGNAL_RAISED) {
+            if (signal->count > 0) {
                 _RemoveFromList(signal);
             }
-            signal->state           = NOS_SIGNAL_DELETED;
+#if (NOS_CONFIG_SAFE > 0)
+            signal->state       = NOS_SIGNAL_DELETED;
+#endif
+            signal->callback    = NULL;
+            signal->buffer      = NULL;
+            signal->count       = 0;
+            signal->max         = 0;
+            signal->r           = 0;
+            signal->w           = 0;
 
             err = NOS_OK;
         }
@@ -313,13 +344,19 @@ nOS_Error nOS_SignalSend (nOS_Signal *signal, void *arg)
             err = NOS_E_INV_OBJ;
         } else
 #endif
-        if (signal->state & NOS_SIGNAL_RAISED) {
+        if (signal->count == signal->max) {
             err = NOS_E_OVERFLOW;
-        }
-        else {
-            signal->state = (nOS_SignalState)(signal->state | NOS_SIGNAL_RAISED);
-            signal->arg   = arg;
-            _AppendToList(signal);
+        } else {
+            signal->count++;
+            if (signal->buffer != NULL) {
+                signal->buffer[signal->w] = arg;
+                signal->w = (signal->w + 1) % signal->max;
+            } else if (signal->max == 1) {
+                signal->buffer = (void**)arg;
+            }
+            if (signal->count == 1) {
+                _AppendToList(signal);
+            }
 
 #if (NOS_CONFIG_SIGNAL_THREAD_ENABLE > 0) || defined(NOS_CONFIG_SIGNAL_USER_THREAD_HANDLE)
             if (_GetSignalThread(signal)->state == (NOS_THREAD_READY | NOS_THREAD_ON_HOLD)) {
@@ -391,11 +428,11 @@ nOS_Error nOS_SignalSetPrio (nOS_Signal *signal, uint8_t prio)
         } else
 #endif
         {
-            if (signal->state & NOS_SIGNAL_RAISED) {
+            if (signal->count > 0) {
                 _RemoveFromList(signal);
             }
             signal->prio = prio;
-            if (signal->state & NOS_SIGNAL_RAISED) {
+            if (signal->count > 0) {
                 _AppendToList(signal);
             }
 
@@ -408,30 +445,30 @@ nOS_Error nOS_SignalSetPrio (nOS_Signal *signal, uint8_t prio)
 }
 #endif  /* NOS_CONFIG_SIGNAL_HIGHEST_PRIO */
 
-bool nOS_SignalIsRaised (nOS_Signal *signal)
+nOS_SignalCounter nOS_SignalGetCount (nOS_Signal *signal)
 {
-    nOS_StatusReg   sr;
-    bool            raised;
+    nOS_StatusReg       sr;
+    nOS_SignalCounter   count;
 
 #if (NOS_CONFIG_SAFE > 0)
     if (signal == NULL) {
-        raised = false;
+        count = 0;
     } else
 #endif
     {
         nOS_EnterCritical(sr);
 #if (NOS_CONFIG_SAFE > 0)
         if (signal->state == NOS_SIGNAL_DELETED) {
-            raised = false;
+            count = 0;
         } else
 #endif
         {
-            raised = (signal->state & NOS_SIGNAL_RAISED) == NOS_SIGNAL_RAISED;
+            count = signal->count;
         }
         nOS_LeaveCritical(sr);
     }
 
-    return raised;
+    return count;
 }
 
 bool nOS_SignalAnyRaised (

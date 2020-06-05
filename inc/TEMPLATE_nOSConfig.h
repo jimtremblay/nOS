@@ -464,6 +464,17 @@
 
 /**********************************************************************************************************************
  *                                                                                                                    *
+ * Signal count width in bits (can be 8, 16, 32 or 64).                                                               *
+ *                                                                                                                    *
+ * Notes                                                                                                              *
+ *   1. Bits width directly affects the maximum number of times that a signal can be sent.                            *
+ *   2. For maximum performance, it is recommenced to set width of a CPU register.                                    *
+ *                                                                                                                    *
+ **********************************************************************************************************************/
+#define NOS_CONFIG_SIGNAL_COUNT_WIDTH               32
+
+/**********************************************************************************************************************
+ *                                                                                                                    *
  * Highest priority a signal can take (0 to 255 inclusively). Set to 0 to disable signal priority with all signals at *
  * the same priority. Each priority will run in his own thread.                                                       *
  *                                                                                                                    *
