@@ -472,7 +472,7 @@ nOS_Error nOS_TimerRestart (nOS_Timer *timer, nOS_TimerCounter reload)
     if (timer == NULL) {
         err = NOS_E_INV_OBJ;
     }
-    else if (reload == 0) {
+    else if ((reload == 0) && (timer->state & NOS_TIMER_FREE_RUNNING) == NOS_TIMER_FREE_RUNNING) {
         err = NOS_E_INV_VAL;
     } else
 #endif

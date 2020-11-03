@@ -1219,6 +1219,7 @@ nOS_TickCounter     nOS_GetTickCount                    (void);
  *                                                                                                                    *
  **********************************************************************************************************************/
  #define nOS_MsToTicks(MS)      (nOS_TickCounter)(((uint32_t)(MS)+((1000UL/(uint32_t)NOS_CONFIG_TICKS_PER_SECOND)-1UL))/(1000UL/(uint32_t)NOS_CONFIG_TICKS_PER_SECOND))
+ #define nOS_TicksToMs(Tick)    (nOS_TickCounter)(((uint32_t)(Tick)*1000UL)+1UL)/NOS_CONFIG_TICKS_PER_SECOND
 #endif
 
 #if (NOS_CONFIG_SLEEP_ENABLE > 0)
