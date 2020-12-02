@@ -591,12 +591,16 @@ typedef struct nOS_Barrier          nOS_Barrier;
 #if (NOS_CONFIG_FLAG_ENABLE > 0)
  #if (NOS_CONFIG_FLAG_NB_BITS == 8)
   typedef uint8_t                   nOS_FlagBits;
+  #define NOS_FLAG_BITS_ALL         0xFF
  #elif (NOS_CONFIG_FLAG_NB_BITS == 16)
   typedef uint16_t                  nOS_FlagBits;
+  #define NOS_FLAG_BITS_ALL         0xFFFF
  #elif (NOS_CONFIG_FLAG_NB_BITS == 32)
   typedef uint32_t                  nOS_FlagBits;
+  #define NOS_FLAG_BITS_ALL         0xFFFFFFFFUL
  #elif (NOS_CONFIG_FLAG_NB_BITS == 64)
   typedef uint64_t                  nOS_FlagBits;
+  #define NOS_FLAG_BITS_ALL         0xFFFFFFFFFFFFFFFFULL
  #endif
 #endif
 #if (NOS_CONFIG_MEM_ENABLE > 0)
@@ -1810,6 +1814,8 @@ nOS_Error           nOS_ThreadCreate                    (nOS_Thread *thread,
  *                                                                                                                    *
  **********************************************************************************************************************/
  nOS_Error          nOS_FlagSend                        (nOS_Flag *flag, nOS_FlagBits flags, nOS_FlagBits mask);
+ #define            nOS_FlagSet(f,m)                    nOS_FlagSend((f), NOS_FLAG_BITS_ALL, (m))
+ #define            nOS_FlagClear(f,m)                  nOS_FlagSend((f), 0, (m))
 #endif
 
 #if (NOS_CONFIG_MEM_ENABLE > 0)
